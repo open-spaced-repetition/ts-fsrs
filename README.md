@@ -27,16 +27,16 @@ workflow `import dayjs from 'dayjs'`:
 # Example
 
 ```typescript
-import { createEmptyCard, fsrs, generatorParameters } from "ts-fsrs";
+import { generatorParameters, fsrs, createEmptyCard } from 'ts-fsrs';
 import dayjs from 'dayjs'; // or import * as dayjs from "dayjs";
 
 
-const fsrsParameter = generatorParameters();
-const params = generatorParameters(fsrsParameter);
+const params = generatorParameters({ enable_fuzz: true });
 const f = fsrs(params);
 const card = createEmptyCard();
 const now = dayjs();
 const scheduling_cards = f.repeat(card, now);
+console.log(scheduling_cards);
 ```
 
-> More examples refer to the [Example.ts](https://github.com/ishiko732/ts-fsrs/blob/master/test/index.ts)
+> More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/test/index.ts)
