@@ -20,7 +20,8 @@
   },
   "scripts": {
     "test": "ts-node test/index.ts",
-    "build": "tsc"
+    "build": "tsc",
+    "test_publish": "yalc publish"
   },
   "author": "ishiko",
   "license": "MIT",
