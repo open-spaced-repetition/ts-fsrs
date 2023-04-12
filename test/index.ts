@@ -1,10 +1,11 @@
 import {Dayjs} from "dayjs";
 import {
+    fsrs,
     FSRS_Version,
     Rating,
-} from "../src/fsrs";
+} from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
-
+const f=fsrs()
 const diff = (due: Dayjs, last_review?: Dayjs, unit?: boolean) => {
     const yearDiff = due.diff(last_review, "year")
     const dayDiff = due.diff(last_review, "day")
@@ -20,7 +21,8 @@ const print_scheduling_card = (item: example) => {
         ...item.card,
         due: item.card.due.format("YYYY-MM-DD HH:mm:ss"),
         last_review: item.card.last_review?.format("YYYY-MM-DD HH:mm:ss"),
-        diff: diff(item.card.due, item.card.last_review, true)
+        diff: diff(item.card.due, item.card.last_review, true),
+        R:f.current_retrievability(item.card.elapsed_days,item.card.stability)
     });
     console.log(`${Rating[item.log.rating]}.review_log`, {
         ...item.log,
