@@ -33,7 +33,7 @@ export class SchedulingCard {
             this.again.lapses += 1
         } else if (state === State.Learning || state === State.Relearning) {
             this.again.state = state
-            this.hard.state = State.Review
+            this.hard.state = state
             this.good.state = State.Review
             this.easy.state = State.Review
         } else if (state === State.Review) {
@@ -52,7 +52,7 @@ export class SchedulingCard {
         this.good.scheduled_days = good_interval
         this.easy.scheduled_days = easy_interval
         this.again.due = now.add(5, 'minutes')
-        this.hard.due = now.add(hard_interval, 'days')
+        this.hard.due = hard_interval>0 ? now.add(hard_interval, 'days') :now.add(10, 'minutes')
         this.good.due = now.add(good_interval, 'days')
         this.easy.due = now.add(easy_interval, 'days')
         return this;
