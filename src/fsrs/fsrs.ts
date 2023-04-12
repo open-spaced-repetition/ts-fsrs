@@ -36,8 +36,8 @@ export default class FSRS {
                 break;
             case State.Learning:
             case State.Relearning:
-                hard_interval = this.next_interval(s.hard.stability)
-                good_interval = Math.max(this.next_interval(s.good.stability), hard_interval + 1)
+                hard_interval = 0
+                good_interval = this.next_interval(s.good.stability)
                 easy_interval = Math.max(this.next_interval(s.easy.stability * this.param.easy_bonus), good_interval + 1)
                 s.schedule(now, hard_interval, good_interval, easy_interval)
                 break;
