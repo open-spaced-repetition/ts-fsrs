@@ -45,7 +45,7 @@ export default class FSRS {
                 const interval = card.elapsed_days
                 const last_d = card.difficulty
                 const last_s = card.stability
-                const retrievability = Math.exp(Math.log(0.9) * interval / last_s)
+                const retrievability = this.current_retrievability(interval, last_s)
                 this.next_ds(s, last_d, last_s, retrievability)
                 hard_interval = this.next_interval(last_s * this.param.hard_factor)
                 good_interval = this.next_interval(s.good.stability)
@@ -183,5 +183,16 @@ export default class FSRS {
      */
     next_forget_stability(d: number, s: number, r: number): number {
         return this.param.w[9] * Math.pow(d, this.param.w[10]) * Math.pow(s, this.param.w[11]) * Math.exp((1 - r) * this.param.w[12])
+    }
+
+  /**
+   * The formula used is :
+   * $$R(t,S) = 0.9^{\frac{t}{S}}$$
+   * @param t t days since the last review
+   * @param s Stability (interval when R=90%)
+   * @return r Retrievability (probability of recall)
+   */
+  current_retrievability(t: number, s: number):number{
+      return Math.exp(Math.log(0.9) * t / s)
     }
 }
