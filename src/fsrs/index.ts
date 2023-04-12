@@ -59,7 +59,7 @@ const generatorParameters = (props?: {
     };
 };
 
-const FSRS_Version = 1.00;
+const FSRS_Version = 1.01;
 export {fsrs, FSRS_Version, State, Rating, SchedulingCard, createEmptyCard, generatorParameters};
 export type {StateType, RatingType, ReviewLog, Card, SchedulingLog, FSRSParameters};
 export {
