@@ -5,12 +5,11 @@ import {Card, FSRSParameters, generatorParameters, Rating, SchedulingCard, State
 export default class FSRS {
     private param: FSRSParameters
     private readonly intervalModifier;
-    private seed: string;
+    private seed?: string;
 
     constructor(param?: FSRSParameters) {
         this.param = param || generatorParameters();
         this.intervalModifier = Math.log(this.param.request_retention) / Math.log(0.9);
-        this.seed = this.param.enable_fuzz ? "" : String(this.param.maximum_interval) + String(this.param.easy_bonus)
     }
 
     repeat = (card: Card, now: dayjs.Dayjs) => {
