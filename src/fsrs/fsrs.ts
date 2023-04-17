@@ -58,6 +58,14 @@ export default class FSRS {
         return s.record_log(card, now);
     }
 
+    retrievability = (card: Card, now: dayjs.Dayjs):undefined|string => {
+        if (card.state !== State.Review){
+            return undefined;
+        }
+        const t = now.diff(dayjs(card.last_review), "days")
+        return (this.current_retrievability(t,card.stability)*100).toFixed(2)+'%';
+    }
+
     init_ds(s: SchedulingCard): void {
         s.again.difficulty = this.init_difficulty(Rating.Again)
         s.again.stability = this.init_stability(Rating.Again)
