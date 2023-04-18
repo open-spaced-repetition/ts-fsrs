@@ -193,14 +193,14 @@ export default class FSRS {
         return this.param.w[9] * Math.pow(d, this.param.w[10]) * Math.pow(s, this.param.w[11]) * Math.exp((1 - r) * this.param.w[12])
     }
 
-  /**
-   * The formula used is :
-   * $$R(t,S) = 0.9^{\frac{t}{S}}$$
-   * @param t t days since the last review
-   * @param s Stability (interval when R=90%)
-   * @return r Retrievability (probability of recall)
-   */
-  current_retrievability(t: number, s: number):number{
-      return Math.exp(Math.log(0.9) * t / s)
+    /**
+     * The formula used is :
+     * $$R(t,S) = 0.9^{\frac{t}{S}}$$
+     * @param t t days since the last review
+     * @param s Stability (interval when R=90%)
+     * @return r Retrievability (probability of recall)
+     */
+    current_retrievability(t: number, s: number):number{
+        return Math.exp(Math.log(0.9) * t / s)
     }
 }
