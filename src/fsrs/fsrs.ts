@@ -58,11 +58,11 @@ export default class FSRS {
         return s.record_log(card, now);
     }
 
-    retrievability = (card: Card, now: dayjs.Dayjs):undefined|string => {
+    get_retrievability = (card: Card, now: dayjs.Dayjs):undefined|string => {
         if (card.state !== State.Review){
             return undefined;
         }
-        const t = now.diff(dayjs(card.last_review), "days")
+        const t = Math.max(now.diff(dayjs(card.last_review), "days"), 0)
         return (this.current_retrievability(t,card.stability)*100).toFixed(2)+'%';
     }
 
