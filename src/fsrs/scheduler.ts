@@ -60,7 +60,7 @@ export class SchedulingCard {
 
     record_log(card: Card, now: Dayjs) {
         return <SchedulingLog>{
-            0: {
+            [Rating.Again]: {
                 card: this.again,
                 log: {
                     rating: Rating.Again,
@@ -70,7 +70,7 @@ export class SchedulingCard {
                     review: now
                 }
             },
-            1: {
+            [Rating.Hard]: {
                 card: this.hard,
                 log: {
                     rating: Rating.Hard,
@@ -80,7 +80,7 @@ export class SchedulingCard {
                     review: now
                 }
             },
-            2: {
+            [Rating.Good]: {
                 card: this.good,
                 log: {
                     rating: Rating.Good,
@@ -90,7 +90,7 @@ export class SchedulingCard {
                     review: now
                 }
             },
-            3: {
+            [Rating.Easy]: {
                 card: this.easy,
                 log: {
                     rating: Rating.Easy,
