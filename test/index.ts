@@ -1,10 +1,11 @@
-import {Dayjs} from "dayjs";
+import dayjs, {Dayjs} from "dayjs";
 import {
     fsrs,
     FSRS_Version,
     Rating,
 } from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
+import seedrandom from 'seedrandom';
 const f=fsrs()
 const diff = (due: Dayjs, last_review?: Dayjs, unit?: boolean) => {
     const yearDiff = due.diff(last_review, "year")
@@ -16,7 +17,18 @@ const diff = (due: Dayjs, last_review?: Dayjs, unit?: boolean) => {
     return yearDiff !== 0 ? yearDiff : dayDiff !== 0 ? dayDiff : minuteDiff
 }
 
+const random_diff=(diff:number)=>{
+    const generator = seedrandom(dayjs().toISOString());
+    const fuzz_factor = generator();
+    const max_ivl = Math.max(2,diff*0.95-1);
+    const min_ivl = diff*1.05+1
+    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
+}
+
+
 const print_scheduling_card = (item: example) => {
+    const diff_day = item.card.due.diff(item.card.last_review,'days')
+    const random_day = random_diff(diff_day)
     console.group(`${Rating[item.log.rating]}`);
         console.table({
             [`${Rating[item.log.rating]}.card:`]: {
@@ -24,7 +36,8 @@ const print_scheduling_card = (item: example) => {
                 due: item.card.due.format("YYYY-MM-DD HH:mm:ss"),
                 last_review: item.card.last_review?.format("YYYY-MM-DD HH:mm:ss"),
                 diff: diff(item.card.due, item.card.last_review, true),
-                R:f.current_retrievability(item.card.elapsed_days,item.card.stability)
+                R:f.get_retrievability(item.card,(item.card.last_review as Dayjs).add(random_day,'days')),
+                Random_Day:random_day+'day'
             }
         });
         console.table({
