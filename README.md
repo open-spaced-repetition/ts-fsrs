@@ -27,7 +27,7 @@ workflow `import dayjs from 'dayjs'`:
 # Example
 
 ```typescript
-import { generatorParameters, fsrs, createEmptyCard } from 'ts-fsrs';
+import { createEmptyCard, fsrs, generatorParameters, Rating } from 'ts-fsrs';
 import dayjs from 'dayjs'; // or import * as dayjs from "dayjs";
 
 
@@ -36,7 +36,27 @@ const f = fsrs(params);
 const card = createEmptyCard();
 const now = dayjs();
 const scheduling_cards = f.repeat(card, now);
-console.log(scheduling_cards);
+
+// console.log(scheduling_cards);
+Object.keys(Rating).filter(key=>typeof Rating[key as any] === 'number').forEach(key=> {
+  console.group(`${key}`);
+  console.table({
+    [`card_${key}`]:{
+      ...scheduling_cards[(Rating as any )[key]].card,
+      due:scheduling_cards[(Rating as any )[key]].card.due.format(),
+      last_review:scheduling_cards[(Rating as any )[key]].card.due.format()
+    }
+  })
+  console.table({
+    [`log_${key}`]:{
+      ...scheduling_cards[(Rating as any )[key]].log,
+      review:scheduling_cards[(Rating as any )[key]].log.review.format()
+    }
+  })
+  console.groupEnd();
+  console.log('----------------------------------------------------------------')
+})
+
 ```
 
 > More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/test/index.ts)
