@@ -17,17 +17,24 @@ const diff = (due: Dayjs, last_review?: Dayjs, unit?: boolean) => {
 }
 
 const print_scheduling_card = (item: example) => {
-    console.log(`${Rating[item.log.rating]}.card:`, {
-        ...item.card,
-        due: item.card.due.format("YYYY-MM-DD HH:mm:ss"),
-        last_review: item.card.last_review?.format("YYYY-MM-DD HH:mm:ss"),
-        diff: diff(item.card.due, item.card.last_review, true),
-        R:f.current_retrievability(item.card.elapsed_days,item.card.stability)
-    });
-    console.log(`${Rating[item.log.rating]}.review_log`, {
-        ...item.log,
-        review: item.log.review.format("YYYY-MM-DD HH:mm:ss"),
-    })
+    console.group(`${Rating[item.log.rating]}`);
+        console.table({
+            [`${Rating[item.log.rating]}.card:`]: {
+                ...item.card,
+                due: item.card.due.format("YYYY-MM-DD HH:mm:ss"),
+                last_review: item.card.last_review?.format("YYYY-MM-DD HH:mm:ss"),
+                diff: diff(item.card.due, item.card.last_review, true),
+                R:f.current_retrievability(item.card.elapsed_days,item.card.stability)
+            }
+        });
+        console.table({
+            [`${Rating[item.log.rating]}.review_log`]:{
+                ...item.log,
+                review: item.log.review.format("YYYY-MM-DD HH:mm:ss"),
+            }
+        })
+    console.groupEnd();
+    console.log('----------------------------------------------------------------')
 }
 
 
