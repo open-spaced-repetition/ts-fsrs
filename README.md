@@ -27,9 +27,8 @@ workflow `import dayjs from 'dayjs'`:
 # Example
 
 ```typescript
-import { createEmptyCard, fsrs, generatorParameters } from '../src/fsrs';
+import { createEmptyCard, fsrs, generatorParameters, Rating } from 'ts-fsrs';
 import dayjs from 'dayjs'; // or import * as dayjs from "dayjs";
-import { Rating } from '../lib';
 
 
 const params = generatorParameters({ enable_fuzz: true });
