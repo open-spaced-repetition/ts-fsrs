@@ -11,7 +11,6 @@ import {
     StateType,
 } from "./models";
 import {SchedulingCard} from "./scheduler";
-import dayjs from "dayjs";
 
 const fsrs = (param?: FSRSParameters) => {
     return new FSRS(param)
@@ -19,7 +18,7 @@ const fsrs = (param?: FSRSParameters) => {
 
 const createEmptyCard = (): Card => {
     return {
-        due: dayjs(),
+        due: new Date(),
         stability: 0,
         difficulty: 0,
         elapsed_days: 0,

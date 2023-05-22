@@ -1,6 +1,6 @@
-import dayjs from "dayjs";
 import seedrandom from "seedrandom";
 import {Card, FSRSParameters, generatorParameters, Rating, SchedulingCard, State} from "./index";
+import { date_diff, date_scheduler } from '../date_help';
 
 export default class FSRS {
     private param: FSRSParameters
@@ -12,27 +12,27 @@ export default class FSRS {
         this.intervalModifier = Math.log(this.param.request_retention) / Math.log(0.9);
     }
 
-    repeat = (card: Card, now: dayjs.Dayjs) => {
+    repeat = (card: Card, now: Date) => {
         card = {
             ...card
         }
-        now = now.clone();
-        card.elapsed_days = card.state === State.New ? 0 : now.diff(dayjs(card.last_review), "days")//相距时间
+        now = new Date(now.getTime())
+        card.elapsed_days = card.state === State.New ? 0 : date_diff(now,card.last_review as Date,"days")//相距时间
         card.last_review = now; // 上次复习时间
         card.reps += 1;
         const s = new SchedulingCard(card);
         s.update_state(card.state);
-        this.seed = String(card.last_review.unix()) + String(card.elapsed_days)
+        this.seed = String(card.last_review.getTime()) + String(card.elapsed_days)
         let easy_interval, good_interval, hard_interval;
         switch (card.state) {
             case State.New:
                 this.init_ds(s);
-                s.again.due = now.add(1, 'minutes')
-                s.hard.due = now.add(5, "minutes")
-                s.good.due = now.add(10, "minutes")
+                s.again.due = date_scheduler(now,1)
+                s.hard.due = date_scheduler(now,5)
+                s.good.due = date_scheduler(now,10)
                 easy_interval = this.next_interval(s.easy.stability * this.param.easy_bonus);
                 s.easy.scheduled_days = easy_interval
-                s.easy.due = now.add(easy_interval, "days")
+                s.easy.due = date_scheduler(now,easy_interval,true)
                 break;
             case State.Learning:
             case State.Relearning:
@@ -58,11 +58,11 @@ export default class FSRS {
         return s.record_log(card, now);
     }
 
-    get_retrievability = (card: Card, now: dayjs.Dayjs):undefined|string => {
+    get_retrievability = (card: Card, now: Date):undefined|string => {
         if (card.state !== State.Review){
             return undefined;
         }
-        const t = Math.max(now.diff(dayjs(card.last_review), "days"), 0)
+        const t = Math.max(date_diff(now,card.last_review as Date,"days"), 0)
         return (this.current_retrievability(t,card.stability)*100).toFixed(2)+'%';
     }
 
