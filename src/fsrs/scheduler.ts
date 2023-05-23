@@ -1,5 +1,5 @@
 import { Card, Rating, SchedulingLog, State } from './models';
-import { date_scheduler } from '../date_help';
+import { date_scheduler } from './help';
 
 
 export class SchedulingCard {

@@ -5,7 +5,7 @@ import {
 } from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
 import seedrandom from 'seedrandom';
-import { date_diff, date_scheduler, formatDate, show_diff_message } from '../src/date_help';
+import { date_diff, date_scheduler, formatDate, show_diff_message } from '../src/fsrs';
 const f=fsrs()
 
 const random_diff=(diff:number)=>{

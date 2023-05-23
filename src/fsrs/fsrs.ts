@@ -1,6 +1,6 @@
 import seedrandom from "seedrandom";
 import {Card, FSRSParameters, generatorParameters, Rating, SchedulingCard, State} from "./index";
-import { date_diff, date_scheduler } from '../date_help';
+import { date_diff, date_scheduler } from './help';
 
 export default class FSRS {
     private param: FSRSParameters
