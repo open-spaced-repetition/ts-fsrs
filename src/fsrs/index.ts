@@ -16,9 +16,9 @@ const fsrs = (param?: FSRSParameters) => {
     return new FSRS(param)
 }
 
-const createEmptyCard = (): Card => {
+const createEmptyCard = (now?:Date): Card => {
     return {
-        due: new Date(),
+        due: now||new Date(),
         stability: 0,
         difficulty: 0,
         elapsed_days: 0,
@@ -58,7 +58,7 @@ const generatorParameters = (props?: {
     };
 };
 
-const FSRS_Version = 1.20;
+const FSRS_Version = "2.0.0";
 export {fsrs, FSRS_Version, State, Rating, SchedulingCard, createEmptyCard, generatorParameters};
 export type {StateType, RatingType, ReviewLog, Card, SchedulingLog, FSRSParameters};
 export {

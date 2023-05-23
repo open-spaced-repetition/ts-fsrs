@@ -9,53 +9,39 @@ developers apply FSRS to their flashcard applications, thereby improving the use
 npm install ts-fsrs
 ```
 
-# [Have trouble importing Day.js?](https://day.js.org/docs/en/installation/typescript#have-trouble-importing-dayjs)
-
-If your `tsconfig.json` contains the following config, you must do the default import
-workflow `import dayjs from 'dayjs'`:
-
-```
-//tsconfig.json
-{
-  "compilerOptions": {
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-  }
-}
-```
-
 # Example
 
 ```typescript
-import { createEmptyCard, fsrs, generatorParameters, Rating } from 'ts-fsrs';
-import dayjs from 'dayjs'; // or import * as dayjs from "dayjs";
-
+import { createEmptyCard, fsrs, generatorParameters, Rating } from '../src/fsrs';
+import { formatDate } from '../src/date_help';
 
 const params = generatorParameters({ enable_fuzz: true });
 const f = fsrs(params);
-const card = createEmptyCard();
-const now = dayjs();
+const card = createEmptyCard(new Date('2022-2-1 10:00:00'));// createEmptyCard();
+const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
 // console.log(scheduling_cards);
-Object.keys(Rating).filter(key=>typeof Rating[key as any] === 'number').forEach(key=> {
+Object.keys(Rating).filter(key => typeof Rating[key as any] === 'number').forEach(key => {
+  // @ts-ignore
+  const { log, card } = scheduling_cards[Rating[key]];
   console.group(`${key}`);
   console.table({
-    [`card_${key}`]:{
-      ...scheduling_cards[(Rating as any )[key]].card,
-      due:scheduling_cards[(Rating as any )[key]].card.due.format(),
-      last_review:scheduling_cards[(Rating as any )[key]].card.due.format()
-    }
-  })
+    [`card_${key}`]: {
+      ...card,
+      due: formatDate(card.due),
+      last_review: formatDate(card.last_review),
+    },
+  });
   console.table({
-    [`log_${key}`]:{
-      ...scheduling_cards[(Rating as any )[key]].log,
-      review:scheduling_cards[(Rating as any )[key]].log.review.format()
-    }
-  })
+    [`log_${key}`]: {
+      ...log,
+      review: formatDate(log.review),
+    },
+  });
   console.groupEnd();
-  console.log('----------------------------------------------------------------')
-})
+  console.log('----------------------------------------------------------------');
+});
 
 ```
 
