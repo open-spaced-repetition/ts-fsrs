@@ -20,7 +20,10 @@
   "scripts": {
     "test": "ts-node test/index.ts",
     "build": "tsc",
-    "test_publish": "yalc publish"
+    "test_publish": "yalc publish",
+    "major": "npm version major",
+    "minor": "npm version minor",
+    "patch": "npm version patch"
   },
   "author": "ishiko",
   "license": "MIT",
