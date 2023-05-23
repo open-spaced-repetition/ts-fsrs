@@ -12,8 +12,7 @@ npm install ts-fsrs
 # Example
 
 ```typescript
-import { createEmptyCard, fsrs, generatorParameters, Rating } from '../src/fsrs';
-import { formatDate } from '../src/date_help';
+import {createEmptyCard, formatDate, fsrs, generatorParameters, Rating} from 'ts-fsrs';
 
 const params = generatorParameters({ enable_fuzz: true });
 const f = fsrs(params);
