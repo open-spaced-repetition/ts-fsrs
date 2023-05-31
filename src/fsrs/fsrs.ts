@@ -1,6 +1,6 @@
 import seedrandom from "seedrandom";
 import {Card, FSRSParameters, generatorParameters, Rating, SchedulingCard, State} from "./index";
-import { date_diff, date_scheduler } from './help';
+import { int } from './help';
 
 export default class FSRS {
     private param: FSRSParameters
@@ -17,7 +17,7 @@ export default class FSRS {
             ...card
         }
         now = new Date(now.getTime())
-        card.elapsed_days = card.state === State.New ? 0 : date_diff(now,card.last_review as Date,"days")//相距时间
+        card.elapsed_days = card.state === State.New ? 0 : now.diff(card.last_review as Date,"days")//相距时间
         card.last_review = now; // 上次复习时间
         card.reps += 1;
         const s = new SchedulingCard(card);
@@ -27,12 +27,12 @@ export default class FSRS {
         switch (card.state) {
             case State.New:
                 this.init_ds(s);
-                s.again.due = date_scheduler(now,1)
-                s.hard.due = date_scheduler(now,5)
-                s.good.due = date_scheduler(now,10)
+                s.again.due = now.scheduler(1 as int)
+                s.hard.due = now.scheduler(5 as int)
+                s.good.due = now.scheduler(10 as int)
                 easy_interval = this.next_interval(s.easy.stability * this.param.easy_bonus);
                 s.easy.scheduled_days = easy_interval
-                s.easy.due = date_scheduler(now,easy_interval,true)
+                s.easy.due = now.scheduler(easy_interval, true)
                 break;
             case State.Learning:
             case State.Relearning:
@@ -62,7 +62,7 @@ export default class FSRS {
         if (card.state !== State.Review){
             return undefined;
         }
-        const t = Math.max(date_diff(now,card.last_review as Date,"days"), 0)
+        const t = Math.max(now.diff(card.last_review as Date,"days"), 0)
         return (this.current_retrievability(t,card.stability)*100).toFixed(2)+'%';
     }
 
@@ -127,9 +127,9 @@ export default class FSRS {
         return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
     }
 
-    next_interval(s: number): number {
+    next_interval(s: number): int {
         const newInterval = this.apply_fuzz(s * this.intervalModifier);
-        return Math.min(Math.max(Math.round(newInterval), 1), this.param.maximum_interval);
+        return Math.min(Math.max(Math.round(newInterval), 1), this.param.maximum_interval) as int;
     }
 
 

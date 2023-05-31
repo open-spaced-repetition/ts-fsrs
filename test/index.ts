@@ -5,7 +5,7 @@ import {
 } from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
 import seedrandom from 'seedrandom';
-import { date_diff, date_scheduler, formatDate, show_diff_message } from '../src/fsrs';
+import { int } from '../src/fsrs/help';
 const f=fsrs()
 
 const random_diff=(diff:number)=>{
@@ -13,28 +13,28 @@ const random_diff=(diff:number)=>{
     const fuzz_factor = generator();
     const max_ivl = Math.max(2,diff*0.95-1);
     const min_ivl = diff*1.05+1
-    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
+    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int;
 }
 
 
 const print_scheduling_card = (item: example) => {
-    const diff_day = date_diff(item.card.due,item.card.last_review as Date,'days')
-    const random_day = diff_day==0? 0: random_diff(diff_day)
+    const diff_day = item.card.due.diff(item.card.last_review as Date,'days')
+    const random_day = diff_day==0? 0 as int: random_diff(diff_day)
     console.group(`${Rating[item.log.rating]}`);
         console.table({
             [`${Rating[item.log.rating]}.card:`]: {
                 ...item.card,
-                due: formatDate(item.card.due),
-                last_review: item.card.last_review? formatDate(item.card.last_review):"",
-                diff: show_diff_message(item.card.due, item.card.last_review as Date, true),
-                R:f.get_retrievability(item.card,date_scheduler(item.card.last_review as Date,random_day,true)),
+                due: item.card.due.format(),
+                last_review: item.card.last_review? item.card.last_review.format():"",
+                diff: item.card.due.dueFormat(item.card.last_review as Date, true),
+                R:f.get_retrievability(item.card,(item.card.last_review as Date).scheduler(random_day,true)),
                 Random_Day:random_day==0? 'N/A': random_day+'day'
             }
         });
         console.table({
             [`${Rating[item.log.rating]}.review_log`]:{
                 ...item.log,
-                review: formatDate(item.log.review),
+                review: item.log.review.format(),
             }
         })
     console.groupEnd();
