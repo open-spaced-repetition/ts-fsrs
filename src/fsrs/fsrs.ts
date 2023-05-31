@@ -138,11 +138,11 @@ export default class FSRS {
      * $$next_d = D + w_4 \cdot (R - 2)$$
      * $$D^\prime(D,R) = w_5 \cdot D_0(2) +(1 - w_5) \cdot next_d$$
      * @param d
-     * @param r Rating[0.again,1.hard,2.good,3.easy]
+     * @param g Grade (Rating[0.again,1.hard,2.good,3.easy])
      * @return next_D
      */
-    next_difficulty(d: number, r: number): number {
-        const next_d = d + this.param.w[4] * (r - 2)
+    next_difficulty(d: number, g: number): number {
+        const next_d = d + this.param.w[4] * (g - 2)
         return this.constrain_difficulty(this.mean_reversion(this.param.w[2], next_d))
 
     }
