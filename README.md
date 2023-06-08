@@ -41,7 +41,6 @@ Object.keys(Rating).filter(key => typeof Rating[key as any] === 'number').forEac
   console.groupEnd();
   console.log('----------------------------------------------------------------');
 });
-
 ```
 
 > More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/test/index.ts)

@@ -17,7 +17,6 @@ const random_diff=(diff:number)=>{
     return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int;
 }
 
-
 const print_scheduling_card = (item: example) => {
     const diff_day = item.card.due.diff(item.card.last_review as Date,'days')
     const random_day = diff_day==0? 0 as int: random_diff(diff_day)
