@@ -2,6 +2,7 @@ import {
     fsrs,
     FSRS_Version,
     Rating,
+    State
 } from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
 import seedrandom from 'seedrandom';
@@ -25,6 +26,7 @@ const print_scheduling_card = (item: example) => {
             [`${Rating[item.log.rating]}.card:`]: {
                 ...item.card,
                 due: item.card.due.format(),
+                state:`${item.card.state}(${State[item.card.state]})`,
                 last_review: item.card.last_review? item.card.last_review.format():"",
                 diff: item.card.due.dueFormat(item.card.last_review as Date, true),
                 R:f.get_retrievability(item.card,(item.card.last_review as Date).scheduler(random_day,true)),
@@ -34,6 +36,8 @@ const print_scheduling_card = (item: example) => {
         console.table({
             [`${Rating[item.log.rating]}.review_log`]:{
                 ...item.log,
+                rating:`${item.log.rating}(${Rating[item.log.rating]})`,
+                state:`${item.log.state}(${State[item.log.state]})`,
                 review: item.log.review.format(),
             }
         })
