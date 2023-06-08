@@ -1,7 +1,6 @@
 // noinspection UnnecessaryLocalVariableJS,DuplicatedCode
 
 import {Card, createEmptyCard, fsrs, FSRSParameters, generatorParameters, Rating, ReviewLog} from "../src/fsrs";
-import dayjs from "dayjs";
 
 interface example {
     card: Card;
@@ -13,7 +12,7 @@ const generatorExample1 = (fsrsParameter?: FSRSParameters): example[] => {
     const params = generatorParameters(fsrsParameter);
     const f = fsrs(params);
     let card = createEmptyCard()
-    let now = dayjs("2023-10-10 10:00:00");
+    let now = new Date("2023-10-10 10:00:00");
     let scheduling_cards = f.repeat(card, now)
     const again = scheduling_cards[Rating.Again];
 
@@ -47,7 +46,7 @@ const generatorExample2 = (fsrsParameter?: FSRSParameters): example[] => {
     const params = generatorParameters(fsrsParameter);
     const f = fsrs(params);
     let card = createEmptyCard()
-    let now = dayjs();
+    let now = new Date("2023-10-10 10:00:00");
     let scheduling_cards = f.repeat(card, now);
     const hard1 = scheduling_cards[Rating.Hard];
 
@@ -95,7 +94,7 @@ const generatorExample3 = (fsrsParameter?: FSRSParameters): example[] => {
     const params = generatorParameters(fsrsParameter);
     const f = fsrs(params);
     let card = createEmptyCard()
-    let now = dayjs();
+    let now = new Date("2023-10-10 10:00:00");
     let scheduling_cards = f.repeat(card, now);
     const good1 = scheduling_cards[Rating.Good];
 
@@ -143,7 +142,7 @@ const generatorExample4 = (fsrsParameter?: FSRSParameters): example[] => {
     const params = generatorParameters(fsrsParameter);
     const f = fsrs(params);
     let card = createEmptyCard()
-    let now = dayjs();
+    let now = new Date("2023-10-10 10:00:00");
     let scheduling_cards = f.repeat(card, now);
     const easy1 = scheduling_cards[Rating.Easy];
 

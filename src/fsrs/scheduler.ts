@@ -1,5 +1,5 @@
-import {Card, Rating, SchedulingLog, State} from "./models";
-import {Dayjs} from "dayjs";
+import { Card, Rating, SchedulingLog, State } from './models';
+import { date_scheduler } from './help';
 
 
 export class SchedulingCard {
@@ -10,12 +10,9 @@ export class SchedulingCard {
 
     private copy(card: Card): Card {
         return {
-            ...card,
-            due: card.due.clone(),
-            last_review: card.last_review?.clone()
+            ...card
         }
     }
-
 
     constructor(card: Card) {
         this.again = this.copy(card);
@@ -46,20 +43,20 @@ export class SchedulingCard {
         return this;
     }
 
-    schedule(now: Dayjs, hard_interval: number, good_interval: number, easy_interval: number): SchedulingCard {
+    schedule(now: Date, hard_interval: number, good_interval: number, easy_interval: number): SchedulingCard {
         this.again.scheduled_days = 0
         this.hard.scheduled_days = hard_interval
         this.good.scheduled_days = good_interval
         this.easy.scheduled_days = easy_interval
-        this.again.due = now.add(5, 'minutes')
-        this.hard.due = hard_interval>0 ? now.add(hard_interval, 'days') :now.add(10, 'minutes')
-        this.good.due = now.add(good_interval, 'days')
-        this.easy.due = now.add(easy_interval, 'days')
+        this.again.due = date_scheduler(now,5)
+        this.hard.due = hard_interval>0 ? date_scheduler(now,hard_interval,true) :date_scheduler(now,10)
+        this.good.due = date_scheduler(now,good_interval,true)
+        this.easy.due = date_scheduler(now,easy_interval,true)
         return this;
     }
 
-    record_log(card: Card, now: Dayjs) {
-        return <SchedulingLog>{
+    record_log(card: Card, now: Date) {
+        return {
             [Rating.Again]: {
                 card: this.again,
                 log: {

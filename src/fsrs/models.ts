@@ -1,4 +1,3 @@
-import {Dayjs} from 'dayjs';
 
 export type StateType = "Learning" | "New" | "Review" | "Relearning";
 
@@ -24,11 +23,11 @@ export interface ReviewLog {
     state: State,
     elapsed_days: number,
     scheduled_days: number,
-    review: Dayjs,
+    review: Date,
 }
 
 export interface Card {
-    due: Dayjs,
+    due: Date,
     stability: number, // 稳定性
     difficulty: number, //难度
     elapsed_days: number,
@@ -36,7 +35,7 @@ export interface Card {
     reps: number,
     lapses: number,
     state: State
-    last_review?: Dayjs,
+    last_review?: Date,
 }
 
 export interface SchedulingLog {
