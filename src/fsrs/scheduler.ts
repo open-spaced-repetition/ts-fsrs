@@ -1,4 +1,4 @@
-import { Card, Rating, State } from './models';
+import { Card, Rating, SchedulingLog, State } from './models';
 import { date_scheduler } from './help';
 
 
@@ -61,7 +61,7 @@ export class SchedulingCard {
                 card: this.again,
                 log: {
                     rating: Rating.Again,
-                    state: card.state == State.New? State.Learning: card.state,
+                    state: card.state,
                     elapsed_days: this.again.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
@@ -71,8 +71,8 @@ export class SchedulingCard {
                 card: this.hard,
                 log: {
                     rating: Rating.Hard,
-                    state: card.state == State.New? State.Learning: card.state,
-                    elapsed_days: this.hard.scheduled_days,
+                    state: card.state,
+                    elapsed_days: this.again.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
@@ -81,8 +81,8 @@ export class SchedulingCard {
                 card: this.good,
                 log: {
                     rating: Rating.Good,
-                    state: card.state == State.New? State.Learning: card.state,
-                    elapsed_days: this.good.scheduled_days,
+                    state: card.state,
+                    elapsed_days: this.again.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
@@ -91,8 +91,8 @@ export class SchedulingCard {
                 card: this.easy,
                 log: {
                     rating: Rating.Easy,
-                    state: card.state == State.New? State.Learning: card.state,
-                    elapsed_days: this.easy.scheduled_days,
+                    state: card.state,
+                    elapsed_days: this.again.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
