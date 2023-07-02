@@ -1,7 +1,7 @@
 # About The
 
-ts-fsrs is a TypeScript package used to implement the Free Spaced Repetition Scheduler (FSRS) algorithm. It helps
-developers apply FSRS to their flashcard applications, thereby improving the user learning experience.,
+ts-fsrs is a TypeScript package used to implement the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler). It helps
+developers apply FSRS to their flashcard applications, there by improving the user learning experience.
 
 # Usage
 
