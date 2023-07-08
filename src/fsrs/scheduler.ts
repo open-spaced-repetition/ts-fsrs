@@ -1,4 +1,4 @@
-import { Card, Rating, SchedulingLog, State } from './models';
+import { Card, Rating, State } from './models';
 import { date_scheduler } from './help';
 
 
@@ -72,7 +72,7 @@ export class SchedulingCard {
                 log: {
                     rating: Rating.Hard,
                     state: card.state,
-                    elapsed_days: this.again.scheduled_days,
+                    elapsed_days: this.hard.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
@@ -82,7 +82,7 @@ export class SchedulingCard {
                 log: {
                     rating: Rating.Good,
                     state: card.state,
-                    elapsed_days: this.again.scheduled_days,
+                    elapsed_days: this.good.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
@@ -92,7 +92,7 @@ export class SchedulingCard {
                 log: {
                     rating: Rating.Easy,
                     state: card.state,
-                    elapsed_days: this.again.scheduled_days,
+                    elapsed_days: this.easy.scheduled_days,
                     scheduled_days: card.elapsed_days,
                     review: now
                 }
