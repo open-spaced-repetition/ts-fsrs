@@ -102,3 +102,5 @@ export {
   formatDate,
   show_diff_message,
 } from "./help";
+
+export type { int, double } from "./help";

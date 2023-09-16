@@ -7,7 +7,7 @@ import {
   SchedulingCard,
   State,
 } from "./index";
-import { int } from "./help";
+import {fixDate, int} from "./help";
 
 export default class FSRS {
   private param: FSRSParameters;
@@ -24,7 +24,7 @@ export default class FSRS {
     card = {
       ...card,
     };
-    now = new Date(now.getTime());
+    now = new Date(fixDate(now));
     card.elapsed_days =
       card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
     card.last_review = now; // 上次复习时间
