@@ -12,21 +12,22 @@ on:
 
 jobs:
   build:
-    needs: cache-and-install
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2.2.2
-        with: 8
-      - run: pnpm i
+        with: 
+          verison: 8
+      - run: pnpm install
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
 
   publish-npm:
-    needs: [cache-and-install,build]
+    needs: [build]
     runs-on: ubuntu-latest
     steps:
+      - run: pnpm version patch
       - run: pnpm publish
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
