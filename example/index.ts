@@ -1,11 +1,10 @@
 import {
-    fsrs,
+    fsrs, int,
     Rating,
     State
-} from '../src/fsrs';
+} from 'ts-fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
 import seedrandom from 'seedrandom';
-import {int} from "ts-fsrs/lib/help";
 const f=fsrs()
 
 const random_diff=(diff:number)=>{
