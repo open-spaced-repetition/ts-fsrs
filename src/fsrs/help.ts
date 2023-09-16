@@ -73,40 +73,45 @@ function padZero(num: number): string {
   return num < 10 ? `0${num}` : `${num}`;
 }
 
+const TIMEUNIT = [60, 60, 24, 31, 12];
+const TIMEUNITFORMAT = ["second", "min", "hour", "day", "month", "year"];
+
 export function show_diff_message(
   due: Date,
   last_review: Date,
   unit?: boolean,
+  timeUnit: string[] = TIMEUNITFORMAT,
 ): string {
-  const diff = due.getTime() - last_review.getTime();
-
-  if (diff < 1000 * 60 * 60) {
-    // 小于1小时
-    return unit
-      ? Math.floor(diff / (60 * 1000)) + "min"
-      : String(Math.floor(diff / (60 * 1000)));
-  } else if (diff >= 1000 * 60 * 60 && diff < 1000 * 60 * 60 * 24) {
-    // 大于1小时,小于1天
-    return unit
-      ? Math.floor(diff / (60 * 60 * 1000)) + "hour"
-      : String(Math.floor(diff / (60 * 60 * 1000)));
-  } else if (diff >= 1000 * 60 * 60 * 24 && diff < 1000 * 60 * 60 * 24 * 31) {
-    // 大于1天,小于31天
-    return unit
-      ? Math.floor(diff / (24 * 60 * 60 * 1000)) + "day"
-      : String(Math.floor(diff / (24 * 60 * 60 * 1000 * 1000)));
-  } else if (
-    diff >= 1000 * 60 * 60 * 24 * 31 &&
-    diff < 1000 * 60 * 60 * 24 * 365
-  ) {
-    // 大于31天,小于365天
-    return unit
-      ? (diff / (30 * 24 * 60 * 60 * 1000)).toFixed(2) + "month"
-      : (diff / (30 * 24 * 60 * 60 * 1000)).toFixed(2);
-  } else {
-    // 大于365天
-    return unit
-      ? (diff / (365 * 24 * 60 * 60 * 1000)).toFixed(2) + "year"
-      : (diff / (365 * 24 * 60 * 60 * 1000)).toFixed(2);
+  due = fixDate(due);
+  last_review = fixDate(last_review);
+  if (timeUnit.length !== TIMEUNITFORMAT.length) {
+    timeUnit = TIMEUNITFORMAT;
   }
+  let diff = due.getTime() - last_review.getTime();
+  let i;
+  diff /= 1000;
+  for (i = 0; i < TIMEUNIT.length; i++) {
+    if (diff < TIMEUNIT[i]) {
+      break;
+    } else {
+      diff /= TIMEUNIT[i];
+    }
+  }
+  return `${Math.floor(diff)}${unit ? timeUnit[i] : ""}`;
+}
+
+export function fixDate(value: unknown) {
+  if (typeof value === "object" && value instanceof Date) {
+    return value;
+  } else if (typeof value === "string") {
+    const timestamp = Date.parse(value);
+    if (!isNaN(timestamp)) {
+      return new Date(timestamp);
+    } else {
+      throw new Error(`Invalid date:[${value}]`);
+    }
+  } else if (typeof value === "number") {
+    return new Date(value);
+  }
+  throw new Error(`Invalid date:[${value}]`);
 }
