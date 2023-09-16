@@ -19,6 +19,7 @@ jobs:
         with:
           node-version: 16
       - run: pnpm lint
+      - run: pnpm test
       - run: pnpm build
 
   publish-npm:
@@ -30,7 +31,6 @@ jobs:
         with:
           node-version: 16
           registry-url: https://registry.npmjs.org/
-      - run: pnpm lint
       - run: pnpm build
       - run: npm publish
         env:
