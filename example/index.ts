@@ -5,7 +5,7 @@ import {
 } from '../src/fsrs';
 import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
 import seedrandom from 'seedrandom';
-import { int } from '../src/fsrs/help';
+import {int} from "ts-fsrs/lib/help";
 const f=fsrs()
 
 const random_diff=(diff:number)=>{
