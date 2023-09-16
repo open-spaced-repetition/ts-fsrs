@@ -1,6 +1,5 @@
 import {
     fsrs,
-    FSRS_Version,
     Rating,
     State
 } from '../src/fsrs';
@@ -55,6 +54,4 @@ const test = () => {
     generatorExample4().forEach(item => print_scheduling_card(item));
 }
 
-//test
-console.log(`FSRS_Version:${FSRS_Version}`)
 test()
