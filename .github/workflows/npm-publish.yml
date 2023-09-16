@@ -24,9 +24,15 @@ jobs:
       - run: pnpm build
 
   publish-npm:
-    needs: [build]
+    needs: build
     runs-on: ubuntu-latest
     steps:
-      - run: pnpm publish
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.npm_token}}
+      - uses: actions/checkout@v2
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 8.7.1
+      - run: pnpm install
+      - run: pnpm build
+      - uses: JS-DevTools/npm-publish@v2
+        with:
+            token: ${{secrets.npm_token}}
