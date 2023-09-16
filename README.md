@@ -43,4 +43,4 @@ Object.keys(Rating).filter(key => typeof Rating[key as any] === 'number').forEac
 });
 ```
 
-> More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/test/index.ts)
+> More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/example/index.ts)

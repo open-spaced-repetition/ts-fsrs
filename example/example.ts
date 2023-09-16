@@ -1,6 +1,6 @@
 // noinspection UnnecessaryLocalVariableJS,DuplicatedCode
 
-import {Card, createEmptyCard, fsrs, FSRSParameters, generatorParameters, Rating, ReviewLog} from "../src/fsrs";
+import {Card, createEmptyCard, fsrs, FSRSParameters, generatorParameters, Rating, ReviewLog} from "ts-fsrs";
 
 interface example {
     card: Card;
