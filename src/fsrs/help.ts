@@ -1,6 +1,5 @@
-export type unit = "days" | "minutes";
-export type int = number & { __int__: void };
-export type double = number & { __double__: void };
+import type {int,unit} from "./type";
+
 declare global {
   export interface Date {
     scheduler(t: int, isDay?: boolean): Date;

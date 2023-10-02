@@ -1,21 +1,16 @@
 import pseudorandom from "seedrandom";
-import {
-  Card,
-  FSRSParameters,
-  generatorParameters,
-  Rating,
-  SchedulingCard,
-  State,
-} from "./index";
-import {fixDate, int} from "./help";
+import { generatorParameters, SchedulingCard } from "./index";
+import { fixDate } from "./help";
+import { FSRSParameters, Card, State, Rating } from "./models";
+import type { int } from "./type";
 
-export default class FSRS {
+export class FSRS {
   private param: FSRSParameters;
   private readonly intervalModifier;
   private seed?: string;
 
-  constructor(param?: FSRSParameters) {
-    this.param = param || generatorParameters();
+  constructor(param: Partial<FSRSParameters>) {
+    this.param = generatorParameters(param);
     this.intervalModifier =
       Math.log(this.param.request_retention) / Math.log(0.9);
   }
@@ -23,7 +18,7 @@ export default class FSRS {
   repeat = (card: Card, now: Date) => {
     card = {
       ...card,
-      last_review:fixDate(card.last_review)
+      last_review: card.last_review ? fixDate(card.last_review) : undefined,
     };
     now = new Date(fixDate(now));
     card.elapsed_days =
