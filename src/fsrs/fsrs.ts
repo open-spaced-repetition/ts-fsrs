@@ -23,6 +23,7 @@ export default class FSRS {
   repeat = (card: Card, now: Date) => {
     card = {
       ...card,
+      last_review:fixDate(card.last_review)
     };
     now = new Date(fixDate(now));
     card.elapsed_days =
