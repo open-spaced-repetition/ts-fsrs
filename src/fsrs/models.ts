@@ -1,4 +1,4 @@
-export type StateType = "Learning" | "New" | "Review" | "Relearning";
+export type StateType = "New" | "Learning" | "Review" | "Relearning";
 
 export enum State {
   New = 0,
