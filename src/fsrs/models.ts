@@ -10,7 +10,7 @@ export enum State {
 export type RatingType = "Again" | "Hard" | "Good" | "Easy";
 
 export enum Rating {
-  Again = 0,
+  Again = 1,
   Hard,
   Good,
   Easy,
@@ -39,8 +39,6 @@ export interface Card {
 export interface FSRSParameters {
   request_retention: number;
   maximum_interval: number;
-  easy_bonus: number;
-  hard_factor: number;
   w: number[];
   enable_fuzz: boolean;
 }
