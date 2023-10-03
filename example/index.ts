@@ -1,5 +1,5 @@
 import {
-    fsrs, int,
+    fsrs, FSRSVersion, generatorParameters, int,
     Rating,
     State
 } from 'ts-fsrs';
@@ -53,4 +53,6 @@ const test = () => {
     generatorExample4().forEach(item => print_scheduling_card(item));
 }
 
+console.log(`FSRSVersion:${FSRSVersion}`)
+console.log('defaultParams',generatorParameters())
 test()

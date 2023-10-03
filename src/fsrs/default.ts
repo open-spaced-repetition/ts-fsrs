@@ -1,13 +1,39 @@
 import { Card, FSRSParameters, State, FSRS } from "./index";
+import dotenv from "dotenv";
+import { EnvParams } from "./type";
 
-export const default_request_retention = 0.9;
-export const default_maximum_interval = 36500;
-export const default_easy_bonus = 1.3;
-export const default_hard_factor = 1.2;
-export const default_w = [
+dotenv.config({ path: `./.env.local` });
+dotenv.config({ path: `./.env.production` });
+dotenv.config({ path: `./.env.` });
+dotenv.config({ path: `./.env.development` });
+
+export const envParams: EnvParams = {
+  FSRS_REQUEST_RETENTION: Number(process.env.FSRS_REQUEST_RETENTION),
+  FSRS_MAXIMUM_INTERVAL: Number(process.env.FSRS_MAXIMUM_INTERVAL),
+  FSRS_EASY_BOUND: Number(process.env.FSRS_EASY_BOUND),
+  FSRS_HARD_FACTOR: Number(process.env.FSRS_HARD_FACTOR),
+  FSRS_W: process.env.FSRS_W
+    ? JSON.parse(process.env.FSRS_W as string)
+    : undefined,
+  FSRS_ENABLE_FUZZ: Boolean(process.env.FSRS_ENABLE_FUZZ),
+};
+
+export const default_request_retention = !isNaN(envParams.FSRS_REQUEST_RETENTION)
+  ? envParams.FSRS_REQUEST_RETENTION
+  : 0.9;
+export const default_maximum_interval = !isNaN(envParams.FSRS_MAXIMUM_INTERVAL)
+  ? envParams.FSRS_MAXIMUM_INTERVAL
+  : 36500;
+export const default_easy_bonus = !isNaN(envParams.FSRS_EASY_BOUND)
+  ? envParams.FSRS_EASY_BOUND
+  : 1.3;
+export const default_hard_factor = !isNaN(envParams.FSRS_HARD_FACTOR)
+  ? envParams.FSRS_HARD_FACTOR
+  : 1.2;
+export const default_w = envParams.FSRS_W || [
   1, 1, 5, -0.5, -0.5, 0.2, 1.4, -0.12, 0.8, 2, -0.2, 0.2, 1,
 ];
-export const default_enable_fuzz = false;
+export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
 export const FSRSVersion: string = "2.1.1";
 
