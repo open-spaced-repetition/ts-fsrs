@@ -1,6 +1,6 @@
 {
   "name": "ts-fsrs",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "ts-fsrs is a TypeScript package used to implement the Free Spaced Repetition Scheduler (FSRS) algorithm. It helps developers apply FSRS to their flashcard applications, thereby improving the user learning experience.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -10,11 +10,12 @@
     "FSRS"
   ],
   "dependencies": {
+    "dotenv": "^16.3.1",
     "seedrandom": "^3.0.5"
   },
   "devDependencies": {
-    "@types/node": "^20.6.2",
     "@types/jest": "^29.5.5",
+    "@types/node": "^20.6.2",
     "@types/seedrandom": "^3.0.5",
     "@typescript-eslint/eslint-plugin": "^6.7.0",
     "@typescript-eslint/parser": "^6.7.0",
