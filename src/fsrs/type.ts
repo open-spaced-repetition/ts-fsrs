@@ -5,8 +5,6 @@ export type double = number & { __double__: void };
 export interface EnvParams{
     FSRS_REQUEST_RETENTION:number,
     FSRS_MAXIMUM_INTERVAL:number,
-    FSRS_EASY_BOUND:number,
-    FSRS_HARD_FACTOR:number,
     FSRS_W?:number[],
     FSRS_ENABLE_FUZZ?:boolean
 }
