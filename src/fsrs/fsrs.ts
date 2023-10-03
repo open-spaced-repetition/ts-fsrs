@@ -267,6 +267,6 @@ export class FSRS {
    * @return r Retrievability (probability of recall)
    */
   current_retrievability(t: number, s: number): number {
-    return Number(Math.pow(1 + t / (9 * s), -1).toFixed(2));
+    return Math.pow(1 + t / (9 * s), -1);
   }
 }
