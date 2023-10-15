@@ -22,7 +22,7 @@ export class FSRS {
       ...card,
       last_review: card.last_review ? fixDate(card.last_review) : undefined,
     };
-    now = new Date(fixDate(now));
+    now = fixDate(now);
     card.elapsed_days =
       card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
     card.last_review = now; // 上次复习时间
