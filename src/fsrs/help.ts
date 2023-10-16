@@ -1,4 +1,5 @@
-import type {int,unit} from "./type";
+import type { int, unit } from "./type";
+import { Rating, State } from "./models";
 
 declare global {
   export interface Date {
@@ -42,6 +43,9 @@ export function date_scheduler(now: Date, t: number, isDay?: boolean): Date {
 }
 
 export function date_diff(now: Date, pre: Date, unit: unit): number {
+  if (!now || !pre) {
+    throw new Error("Invalid date");
+  }
   const diff = now.getTime() - pre.getTime();
   let r = 0;
   switch (unit) {
@@ -113,4 +117,22 @@ export function fixDate(value: unknown) {
     return new Date(value);
   }
   throw new Error(`Invalid date:[${value}]`);
+}
+
+export function fixState(value: unknown): State {
+  if (typeof value === "string") {
+    return State[value as keyof typeof State];
+  } else if (typeof value === "number") {
+    return value as State;
+  }
+  throw new Error(`Invalid state:[${value}]`);
+}
+
+export function fixRating(value: unknown): Rating {
+  if (typeof value === "string") {
+    return Rating[value as keyof typeof Rating];
+  } else if (typeof value === "number") {
+    return value as Rating;
+  }
+  throw new Error(`Invalid rating:[${value}]`);
 }
