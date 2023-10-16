@@ -1,6 +1,6 @@
 import pseudorandom from "seedrandom";
 import { generatorParameters, SchedulingCard } from "./index";
-import { fixDate } from "./help";
+import { fixDate, fixState } from "./help";
 import { FSRSParameters, Card, State, Rating } from "./models";
 import type { int } from "./type";
 
@@ -17,12 +17,21 @@ export class FSRS {
     this.intervalModifier = 9 * (1 / this.param.request_retention - 1);
   }
 
-  repeat = (card: Card, now: Date) => {
+  preProcess(card: Card, now: Date) {
     card = {
       ...card,
+      state: fixState(card.state),
+      due: fixDate(card.due) ,
       last_review: card.last_review ? fixDate(card.last_review) : undefined,
     };
     now = fixDate(now);
+    return { card, now };
+  }
+
+  repeat = (card: Card, now: Date) => {
+    const process = this.preProcess(card, now);
+    card = process.card;
+    now = process.now;
     card.elapsed_days =
       card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
     card.last_review = now; // 上次复习时间
@@ -73,6 +82,9 @@ export class FSRS {
   };
 
   get_retrievability = (card: Card, now: Date): undefined | string => {
+    const process = this.preProcess(card, now);
+    card = process.card;
+    now = process.now;
     if (card.state !== State.Review) {
       return undefined;
     }
