@@ -36,6 +36,9 @@ export interface Card {
   last_review?: Date;
 }
 
+export type CardInput = Card & { state: StateType | State };
+export type DateInput = Date | number | string;
+
 export interface FSRSParameters {
   request_retention: number;
   maximum_interval: number;
