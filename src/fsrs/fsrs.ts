@@ -1,7 +1,7 @@
 import pseudorandom from "seedrandom";
 import { generatorParameters, SchedulingCard } from "./index";
 import { fixDate, fixState } from "./help";
-import { FSRSParameters, Card, State, Rating,CardInput, DateInput } from "./models";
+import { FSRSParameters, Card, State, Rating, CardInput, DateInput } from "./models";
 import type { int } from "./type";
 
 // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-v4
