@@ -1,7 +1,7 @@
 import pseudorandom from "seedrandom";
 import { generatorParameters, SchedulingCard } from "./index";
 import { fixDate, fixState } from "./help";
-import { FSRSParameters, Card, State, Rating } from "./models";
+import { FSRSParameters, Card, State, Rating, CardInput, DateInput } from "./models";
 import type { int } from "./type";
 
 // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-v4
@@ -17,18 +17,18 @@ export class FSRS {
     this.intervalModifier = 9 * (1 / this.param.request_retention - 1);
   }
 
-  preProcess(card: Card, now: Date) {
-    card = {
-      ...card,
-      state: fixState(card.state),
-      due: fixDate(card.due) ,
-      last_review: card.last_review ? fixDate(card.last_review) : undefined,
+  preProcess(_card: CardInput, _now: DateInput) {
+    const card: Card = {
+      ..._card,
+      state: fixState(_card.state),
+      due: fixDate(_card.due),
+      last_review: _card.last_review ? fixDate(_card.last_review) : undefined,
     };
-    now = fixDate(now);
+    const now = fixDate(_now);
     return { card, now };
   }
 
-  repeat = (card: Card, now: Date) => {
+  repeat = (card: CardInput, now: DateInput) => {
     const process = this.preProcess(card, now);
     card = process.card;
     now = process.now;

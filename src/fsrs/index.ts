@@ -24,6 +24,8 @@ export type {
   ReviewLog,
   StateType,
   RatingType,
+  CardInput,
+  DateInput
 } from "./models";
 export { State, Rating } from "./models";
 export { FSRS } from "./fsrs";
