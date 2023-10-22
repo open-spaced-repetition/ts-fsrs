@@ -1,4 +1,4 @@
-import { Card, Rating, State } from "./models";
+import { Card, Rating, RecordLog, State } from "./models";
 import { date_scheduler } from "./help";
 
 export class SchedulingCard {
@@ -62,7 +62,7 @@ export class SchedulingCard {
     return this;
   }
 
-  record_log(card: Card, now: Date) {
+  record_log(card: Card, now: Date): RecordLog {
     return {
       [Rating.Again]: {
         card: this.again,

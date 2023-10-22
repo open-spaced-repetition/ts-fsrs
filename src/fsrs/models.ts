@@ -24,6 +24,10 @@ export interface ReviewLog {
   review: Date;
 }
 
+export type RecordLog = {
+  [key in Rating]: { card: Card; log: ReviewLog };
+};
+
 export interface Card {
   due: Date;
   stability: number; // 稳定性
