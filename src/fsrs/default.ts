@@ -32,7 +32,7 @@ export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
 export const FSRSVersion: string = "3.0.4";
 
-export const generatorParameters = (props?: Partial<FSRSParameters>) => {
+export const generatorParameters = (props?: Partial<FSRSParameters>): FSRSParameters => {
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
@@ -54,6 +54,6 @@ export const createEmptyCard = (now?: Date): Card => {
   };
 };
 
-export const fsrs = (params?: Partial<FSRSParameters>) => {
+export const fsrs = (params?: Partial<FSRSParameters>): FSRS => {
   return new FSRS(params || {});
 };

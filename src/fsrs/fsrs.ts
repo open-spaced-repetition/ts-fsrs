@@ -1,6 +1,6 @@
 import { SchedulingCard } from "./index";
 import { fixDate, fixState } from "./help";
-import { FSRSParameters, Card, State, CardInput, DateInput } from "./models";
+import { FSRSParameters, Card, State, CardInput, DateInput, RecordLog } from "./models";
 import type { int } from "./type";
 import { FSRSAlgorithm } from "./algorithm";
 
@@ -20,7 +20,7 @@ export class FSRS extends FSRSAlgorithm {
     return { card, now };
   }
 
-  repeat = (card: CardInput, now: DateInput) => {
+  repeat = (card: CardInput, now: DateInput): RecordLog => {
     const process = this.preProcess(card, now);
     card = process.card;
     now = process.now;
