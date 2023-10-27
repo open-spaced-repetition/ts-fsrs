@@ -28,7 +28,8 @@ export class FSRSAlgorithm {
   }
 
   /**
-   *
+   * Updates the difficulty and stability values of the scheduling card based on the last difficulty, 
+   * last stability, and the current retrievability.
    * @param s scheduling Card
    * @param last_d Difficulty
    * @param last_s Stability
@@ -94,7 +95,11 @@ export class FSRSAlgorithm {
       10,
     );
   }
-
+  /**
+   * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
+   * @param {number} ivl - The interval to be fuzzed.
+   * @returns {number} - The fuzzed interval. 
+   **/
   apply_fuzz(ivl: number) {
     if (!this.param.enable_fuzz || ivl < 2.5) return ivl;
     const generator = pseudorandom(this.seed);
