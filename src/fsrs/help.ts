@@ -34,6 +34,13 @@ Date.prototype.dueFormat = function (last_review: Date, unit?: boolean) {
   return show_diff_message(this, last_review, unit);
 };
 
+/**
+ * 计算日期和时间的偏移，并返回一个新的日期对象。
+ * @param now 当前日期和时间
+ * @param t 时间偏移量，当 isDay 为 true 时表示天数，为 false 时表示分钟
+ * @param isDay （可选）是否按天数单位进行偏移，默认为 false，表示按分钟单位计算偏移
+ * @returns 偏移后的日期和时间对象
+ */
 export function date_scheduler(now: Date, t: number, isDay?: boolean): Date {
   return new Date(
     isDay
