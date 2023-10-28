@@ -120,8 +120,8 @@ export class FSRSAlgorithm {
 
   /**
    * The formula used is :
-   * $$next_d = D - w_6 \cdot (R - 2)$$
-   * $$D^\prime(D,R) = w_5 \cdot D_0(2) +(1 - w_5) \cdot next_d$$
+   * $$next_d = D - w_6 \cdot (R - 3)$$
+   * $$D^\prime(D,R) = w_7 \cdot D_0(3) +(1 - w_7) \cdot next_d$$
    * @param d
    * @param g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return next_D
