@@ -4,6 +4,7 @@ import {
   generatorParameters,
   FSRS,
   createEmptyCard,
+  State,
 } from "../src/fsrs";
 
 describe("initial FSRS V4", () => {
@@ -79,6 +80,43 @@ describe("FSRS V4 AC by py-fsrs", () => {
 
     expect(ivl_history).toEqual([
       0, 5, 16, 43, 106, 236, 0, 0, 12, 25, 47, 85, 147,
+    ]);
+  });
+
+  it("first repeat", () => {
+    const card = createEmptyCard();
+    const now = new Date(2022, 11, 29, 12, 30, 0, 0);
+    const scheduling_cards = f.repeat(card, now);
+    const grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
+
+    const stability: number[] = [];
+    const difficulty: number[] = [];
+    const elapsed_days: number[] = [];
+    const scheduled_days: number[] = [];
+    const reps: number[] = [];
+    const lapses: number[] = [];
+    const states: State[] = [];
+    for (const rating of grades) {
+      const first_card = scheduling_cards[rating].card;
+      stability.push(first_card.stability);
+      difficulty.push(first_card.difficulty);
+      reps.push(first_card.reps);
+      lapses.push(first_card.lapses);
+      elapsed_days.push(first_card.elapsed_days);
+      scheduled_days.push(first_card.scheduled_days);
+      states.push(first_card.state);
+    }
+    expect(stability).toEqual([1.14, 1.01, 5.44, 14.67]);
+    expect(difficulty).toEqual([8.4348, 6.8686, 5.3024, 3.7361999999999993]);
+    expect(reps).toEqual([1, 1, 1, 1]);
+    expect(lapses).toEqual([1, 0, 0, 0]);
+    expect(elapsed_days).toEqual([0, 0, 0, 0]);
+    expect(scheduled_days).toEqual([0, 0, 0, 15]);
+    expect(states).toEqual([
+      State.Learning,
+      State.Learning,
+      State.Learning,
+      State.Review,
     ]);
   });
 });
