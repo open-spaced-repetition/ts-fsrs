@@ -19,6 +19,9 @@ export enum Rating {
 export interface ReviewLog {
   rating: Rating;
   state: State;
+  due:Date;
+  stability: number;
+  difficulty: number;
   elapsed_days: number;
   scheduled_days: number;
   review: Date;
@@ -42,6 +45,10 @@ export interface Card {
 
 export type CardInput = Card & { state: StateType | State };
 export type DateInput = Date | number | string;
+export type ReviewLogInput = ReviewLog & {
+  rating: RatingType | Rating;
+  state: StateType | State;
+};
 
 export interface FSRSParameters {
   request_retention: number;

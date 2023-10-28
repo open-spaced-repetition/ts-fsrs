@@ -9,27 +9,33 @@ export class FSRS extends FSRSAlgorithm {
     super(param);
   }
 
-  preProcess(_card: CardInput, _now: DateInput) {
-    const card: Card = {
+  private preProcessCard(_card: CardInput): Card {
+    return {
       ..._card,
       state: fixState(_card.state),
       due: fixDate(_card.due),
       last_review: _card.last_review ? fixDate(_card.last_review) : undefined,
     };
-    const now = fixDate(_now);
-    return { card, now };
+  }
+
+  private preProcessDate(_date: DateInput): Date {
+    return fixDate(_date);
+  }
+
+  private preProcessLog(_log: ReviewLogInput): ReviewLog {
+    return {
+      ..._log,
+      rating: fixRating(_log.rating),
+      state: fixState(_log.state),
+      review: fixDate(_log.review),
+    };
   }
 
   repeat = (card: CardInput, now: DateInput) => {
-    const process = this.preProcess(card, now);
-    card = process.card;
-    now = process.now;
-    card.elapsed_days =
-      card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
-    card.last_review = now; // 上次复习时间
-    card.reps += 1;
-    const s = new SchedulingCard(card).update_state(card.state);
-    this.seed = String(card.last_review.getTime()) + String(card.elapsed_days);
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
+    const s = new SchedulingCard(card, now).update_state(card.state);
+    this.seed = String(now.getTime()) + String(card.reps);
     let easy_interval, good_interval, hard_interval;
     switch (card.state) {
       case State.New:
@@ -73,9 +79,8 @@ export class FSRS extends FSRSAlgorithm {
   };
 
   get_retrievability = (card: Card, now: Date): undefined | string => {
-    const process = this.preProcess(card, now);
-    card = process.card;
-    now = process.now;
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
     if (card.state !== State.Review) {
       return undefined;
     }
