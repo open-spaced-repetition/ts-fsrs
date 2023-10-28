@@ -49,6 +49,7 @@ describe("FSRS V4 AC by py-fsrs", () => {
     ],
     enable_fuzz: false,
   });
+  const grade = [Rating.Again, Rating.Hard, Rating.Good,Rating.Easy];
   it("ivl_history", () => {
     let card = createEmptyCard();
     let now = new Date(2022, 11, 29, 12, 30, 0, 0);
@@ -70,6 +71,13 @@ describe("FSRS V4 AC by py-fsrs", () => {
     ];
     const ivl_history: number[] = [];
     for (const rating of ratings) {
+      for (const check of grade) {
+        const rollbackCard = f.rollback(
+            scheduling_cards[check].card,
+            scheduling_cards[check].log,
+        );
+        expect(rollbackCard).toEqual(card);
+      }
       card = scheduling_cards[rating].card;
       const ivl = card.scheduled_days;
       ivl_history.push(ivl);

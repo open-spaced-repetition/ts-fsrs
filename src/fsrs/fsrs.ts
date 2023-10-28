@@ -1,6 +1,15 @@
-import { SchedulingCard } from "./index";
-import { fixDate, fixState } from "./help";
-import { FSRSParameters, Card, State, CardInput, DateInput } from "./models";
+import { SchedulingCard } from "./scheduler";
+import { fixDate, fixRating, fixState } from "./help";
+import {
+  Card,
+  CardInput,
+  DateInput,
+  FSRSParameters,
+  Rating,
+  ReviewLog,
+  ReviewLogInput,
+  State,
+} from "./models";
 import type { int } from "./type";
 import { FSRSAlgorithm } from "./algorithm";
 
@@ -88,5 +97,41 @@ export class FSRS extends FSRSAlgorithm {
     return (
       (this.current_retrievability(t, card.stability) * 100).toFixed(2) + "%"
     );
+  };
+
+  rollback = (card: CardInput, log: ReviewLogInput): Card => {
+    card = this.preProcessCard(card);
+    log = this.preProcessLog(log);
+
+    let last_due, last_review, last_lapses;
+    switch (log.state) {
+      case State.New:
+        last_due = log.due;
+        last_review = undefined;
+        last_lapses = 0;
+        break;
+      case State.Learning:
+      case State.Relearning:
+      case State.Review:
+        last_due = log.review;
+        last_review = log.due;
+        last_lapses =
+          card.lapses -
+          (log.rating === Rating.Again && log.state === State.Review ? 1 : 0);
+        break;
+    }
+
+    return {
+      ...card,
+      due: last_due,
+      stability: log.stability,
+      difficulty: log.difficulty,
+      elapsed_days: log.elapsed_days,
+      scheduled_days: log.scheduled_days,
+      reps: Math.max(0, card.reps - 1),
+      lapses: Math.max(0, last_lapses),
+      state: log.state,
+      last_review: last_review,
+    };
   };
 }
