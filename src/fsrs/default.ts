@@ -51,6 +51,7 @@ export const createEmptyCard = (now?: Date): Card => {
     reps: 0,
     lapses: 0,
     state: State.New,
+    last_review: undefined,
   };
 };
 
