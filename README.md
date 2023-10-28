@@ -30,26 +30,28 @@ const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
 // console.log(scheduling_cards);
-Object.keys(Rating).filter(key => typeof Rating[key as any] === 'number').forEach(key => {
-  // @ts-ignore
-  const { log, card } = scheduling_cards[Rating[key]];
-  console.group(`${key}`);
-  console.table({
-    [`card_${key}`]: {
-      ...card,
-      due: formatDate(card.due),
-      last_review: formatDate(card.last_review),
-    },
-  });
-  console.table({
-    [`log_${key}`]: {
-      ...log,
-      review: formatDate(log.review),
-    },
-  });
-  console.groupEnd();
-  console.log('----------------------------------------------------------------');
-});
+Object.keys(Rating)
+    .filter(key => !isNaN(Number(key)))
+    .map(key => Number(key) as Rating) // [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
+    .forEach(grade => {
+        const { log, card } = scheduling_cards[grade];
+        console.group(`${Rating[grade]}`);
+        console.table({
+            [`card_${Rating[grade]}`]: {
+                ...card,
+                due: formatDate(card.due),
+                last_review: formatDate(card.last_review as Date),
+            },
+        });
+        console.table({
+            [`log_${Rating[grade]}`]: {
+                ...log,
+                review: formatDate(log.review),
+            },
+        });
+        console.groupEnd();
+        console.log('----------------------------------------------------------------');
+    });
 ```
 
 > More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/example/index.ts)
@@ -88,7 +90,7 @@ import {
 } from "ts-fsrs";
 
 let card: Card = createEmptyCard();
-const f: FSRS = new FSRS();
+const f: FSRS = new FSRS(); // or const f: FSRS = fsrs(params);
 let scheduling_cards: RecordLog = f.repeat(card, new Date());
 ```
 
