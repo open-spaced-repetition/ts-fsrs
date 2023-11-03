@@ -26,6 +26,7 @@ export type {
   RecordLogItem,
   StateType,
   RatingType,
+  Grade,
   CardInput,
   DateInput
 } from "./models";
