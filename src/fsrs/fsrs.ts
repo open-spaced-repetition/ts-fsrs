@@ -6,6 +6,7 @@ import {
   DateInput,
   FSRSParameters,
   Rating,
+  RecordLog,
   ReviewLog,
   ReviewLogInput,
   State,
@@ -40,7 +41,7 @@ export class FSRS extends FSRSAlgorithm {
     };
   }
 
-  repeat = (card: CardInput, now: DateInput) => {
+  repeat = (card: CardInput, now: DateInput): RecordLog => {
     card = this.preProcessCard(card);
     now = this.preProcessDate(now);
     const s = new SchedulingCard(card, now).update_state(card.state);

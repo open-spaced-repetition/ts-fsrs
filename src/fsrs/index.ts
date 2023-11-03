@@ -22,6 +22,8 @@ export type {
   FSRSParameters,
   Card,
   ReviewLog,
+  RecordLog,
+  RecordLogItem,
   StateType,
   RatingType,
   CardInput,

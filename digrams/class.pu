@@ -1,0 +1,118 @@
+@startuml class_diagram.png
+
+class FSRSAlgorithm {
+  - param: FSRSParameters
+  - intervalModifier
+  - seed?
+  + constructor(param: Partial<FSRSParameters>)
+  + init_ds(s: SchedulingCard): void
+  + next_ds(s: SchedulingCard, last_d: number, last_s: number, retrievability: number): void
+  + init_stability(g: number): number
+  + init_difficulty(g: number): number
+  + apply_fuzz(ivl: number)
+  + next_interval(s: number): int
+  + next_difficulty(d: number, g: number): number
+  + constrain_difficulty(difficulty: number)
+  + mean_reversion(init: number, current: number): number
+  + next_recall_stability(d: number, s: number, r: number, g: Rating): number
+  + next_forget_stability(d: number, s: number, r: number): number
+  + current_retrievability(t: number, s: number): number
+}
+
+' 定义枚举类型
+enum StateType {
+  New
+  Learning
+  Review
+  Relearning
+}
+
+enum RatingType {
+  Again
+  Hard
+  Good
+  Easy
+}
+
+' 定义类
+interface  Rating {
+  + Again: RatingType = 1
+  + Hard: RatingType
+  + Good: RatingType
+  + Easy: RatingType
+}
+
+interface State {
+  + New: StateType = 0
+  + Learning: StateType
+  + Review: StateType
+  + Relearning: StateType
+}
+
+interface ReviewLog {
+  + rating: Rating
+  + state: State
+  + elapsed_days: number
+  + scheduled_days: number
+  + review: Date
+}
+
+interface RecordLogItem{
+  card: Card, log: ReviewLog
+}
+interface RecordLog {
+  + Again: RecordLogItem
+  + Hard: RecordLogItem
+  + Good: RecordLogItem
+  + Easy: RecordLogItem
+}
+
+interface Card {
+  + due: Date
+  + stability: number
+  + difficulty: number
+  + elapsed_days: number
+  + scheduled_days: number
+  + reps: number
+  + lapses: number
+  + state: State
+  + last_review?: Date
+}
+
+interface CardInput {
+  + due: Date
+  + stability: number
+  + difficulty: number
+  + elapsed_days: number
+  + scheduled_days: number
+  + reps: number
+  + lapses: number
+  + state: StateType | State
+  + last_review?: Date
+}
+
+interface DateInput {
+  + value: Date | number | string
+}
+
+interface FSRSParameters {
+  + request_retention: number
+  + maximum_interval: number
+  + w: number[]
+  + enable_fuzz: boolean
+}
+
+' 关联关系
+State -- StateType
+Rating -- RatingType
+Card <|-- CardInput
+RecordLogItem --> ReviewLog
+RecordLogItem --> Card
+RecordLog --> RecordLogItem
+ReviewLog --> Rating
+ReviewLog --> State
+DateInput --|> Date
+
+
+
+@enduml
