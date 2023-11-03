@@ -30,7 +30,7 @@ export const default_w = envParams.FSRS_W || [
 ];
 export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
-export const FSRSVersion: string = "3.1.0-beta0";
+export const FSRSVersion: string = "3.1.0-beta1";
 
 export const generatorParameters = (props?: Partial<FSRSParameters>): FSRSParameters => {
   return {
@@ -51,6 +51,7 @@ export const createEmptyCard = (now?: Date): Card => {
     reps: 0,
     lapses: 0,
     state: State.New,
+    last_review: undefined,
   };
 };
 
