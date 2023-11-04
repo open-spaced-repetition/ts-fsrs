@@ -143,3 +143,5 @@ export function fixRating(value: unknown): Rating {
   }
   throw new Error(`Invalid rating:[${value}]`);
 }
+
+export const Grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
