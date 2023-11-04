@@ -7,6 +7,7 @@ import {
   FSRSParameters,
   Rating,
   RecordLog,
+  RecordLogItem,
   ReviewLog,
   ReviewLogInput,
   State,
@@ -103,7 +104,9 @@ export class FSRS extends FSRSAlgorithm {
   rollback = (card: CardInput, log: ReviewLogInput): Card => {
     card = this.preProcessCard(card);
     log = this.preProcessLog(log);
-
+    if (log.rating === Rating.Manual) {
+      throw new Error("Cannot rollback a manual rating");
+    }
     let last_due, last_review, last_lapses;
     switch (log.state) {
       case State.New:
@@ -134,5 +137,37 @@ export class FSRS extends FSRSAlgorithm {
       state: log.state,
       last_review: last_review,
     };
+  };
+
+  forget = (
+    card: CardInput,
+    now: DateInput,
+    reset_count: boolean = false,
+  ): RecordLogItem => {
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
+    const forget_log: ReviewLog = {
+      rating: Rating.Manual,
+      state: card.state,
+      due: card.due,
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsed_days: card.elapsed_days,
+      scheduled_days: card.scheduled_days,
+      review: now,
+    };
+    const forget_card: Card = {
+      ...card,
+      due: now,
+      stability: 0,
+      difficulty: 0,
+      elapsed_days: 0,
+      scheduled_days: 0,
+      reps: reset_count ? 0 : card.reps,
+      lapses: reset_count ? 0 : card.lapses,
+      state: State.New,
+      last_review: card.last_review,
+    };
+    return { card: forget_card, log: forget_log };
   };
 }

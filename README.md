@@ -21,7 +21,7 @@ cp .env.local.example .env.local
 # Example
 
 ```typescript
-import {createEmptyCard, formatDate, fsrs, generatorParameters, Rating} from 'ts-fsrs';
+import {createEmptyCard, formatDate, fsrs, generatorParameters, Rating, Grades} from 'ts-fsrs';
 
 const params = generatorParameters({ enable_fuzz: true });
 const f = fsrs(params);
@@ -30,28 +30,25 @@ const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
 // console.log(scheduling_cards);
-Object.keys(Rating)
-    .filter(key => !isNaN(Number(key)))
-    .map(key => Number(key) as Rating) // [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
-    .forEach(grade => {
-        const { log, card } = scheduling_cards[grade];
-        console.group(`${Rating[grade]}`);
-        console.table({
-            [`card_${Rating[grade]}`]: {
-                ...card,
-                due: formatDate(card.due),
-                last_review: formatDate(card.last_review as Date),
-            },
-        });
-        console.table({
-            [`log_${Rating[grade]}`]: {
-                ...log,
-                review: formatDate(log.review),
-            },
-        });
-        console.groupEnd();
-        console.log('----------------------------------------------------------------');
+Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
+    const { log, card } = scheduling_cards[grade];
+    console.group(`${Rating[grade]}`);
+    console.table({
+        [`card_${Rating[grade]}`]: {
+            ...card,
+            due: formatDate(card.due),
+            last_review: formatDate(card.last_review as Date),
+        },
     });
+    console.table({
+        [`log_${Rating[grade]}`]: {
+            ...log,
+            review: formatDate(log.review),
+        },
+    });
+    console.groupEnd();
+    console.log('----------------------------------------------------------------');
+});
 ```
 
 > More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/example/index.ts)

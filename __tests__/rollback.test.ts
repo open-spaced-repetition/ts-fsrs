@@ -1,4 +1,4 @@
-import { createEmptyCard, fsrs, FSRS, Rating } from "../src/fsrs";
+import {createEmptyCard, fsrs, FSRS, Grade, Rating} from "../src/fsrs";
 
 describe("FSRS rollback", () => {
   const f: FSRS = fsrs({
@@ -12,7 +12,7 @@ describe("FSRS rollback", () => {
     const card = createEmptyCard();
     const now = new Date(2022, 11, 29, 12, 30, 0, 0);
     const scheduling_cards = f.repeat(card, now);
-    const grade = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
+    const grade:Grade[] = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
     for (const rating of grade) {
       const rollbackCard = f.rollback(
         scheduling_cards[rating].card,
@@ -29,7 +29,7 @@ describe("FSRS rollback", () => {
     card = scheduling_cards["4"].card;
     now = card.due;
     scheduling_cards = f.repeat(card, now);
-    const grade = [Rating.Again, Rating.Hard, Rating.Good,Rating.Easy];
+    const grade:Grade[] = [Rating.Again, Rating.Hard, Rating.Good,Rating.Easy];
     for (const rating of grade) {
       const rollbackCard = f.rollback(
         scheduling_cards[rating].card,
