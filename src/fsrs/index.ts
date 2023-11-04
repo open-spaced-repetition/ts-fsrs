@@ -15,6 +15,7 @@ export {
   date_diff,
   formatDate,
   show_diff_message,
+  Grades
 } from "./help";
 
 export type { int, double } from "./type";

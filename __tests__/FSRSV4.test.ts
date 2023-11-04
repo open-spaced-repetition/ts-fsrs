@@ -6,16 +6,14 @@ import {
   createEmptyCard,
   State,
   Grade,
+  Grades
 } from "../src/fsrs";
 
 describe("initial FSRS V4", () => {
   const params = generatorParameters();
   const f: FSRS = fsrs(params);
-  const Ratings: Grade[] = Object.keys(Rating)
-    .filter((key) => !isNaN(Number(key)) && Number(key) !== Rating.Manual)
-    .map((key) => Number(key));
   it("initial stability ", () => {
-    Ratings.forEach((grade) => {
+    Grades.forEach((grade) => {
       const s = f.init_stability(grade);
       expect(s).toEqual(params.w[grade - 1]);
     });
@@ -28,7 +26,7 @@ describe("initial FSRS V4", () => {
   });
 
   it("initial difficulty ", () => {
-    Ratings.forEach((grade) => {
+    Grades.forEach((grade) => {
       const s = f.init_difficulty(grade);
       expect(s).toEqual(params.w[4] - (grade - 3) * params.w[5]);
     });
