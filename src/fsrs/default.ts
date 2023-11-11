@@ -30,7 +30,7 @@ export const default_w = envParams.FSRS_W || [
 ];
 export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
-export const FSRSVersion: string = "3.1.0-beta2";
+export const FSRSVersion: string = "3.1.0-beta3";
 
 export const generatorParameters = (props?: Partial<FSRSParameters>): FSRSParameters => {
   return {

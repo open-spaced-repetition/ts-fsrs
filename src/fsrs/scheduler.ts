@@ -7,7 +7,7 @@ export class SchedulingCard {
   good: Card;
   easy: Card;
   last_review: Date;
-  elapsed_days: number;
+  last_elapsed_days: number;
 
   private copy(card: Card): Card {
     return {
@@ -17,7 +17,7 @@ export class SchedulingCard {
 
   constructor(card: Card, now: Date) {
     this.last_review = card.last_review || card.due;
-    this.elapsed_days = card.elapsed_days;
+    this.last_elapsed_days = card.elapsed_days;
     card.elapsed_days =
       card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
     card.last_review = now; // 上次复习时间
@@ -80,7 +80,8 @@ export class SchedulingCard {
           due: this.last_review,
           stability: card.stability,
           difficulty: card.difficulty,
-          elapsed_days: this.elapsed_days,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
           scheduled_days: card.scheduled_days,
           review: now,
         },
@@ -93,7 +94,8 @@ export class SchedulingCard {
           due: this.last_review,
           stability: card.stability,
           difficulty: card.difficulty,
-          elapsed_days: this.elapsed_days,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
           scheduled_days: card.scheduled_days,
           review: now,
         },
@@ -106,7 +108,8 @@ export class SchedulingCard {
           due: this.last_review,
           stability: card.stability,
           difficulty: card.difficulty,
-          elapsed_days: this.elapsed_days,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
           scheduled_days: card.scheduled_days,
           review: now,
         },
@@ -119,7 +122,8 @@ export class SchedulingCard {
           due: this.last_review,
           stability: card.stability,
           difficulty: card.difficulty,
-          elapsed_days: this.elapsed_days,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
           scheduled_days: card.scheduled_days,
           review: now,
         },

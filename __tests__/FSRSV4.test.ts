@@ -6,7 +6,7 @@ import {
   createEmptyCard,
   State,
   Grade,
-  Grades
+  Grades,
 } from "../src/fsrs";
 
 describe("initial FSRS V4", () => {
@@ -77,6 +77,9 @@ describe("FSRS V4 AC by py-fsrs", () => {
           scheduling_cards[check].log,
         );
         expect(rollbackCard).toEqual(card);
+        expect(scheduling_cards[check].log.elapsed_days).toEqual(
+          card.last_review ? now.diff(card.last_review as Date, "days") : 0,
+        );
       }
       card = scheduling_cards[rating].card;
       const ivl = card.scheduled_days;
