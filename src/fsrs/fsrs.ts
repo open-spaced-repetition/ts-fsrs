@@ -107,13 +107,12 @@ export class FSRS extends FSRSAlgorithm {
     if (log.rating === Rating.Manual) {
       throw new Error("Cannot rollback a manual rating");
     }
-    let last_due, last_review, last_lapses, last_elapsed_days;
+    let last_due, last_review, last_lapses;
     switch (log.state) {
       case State.New:
         last_due = log.due;
         last_review = undefined;
         last_lapses = 0;
-        last_elapsed_days = 0;
         break;
       case State.Learning:
       case State.Relearning:
@@ -123,10 +122,6 @@ export class FSRS extends FSRSAlgorithm {
         last_lapses =
           card.lapses -
           (log.rating === Rating.Again && log.state === State.Review ? 1 : 0);
-        last_elapsed_days =
-          log.elapsed_days == 0
-            ? 0
-            : card.scheduled_days;
         break;
     }
 
