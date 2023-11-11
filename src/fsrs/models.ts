@@ -28,6 +28,7 @@ export interface ReviewLog {
   stability: number;
   difficulty: number;
   elapsed_days: number;
+  last_elapsed_days: number;
   scheduled_days: number;
   review: Date;
 }
