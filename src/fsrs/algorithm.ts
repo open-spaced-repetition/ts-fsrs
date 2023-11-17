@@ -1,5 +1,6 @@
 import pseudorandom from "seedrandom";
-import { generatorParameters, SchedulingCard } from "./index";
+import { generatorParameters } from "./default";
+import {SchedulingCard} from './scheduler'
 import { FSRSParameters, Rating } from "./models";
 import type { int } from "./type";
 

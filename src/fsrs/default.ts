@@ -1,19 +1,23 @@
-import { Card, FSRSParameters, State, FSRS } from "./index";
-import dotenv from "dotenv";
-import { EnvParams } from "./type";
+import { Card, DateInput, FSRSParameters, State } from './models';
+import { fixDate } from './help';
+import { EnvParams } from './type';
 
-dotenv.config({ path: `./.env.local` });
-dotenv.config({ path: `./.env.production` });
-dotenv.config({ path: `./.env.` });
-dotenv.config({ path: `./.env.development` });
+
+if (process) {
+  const dotenv = require('dotenv');
+  dotenv.config({ path: `./.env.local` });
+  dotenv.config({ path: `./.env.production` });
+  dotenv.config({ path: `./.env.` });
+  dotenv.config({ path: `./.env.development` });
+}
 
 export const envParams: EnvParams = {
-  FSRS_REQUEST_RETENTION: Number(process.env.FSRS_REQUEST_RETENTION),
-  FSRS_MAXIMUM_INTERVAL: Number(process.env.FSRS_MAXIMUM_INTERVAL),
-  FSRS_W: process.env.FSRS_W
+  FSRS_REQUEST_RETENTION: Number(process && process.env.FSRS_REQUEST_RETENTION),
+  FSRS_MAXIMUM_INTERVAL: Number(process && process.env.FSRS_MAXIMUM_INTERVAL),
+  FSRS_W: process && process.env.FSRS_W
     ? JSON.parse(process.env.FSRS_W as string)
     : undefined,
-  FSRS_ENABLE_FUZZ: Boolean(process.env.FSRS_ENABLE_FUZZ),
+  FSRS_ENABLE_FUZZ: Boolean(process && process.env.FSRS_ENABLE_FUZZ),
 };
 
 export const default_request_retention = !isNaN(
@@ -30,9 +34,9 @@ export const default_w = envParams.FSRS_W || [
 ];
 export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
-export const FSRSVersion: string = "3.0.4";
+export const FSRSVersion: string = '3.0.4';
 
-export const generatorParameters = (props?: Partial<FSRSParameters>) => {
+export function generatorParameters(props?: Partial<FSRSParameters>) {
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
@@ -41,9 +45,9 @@ export const generatorParameters = (props?: Partial<FSRSParameters>) => {
   };
 };
 
-export const createEmptyCard = (now?: Date): Card => {
+export const createEmptyCard = (now?: DateInput): Card => {
   return {
-    due: now || new Date(),
+    due: now ? fixDate(now) : new Date(),
     stability: 0,
     difficulty: 0,
     elapsed_days: 0,
@@ -54,6 +58,3 @@ export const createEmptyCard = (now?: Date): Card => {
   };
 };
 
-export const fsrs = (params?: Partial<FSRSParameters>) => {
-  return new FSRS(params || {});
-};

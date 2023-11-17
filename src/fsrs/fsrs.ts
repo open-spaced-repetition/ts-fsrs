@@ -1,4 +1,4 @@
-import { SchedulingCard } from "./index";
+import { SchedulingCard } from "./scheduler";
 import { fixDate, fixState } from "./help";
 import { FSRSParameters, Card, State, CardInput, DateInput } from "./models";
 import type { int } from "./type";
@@ -85,3 +85,7 @@ export class FSRS extends FSRSAlgorithm {
     );
   };
 }
+
+export const fsrs = (params?: Partial<FSRSParameters>) => {
+  return new FSRS(params || {});
+};
