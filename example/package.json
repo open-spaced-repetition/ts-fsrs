@@ -3,14 +3,17 @@
   "version": "1.0.0",
   "private": true,
   "main": "index.js",
+  "type": "module",
   "scripts": {
-    "dev": "ts-node index.ts"
+    "dev": "ts-node ./index.ts"
   },
   "dependencies": {
     "ts-fsrs": "file:.yalc/ts-fsrs"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1"
+    "@types/node": "^20.9.1",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2"
   },
   "keywords": [
     "example"

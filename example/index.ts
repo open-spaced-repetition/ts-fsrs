@@ -3,7 +3,8 @@ import {
     Rating,
     State
 } from 'ts-fsrs';
-import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example";
+// @ts-ignore
+import {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4} from "./example.ts";
 import seedrandom from 'seedrandom';
 const f=fsrs()
 
