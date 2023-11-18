@@ -6,8 +6,7 @@ export {
   default_enable_fuzz,
   FSRSVersion,
   generatorParameters,
-  createEmptyCard,
-  envParams
+  createEmptyCard
 } from "./default";
 export {
   date_scheduler,

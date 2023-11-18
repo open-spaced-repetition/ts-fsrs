@@ -9,15 +9,6 @@ developers apply FSRS to their flashcard applications, there by improving the us
 npm install ts-fsrs
 ```
 
-# Environment Variables
-If you need to customize default parameters, you can modify the values using `.env`/`.env.local`/`.env.production`/`.env.development`.
-
-Copy the [.env.local.example](./example/.env.local.example) file in this directory to .env.local (which will be ignored by Git):
-
-```bash
-cp .env.local.example .env.local
-```
-
 # Example
 
 ```typescript
