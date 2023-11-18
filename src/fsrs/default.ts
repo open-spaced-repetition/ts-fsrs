@@ -3,7 +3,7 @@ import { fixDate } from "./help";
 import { EnvParams } from "./type";
 import dotenv from "dotenv";
 
-if (process) {
+if (typeof window === "undefined") {
   dotenv.config({ path: `./.env.local` });
   dotenv.config({ path: `./.env.production` });
   dotenv.config({ path: `./.env.` });
