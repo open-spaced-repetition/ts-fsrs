@@ -24,17 +24,17 @@ const builds = {
     env: "production",
     external: ["seedrandom", "dotenv"],
   },
-  "ts-fsrs.umd": {
-    entry: resolve("src/fsrs/index.ts"),
-    dest: (name) => `dist/${name}.js`,
-    format: "umd",
-    env: "production",
-    globals: {
-      seedrandom: "seedrandom",
-      dotenv:"dotenv",
-    },
-    external: ["seedrandom", "dotenv"],
-  },
+  // "ts-fsrs.umd": {
+  //   entry: resolve("src/fsrs/index.ts"),
+  //   dest: (name) => `dist/${name}.js`,
+  //   format: "umd",
+  //   env: "production",
+  //   globals: {
+  //     seedrandom: "seedrandom",
+  //     dotenv:"dotenv",
+  //   },
+  //   external: ["seedrandom", "dotenv"],
+  // },
 };
 const getConfig = (name) => {
   const opts = builds[name];
@@ -49,6 +49,7 @@ const getConfig = (name) => {
           src: resolve("src"),
         },
       }),
+      terser(),
       ts({
         tsconfig: resolve("./tsconfig.json"),
       }),
@@ -57,11 +58,11 @@ const getConfig = (name) => {
       file: opts.dest(name),
       format: opts.format,
       name: opts.name || "ts-fsrs",
+      sourcemap: true,
     },
   };
   if (opts.globals) {
     config.output.globals = opts.globals;
-    config.plugins.push(terser())
   }
   return config;
 };
