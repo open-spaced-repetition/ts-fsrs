@@ -1,10 +1,9 @@
 import { Card, DateInput, FSRSParameters, State } from './models';
 import { fixDate } from './help';
 import { EnvParams } from './type';
-
+import dotenv from 'dotenv'
 
 if (process) {
-  const dotenv = require('dotenv');
   dotenv.config({ path: `./.env.local` });
   dotenv.config({ path: `./.env.production` });
   dotenv.config({ path: `./.env.` });
