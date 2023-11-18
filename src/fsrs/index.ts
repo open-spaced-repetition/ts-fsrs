@@ -7,7 +7,6 @@ export {
   FSRSVersion,
   generatorParameters,
   createEmptyCard,
-  fsrs,
   envParams
 } from "./default";
 export {
@@ -15,6 +14,9 @@ export {
   date_diff,
   formatDate,
   show_diff_message,
+  fixState,
+  fixDate,
+  fixRating,
   Grades
 } from "./help";
 
@@ -32,4 +34,4 @@ export type {
   DateInput
 } from "./models";
 export { State, Rating } from "./models";
-export { FSRS } from "./fsrs";
+export { FSRS,fsrs } from "./fsrs";

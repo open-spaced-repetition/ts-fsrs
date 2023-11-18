@@ -172,3 +172,7 @@ export class FSRS extends FSRSAlgorithm {
     return { card: forget_card, log: forget_log };
   };
 }
+
+export const fsrs = (params?: Partial<FSRSParameters>) => {
+  return new FSRS(params || {});
+};

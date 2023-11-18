@@ -185,4 +185,6 @@ const generatorExample4 = (fsrsParameter?: FSRSParameters): example[] => {
     return data;
 };
 
-export {example, generatorExample1, generatorExample2, generatorExample3, generatorExample4}
+export {generatorExample1, generatorExample2, generatorExample3, generatorExample4}
+
+export type {example}
