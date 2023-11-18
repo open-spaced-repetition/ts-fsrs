@@ -3,7 +3,7 @@ import { fixDate } from "./help";
 import { EnvParams } from "./type";
 import dotenv from "dotenv";
 
-if (process) {
+if (typeof window === "undefined") {
   dotenv.config({ path: `./.env.local` });
   dotenv.config({ path: `./.env.production` });
   dotenv.config({ path: `./.env.` });
@@ -34,7 +34,7 @@ export const default_w = envParams.FSRS_W || [
 ];
 export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
-export const FSRSVersion: string = "3.1.0-beta5";
+export const FSRSVersion: string = "3.1.0-beta6";
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>,
