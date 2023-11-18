@@ -23,7 +23,6 @@ const builds = {
     format: "esm",
     env: "production",
     external: ["seedrandom", "dotenv"],
-  },
   // "ts-fsrs.umd": {
   //   entry: resolve("src/fsrs/index.ts"),
   //   dest: (name) => `dist/${name}.js`,
@@ -35,6 +34,7 @@ const builds = {
   //   },
   //   external: ["seedrandom", "dotenv"],
   // },
+  }
 };
 const getConfig = (name) => {
   const opts = builds[name];
