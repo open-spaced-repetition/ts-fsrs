@@ -8,7 +8,7 @@ interface example {
 }
 
 const generatorExample1 = (fsrsParameter?: FSRSParameters): example[] => {
-    // new -> again -> hard->good->easy->easy
+    // new -> again -> hard -> good -> easy -> easy
     const params = generatorParameters(fsrsParameter);
     const f = fsrs(params);
     let card = createEmptyCard()

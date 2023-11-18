@@ -1,0 +1,49 @@
+@startuml cardStateTransition
+
+state New {
+    New : - again_due: scheduler(1)
+    New : - hard_due: scheduler(5)
+    New : - good_due: scheduler(10)
+    New : - easy_interval: next_interval(easy.stability)
+}
+
+state Learning {
+    Learning : - hard_interval: 0
+    Learning : - good_interval: next_interval(good.stability)
+    Learning : - easy_interval: should be at least 1 day more than good_interval
+}
+
+state Relearning {
+    Relearning : Same scheduling as Learning.
+}
+
+state Review {
+    Review : - generate card next DS,next_ds(s, last_d, last_s, retrievability)
+    Review : - hard_interval: next_interval(s.hard.stability);
+    Review : - good_interval: should be at least 1 day more than hard_interval
+    Review : - easy_interval: should be at least 1 day more than good_interval
+}
+
+
+
+' 定义状态转换
+[*] --> New
+New -d-> Learning : again, hard, good
+New -d-> Review : easy
+
+Relearning --> Relearning : again, hard
+Relearning -u-> Review : good, easy
+Learning --> Learning : again, hard
+Learning -u-> Review : good, easy
+
+
+Review --> Relearning : again
+Review --> Review : hard, good, easy
+
+
+
+' 使用hidden语法来帮助布局
+' New -[hidden]-> Relearning
+Learning -[hidden]l-> Relearning
+
+@enduml

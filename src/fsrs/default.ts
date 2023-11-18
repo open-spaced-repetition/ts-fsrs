@@ -1,7 +1,7 @@
-import { Card, DateInput, FSRSParameters, State } from './models';
-import { fixDate } from './help';
-import { EnvParams } from './type';
-import dotenv from 'dotenv'
+import { Card, DateInput, FSRSParameters, State } from "./models";
+import { fixDate } from "./help";
+import { EnvParams } from "./type";
+import dotenv from "dotenv";
 
 if (process) {
   dotenv.config({ path: `./.env.local` });
@@ -13,9 +13,10 @@ if (process) {
 export const envParams: EnvParams = {
   FSRS_REQUEST_RETENTION: Number(process && process.env.FSRS_REQUEST_RETENTION),
   FSRS_MAXIMUM_INTERVAL: Number(process && process.env.FSRS_MAXIMUM_INTERVAL),
-  FSRS_W: process && process.env.FSRS_W
-    ? JSON.parse(process.env.FSRS_W as string)
-    : undefined,
+  FSRS_W:
+    process && process.env.FSRS_W
+      ? JSON.parse(process.env.FSRS_W as string)
+      : undefined,
   FSRS_ENABLE_FUZZ: Boolean(process && process.env.FSRS_ENABLE_FUZZ),
 };
 
@@ -33,9 +34,11 @@ export const default_w = envParams.FSRS_W || [
 ];
 export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
 
-export const FSRSVersion: string = '3.0.4';
+export const FSRSVersion: string = "3.1.0-beta3";
 
-export function generatorParameters(props?: Partial<FSRSParameters>) {
+export const generatorParameters = (
+  props?: Partial<FSRSParameters>,
+): FSRSParameters => {
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
@@ -54,6 +57,6 @@ export const createEmptyCard = (now?: DateInput): Card => {
     reps: 0,
     lapses: 0,
     state: State.New,
+    last_review: undefined,
   };
 };
-

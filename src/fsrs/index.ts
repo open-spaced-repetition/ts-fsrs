@@ -16,7 +16,8 @@ export {
   show_diff_message,
   fixState,
   fixDate,
-  fixRating
+  fixRating,
+  Grades
 } from "./help";
 
 export type { int, double } from "./type";
@@ -24,8 +25,11 @@ export type {
   FSRSParameters,
   Card,
   ReviewLog,
+  RecordLog,
+  RecordLogItem,
   StateType,
   RatingType,
+  Grade,
   CardInput,
   DateInput
 } from "./models";

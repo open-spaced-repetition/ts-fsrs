@@ -1,6 +1,17 @@
 import { SchedulingCard } from "./scheduler";
-import { fixDate, fixState } from "./help";
-import { FSRSParameters, Card, State, CardInput, DateInput } from "./models";
+import { fixDate, fixRating, fixState } from "./help";
+import {
+  Card,
+  CardInput,
+  DateInput,
+  FSRSParameters,
+  Rating,
+  RecordLog,
+  RecordLogItem,
+  ReviewLog,
+  ReviewLogInput,
+  State,
+} from "./models";
 import type { int } from "./type";
 import { FSRSAlgorithm } from "./algorithm";
 
@@ -9,27 +20,33 @@ export class FSRS extends FSRSAlgorithm {
     super(param);
   }
 
-  preProcess(_card: CardInput, _now: DateInput) {
-    const card: Card = {
+  private preProcessCard(_card: CardInput): Card {
+    return {
       ..._card,
       state: fixState(_card.state),
       due: fixDate(_card.due),
       last_review: _card.last_review ? fixDate(_card.last_review) : undefined,
     };
-    const now = fixDate(_now);
-    return { card, now };
   }
 
-  repeat = (card: CardInput, now: DateInput) => {
-    const process = this.preProcess(card, now);
-    card = process.card;
-    now = process.now;
-    card.elapsed_days =
-      card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
-    card.last_review = now; // 上次复习时间
-    card.reps += 1;
-    const s = new SchedulingCard(card).update_state(card.state);
-    this.seed = String(card.last_review.getTime()) + String(card.elapsed_days);
+  private preProcessDate(_date: DateInput): Date {
+    return fixDate(_date);
+  }
+
+  private preProcessLog(_log: ReviewLogInput): ReviewLog {
+    return {
+      ..._log,
+      rating: fixRating(_log.rating),
+      state: fixState(_log.state),
+      review: fixDate(_log.review),
+    };
+  }
+
+  repeat = (card: CardInput, now: DateInput): RecordLog => {
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
+    const s = new SchedulingCard(card, now).update_state(card.state);
+    this.seed = String(now.getTime()) + String(card.reps);
     let easy_interval, good_interval, hard_interval;
     switch (card.state) {
       case State.New:
@@ -73,9 +90,8 @@ export class FSRS extends FSRSAlgorithm {
   };
 
   get_retrievability = (card: Card, now: Date): undefined | string => {
-    const process = this.preProcess(card, now);
-    card = process.card;
-    now = process.now;
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
     if (card.state !== State.Review) {
       return undefined;
     }
@@ -83,6 +99,77 @@ export class FSRS extends FSRSAlgorithm {
     return (
       (this.current_retrievability(t, card.stability) * 100).toFixed(2) + "%"
     );
+  };
+
+  rollback = (card: CardInput, log: ReviewLogInput): Card => {
+    card = this.preProcessCard(card);
+    log = this.preProcessLog(log);
+    if (log.rating === Rating.Manual) {
+      throw new Error("Cannot rollback a manual rating");
+    }
+    let last_due, last_review, last_lapses;
+    switch (log.state) {
+      case State.New:
+        last_due = log.due;
+        last_review = undefined;
+        last_lapses = 0;
+        break;
+      case State.Learning:
+      case State.Relearning:
+      case State.Review:
+        last_due = log.review;
+        last_review = log.due;
+        last_lapses =
+          card.lapses -
+          (log.rating === Rating.Again && log.state === State.Review ? 1 : 0);
+        break;
+    }
+
+    return {
+      ...card,
+      due: last_due,
+      stability: log.stability,
+      difficulty: log.difficulty,
+      elapsed_days: log.last_elapsed_days,
+      scheduled_days: log.scheduled_days,
+      reps: Math.max(0, card.reps - 1),
+      lapses: Math.max(0, last_lapses),
+      state: log.state,
+      last_review: last_review,
+    };
+  };
+
+  forget = (
+    card: CardInput,
+    now: DateInput,
+    reset_count: boolean = false,
+  ): RecordLogItem => {
+    card = this.preProcessCard(card);
+    now = this.preProcessDate(now);
+    const forget_log: ReviewLog = {
+      rating: Rating.Manual,
+      state: card.state,
+      due: card.due,
+      stability: card.stability,
+      difficulty: card.difficulty,
+      elapsed_days: 0,
+      last_elapsed_days: card.elapsed_days,
+      scheduled_days: card.scheduled_days,
+      review: now,
+    };
+    const forget_card: Card = {
+      ...card,
+      due: now,
+      stability: 0,
+      difficulty: 0,
+      elapsed_days: 0,
+      scheduled_days: 0,
+      reps: reset_count ? 0 : card.reps,
+      lapses: reset_count ? 0 : card.lapses,
+      state: State.New,
+      last_review: card.last_review,
+    };
+    return { card: forget_card, log: forget_log };
   };
 }
 
