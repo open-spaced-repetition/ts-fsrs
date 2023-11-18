@@ -1,40 +1,15 @@
 import { Card, DateInput, FSRSParameters, State } from "./models";
 import { fixDate } from "./help";
-import { EnvParams } from "./type";
-import dotenv from "dotenv";
 
-if (typeof window === "undefined") {
-  dotenv.config({ path: `./.env.local` });
-  dotenv.config({ path: `./.env.production` });
-  dotenv.config({ path: `./.env.` });
-  dotenv.config({ path: `./.env.development` });
-}
-
-export const envParams: EnvParams = {
-  FSRS_REQUEST_RETENTION: Number(process && process.env.FSRS_REQUEST_RETENTION),
-  FSRS_MAXIMUM_INTERVAL: Number(process && process.env.FSRS_MAXIMUM_INTERVAL),
-  FSRS_W:
-    process && process.env.FSRS_W
-      ? JSON.parse(process.env.FSRS_W as string)
-      : undefined,
-  FSRS_ENABLE_FUZZ: Boolean(process && process.env.FSRS_ENABLE_FUZZ),
-};
-
-export const default_request_retention = !isNaN(
-  envParams.FSRS_REQUEST_RETENTION,
-)
-  ? envParams.FSRS_REQUEST_RETENTION
-  : 0.9;
-export const default_maximum_interval = !isNaN(envParams.FSRS_MAXIMUM_INTERVAL)
-  ? envParams.FSRS_MAXIMUM_INTERVAL
-  : 36500;
-export const default_w = envParams.FSRS_W || [
+export const default_request_retention = 0.9;
+export const default_maximum_interval = 36500;
+export const default_w = [
   0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
   0.34, 1.26, 0.29, 2.61,
 ];
-export const default_enable_fuzz = envParams.FSRS_ENABLE_FUZZ || false;
+export const default_enable_fuzz = false;
 
-export const FSRSVersion: string = "3.1.0-beta6";
+export const FSRSVersion: string = "3.1.0-beta7";
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>,

@@ -1,5 +1,4 @@
 import {
-  envParams,
   Rating,
   RatingType,
   State,
@@ -77,30 +76,23 @@ describe("Rating", () => {
 });
 
 describe("default FSRSParameters", () => {
-  const env = envParams;
+  // const env = envParams;
   const params = generatorParameters();
   const w_v4 = [
     0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
     0.34, 1.26, 0.29, 2.61,
   ];
   it("default_request_retention", () => {
-    expect([0.9, env.FSRS_REQUEST_RETENTION]).toContainEqual(
-      params.request_retention,
-    );
+    expect(0.9).toEqual(params.request_retention);
   });
   it("default_maximum_interval", () => {
-    expect([36500, env.FSRS_MAXIMUM_INTERVAL]).toContainEqual(
-      params.maximum_interval,
-    );
+    expect(36500).toEqual(params.maximum_interval);
   });
   it("default_w ", () => {
-    expect([w_v4, env.FSRS_W]).toContainEqual(params.w);
-    if (env.FSRS_W) {
-      expect(env.FSRS_W.length).toEqual(w_v4.length);
-    }
+    expect(w_v4).toEqual(params.w);
   });
   it("default_enable_fuzz ", () => {
-    expect([false, env.FSRS_ENABLE_FUZZ]).toContainEqual(params.enable_fuzz);
+    expect(false).toEqual(params.enable_fuzz);
   });
 });
 
