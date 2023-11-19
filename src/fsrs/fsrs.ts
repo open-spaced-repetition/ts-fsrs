@@ -146,6 +146,8 @@ export class FSRS extends FSRSAlgorithm {
   ): RecordLogItem => {
     card = this.preProcessCard(card);
     now = this.preProcessDate(now);
+    const scheduled_days =
+      card.state === State.New ? 0 : now.diff(card.last_review as Date, "days");
     const forget_log: ReviewLog = {
       rating: Rating.Manual,
       state: card.state,
@@ -154,7 +156,7 @@ export class FSRS extends FSRSAlgorithm {
       difficulty: card.difficulty,
       elapsed_days: 0,
       last_elapsed_days: card.elapsed_days,
-      scheduled_days: card.scheduled_days,
+      scheduled_days: scheduled_days,
       review: now,
     };
     const forget_card: Card = {
