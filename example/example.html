@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
+    <script type="module">
+        import * as tsFsrs from 'https://cdn.jsdelivr.net/npm/ts-fsrs@3.1.0-beta8/+esm';
+        window.tsfsrs = tsFsrs
+    </script>
+    <title>TS-FSRS example</title>
+</head>
+<body>
+    <div id="root" class="max-w-full content-center"></div>
+</body>
+<script type="text/babel" src="./exampleComponent.jsx"></script>
+<script type="text/babel" src="./example.jsx"></script>
+
+</html>
