@@ -11,20 +11,8 @@ on:
       - master
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-      - uses: pnpm/action-setup@v2.2.2
-        with: 
-          version: 8.7.1
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
 
   publish-npm:
-    needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -35,6 +23,8 @@ jobs:
         with:
           version: 8.7.1
       - run: pnpm install
+      - run: pnpm lint
+      - run: pnpm test
       - run: pnpm build
       - uses: JS-DevTools/npm-publish@v2
         with:

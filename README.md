@@ -1,4 +1,8 @@
 # About The
+[![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
+[![ts-fsrs beta npm version](https://img.shields.io/npm/v/ts-fsrs/beta.svg)](https://www.npmjs.com/package/ts-fsrs)
+[![Build and Publish](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml)
+[![Deploy](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml)
 
 ts-fsrs is a TypeScript package used to implement the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler). It helps
 developers apply FSRS to their flashcard applications, there by improving the user learning experience.
@@ -7,6 +11,8 @@ developers apply FSRS to their flashcard applications, there by improving the us
 
 ```
 npm install ts-fsrs
+yarn install ts-fsrs
+pnpm install ts-fsrs
 ```
 
 # Example
