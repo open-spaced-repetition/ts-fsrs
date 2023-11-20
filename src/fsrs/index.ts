@@ -6,15 +6,16 @@ export {
   default_enable_fuzz,
   FSRSVersion,
   generatorParameters,
-  createEmptyCard,
-  fsrs,
-  envParams
+  createEmptyCard
 } from "./default";
 export {
   date_scheduler,
   date_diff,
   formatDate,
   show_diff_message,
+  fixState,
+  fixDate,
+  fixRating,
   Grades
 } from "./help";
 
@@ -27,8 +28,9 @@ export type {
   RecordLogItem,
   StateType,
   RatingType,
+  Grade,
   CardInput,
   DateInput
 } from "./models";
 export { State, Rating } from "./models";
-export { FSRS } from "./fsrs";
+export { FSRS,fsrs } from "./fsrs";

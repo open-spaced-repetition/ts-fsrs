@@ -1,6 +1,7 @@
 import pseudorandom from "seedrandom";
-import { generatorParameters, SchedulingCard } from "./index";
-import { FSRSParameters, Rating } from "./models";
+import { generatorParameters } from "./default";
+import {SchedulingCard} from './scheduler'
+import {FSRSParameters, Grade, Rating} from "./models";
 import type { int } from "./type";
 
 // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-v4
@@ -77,7 +78,7 @@ export class FSRSAlgorithm {
    * @param g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return Stability (interval when R=90%)
    */
-  init_stability(g: number): number {
+  init_stability(g: Grade): number {
     return Math.max(this.param.w[g - 1], 0.1);
   }
 
@@ -86,10 +87,10 @@ export class FSRSAlgorithm {
    * $$D_0(G) = w_4 - (G-3) \cdot w_5$$
    * $$\min \{\max \{D_0(G),1\},10\}$$
    * where the D_0(3)=w_4 when the first rating is good.
-   * @param {number} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
+   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return {number} Difficulty D \in [1,10]
    */
-  init_difficulty(g: number): number {
+  init_difficulty(g: Grade): number {
     return Math.min(
       Math.max(this.param.w[4] - (g - 3) * this.param.w[5], 1),
       10,
@@ -130,10 +131,10 @@ export class FSRSAlgorithm {
    * $$next_d = D - w_6 \cdot (R - 2)$$
    * $$D^\prime(D,R) = w_5 \cdot D_0(2) +(1 - w_5) \cdot next_d$$
    * @param {number} d Difficulty D \in [1,10]
-   * @param {Rating} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
+   * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return {number} next_D
    */
-  next_difficulty(d: number, g: number): number {
+  next_difficulty(d: number, g: Grade): number {
     const next_d = d - this.param.w[6] * (g - 3);
     return this.constrain_difficulty(
       this.mean_reversion(this.param.w[4], next_d),
@@ -166,10 +167,10 @@ export class FSRSAlgorithm {
    * @param {number} d Difficulty D \in [1,10]
    * @param {number} s Stability (interval when R=90%)
    * @param {number} r Retrievability (probability of recall)
-   * @param {Rating} g Grade (Rating[0.again,1.hard,2.good,3.easy])
+   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
    * @return {number} S^\prime_r new stability after recall
    */
-  next_recall_stability(d: number, s: number, r: number, g: Rating): number {
+  next_recall_stability(d: number, s: number, r: number, g: Grade): number {
     const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1;
     const easy_bound = Rating.Easy === g ? this.param.w[16] : 1;
     return (

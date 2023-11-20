@@ -1,5 +1,5 @@
 import type { int, unit } from "./type";
-import { Rating, State } from "./models";
+import {Grade, Rating, State} from "./models";
 
 declare global {
   export interface Date {
@@ -144,4 +144,5 @@ export function fixRating(value: unknown): Rating {
   throw new Error(`Invalid rating:[${value}]`);
 }
 
-export const Grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
+
+export const Grades: Grade[] = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];

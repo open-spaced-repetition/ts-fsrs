@@ -6,6 +6,8 @@ export class SchedulingCard {
   hard: Card;
   good: Card;
   easy: Card;
+  last_review: Date;
+  last_elapsed_days: number;
 
   private copy(card: Card): Card {
     return {
@@ -13,7 +15,13 @@ export class SchedulingCard {
     };
   }
 
-  constructor(card: Card) {
+  constructor(card: Card, now: Date) {
+    this.last_review = card.last_review || card.due;
+    this.last_elapsed_days = card.elapsed_days;
+    card.elapsed_days =
+      card.state === State.New ? 0 : now.diff(card.last_review as Date, "days"); //相距时间
+    card.last_review = now; // 上次复习时间
+    card.reps += 1;
     this.again = this.copy(card);
     this.hard = this.copy(card);
     this.good = this.copy(card);
@@ -69,8 +77,12 @@ export class SchedulingCard {
         log: {
           rating: Rating.Again,
           state: card.state,
-          elapsed_days: this.again.scheduled_days,
-          scheduled_days: card.elapsed_days,
+          due: this.last_review,
+          stability: card.stability,
+          difficulty: card.difficulty,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
+          scheduled_days: card.scheduled_days,
           review: now,
         },
       },
@@ -79,8 +91,12 @@ export class SchedulingCard {
         log: {
           rating: Rating.Hard,
           state: card.state,
-          elapsed_days: this.hard.scheduled_days,
-          scheduled_days: card.elapsed_days,
+          due: this.last_review,
+          stability: card.stability,
+          difficulty: card.difficulty,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
+          scheduled_days: card.scheduled_days,
           review: now,
         },
       },
@@ -89,8 +105,12 @@ export class SchedulingCard {
         log: {
           rating: Rating.Good,
           state: card.state,
-          elapsed_days: this.good.scheduled_days,
-          scheduled_days: card.elapsed_days,
+          due: this.last_review,
+          stability: card.stability,
+          difficulty: card.difficulty,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
+          scheduled_days: card.scheduled_days,
           review: now,
         },
       },
@@ -99,8 +119,12 @@ export class SchedulingCard {
         log: {
           rating: Rating.Easy,
           state: card.state,
-          elapsed_days: this.easy.scheduled_days,
-          scheduled_days: card.elapsed_days,
+          due: this.last_review,
+          stability: card.stability,
+          difficulty: card.difficulty,
+          elapsed_days: card.elapsed_days,
+          last_elapsed_days: this.last_elapsed_days,
+          scheduled_days: card.scheduled_days,
           review: now,
         },
       },

@@ -10,16 +10,25 @@ export enum State {
 export type RatingType = "Again" | "Hard" | "Good" | "Easy";
 
 export enum Rating {
+  Manual = 0,
   Again = 1,
   Hard = 2,
   Good = 3,
   Easy = 4,
 }
 
+type ExcludeManual<T> = Exclude<T, Rating.Manual>;
+
+export type Grade = ExcludeManual<Rating>;
+
 export interface ReviewLog {
   rating: Rating;
   state: State;
+  due:Date;
+  stability: number;
+  difficulty: number;
   elapsed_days: number;
+  last_elapsed_days: number;
   scheduled_days: number;
   review: Date;
 }
@@ -27,7 +36,7 @@ export type RecordLogItem = {
   card: Card; log: ReviewLog
 }
 export type RecordLog = {
-  [key in Rating]: RecordLogItem;
+  [key in Grade]: RecordLogItem;
 };
 
 export interface Card {
@@ -44,6 +53,10 @@ export interface Card {
 
 export type CardInput = Card & { state: StateType | State };
 export type DateInput = Date | number | string;
+export type ReviewLogInput = ReviewLog & {
+  rating: RatingType | Rating;
+  state: StateType | State;
+};
 
 export interface FSRSParameters {
   request_retention: number;
