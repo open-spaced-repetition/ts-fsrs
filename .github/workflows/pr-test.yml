@@ -1,0 +1,57 @@
+name: PR Test
+
+on:
+  pull_request:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
+
+      - uses: pnpm/action-setup@v2.2.2
+        with:
+          version: 8.7.1
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run tests
+        run: pnpm test
+
+      - name: jest coverage report
+        uses: ArtiomTr/jest-coverage-report-action@v2.0-rc.6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check test status
+        id: test-status
+        run: echo "::set-output name=status::$(if grep -q 'Test failed' test-results.txt; then echo 'failure'; else echo 'success'; fi)"
+
+  merge:
+    needs: test
+    runs-on: ubuntu-latest
+    if: ${{ needs.test.outputs.status == 'success' }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Trigger npm-publish workflow
+        uses: peter-evans/repository-dispatch@v1
+        with:
+            token: ${{ secrets.GITHUB_TOKEN }}
+            repository: ishiko732/ts-fsrs
+            event-type: publish-npm

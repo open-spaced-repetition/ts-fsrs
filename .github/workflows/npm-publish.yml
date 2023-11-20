@@ -6,9 +6,8 @@ name: Publish Package to npm.js
 on:
   release:
     types: [published]
-  push:
-    branches:
-      - master
+  repository_dispatch:
+    types: [publish-npm]
 
 jobs:
 
