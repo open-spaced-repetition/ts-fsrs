@@ -5,9 +5,10 @@ name: Publish Package to npm.js
 
 on:
   release:
-    types: [published]
-  repository_dispatch:
-    types: [publish-npm]
+    types: [ published ]
+  pull_request:
+    types:
+      - closed
 
 jobs:
 
@@ -25,7 +26,17 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
-      - uses: JS-DevTools/npm-publish@v2
+      - name: Determine Target Branch
+        id: determine-branch
+        run: echo "::set-output name=branch::${{ github.event.pull_request.base.ref }}"
+
+      - name: Determine Tag
+        id: determine-tag
+        run: echo "::set-output name=tag::${{ steps.determine-branch.outputs.branch == 'master' && 'latest' || 'beta' }}"
+
+      - name: Publish Package
+        uses: JS-DevTools/npm-publish@v2
         with:
-            token: ${{secrets.npm_token}}
-            provenance: true
+          token: ${{secrets.npm_token}}
+          provenance: true
+          tag: ${{ steps.determine-tag.outputs.tag }}
