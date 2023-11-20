@@ -33,7 +33,7 @@ jobs:
       - name: Build docs
         run: pnpm run docs
       - name: Copy example folder
-        run: cp -R example docs/example
+        run: cp -R example docs/
 
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@4.1.1
