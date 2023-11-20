@@ -42,7 +42,9 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 });
 ```
 
-> More examples refer to the [Example](https://github.com/ishiko732/ts-fsrs/blob/master/example/index.ts)
+More examples refer:
+- [Browser](https://github.com/ishiko732/ts-fsrs/blob/master/example/example.html) (ts-fsrs package using CDN)
+- [Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
 
 
 # Basic Use 
