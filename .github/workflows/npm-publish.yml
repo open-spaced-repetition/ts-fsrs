@@ -19,6 +19,14 @@ jobs:
       packages: write # allow GITHUB_TOKEN to publish packages
       id-token: write
     steps:
+      - name: Check Pull Request Status
+        run: |
+          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
+            echo "Pull request merged successfully."
+          else
+            echo "Pull request not merged. Skipping further steps."
+            exit 0
+          fi
       - uses: actions/checkout@v2
       - uses: pnpm/action-setup@v2.2.2
         with:
@@ -47,4 +55,5 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           registry: "https://npm.pkg.github.com"
           provenance: true
+          access: public
           tag: ${{ steps.determine-tag.outputs.tag }}
