@@ -49,11 +49,3 @@ jobs:
           token: ${{secrets.npm_token}}
           provenance: true
           tag: ${{ steps.determine-tag.outputs.tag }}
-      - name: Publish Package to GitHub Packages
-        uses: JS-DevTools/npm-publish@v2
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          registry: "https://npm.pkg.github.com"
-          provenance: true
-          access: public
-          tag: ${{ steps.determine-tag.outputs.tag }}
