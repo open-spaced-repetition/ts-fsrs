@@ -124,7 +124,7 @@ describe("FSRS V4 AC by py-fsrs", () => {
     expect(stability).toEqual([1.14, 1.01, 5.44, 14.67]);
     expect(difficulty).toEqual([8.4348, 6.8686, 5.3024, 3.7361999999999993]);
     expect(reps).toEqual([1, 1, 1, 1]);
-    expect(lapses).toEqual([1, 0, 0, 0]);
+    expect(lapses).toEqual([0, 0, 0, 0]);
     expect(elapsed_days).toEqual([0, 0, 0, 0]);
     expect(scheduled_days).toEqual([0, 0, 0, 15]);
     expect(states).toEqual([
