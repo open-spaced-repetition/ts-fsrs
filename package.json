@@ -44,6 +44,7 @@
     "lint": "eslint --fix src/ && prettier --write src/",
     "dev": "rollup -c -w",
     "test": "jest --passWithNoTests",
+    "test:coverage": "jest --coverage",
     "prebuild": "rimraf ./dist",
     "build": "rollup --c ",
     "build:types": "tsc --project ./tsconfig.json --declaration true",

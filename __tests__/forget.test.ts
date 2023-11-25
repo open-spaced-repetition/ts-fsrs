@@ -39,11 +39,7 @@ describe("FSRS forget", () => {
       );
     }
     for (const grade of grades) {
-      const forgetCard = f.forget(
-        scheduling_cards[grade].card,
-        forget_now,
-        false,
-      );
+      const forgetCard = f.forget(scheduling_cards[grade].card, forget_now);
       expect(forgetCard.card).toEqual({
         ...card,
         due: forget_now,
@@ -56,5 +52,26 @@ describe("FSRS forget", () => {
         "Cannot rollback a manual rating",
       );
     }
+  });
+
+  it("new card forget[reset true]", () => {
+    const card = createEmptyCard();
+    const forget_now = new Date(2023, 11, 30, 12, 30, 0, 0);
+    const forgetCard = f.forget(card, forget_now, true);
+    expect(forgetCard.card).toEqual({
+      ...card,
+      due: forget_now,
+      lapses: 0,
+      reps: 0,
+    });
+  });
+  it("new card forget[reset true]", () => {
+    const card = createEmptyCard();
+    const forget_now = new Date(2023, 11, 30, 12, 30, 0, 0);
+    const forgetCard = f.forget(card, forget_now);
+    expect(forgetCard.card).toEqual({
+      ...card,
+      due: forget_now,
+    });
   });
 });
