@@ -34,7 +34,6 @@ export class SchedulingCard {
       this.hard.state = State.Learning;
       this.good.state = State.Learning;
       this.easy.state = State.Review;
-      this.again.lapses += 1;
     } else if (state === State.Learning || state === State.Relearning) {
       this.again.state = state;
       this.hard.state = state;
