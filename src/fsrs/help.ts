@@ -9,7 +9,7 @@ declare global {
 
     format(): string;
 
-    dueFormat(last_review: Date, unit?: boolean): string;
+    dueFormat(last_review: Date, unit?: boolean,timeUnit?: string[]): string;
   }
 }
 
@@ -30,8 +30,8 @@ Date.prototype.format = function (): string {
   return formatDate(this);
 };
 
-Date.prototype.dueFormat = function (last_review: Date, unit?: boolean) {
-  return show_diff_message(this, last_review, unit);
+Date.prototype.dueFormat = function (last_review: Date, unit?: boolean,timeUnit?: string[]) {
+  return show_diff_message(this, last_review, unit, timeUnit);
 };
 
 /**
@@ -128,7 +128,13 @@ export function fixDate(value: unknown) {
 
 export function fixState(value: unknown): State {
   if (typeof value === "string") {
-    return State[value as keyof typeof State];
+    const firstLetter = value.charAt(0).toUpperCase();
+    const restOfString = value.slice(1).toLowerCase();
+    const ret= State[`${firstLetter}${restOfString}` as keyof typeof State]
+    if(ret === undefined){
+      throw new Error(`Invalid state:[${value}]`);
+    }
+    return ret;
   } else if (typeof value === "number") {
     return value as State;
   }
@@ -137,7 +143,13 @@ export function fixState(value: unknown): State {
 
 export function fixRating(value: unknown): Rating {
   if (typeof value === "string") {
-    return Rating[value as keyof typeof Rating];
+    const firstLetter = value.charAt(0).toUpperCase();
+    const restOfString = value.slice(1).toLowerCase();
+    const ret = Rating[`${firstLetter}${restOfString}` as keyof typeof Rating]
+    if(ret === undefined){
+      throw new Error(`Invalid rating:[${value}]`);
+    }
+    return ret;
   } else if (typeof value === "number") {
     return value as Rating;
   }

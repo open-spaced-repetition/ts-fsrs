@@ -6,4 +6,9 @@ export default  {
     '**/__tests__/*.js?(x)',
     '**/__tests__/*.ts?(x)',
   ],
+  coverageThreshold: {
+    global: {
+      lines: 80,
+    },
+  },
 };

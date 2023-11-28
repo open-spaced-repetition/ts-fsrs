@@ -6,8 +6,9 @@ import {
   createEmptyCard,
   State,
   Grade,
-  Grades,
+  Grades, default_request_retention, default_maximum_interval, default_enable_fuzz, default_w,
 } from "../src/fsrs";
+import { FSRSAlgorithm } from "../src/fsrs/algorithm";
 
 describe("initial FSRS V4", () => {
   const params = generatorParameters();
@@ -37,6 +38,45 @@ describe("initial FSRS V4", () => {
 
   it("retrievability t=s ", () => {
     expect(Number(f.current_retrievability(5, 5).toFixed(2))).toEqual(0.9);
+  });
+
+  it("default params",()=>{
+    const expected_w = [
+      0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
+      0.34, 1.26, 0.29, 2.61,
+    ];
+    expect(default_request_retention).toEqual(0.9);
+    expect(default_maximum_interval).toEqual(36500);
+    expect(default_enable_fuzz).toEqual(false)
+    expect(default_w).toEqual(expected_w);
+    expect(default_w.length).toBe(expected_w.length);
+  })
+});
+
+describe("FSRS apply_fuzz", () => {
+  test("return original interval when fuzzing is disabled", () => {
+    const ivl = 3.0;
+    const enable_fuzz = false;
+    const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
+    expect(algorithm.apply_fuzz(ivl)).toBe(3);
+  });
+
+  test("return original interval when ivl is less than 2.5", () => {
+    const ivl = 2.0;
+    const enable_fuzz = true;
+    const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
+    expect(algorithm.apply_fuzz(ivl)).toBe(2);
+  });
+
+  test("return original interval when ivl is less than 2.5", () => {
+    const ivl = 2.5;
+    const enable_fuzz = true;
+    const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz });
+    const min_ivl = Math.max(2, Math.round(ivl * 0.95 - 1));
+    const max_ivl = Math.round(ivl * 1.05 + 1);
+    const fuzzedInterval = algorithm.apply_fuzz(ivl);
+    expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl);
+    expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl);
   });
 });
 
@@ -133,5 +173,24 @@ describe("FSRS V4 AC by py-fsrs", () => {
       State.Learning,
       State.Review,
     ]);
+  });
+});
+
+describe("get retrievability", () => {
+  const fsrs = new FSRS({});
+  test("return undefined for non-review cards", () => {
+    const card = createEmptyCard();
+    const now = new Date();
+    const expected = undefined;
+    expect(fsrs.get_retrievability(card, now)).toBe(expected);
+  });
+
+  test("return retrievability percentage for review cards", () => {
+    const card = createEmptyCard();
+    const sc = fsrs.repeat(card, new Date());
+    const r = [undefined, undefined, undefined, "100.00%"];
+    Grades.forEach((grade,index) => {
+      expect(fsrs.get_retrievability(sc[grade].card, new Date())).toBe(r[index]);
+    });
   });
 });
