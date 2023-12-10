@@ -7,7 +7,7 @@ export enum State {
   Relearning = 3,
 }
 
-export type RatingType = "Again" | "Hard" | "Good" | "Easy";
+export type RatingType = "Manual" | "Again" | "Hard" | "Good" | "Easy";
 
 export enum Rating {
   Manual = 0,
@@ -22,15 +22,15 @@ type ExcludeManual<T> = Exclude<T, Rating.Manual>;
 export type Grade = ExcludeManual<Rating>;
 
 export interface ReviewLog {
-  rating: Rating;
-  state: State;
-  due:Date;
-  stability: number;
-  difficulty: number;
-  elapsed_days: number;
-  last_elapsed_days: number;
-  scheduled_days: number;
-  review: Date;
+  rating: Rating; // Rating of the review (Again, Hard, Good, Easy)
+  state: State; // State of the review (New, Learning, Review, Relearning)
+  due: Date;  // Date of the last scheduling
+  stability: number; // Memory stability during the review
+  difficulty: number; // Difficulty of the card during the review
+  elapsed_days: number; // Number of days elapsed since the last review
+  last_elapsed_days: number; // Number of days between the last two reviews
+  scheduled_days: number; // Number of days until the next review
+  review: Date; // Date of the review
 }
 export type RecordLogItem = {
   card: Card; log: ReviewLog

@@ -1,6 +1,6 @@
 {
   "name": "ts-fsrs",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "description": "ts-fsrs is a TypeScript package used to implement the Free Spaced Repetition Scheduler (FSRS) algorithm. It helps developers apply FSRS to their flashcard applications, thereby improving the user learning experience.",
   "main": "dist/ts-fsrs.js",
   "module": "dist/ts-fsrs.mjs",
@@ -17,11 +17,9 @@
   },
   "devDependencies": {
     "@babel/core": "^7.23.3",
-    "@babel/preset-env": "^7.23.3",
     "@rollup/plugin-alias": "^5.0.1",
     "@rollup/plugin-babel": "^6.0.4",
     "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-json": "^6.0.1",
     "@rollup/plugin-terser": "^0.4.4",
     "@types/jest": "^29.5.8",
     "@types/node": "^20.9.1",
@@ -61,6 +59,8 @@
   "files": [
     "dist",
     "README.md",
+    "README_CN.md",
+    "README_JP.md",
     "LICENSE"
   ],
   "repository": {
@@ -70,5 +70,8 @@
   "bugs": {
     "url": "https://github.com/ishiko732/ts-fsrs/issues"
   },
-  "homepage": "https://github.com/ishiko732/ts-fsrs#readme"
+  "homepage": "https://github.com/ishiko732/ts-fsrs#readme",
+  "engines": {
+    "node": ">=16.0.0"
+  }
 }
