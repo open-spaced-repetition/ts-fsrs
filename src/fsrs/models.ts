@@ -7,7 +7,7 @@ export enum State {
   Relearning = 3,
 }
 
-export type RatingType = "Again" | "Hard" | "Good" | "Easy";
+export type RatingType = "Manual" | "Again" | "Hard" | "Good" | "Easy";
 
 export enum Rating {
   Manual = 0,
