@@ -59,6 +59,8 @@
   "files": [
     "dist",
     "README.md",
+    "README_CN.md",
+    "README_JP.md",
     "LICENSE"
   ],
   "repository": {
