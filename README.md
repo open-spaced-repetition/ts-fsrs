@@ -4,6 +4,7 @@
 
 # About The
 [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
+[![Downloads](https://img.shields.io/npm/dm/ts-fsrs)](https://www.npmjs.com/package/ts-fsrs)
 [![Build and Publish](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml)
 [![Deploy](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml)
 
