@@ -28,6 +28,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Lint
+        run: pnpm lint
 
       - uses: jwalton/gh-find-current-pr@v1
         id: findPr
