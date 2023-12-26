@@ -72,7 +72,7 @@ export class FSRS extends FSRSAlgorithm {
         const interval = card.elapsed_days;
         const last_d = card.difficulty;
         const last_s = card.stability;
-        const retrievability = this.current_retrievability(interval, last_s);
+        const retrievability = this.forgetting_curve(interval, last_s);
         this.next_ds(s, last_d, last_s, retrievability);
         hard_interval = this.next_interval(s.hard.stability);
         good_interval = this.next_interval(s.good.stability);
@@ -97,7 +97,7 @@ export class FSRS extends FSRSAlgorithm {
     }
     const t = Math.max(now.diff(card.last_review as Date, "days"), 0);
     return (
-      (this.current_retrievability(t, card.stability) * 100).toFixed(2) + "%"
+      (this.forgetting_curve(t, card.stability) * 100).toFixed(2) + "%"
     );
   };
 
