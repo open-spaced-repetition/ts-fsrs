@@ -37,7 +37,7 @@ describe("initial FSRS V4", () => {
   });
 
   it("retrievability t=s ", () => {
-    expect(Number(f.current_retrievability(5, 5).toFixed(2))).toEqual(0.9);
+    expect(Number(f.forgetting_curve(5, 5).toFixed(2))).toEqual(0.9);
   });
 
   it("default params",()=>{

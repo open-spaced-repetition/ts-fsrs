@@ -9,12 +9,14 @@ export class FSRSAlgorithm {
   protected param: FSRSParameters;
   private readonly intervalModifier: number;
   protected seed?: string;
+  private readonly DECAY: number = -0.5;
+  private readonly FACTOR: number = Math.pow(0.9, 1 / this.DECAY) - 1;
 
   constructor(param: Partial<FSRSParameters>) {
     this.param = generatorParameters(param);
-    // Ref: https://github.com/open-spaced-repetition/py-fsrs/blob/ecd68e453611eb808c7367c7a5312d7cadeedf5c/src/fsrs/fsrs.py#L79
-    // The formula used is : I(r,s)=9 \cdot  s \cdot (\frac{1}{r}-1)
-    this.intervalModifier = 9 * (1 / this.param.request_retention - 1);
+    // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
+    // The formula used is : I(r,s)= (r^{\frac{1}{DECAY}-1}) \times \frac{s}{FACTOR}
+    this.intervalModifier = (Math.pow(this.param.request_retention, 1 / this.DECAY) - 1) / this.FACTOR;
   }
 
   init_ds(s: SchedulingCard): void {
@@ -194,22 +196,22 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
-    return (
+    return Number((
       this.param.w[11] *
       Math.pow(d, -this.param.w[12]) *
       (Math.pow(s + 1, this.param.w[13]) - 1) *
       Math.exp((1 - r) * this.param.w[14])
-    );
+    ).toFixed(2));
   }
 
   /**
    * The formula used is :
-   * $$R(t,S) = (1 + \frac{t}{9 \cdot S})^{-1},$$
-   * @param {number} t t days since the last review
-   * @param {number} s Stability (interval when R=90%)
+   * $$R(t,S) = (1 + FACTOR \times \frac{t}{9 \cdot S})^{DECAY},$$
+   * @param {number} elapsed_days t days since the last review
+   * @param {number} stability Stability (interval when R=90%)
    * @return {number} r Retrievability (probability of recall)
    */
-  current_retrievability(t: number, s: number): number {
-    return Math.pow(1 + t / (9 * s), -1);
+  forgetting_curve(elapsed_days: number, stability: number): number {
+    return Math.pow(1 + this.FACTOR * elapsed_days / stability, this.DECAY);
   }
 }
