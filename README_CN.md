@@ -5,8 +5,8 @@
 # 关于
 
 [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
-[![Build and Publish](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml)
-[![Deploy](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml)
+[![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
+[![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 ts-fsrs 是一个基于TypeScript开发的[ES modules包](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
 ，用于实现[自由间隔重复调度器（FSRS）算法](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler/blob/main/README_CN.md)
@@ -57,9 +57,9 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 
 更多的参考:
 
-- [参考文档- Github Pages](https://ishiko732.github.io/ts-fsrs/)
-- [参考调度 - Github Pages](https://ishiko732.github.io/ts-fsrs/example)
-- [浏览器使用](https://github.com/ishiko732/ts-fsrs/blob/master/example/example.html) (使用CDN来访问ts-fsrs ESM包)
+- [参考文档- Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
+- [参考调度 - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
+- [浏览器使用](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (使用CDN来访问ts-fsrs ESM包)
 - [案例应用 - 基于Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
 
 # 基本使用方法

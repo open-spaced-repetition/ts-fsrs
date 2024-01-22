@@ -5,8 +5,8 @@
 # について
 
 [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
-[![Build and Publish](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml)
-[![Deploy](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml)
+[![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
+[![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 ts-fsrsは[自由間隔重複スケジューラ（FSRS）アルゴリズム](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler)
 を実装するための、TypeScriptで開発された[ESモジュールパッケージ](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
@@ -57,9 +57,9 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 
 もっと:
 
-- [参考資料- Github Pages](https://ishiko732.github.io/ts-fsrs/)
-- [参考スケジューラ - Github Pages](https://ishiko732.github.io/ts-fsrs/example)
-- [ブラウザで使い方](https://github.com/ishiko732/ts-fsrs/blob/master/example/example.html) (CDNを使用して ts-fsrs ESM
+- [参考資料- Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
+- [参考スケジューラ - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
+- [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (CDNを使用して ts-fsrs ESM
   パッケージにアクセスする)
 - [実際のケース - Next.js+Prismaを利用する](https://github.com/ishiko732/ts-fsrs-demo)
 
