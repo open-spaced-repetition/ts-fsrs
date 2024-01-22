@@ -5,8 +5,8 @@
 # About The
 [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
 [![Downloads](https://img.shields.io/npm/dm/ts-fsrs)](https://www.npmjs.com/package/ts-fsrs)
-[![Build and Publish](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/npm-publish.yml)
-[![Deploy](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/ishiko732/ts-fsrs/actions/workflows/deploy.yml)
+[![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
+[![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 ts-fsrs is a [ES modules package](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) based on TypeScript, used to implement the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler). It helps
 developers apply FSRS to their flashcard applications, there by improving the user learning experience.
@@ -54,16 +54,16 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 ```
 
 More refer:
-- [Docs - Github Pages](https://ishiko732.github.io/ts-fsrs/)
-- [Example.html - Github Pages](https://ishiko732.github.io/ts-fsrs/example)
-- [Browser](https://github.com/ishiko732/ts-fsrs/blob/master/example/example.html) (ts-fsrs package using CDN)
+- [Docs - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
+- [Example.html - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
+- [Browser](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (ts-fsrs package using CDN)
 - [ts-fsrs-demo - Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
 
 
 # Basic Use 
 
 ## 1. **Initialization**:
-To begin, create an empty card instance and set the current date(default: current time from system)):
+To begin, create an empty card instance and set the current date(default: current time from system):
 
 ```typescript
 import { Card, createEmptyCard } from "ts-fsrs";
