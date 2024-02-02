@@ -59,12 +59,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ishiko732/ts-fsrs.git"
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git"
   },
   "bugs": {
-    "url": "https://github.com/ishiko732/ts-fsrs/issues"
+    "url": "https://github.com/open-spaced-repetition/ts-fsrs/issues"
   },
-  "homepage": "https://github.com/ishiko732/ts-fsrs#readme",
+  "homepage": "https://github.com/open-spaced-repetition/ts-fsrs#readme",
   "engines": {
     "node": ">=16.0.0"
   }
