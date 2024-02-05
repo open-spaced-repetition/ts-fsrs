@@ -23,6 +23,8 @@ test("Date.prototype.format", () => {
   const last_review = new Date(2022, 11, 29, 12, 30, 0, 0);
   expect(now.format()).toEqual("2022-12-30 12:30:00");
   expect(formatDate(now)).toEqual("2022-12-30 12:30:00");
+  expect(formatDate(now.getTime())).toEqual("2022-12-30 12:30:00");
+  expect(formatDate(now.toUTCString())).toEqual("2022-12-30 12:30:00");
   const TIMEUNITFORMAT_TEST = ["秒", "分", "时", "天", "月", "年"];
   expect(now.dueFormat(last_review)).toEqual("1");
   expect(now.dueFormat(last_review, true)).toEqual("1day");
@@ -61,6 +63,15 @@ describe("date_scheduler", () => {
 
     expect(date_scheduler(now, t, true)).toEqual(expected);
   });
+
+  test("Date data real type is string/number", () => {
+    const now = "2023-01-01T12:00:00Z";
+    const t = 2;
+    const expected = new Date("2023-01-03T12:00:00Z");
+
+    expect(date_scheduler(now, t, true)).toEqual(expected);
+  });
+
 });
 
 describe("date_diff", () => {
@@ -97,6 +108,15 @@ describe("date_diff", () => {
     const expected = -30;
     expect(date_diff(now, pre, unit)).toBe(expected);
   });
+
+  test("Date data real type is string/number", () => {
+    const now = "2023-11-25T12:30:00Z";
+    const pre = new Date("2023-11-25T12:00:00Z").getTime();
+    const unit = "minutes";
+    const expected = 30;
+    expect(date_diff(now, pre, unit)).toBe(expected);
+  });
+
 });
 
 describe("fixDate", () => {

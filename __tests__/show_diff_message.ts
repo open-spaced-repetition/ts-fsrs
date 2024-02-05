@@ -135,3 +135,13 @@ test("wrong timeUnit length", () => {
   expect(fixDate(t2).dueFormat(fixDate(t1),true,TIMEUNITFORMAT_TEST)).not.toEqual("1年");
   expect(fixDate(t2).dueFormat(fixDate(t1),true,TIMEUNITFORMAT_TEST)).toEqual("1year");
 });
+
+test("Date data real type is string/number", ()=>{
+  const TIMEUNITFORMAT_TEST = ["年"];
+  const t1 = new Date();
+  const t2 = new Date(t1.getTime() + 1000 * 60 * 60 * 24 * 31 * 13).toDateString();
+  expect(show_diff_message(t2, t1.getTime())).toBe("1");
+  expect(show_diff_message(t2, t1.toUTCString(), true)).toEqual("1year");
+  expect(fixDate(t2).dueFormat(fixDate(t1),true,TIMEUNITFORMAT_TEST)).not.toEqual("1年");
+  expect(fixDate(t2).dueFormat(fixDate(t1),true,TIMEUNITFORMAT_TEST)).toEqual("1year");
+})
