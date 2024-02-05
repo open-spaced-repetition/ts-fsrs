@@ -1,5 +1,6 @@
 import type { int, unit } from "./type";
-import {Grade, Rating, State} from "./models";
+import type { DateInput, Grade } from './models';
+import { Rating, State } from './models';
 
 declare global {
   export interface Date {
@@ -41,19 +42,19 @@ Date.prototype.dueFormat = function (last_review: Date, unit?: boolean,timeUnit?
  * @param isDay （可选）是否按天数单位进行偏移，默认为 false，表示按分钟单位计算偏移
  * @returns 偏移后的日期和时间对象
  */
-export function date_scheduler(now: Date, t: number, isDay?: boolean): Date {
+export function date_scheduler(now: DateInput, t: number, isDay?: boolean): Date {
   return new Date(
     isDay
-      ? now.getTime() + t * 24 * 60 * 60 * 1000
-      : now.getTime() + t * 60 * 1000,
+      ? fixDate(now).getTime() + t * 24 * 60 * 60 * 1000
+      : fixDate(now).getTime() + t * 60 * 1000,
   );
 }
 
-export function date_diff(now: Date, pre: Date, unit: unit): number {
+export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   if (!now || !pre) {
     throw new Error("Invalid date");
   }
-  const diff = now.getTime() - pre.getTime();
+  const diff = fixDate(now).getTime() - fixDate(pre).getTime();
   let r = 0;
   switch (unit) {
     case "days":
@@ -66,7 +67,8 @@ export function date_diff(now: Date, pre: Date, unit: unit): number {
   return r;
 }
 
-export function formatDate(date: Date): string {
+export function formatDate(dateInput: DateInput): string {
+  const date = fixDate(dateInput);
   const year: number = date.getFullYear();
   const month: number = date.getMonth() + 1;
   const day: number = date.getDate();
@@ -87,8 +89,8 @@ const TIMEUNIT = [60, 60, 24, 31, 12];
 const TIMEUNITFORMAT = ["second", "min", "hour", "day", "month", "year"];
 
 export function show_diff_message(
-  due: Date,
-  last_review: Date,
+  due: DateInput,
+  last_review: DateInput,
   unit?: boolean,
   timeUnit: string[] = TIMEUNITFORMAT,
 ): string {
