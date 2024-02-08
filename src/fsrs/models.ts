@@ -32,9 +32,11 @@ export interface ReviewLog {
   scheduled_days: number; // Number of days until the next review
   review: Date; // Date of the review
 }
+
 export type RecordLogItem = {
-  card: Card; log: ReviewLog
-}
+  card: Card;
+  log: ReviewLog;
+};
 export type RecordLog = {
   [key in Grade]: RecordLogItem;
 };
@@ -51,12 +53,21 @@ export interface Card {
   last_review?: Date; // Date of the last review (optional)
 }
 
-export type CardInput = Card & { state: StateType | State };
+export interface CardInput extends Omit<Card, "state" | "due" | "last_review"> {
+  state: StateType | State; // Card's state (New, Learning, Review, Relearning)
+  due: DateInput; // Due date
+  last_review?: DateInput | null; // Date of the last review (optional)
+}
+
 export type DateInput = Date | number | string;
-export type ReviewLogInput = ReviewLog & {
-  rating: RatingType | Rating;
-  state: StateType | State;
-};
+
+export interface ReviewLogInput
+  extends Omit<ReviewLog, "rating" | "state" | "due" | "review"> {
+  rating: RatingType | Rating; // Rating of the review (Again, Hard, Good, Easy)
+  state: StateType | State; // Card's state (New, Learning, Review, Relearning)
+  due: DateInput; // Due date
+  review: DateInput; // Date of the last review
+}
 
 export interface FSRSParameters {
   request_retention: number;
