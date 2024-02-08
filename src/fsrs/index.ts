@@ -30,6 +30,7 @@ export type {
   RatingType,
   Grade,
   CardInput,
+  ReviewLogInput,
   DateInput
 } from "./models";
 export { State, Rating } from "./models";
