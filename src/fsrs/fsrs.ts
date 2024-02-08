@@ -42,7 +42,11 @@ export class FSRS extends FSRSAlgorithm {
     };
   }
 
-  repeat = (card: CardInput, now: DateInput): RecordLog => {
+  repeat<R = RecordLog>(
+    card: CardInput,
+    now: DateInput,
+    afterHandler?: (recordLog: RecordLog) => R,
+  ): R {
     card = this.preProcessCard(card);
     now = this.preProcessDate(now);
     const s = new SchedulingCard(card, now).update_state(card.state);
@@ -86,8 +90,13 @@ export class FSRS extends FSRSAlgorithm {
         break;
       }
     }
-    return s.record_log(card, now);
-  };
+    const recordLog = s.record_log(card, now);
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(recordLog);
+    } else {
+      return recordLog as R;
+    }
+  }
 
   get_retrievability = (card: Card, now: Date): undefined | string => {
     card = this.preProcessCard(card);
@@ -101,7 +110,11 @@ export class FSRS extends FSRSAlgorithm {
     );
   };
 
-  rollback = (card: CardInput, log: ReviewLogInput): Card => {
+  rollback<R = Card>(
+    card: CardInput,
+    log: ReviewLogInput,
+    afterHandler?: (prevCard: Card) => R,
+  ): R {
     card = this.preProcessCard(card);
     log = this.preProcessLog(log);
     if (log.rating === Rating.Manual) {
@@ -125,7 +138,7 @@ export class FSRS extends FSRSAlgorithm {
         break;
     }
 
-    return {
+    const prevCard: Card = {
       ...card,
       due: last_due,
       stability: log.stability,
@@ -137,13 +150,19 @@ export class FSRS extends FSRSAlgorithm {
       state: log.state,
       last_review: last_review,
     };
-  };
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(prevCard);
+    } else {
+      return prevCard as R;
+    }
+  }
 
-  forget = (
+  forget<R = RecordLogItem>(
     card: CardInput,
     now: DateInput,
     reset_count: boolean = false,
-  ): RecordLogItem => {
+    afterHandler?: (recordLogItem: RecordLogItem) => R,
+  ): R {
     card = this.preProcessCard(card);
     now = this.preProcessDate(now);
     const scheduled_days =
@@ -171,8 +190,13 @@ export class FSRS extends FSRSAlgorithm {
       state: State.New,
       last_review: card.last_review,
     };
-    return { card: forget_card, log: forget_log };
-  };
+    const recordLogItem: RecordLogItem = { card: forget_card, log: forget_log };
+    if (afterHandler && typeof afterHandler === "function") {
+      return afterHandler(recordLogItem);
+    } else {
+      return recordLogItem as R;
+    }
+  }
 }
 
 export const fsrs = (params?: Partial<FSRSParameters>) => {

@@ -22,8 +22,11 @@ export const generatorParameters = (
   };
 };
 
-export const createEmptyCard = (now?: DateInput): Card => {
-  return {
+export function createEmptyCard<R = Card>(
+  now?: DateInput,
+  afterHandler?: (card: Card) => R,
+): R {
+  const emptyCard: Card = {
     due: now ? fixDate(now) : new Date(),
     stability: 0,
     difficulty: 0,
@@ -34,4 +37,9 @@ export const createEmptyCard = (now?: DateInput): Card => {
     state: State.New,
     last_review: undefined,
   };
-};
+  if (afterHandler && typeof afterHandler === "function") {
+    return afterHandler(emptyCard);
+  } else {
+    return emptyCard as R;
+  }
+}
