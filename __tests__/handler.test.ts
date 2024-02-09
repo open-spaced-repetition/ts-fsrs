@@ -75,6 +75,33 @@ describe("afterHandler", () => {
     return record;
   }
 
+  // function repeatAfterHandler(recordLog: RecordLog) {
+  //   const record: { [key in Grade]: RepeatRecordLog } = {} as {
+  //     [key in Grade]: RepeatRecordLog;
+  //   };
+  //   for (const grade of Grades) {
+  //     record[grade] = {
+  //       card: {
+  //         ...(recordLog[grade].card as Card & { cid: string }),
+  //         due: recordLog[grade].card.due.getTime(),
+  //         state: State[recordLog[grade].card.state] as StateType,
+  //         last_review: recordLog[grade].card.last_review
+  //           ? recordLog[grade].card.last_review!.getTime()
+  //           : null,
+  //       },
+  //       log: {
+  //         ...recordLog[grade].log,
+  //         cid: (recordLog[grade].card as Card & { cid: string }).cid,
+  //         due: recordLog[grade].log.due.getTime(),
+  //         review: recordLog[grade].log.review.getTime(),
+  //         state: State[recordLog[grade].log.state] as StateType,
+  //         rating: Rating[recordLog[grade].log.rating] as RatingType,
+  //       },
+  //     };
+  //   }
+  //   return record;
+  // }
+
   function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
     return {
       card: {

@@ -43,6 +43,63 @@ export class FSRS extends FSRSAlgorithm {
     };
   }
 
+  /**
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```
+   * const card: Card = createEmptyCard(new Date());
+   * const f = fsrs();
+   * const recordLog = f.repeat(card, new Date());
+   * ```
+   * @example
+   * ```
+   * interface RevLogUnchecked
+   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
+   *   cid: string;
+   *   due: Date | number;
+   *   state: StateType;
+   *   review: Date | number;
+   *   rating: RatingType;
+   * }
+   *
+   * interface RepeatRecordLog {
+   *   card: CardUnChecked; // @see createEmptyCard
+   *   log: RevLogUnchecked;
+   * }
+   *
+   * function repeatAfterHandler(recordLog: RecordLog) {
+   *     const record: { [key in Grade]: RepeatRecordLog } = {} as {
+   *       [key in Grade]: RepeatRecordLog;
+   *     };
+   *     for (const grade of Grades) {
+   *       record[grade] = {
+   *         card: {
+   *           ...(recordLog[grade].card as Card & { cid: string }),
+   *           due: recordLog[grade].card.due.getTime(),
+   *           state: State[recordLog[grade].card.state] as StateType,
+   *           last_review: recordLog[grade].card.last_review
+   *             ? recordLog[grade].card.last_review!.getTime()
+   *             : null,
+   *         },
+   *         log: {
+   *           ...recordLog[grade].log,
+   *           cid: (recordLog[grade].card as Card & { cid: string }).cid,
+   *           due: recordLog[grade].log.due.getTime(),
+   *           review: recordLog[grade].log.review.getTime(),
+   *           state: State[recordLog[grade].log.state] as StateType,
+   *           rating: Rating[recordLog[grade].log.rating] as RatingType,
+   *         },
+   *       };
+   *     }
+   *     return record;
+   * }
+   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); // @see createEmptyCard
+   * const f = fsrs();
+   * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
+   * ```
+   */
   repeat<R = RecordLog>(
     card: CardInput | Card,
     now: DateInput,
@@ -116,6 +173,31 @@ export class FSRS extends FSRSAlgorithm {
     );
   };
 
+  /**
+   *
+   * @param card Card to be processed
+   * @param log last review log
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now);
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now);
+   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
+   * const rollbackFromAfterHandler = f.rollback(card, log);
+   * ```
+   *
+   * @example
+   * ```
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  // @see createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); // @see fsrs.repeat()
+   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
+   * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
+   * ```
+   */
   rollback<R = Card>(
     card: CardInput | Card,
     log: ReviewLogInput,
@@ -163,6 +245,57 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  /**
+   *
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCard = createEmptyCard(now);
+   * const scheduling_cards = f.repeat(emptyCard, now);
+   * const { card, log } = scheduling_cards[Rating.Hard];
+   * const forgetCard = f.forget(card, new Date(), true);
+   * ```
+   *
+   * @example
+   * ```
+   * interface RepeatRecordLog {
+   *   card: CardUnChecked; // @see createEmptyCard
+   *   log: RevLogUnchecked; // @see fsrs.repeat()
+   * }
+   *
+   * function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
+   *     return {
+   *       card: {
+   *         ...(recordLogItem.card as Card & { cid: string }),
+   *         due: recordLogItem.card.due.getTime(),
+   *         state: State[recordLogItem.card.state] as StateType,
+   *         last_review: recordLogItem.card.last_review
+   *           ? recordLogItem.card.last_review!.getTime()
+   *           : null,
+   *       },
+   *       log: {
+   *         ...recordLogItem.log,
+   *         cid: (recordLogItem.card as Card & { cid: string }).cid,
+   *         due: recordLogItem.log.due.getTime(),
+   *         review: recordLogItem.log.review.getTime(),
+   *         state: State[recordLogItem.log.state] as StateType,
+   *         rating: Rating[recordLogItem.log.rating] as RatingType,
+   *       },
+   *     };
+   * }
+   * const now = new Date();
+   * const f = fsrs();
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); // @see createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); // @see fsrs.repeat()
+   * const { card } = repeatFormAfterHandler[Rating.Hard];
+   * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
+   * ```
+   */
   forget<R = RecordLogItem>(
     card: CardInput | Card,
     now: DateInput,
@@ -207,6 +340,23 @@ export class FSRS extends FSRSAlgorithm {
   }
 }
 
+/**
+ * Create a new instance of TS-FSRS
+ * @param params FSRSParameters
+ * @example
+ * ```typescript
+ * const f = fsrs();
+ * ```
+ * @example
+ * ```typescript
+ * const params: FSRSParameters = generatorParameters({ maximum_interval: 1000 });
+ * const f = fsrs(params);
+ * ```
+ * @example
+ * ```typescript
+ * const f = fsrs({ maximum_interval: 1000 });
+ * ```
+ */
 export const fsrs = (params?: Partial<FSRSParameters>) => {
   return new FSRS(params || {});
 };

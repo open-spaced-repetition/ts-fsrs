@@ -22,6 +22,36 @@ export const generatorParameters = (
   };
 };
 
+/**
+ * Create an empty card
+ * @param now
+ * @param afterHandler
+ * @example
+ * ```
+ * const card: Card = createEmptyCard(new Date());
+ * ```
+ * @example
+ * ```
+ * interface CardUnChecked
+ *   extends Omit<Card, "due" | "last_review" | "state"> {
+ *   cid: string;
+ *   due: Date | number;
+ *   last_review: Date | null | number;
+ *   state: StateType;
+ * }
+ *
+ * function cardAfterHandler(card: Card) {
+ *      return {
+ *       ...card,
+ *       cid: "test001",
+ *       state: State[card.state],
+ *       last_review: card.last_review ?? null,
+ *     } as CardUnChecked;
+ * }
+ *
+ * const card: CardUnChecked = createEmptyCard(new Date(), cardAfterHandler);
+ * ```
+ */
 export function createEmptyCard<R = Card>(
   now?: DateInput,
   afterHandler?: (card: Card) => R,
