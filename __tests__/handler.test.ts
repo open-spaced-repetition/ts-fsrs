@@ -17,6 +17,7 @@ import {
 
 interface CardPrismaUnChecked
   extends Omit<Card, "due" | "last_review" | "state"> {
+  cid: string;
   due: Date | number;
   last_review: Date | null | number;
   state: StateType;
@@ -24,6 +25,7 @@ interface CardPrismaUnChecked
 
 interface RevLogPrismaUnchecked
   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
+  cid: string;
   due: Date | number;
   state: StateType;
   review: Date | number;
@@ -42,6 +44,7 @@ describe("afterHandler", () => {
   function cardAfterHandler(card: Card) {
     return {
       ...card,
+      cid: "test001",
       state: State[card.state],
       last_review: card.last_review ?? null,
     } as CardPrismaUnChecked;
@@ -52,7 +55,7 @@ describe("afterHandler", () => {
     for (const grade of Grades) {
       record.push({
         card: {
-          ...recordLog[grade].card,
+          ...(recordLog[grade].card as Card & { cid: string }),
           due: recordLog[grade].card.due.getTime(),
           state: State[recordLog[grade].card.state] as StateType,
           last_review: recordLog[grade].card.last_review
@@ -61,6 +64,7 @@ describe("afterHandler", () => {
         },
         log: {
           ...recordLog[grade].log,
+          cid: (recordLog[grade].card as Card & { cid: string }).cid,
           due: recordLog[grade].log.due.getTime(),
           review: recordLog[grade].log.review.getTime(),
           state: State[recordLog[grade].log.state] as StateType,
@@ -74,7 +78,7 @@ describe("afterHandler", () => {
   function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
     return {
       card: {
-        ...recordLogItem.card,
+        ...(recordLogItem.card as Card & { cid: string }),
         due: recordLogItem.card.due.getTime(),
         state: State[recordLogItem.card.state] as StateType,
         last_review: recordLogItem.card.last_review
@@ -83,6 +87,7 @@ describe("afterHandler", () => {
       },
       log: {
         ...recordLogItem.log,
+        cid: (recordLogItem.card as Card & { cid: string }).cid,
         due: recordLogItem.log.due.getTime(),
         review: recordLogItem.log.review.getTime(),
         state: State[recordLogItem.log.state] as StateType,
@@ -96,11 +101,13 @@ describe("afterHandler", () => {
     expect(emptyCardFormAfterHandler.state).toEqual("New");
     expect(fixState(emptyCardFormAfterHandler.state)).toEqual(State.New);
     expect(emptyCardFormAfterHandler.last_review).toEqual(null);
+    expect(emptyCardFormAfterHandler.cid).toEqual("test001");
 
     const emptyCardFormAfterHandler2 = createEmptyCard<CardPrismaUnChecked>(now, cardAfterHandler);
     expect(emptyCardFormAfterHandler2.state).toEqual("New");
     expect(fixState(emptyCardFormAfterHandler2.state)).toEqual(State.New);
     expect(emptyCardFormAfterHandler2.last_review).toEqual(null);
+    expect(emptyCardFormAfterHandler2.cid).toEqual("test001");
   });
 
   it("repeat[afterHandler]", () => {
@@ -117,6 +124,8 @@ describe("afterHandler", () => {
       expect(Number.isSafeInteger(repeat[i].log.review)).toEqual(true);
       expect(typeof repeat[i].log.state === "string").toEqual(true);
       expect(typeof repeat[i].log.rating === "string").toEqual(true);
+      expect(repeat[i].card.cid).toEqual("test001");
+      expect(repeat[i].log.cid).toEqual(repeat[i].card.cid);
     }
   });
 
@@ -126,6 +135,7 @@ describe("afterHandler", () => {
     const { card, log } = repeatFormAfterHandler[Rating.Hard];
     const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
     expect(rollbackFromAfterHandler).toEqual(emptyCardFormAfterHandler);
+    expect(rollbackFromAfterHandler.cid).toEqual("test001");
   });
 
   it("forget[afterHandler]", () => {
@@ -146,5 +156,7 @@ describe("afterHandler", () => {
     );
     expect(typeof forgetFromAfterHandler.log.state === "string").toEqual(true);
     expect(typeof forgetFromAfterHandler.log.rating === "string").toEqual(true);
+    expect(forgetFromAfterHandler.card.cid).toEqual("test001");
+    expect(forgetFromAfterHandler.log.cid).toEqual(forgetFromAfterHandler.card.cid);
   });
 });
