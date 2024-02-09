@@ -24,8 +24,8 @@ export const generatorParameters = (
 
 /**
  * Create an empty card
- * @param now
- * @param afterHandler
+ * @param now Current time
+ * @param afterHandler Convert the result to another type. (Optional)
  * @example
  * ```
  * const card: Card = createEmptyCard(new Date());
