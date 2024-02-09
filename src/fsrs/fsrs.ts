@@ -65,7 +65,7 @@ export class FSRS extends FSRSAlgorithm {
    * }
    *
    * interface RepeatRecordLog {
-   *   card: CardUnChecked; // @see createEmptyCard
+   *   card: CardUnChecked; //see method: createEmptyCard
    *   log: RevLogUnchecked;
    * }
    *
@@ -95,7 +95,7 @@ export class FSRS extends FSRSAlgorithm {
    *     }
    *     return record;
    * }
-   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); // @see createEmptyCard
+   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
    * ```
@@ -192,8 +192,8 @@ export class FSRS extends FSRSAlgorithm {
    * ```
    * const now = new Date();
    * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  // @see createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); // @see fsrs.repeat()
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
    * const { card, log } = repeatFormAfterHandler[Rating.Hard];
    * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
    * ```
@@ -264,8 +264,8 @@ export class FSRS extends FSRSAlgorithm {
    * @example
    * ```
    * interface RepeatRecordLog {
-   *   card: CardUnChecked; // @see createEmptyCard
-   *   log: RevLogUnchecked; // @see fsrs.repeat()
+   *   card: CardUnChecked; //see method: createEmptyCard
+   *   log: RevLogUnchecked; //see method: fsrs.repeat()
    * }
    *
    * function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
@@ -290,8 +290,8 @@ export class FSRS extends FSRSAlgorithm {
    * }
    * const now = new Date();
    * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); // @see createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); // @see fsrs.repeat()
+   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); //see method:  createEmptyCard
+   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
    * const { card } = repeatFormAfterHandler[Rating.Hard];
    * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
    * ```
