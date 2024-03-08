@@ -102,10 +102,11 @@ export class FSRSAlgorithm {
   /**
    * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
    * @param {number} ivl - The interval to be fuzzed.
+   * @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    * @return {number} - The fuzzed interval.
    **/
-  apply_fuzz(ivl: number): number {
-    if (!this.param.enable_fuzz || ivl < 2.5) return ivl;
+  apply_fuzz(ivl: number, enable_fuzz?: boolean): number {
+    if (!enable_fuzz || ivl < 2.5) return ivl;
     const generator = pseudorandom(this.seed);
     const fuzz_factor = generator();
     ivl = Math.round(ivl);
@@ -119,9 +120,10 @@ export class FSRSAlgorithm {
    *   constructor(param: Partial<FSRSParameters>)
    *   this.intervalModifier = 9 * (1 / this.param.request_retention - 1);
    *   @param {number} s - Stability (interval when R=90%)
+   *   @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    */
-  next_interval(s: number): int {
-    const newInterval = this.apply_fuzz(s * this.intervalModifier);
+  next_interval(s: number, enable_fuzz: boolean = this.param.enable_fuzz): int {
+    const newInterval = this.apply_fuzz(s * this.intervalModifier, enable_fuzz);
     return Math.min(
       Math.max(Math.round(newInterval), 1),
       this.param.maximum_interval,

@@ -1,5 +1,5 @@
 import { SchedulingCard } from "./scheduler";
-import { fixDate, fixRating, fixState } from "./help";
+import { date_scheduler, fixDate, fixRating, fixState } from "./help";
 import {
   Card,
   CardInput,
@@ -8,6 +8,7 @@ import {
   Rating,
   RecordLog,
   RecordLogItem,
+  RescheduleOptions,
   ReviewLog,
   ReviewLogInput,
   State,
@@ -33,10 +34,10 @@ export class FSRS extends FSRSAlgorithm {
     return fixDate(_date);
   }
 
-  private preProcessLog(_log: ReviewLogInput|ReviewLog): ReviewLog {
+  private preProcessLog(_log: ReviewLogInput | ReviewLog): ReviewLog {
     return {
       ..._log,
-      due:fixDate(_log.due),
+      due: fixDate(_log.due),
       rating: fixRating(_log.rating),
       state: fixState(_log.state),
       review: fixDate(_log.review),
@@ -222,7 +223,10 @@ export class FSRS extends FSRSAlgorithm {
         last_review = processedLog.due;
         last_lapses =
           processedCard.lapses -
-          (processedLog.rating === Rating.Again && processedLog.state === State.Review ? 1 : 0);
+          (processedLog.rating === Rating.Again &&
+          processedLog.state === State.Review
+            ? 1
+            : 0);
         break;
     }
 
@@ -337,6 +341,33 @@ export class FSRS extends FSRSAlgorithm {
     } else {
       return recordLogItem as R;
     }
+  }
+
+  reschedule<T extends CardInput | Card>(
+    cards: Array<T>,
+    options: RescheduleOptions = {},
+  ): Array<T> {
+    const processedCard: T[] = [];
+    for (const card of cards) {
+      if (fixState(card.state) !== State.Review || !card.last_review) continue;
+      const scheduled_days = Math.floor(card.scheduled_days) as int;
+      const next_ivl = this.next_interval(
+        +card.stability.toFixed(2),
+        options.enable_fuzz ?? true,
+      );
+      if (next_ivl === scheduled_days || next_ivl === 0) continue;
+
+      const processCard: T = { ...card };
+      processCard.scheduled_days = next_ivl;
+      const new_due = date_scheduler(processCard.last_review!, next_ivl, true);
+      if (options.dateHandler && typeof options.dateHandler === "function") {
+        processCard.due = options.dateHandler(new_due);
+      } else {
+        processCard.due = new_due;
+      }
+      processedCard.push(processCard);
+    }
+    return processedCard;
   }
 }
 
