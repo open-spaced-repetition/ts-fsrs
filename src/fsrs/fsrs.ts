@@ -119,16 +119,16 @@ export class FSRS extends FSRSAlgorithm {
         s.again.due = now.scheduler(1 as int);
         s.hard.due = now.scheduler(5 as int);
         s.good.due = now.scheduler(10 as int);
-        easy_interval = this.next_interval(s.easy.stability);
+        easy_interval = this.next_interval(s.easy.stability,processedCard.elapsed_days);
         s.easy.scheduled_days = easy_interval;
         s.easy.due = now.scheduler(easy_interval, true);
         break;
       case State.Learning:
       case State.Relearning:
         hard_interval = 0;
-        good_interval = this.next_interval(s.good.stability);
+        good_interval = this.next_interval(s.good.stability,processedCard.elapsed_days);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability),
+          this.next_interval(s.easy.stability,processedCard.elapsed_days),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
@@ -139,12 +139,12 @@ export class FSRS extends FSRSAlgorithm {
         const last_s = processedCard.stability;
         const retrievability = this.forgetting_curve(interval, last_s);
         this.next_ds(s, last_d, last_s, retrievability);
-        hard_interval = this.next_interval(s.hard.stability);
-        good_interval = this.next_interval(s.good.stability);
+        hard_interval = this.next_interval(s.hard.stability,processedCard.elapsed_days);
+        good_interval = this.next_interval(s.good.stability,processedCard.elapsed_days);
         hard_interval = Math.min(hard_interval, good_interval);
         good_interval = Math.max(good_interval, hard_interval + 1);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability),
+          this.next_interval(s.easy.stability,processedCard.elapsed_days),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
@@ -353,6 +353,7 @@ export class FSRS extends FSRSAlgorithm {
       const scheduled_days = Math.floor(card.scheduled_days) as int;
       const next_ivl = this.next_interval(
         +card.stability.toFixed(2),
+        Math.round(card.elapsed_days),
         options.enable_fuzz ?? true,
       );
       if (next_ivl === scheduled_days || next_ivl === 0) continue;
