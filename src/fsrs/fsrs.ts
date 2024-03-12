@@ -343,6 +343,32 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  /**
+   *
+   * @param cards scheduled card collection
+   * @param options Reschedule options,fuzz is enabled by default.If the type of due is not Date, please implement dataHandler.
+   * @example
+   * ```typescript
+   * type CardType = Card & {
+   *     cid: number;
+   * };
+   * const reviewCard: CardType = {
+   *     cid: 1,
+   *     due: new Date("2024-03-17 04:43:02"),
+   *     stability: 48.26139059062234,
+   *     difficulty: 5.67,
+   *     elapsed_days: 18,
+   *     scheduled_days: 51,
+   *     reps: 8,
+   *     lapses: 1,
+   *     state: State.Review,
+   *     last_review: new Date("2024-01-26 04:43:02"),
+   * };
+   * const f = fsrs();
+   * const reschedule_cards = f.reschedule([reviewCard]);
+   * ```
+   *
+   */
   reschedule<T extends CardInput | Card>(
     cards: Array<T>,
     options: RescheduleOptions = {},
