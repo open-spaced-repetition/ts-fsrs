@@ -113,38 +113,38 @@ export class FSRS extends FSRSAlgorithm {
     );
     this.seed = String(now.getTime()) + String(processedCard.reps);
     let easy_interval, good_interval, hard_interval;
+    const interval = processedCard.elapsed_days;
     switch (processedCard.state) {
       case State.New:
         this.init_ds(s);
         s.again.due = now.scheduler(1 as int);
         s.hard.due = now.scheduler(5 as int);
         s.good.due = now.scheduler(10 as int);
-        easy_interval = this.next_interval(s.easy.stability,processedCard.elapsed_days);
+        easy_interval = this.next_interval(s.easy.stability, interval);
         s.easy.scheduled_days = easy_interval;
         s.easy.due = now.scheduler(easy_interval, true);
         break;
       case State.Learning:
       case State.Relearning:
         hard_interval = 0;
-        good_interval = this.next_interval(s.good.stability,processedCard.elapsed_days);
+        good_interval = this.next_interval(s.good.stability, interval);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability,processedCard.elapsed_days),
+          this.next_interval(s.easy.stability, interval),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
         break;
       case State.Review: {
-        const interval = processedCard.elapsed_days;
         const last_d = processedCard.difficulty;
         const last_s = processedCard.stability;
         const retrievability = this.forgetting_curve(interval, last_s);
         this.next_ds(s, last_d, last_s, retrievability);
-        hard_interval = this.next_interval(s.hard.stability,processedCard.elapsed_days);
-        good_interval = this.next_interval(s.good.stability,processedCard.elapsed_days);
+        hard_interval = this.next_interval(s.hard.stability, interval);
+        good_interval = this.next_interval(s.good.stability, interval);
         hard_interval = Math.min(hard_interval, good_interval);
         good_interval = Math.max(good_interval, hard_interval + 1);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability,processedCard.elapsed_days),
+          this.next_interval(s.easy.stability, interval),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
