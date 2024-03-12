@@ -159,4 +159,4 @@ export function fixRating(value: unknown): Rating {
 }
 
 
-export const Grades: Grade[] = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy];
+export const Grades: Readonly<Grade[]> = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as const;
