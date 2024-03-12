@@ -9,6 +9,7 @@ import {
   Grades, default_request_retention, default_maximum_interval, default_enable_fuzz, default_w,
 } from "../src/fsrs";
 import { FSRSAlgorithm } from "../src/fsrs/algorithm";
+import { get_fuzz_range } from "../src/fsrs";
 
 describe("initial FSRS V4", () => {
   const params = generatorParameters();
@@ -55,26 +56,29 @@ describe("initial FSRS V4", () => {
 
 describe("FSRS apply_fuzz", () => {
   test("return original interval when fuzzing is disabled", () => {
-    const ivl = 3.0;
+    const ivl = 3.2;
     const enable_fuzz = false;
     const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
-    expect(algorithm.apply_fuzz(ivl)).toBe(3);
+    expect(algorithm.apply_fuzz(ivl, 0)).toBe(3);
   });
 
   test("return original interval when ivl is less than 2.5", () => {
-    const ivl = 2.0;
+    const ivl = 2.3;
     const enable_fuzz = true;
     const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
-    expect(algorithm.apply_fuzz(ivl)).toBe(2);
+    expect(algorithm.apply_fuzz(ivl, 0)).toBe(2);
   });
 
   test("return original interval when ivl is less than 2.5", () => {
     const ivl = 2.5;
     const enable_fuzz = true;
     const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz });
-    const min_ivl = Math.max(2, Math.round(ivl * 0.95 - 1));
-    const max_ivl = Math.round(ivl * 1.05 + 1);
-    const fuzzedInterval = algorithm.apply_fuzz(ivl);
+    const { min_ivl, max_ivl } = get_fuzz_range(
+      ivl,
+      0,
+      default_maximum_interval,
+    );
+    const fuzzedInterval = algorithm.apply_fuzz(ivl, 0);
     expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl);
     expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl);
   });

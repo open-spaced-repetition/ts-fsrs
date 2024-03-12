@@ -75,3 +75,8 @@ export interface FSRSParameters {
   w: number[];
   enable_fuzz: boolean;
 }
+
+export type RescheduleOptions = {
+  enable_fuzz?: boolean;
+  dateHandler?: (date: Date) => DateInput;
+};

@@ -3,6 +3,7 @@ import { generatorParameters } from "./default";
 import {SchedulingCard} from './scheduler'
 import {FSRSParameters, Grade, Rating} from "./models";
 import type { int } from "./type";
+import { get_fuzz_range } from "./help";
 
 // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-v4
 export class FSRSAlgorithm {
@@ -102,16 +103,20 @@ export class FSRSAlgorithm {
   /**
    * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
    * @param {number} ivl - The interval to be fuzzed.
+   * @param {number} elapsed_days t days since the last review
+   * @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    * @return {number} - The fuzzed interval.
    **/
-  apply_fuzz(ivl: number): number {
-    if (!this.param.enable_fuzz || ivl < 2.5) return ivl;
+  apply_fuzz(ivl: number, elapsed_days: number, enable_fuzz?: boolean): int {
+    if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int;
     const generator = pseudorandom(this.seed);
     const fuzz_factor = generator();
-    ivl = Math.round(ivl);
-    const min_ivl = Math.max(2, Math.round(ivl * 0.95 - 1));
-    const max_ivl = Math.round(ivl * 1.05 + 1);
-    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl);
+    const { min_ivl, max_ivl } = get_fuzz_range(
+      ivl,
+      elapsed_days,
+      this.param.maximum_interval,
+    );
+    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int;
   }
 
   /**
@@ -119,13 +124,19 @@ export class FSRSAlgorithm {
    *   constructor(param: Partial<FSRSParameters>)
    *   this.intervalModifier = 9 * (1 / this.param.request_retention - 1);
    *   @param {number} s - Stability (interval when R=90%)
+   *   @param {number} elapsed_days t days since the last review
+   *   @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    */
-  next_interval(s: number): int {
-    const newInterval = this.apply_fuzz(s * this.intervalModifier);
-    return Math.min(
-      Math.max(Math.round(newInterval), 1),
-      this.param.maximum_interval,
+  next_interval(
+    s: number,
+    elapsed_days: number,
+    enable_fuzz: boolean = this.param.enable_fuzz,
+  ): int {
+    const newInterval = Math.max(
+      1,
+      Math.round(s * this.intervalModifier),
     ) as int;
+    return this.apply_fuzz(newInterval, elapsed_days, enable_fuzz);
   }
 
   /**

@@ -1,5 +1,5 @@
 import { SchedulingCard } from "./scheduler";
-import { fixDate, fixRating, fixState } from "./help";
+import { date_scheduler, fixDate, fixRating, fixState } from "./help";
 import {
   Card,
   CardInput,
@@ -8,6 +8,7 @@ import {
   Rating,
   RecordLog,
   RecordLogItem,
+  RescheduleOptions,
   ReviewLog,
   ReviewLogInput,
   State,
@@ -33,10 +34,10 @@ export class FSRS extends FSRSAlgorithm {
     return fixDate(_date);
   }
 
-  private preProcessLog(_log: ReviewLogInput|ReviewLog): ReviewLog {
+  private preProcessLog(_log: ReviewLogInput | ReviewLog): ReviewLog {
     return {
       ..._log,
-      due:fixDate(_log.due),
+      due: fixDate(_log.due),
       rating: fixRating(_log.rating),
       state: fixState(_log.state),
       review: fixDate(_log.review),
@@ -112,38 +113,38 @@ export class FSRS extends FSRSAlgorithm {
     );
     this.seed = String(now.getTime()) + String(processedCard.reps);
     let easy_interval, good_interval, hard_interval;
+    const interval = processedCard.elapsed_days;
     switch (processedCard.state) {
       case State.New:
         this.init_ds(s);
         s.again.due = now.scheduler(1 as int);
         s.hard.due = now.scheduler(5 as int);
         s.good.due = now.scheduler(10 as int);
-        easy_interval = this.next_interval(s.easy.stability);
+        easy_interval = this.next_interval(s.easy.stability, interval);
         s.easy.scheduled_days = easy_interval;
         s.easy.due = now.scheduler(easy_interval, true);
         break;
       case State.Learning:
       case State.Relearning:
         hard_interval = 0;
-        good_interval = this.next_interval(s.good.stability);
+        good_interval = this.next_interval(s.good.stability, interval);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability),
+          this.next_interval(s.easy.stability, interval),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
         break;
       case State.Review: {
-        const interval = processedCard.elapsed_days;
         const last_d = processedCard.difficulty;
         const last_s = processedCard.stability;
         const retrievability = this.forgetting_curve(interval, last_s);
         this.next_ds(s, last_d, last_s, retrievability);
-        hard_interval = this.next_interval(s.hard.stability);
-        good_interval = this.next_interval(s.good.stability);
+        hard_interval = this.next_interval(s.hard.stability, interval);
+        good_interval = this.next_interval(s.good.stability, interval);
         hard_interval = Math.min(hard_interval, good_interval);
         good_interval = Math.max(good_interval, hard_interval + 1);
         easy_interval = Math.max(
-          this.next_interval(s.easy.stability),
+          this.next_interval(s.easy.stability, interval),
           good_interval + 1,
         );
         s.schedule(now, hard_interval, good_interval, easy_interval);
@@ -222,7 +223,10 @@ export class FSRS extends FSRSAlgorithm {
         last_review = processedLog.due;
         last_lapses =
           processedCard.lapses -
-          (processedLog.rating === Rating.Again && processedLog.state === State.Review ? 1 : 0);
+          (processedLog.rating === Rating.Again &&
+          processedLog.state === State.Review
+            ? 1
+            : 0);
         break;
     }
 
@@ -337,6 +341,60 @@ export class FSRS extends FSRSAlgorithm {
     } else {
       return recordLogItem as R;
     }
+  }
+
+  /**
+   *
+   * @param cards scheduled card collection
+   * @param options Reschedule options,fuzz is enabled by default.If the type of due is not Date, please implement dataHandler.
+   * @example
+   * ```typescript
+   * type CardType = Card & {
+   *     cid: number;
+   * };
+   * const reviewCard: CardType = {
+   *     cid: 1,
+   *     due: new Date("2024-03-17 04:43:02"),
+   *     stability: 48.26139059062234,
+   *     difficulty: 5.67,
+   *     elapsed_days: 18,
+   *     scheduled_days: 51,
+   *     reps: 8,
+   *     lapses: 1,
+   *     state: State.Review,
+   *     last_review: new Date("2024-01-26 04:43:02"),
+   * };
+   * const f = fsrs();
+   * const reschedule_cards = f.reschedule([reviewCard]);
+   * ```
+   *
+   */
+  reschedule<T extends CardInput | Card>(
+    cards: Array<T>,
+    options: RescheduleOptions = {},
+  ): Array<T> {
+    const processedCard: T[] = [];
+    for (const card of cards) {
+      if (fixState(card.state) !== State.Review || !card.last_review) continue;
+      const scheduled_days = Math.floor(card.scheduled_days) as int;
+      const next_ivl = this.next_interval(
+        +card.stability.toFixed(2),
+        Math.round(card.elapsed_days),
+        options.enable_fuzz ?? true,
+      );
+      if (next_ivl === scheduled_days || next_ivl === 0) continue;
+
+      const processCard: T = { ...card };
+      processCard.scheduled_days = next_ivl;
+      const new_due = date_scheduler(processCard.last_review!, next_ivl, true);
+      if (options.dateHandler && typeof options.dateHandler === "function") {
+        processCard.due = options.dateHandler(new_due);
+      } else {
+        processCard.due = new_due;
+      }
+      processedCard.push(processCard);
+    }
+    return processedCard;
   }
 }
 
