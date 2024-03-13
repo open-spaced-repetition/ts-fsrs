@@ -132,9 +132,9 @@ export class FSRSAlgorithm {
     elapsed_days: number,
     enable_fuzz: boolean = this.param.enable_fuzz,
   ): int {
-    const newInterval = Math.max(
-      1,
-      Math.round(s * this.intervalModifier),
+    const newInterval = Math.min(
+      Math.max(1, Math.round(s * this.intervalModifier)),
+      this.param.maximum_interval,
     ) as int;
     return this.apply_fuzz(newInterval, elapsed_days, enable_fuzz);
   }
