@@ -6,13 +6,13 @@ import {
   default_request_retention,
   fsrs,
   FSRS,
+  get_fuzz_range,
   State,
 } from "../src/fsrs";
-import { get_fuzz_range } from "../src/fsrs";
 
 describe("FSRS reschedule", () => {
   const DECAY: number = -0.5;
-  const FACTOR: number = Math.pow(0.9, 1 / DECAY) - 1;
+  const FACTOR: number = 19 / 81;
   const request_retentions = [default_request_retention, 0.95, 0.85, 0.8];
 
   type CardType = Card & {
@@ -79,7 +79,7 @@ describe("FSRS reschedule", () => {
         expect(reschedule_cards[0].cid).toBeGreaterThanOrEqual(1);
 
         const { min_ivl, max_ivl } = get_fuzz_range(
-          reviewCard.stability * intervalModifier,
+          Math.round(reviewCard.stability * intervalModifier),
           reviewCard.elapsed_days,
           default_maximum_interval,
         );
@@ -108,12 +108,14 @@ describe("FSRS reschedule", () => {
       });
       if (rescheduleCard) {
         // next_ivl !== scheduled_days
-        expect(rescheduleCard.cid).toBeGreaterThanOrEqual(1);
+        expect(rescheduleCard.cid).toEqual(1);
         const { min_ivl, max_ivl } = get_fuzz_range(
-          reviewCard.stability * intervalModifier,
+          Math.round(reviewCard.stability * intervalModifier),
           reviewCard.elapsed_days,
           default_maximum_interval,
         );
+        // reviewCard.stability * intervalModifier = 115.73208467290684 = ivl = 116
+        // max_ivl=124 expected = 124
 
         expect(rescheduleCard.scheduled_days).toBeGreaterThanOrEqual(min_ivl);
         expect(rescheduleCard.scheduled_days).toBeLessThanOrEqual(max_ivl);

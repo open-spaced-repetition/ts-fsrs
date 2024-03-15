@@ -1,5 +1,5 @@
 import { createEmptyCard, fsrs, FSRS, Rating } from "../src/fsrs";
-import { Grade } from "../src/fsrs/models";
+import { Grade } from "../src/fsrs";
 
 describe("FSRS forget", () => {
   const f: FSRS = fsrs({
@@ -34,7 +34,7 @@ describe("FSRS forget", () => {
         last_review: scheduling_cards[grade].card.last_review,
       });
       expect(forgetCard.log.rating).toEqual(Rating.Manual);
-      expect(() => f.rollback(forgetCard.card, forgetCard.log)).toThrowError(
+      expect(() => f.rollback(forgetCard.card, forgetCard.log)).toThrow(
         "Cannot rollback a manual rating",
       );
     }
@@ -48,7 +48,7 @@ describe("FSRS forget", () => {
         last_review: scheduling_cards[grade].card.last_review,
       });
       expect(forgetCard.log.rating).toEqual(Rating.Manual);
-      expect(() => f.rollback(forgetCard.card, forgetCard.log)).toThrowError(
+      expect(() => f.rollback(forgetCard.card, forgetCard.log)).toThrow(
         "Cannot rollback a manual rating",
       );
     }
