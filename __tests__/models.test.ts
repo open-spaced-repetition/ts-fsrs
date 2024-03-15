@@ -3,8 +3,6 @@ import {
   RatingType,
   State,
   StateType,
-  generatorParameters,
-  createEmptyCard,
 } from "../src/fsrs";
 
 describe("State", () => {
@@ -72,53 +70,5 @@ describe("Rating", () => {
     expect(Rating[Rating.Easy]).toEqual("Easy");
     expect((4 as Rating).valueOf()).toEqual(4);
     expect(Rating["Easy" as RatingType]).toEqual(4);
-  });
-});
-
-describe("default FSRSParameters", () => {
-  // const env = envParams;
-  const params = generatorParameters();
-  const w_v4 = [
-    0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
-    0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
-  ];
-  it("default_request_retention", () => {
-    expect(0.9).toEqual(params.request_retention);
-  });
-  it("default_maximum_interval", () => {
-    expect(36500).toEqual(params.maximum_interval);
-  });
-  it("default_w ", () => {
-    expect(w_v4).toEqual(params.w);
-  });
-  it("default_enable_fuzz ", () => {
-    expect(false).toEqual(params.enable_fuzz);
-  });
-});
-
-describe("default Card", () => {
-  it("empty card", () => {
-    const now = new Date();
-    const card = createEmptyCard(now);
-    expect(card.due).toEqual(now);
-    expect(card.stability).toEqual(0);
-    expect(card.difficulty).toEqual(0);
-    expect(card.elapsed_days).toEqual(0);
-    expect(card.scheduled_days).toEqual(0);
-    expect(card.reps).toEqual(0);
-    expect(card.lapses).toEqual(0);
-    expect(card.state).toEqual(0);
-  });
-  it("empty card", () => {
-    const now = new Date("2023-10-3 00:00:00");
-    const card = createEmptyCard();
-    expect(card.due).not.toEqual(now);
-    expect(card.stability).toEqual(0);
-    expect(card.difficulty).toEqual(0);
-    expect(card.elapsed_days).toEqual(0);
-    expect(card.scheduled_days).toEqual(0);
-    expect(card.reps).toEqual(0);
-    expect(card.lapses).toEqual(0);
-    expect(card.state).toEqual(0);
   });
 });

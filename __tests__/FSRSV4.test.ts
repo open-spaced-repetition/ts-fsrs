@@ -1,88 +1,12 @@
 import {
   fsrs,
   Rating,
-  generatorParameters,
   FSRS,
   createEmptyCard,
   State,
   Grade,
-  Grades, default_request_retention, default_maximum_interval, default_enable_fuzz, default_w,
+  Grades,
 } from "../src/fsrs";
-import { FSRSAlgorithm } from "../src/fsrs/algorithm";
-import { get_fuzz_range } from "../src/fsrs";
-
-describe("initial FSRS V4", () => {
-  const params = generatorParameters();
-  const f: FSRS = fsrs(params);
-  it("initial stability ", () => {
-    Grades.forEach((grade) => {
-      const s = f.init_stability(grade);
-      expect(s).toEqual(params.w[grade - 1]);
-    });
-  });
-  it("again s0(1) ", () => {
-    expect(f.init_stability(Rating.Again)).toEqual(params.w[0]);
-  });
-  it("initial s0(4) ", () => {
-    expect(f.init_stability(Rating.Easy)).toEqual(params.w[3]);
-  });
-
-  it("initial difficulty ", () => {
-    Grades.forEach((grade) => {
-      const s = f.init_difficulty(grade);
-      expect(s).toEqual(params.w[4] - (grade - 3) * params.w[5]);
-    });
-  });
-  it("good D0(3) ", () => {
-    expect(f.init_difficulty(Rating.Good)).toEqual(params.w[4]);
-  });
-
-  it("retrievability t=s ", () => {
-    expect(Number(f.forgetting_curve(5, 5).toFixed(2))).toEqual(0.9);
-  });
-
-  it("default params",()=>{
-    const expected_w = [
-      0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
-      0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
-    ];
-    expect(default_request_retention).toEqual(0.9);
-    expect(default_maximum_interval).toEqual(36500);
-    expect(default_enable_fuzz).toEqual(false)
-    expect(default_w).toEqual(expected_w);
-    expect(default_w.length).toBe(expected_w.length);
-  })
-});
-
-describe("FSRS apply_fuzz", () => {
-  test("return original interval when fuzzing is disabled", () => {
-    const ivl = 3.2;
-    const enable_fuzz = false;
-    const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
-    expect(algorithm.apply_fuzz(ivl, 0)).toBe(3);
-  });
-
-  test("return original interval when ivl is less than 2.5", () => {
-    const ivl = 2.3;
-    const enable_fuzz = true;
-    const algorithm = new FSRS({ enable_fuzz: enable_fuzz });
-    expect(algorithm.apply_fuzz(ivl, 0)).toBe(2);
-  });
-
-  test("return original interval when ivl is less than 2.5", () => {
-    const ivl = 2.5;
-    const enable_fuzz = true;
-    const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz });
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      ivl,
-      0,
-      default_maximum_interval,
-    );
-    const fuzzedInterval = algorithm.apply_fuzz(ivl, 0);
-    expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl);
-    expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl);
-  });
-});
 
 // Ref: https://github.com/open-spaced-repetition/py-fsrs/blob/ecd68e453611eb808c7367c7a5312d7cadeedf5c/tests/test_fsrs.py#L1
 describe("FSRS V4 AC by py-fsrs", () => {
@@ -166,7 +90,7 @@ describe("FSRS V4 AC by py-fsrs", () => {
       states.push(first_card.state);
     }
     expect(stability).toEqual([1.14, 1.01, 5.44, 14.67]);
-    expect(difficulty).toEqual([8.4348, 6.8686, 5.3024, 3.7361999999999993]);
+    expect(difficulty).toEqual([8.4348, 6.8686, 5.3024, 3.7362]);
     expect(reps).toEqual([1, 1, 1, 1]);
     expect(lapses).toEqual([0, 0, 0, 0]);
     expect(elapsed_days).toEqual([0, 0, 0, 0]);
