@@ -6,18 +6,21 @@ import type { int } from "./type";
 import { get_fuzz_range } from "./help";
 
 // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-v4
+export const DECAY: number = -0.5;
+// FACTOR = Math.pow(0.9, 1 / DECAY) - 1
+export const FACTOR: number = 19 / 81;
+
 export class FSRSAlgorithm {
   protected param: FSRSParameters;
   private readonly intervalModifier: number;
   protected seed?: string;
-  private readonly DECAY: number = -0.5;
-  private readonly FACTOR: number = Math.pow(0.9, 1 / this.DECAY) - 1;
 
   constructor(param: Partial<FSRSParameters>) {
     this.param = generatorParameters(param);
     // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
     // The formula used is : I(r,s)= (r^{\frac{1}{DECAY}-1}) \times \frac{s}{FACTOR}
-    this.intervalModifier = (Math.pow(this.param.request_retention, 1 / this.DECAY) - 1) / this.FACTOR;
+    this.intervalModifier =
+      (Math.pow(this.param.request_retention, 1 / DECAY) - 1) / FACTOR;
   }
 
   init_ds(s: SchedulingCard): void {
@@ -94,10 +97,10 @@ export class FSRSAlgorithm {
    * @return {number} Difficulty D \in [1,10]
    */
   init_difficulty(g: Grade): number {
-    return Math.min(
+    return +Math.min(
       Math.max(this.param.w[4] - (g - 3) * this.param.w[5], 1),
       10,
-    );
+    ).toFixed(8);
   }
 
   /**
@@ -160,7 +163,7 @@ export class FSRSAlgorithm {
    * @param {number} difficulty D \in [1,10]
    */
   constrain_difficulty(difficulty: number): number {
-    return Math.min(Math.max(Number(difficulty.toFixed(2)), 1), 10);
+    return Math.min(Math.max(+difficulty.toFixed(8), 1), 10);
   }
 
   /**
@@ -171,7 +174,9 @@ export class FSRSAlgorithm {
    * @return {number} difficulty
    */
   mean_reversion(init: number, current: number): number {
-    return this.param.w[7] * init + (1 - this.param.w[7]) * current;
+    return +(this.param.w[7] * init + (1 - this.param.w[7]) * current).toFixed(
+      8,
+    );
   }
 
   /**
@@ -186,7 +191,7 @@ export class FSRSAlgorithm {
   next_recall_stability(d: number, s: number, r: number, g: Grade): number {
     const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1;
     const easy_bound = Rating.Easy === g ? this.param.w[16] : 1;
-    return (
+    return +(
       s *
       (1 +
         Math.exp(this.param.w[8]) *
@@ -195,7 +200,7 @@ export class FSRSAlgorithm {
           (Math.exp((1 - r) * this.param.w[10]) - 1) *
           hard_penalty *
           easy_bound)
-    );
+    ).toFixed(8);
   }
 
   /**
@@ -207,12 +212,12 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
-    return Number((
+    return +(
       this.param.w[11] *
       Math.pow(d, -this.param.w[12]) *
       (Math.pow(s + 1, this.param.w[13]) - 1) *
       Math.exp((1 - r) * this.param.w[14])
-    ).toFixed(2));
+    ).toFixed(8);
   }
 
   /**
@@ -223,6 +228,6 @@ export class FSRSAlgorithm {
    * @return {number} r Retrievability (probability of recall)
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
-    return Math.pow(1 + this.FACTOR * elapsed_days / stability, this.DECAY);
+    return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8);
   }
 }

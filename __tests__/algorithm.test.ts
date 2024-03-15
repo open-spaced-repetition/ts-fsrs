@@ -1,5 +1,7 @@
 import {
+  DECAY,
   default_maximum_interval,
+  FACTOR,
   fsrs,
   FSRS,
   FSRSAlgorithm,
@@ -9,9 +11,6 @@ import {
   Rating,
 } from "../src/fsrs";
 import Decimal from "decimal.js";
-
-const DECAY: number = -0.5;
-const FACTOR: number = 19 / 81;
 
 describe("FACTOR[DECAY = -0.5]", () => {
   it("FACTOR", () => {
