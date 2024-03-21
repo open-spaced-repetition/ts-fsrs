@@ -152,4 +152,17 @@ describe("FSRS reschedule", () => {
     );
     expect(reschedule_cards.length).toEqual(0);
   });
+
+  it("reschedule by empty array", () => {
+    const f: FSRS = fsrs();
+    const reschedule_cards = f.reschedule([]);
+    expect(reschedule_cards.length).toEqual(0);
+  });
+
+  it("reschedule by not array", () => {
+    const f: FSRS = fsrs();
+    expect(() =>{f.reschedule(createEmptyCard() as unknown as Card[])}).toThrow(
+      "cards must be an array",
+    );
+  });
 });
