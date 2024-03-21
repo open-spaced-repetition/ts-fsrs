@@ -373,6 +373,9 @@ export class FSRS extends FSRSAlgorithm {
     cards: Array<T>,
     options: RescheduleOptions = {},
   ): Array<T> {
+    if (!Array.isArray(cards)) {
+      throw new Error("cards must be an array");
+    }
     const processedCard: T[] = [];
     for (const card of cards) {
       if (fixState(card.state) !== State.Review || !card.last_review) continue;
