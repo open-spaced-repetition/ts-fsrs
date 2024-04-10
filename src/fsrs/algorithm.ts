@@ -11,16 +11,69 @@ export const DECAY: number = -0.5;
 export const FACTOR: number = 19 / 81;
 
 export class FSRSAlgorithm {
-  protected param: FSRSParameters;
-  private readonly intervalModifier: number;
+  protected param!: FSRSParameters;
+  protected intervalModifier!: number;
   protected seed?: string;
 
-  constructor(param: Partial<FSRSParameters>) {
-    this.param = generatorParameters(param);
-    // Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
-    // The formula used is : I(r,s)= (r^{\frac{1}{DECAY}-1}) \times \frac{s}{FACTOR}
-    this.intervalModifier =
-      (Math.pow(this.param.request_retention, 1 / DECAY) - 1) / FACTOR;
+  constructor(params: Partial<FSRSParameters>) {
+    this.param = new Proxy(
+      generatorParameters(params),
+      this.params_handler_proxy(),
+    );
+    this.intervalModifier = this.calculate_interval_modifier(
+      this.param.request_retention,
+    );
+  }
+
+  get interval_modifier(): number {
+    return this.intervalModifier;
+  }
+
+  /**
+   * Ref: https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
+   * The formula used is: I(r,s) = (r^(1/DECAY) - 1) * s / FACTOR
+   * @param request_retention 0<request_retention<=1,Requested retention rate
+   */
+  calculate_interval_modifier(request_retention: number): number {
+    if (request_retention <= 0 || request_retention > 1) {
+      throw new Error("Requested retention rate should be in the range (0,1]");
+    }
+    return +((Math.pow(request_retention, 1 / DECAY) - 1) / FACTOR).toFixed(8);
+  }
+
+  get parameters(): FSRSParameters {
+    return this.param;
+  }
+
+  set parameters(params: Partial<FSRSParameters>) {
+    this.update_parameters(params);
+  }
+
+  private params_handler_proxy(): ProxyHandler<FSRSParameters> {
+    // eslint-disable-next-line @typescript-eslint/no-this-alias
+    const _this: FSRSAlgorithm = this;
+    return {
+      set: function (target, prop, value) {
+        if (prop === "request_retention" && Number.isFinite(value)) {
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(value),
+          );
+        }
+        // @ts-ignore
+        target[prop] = value;
+        return true;
+      },
+    };
+  }
+
+  private update_parameters(params: Partial<FSRSParameters>): void {
+    const _params = generatorParameters(params);
+    for (const key in _params) {
+      if (key in this.param) {
+        const paramKey = key as keyof FSRSParameters;
+        this.param[paramKey] = _params[paramKey] as never;
+      }
+    }
   }
 
   init_ds(s: SchedulingCard): void {
