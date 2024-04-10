@@ -1,6 +1,9 @@
 import {
   DECAY,
+  default_enable_fuzz,
   default_maximum_interval,
+  default_request_retention,
+  default_w,
   FACTOR,
   fsrs,
   FSRS,
@@ -294,5 +297,62 @@ describe("FSRS apply_fuzz", () => {
     const fuzzedInterval = algorithm.apply_fuzz(ivl, 0);
     expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl);
     expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl);
+  });
+});
+
+describe("change Params", () => {
+  test("change FSRSParameters", () => {
+    const f = fsrs();
+    // I(r,s),r=0.9 then I(r,s)=s
+    expect(f.interval_modifier).toEqual(1);
+    expect(f.parameters).toEqual(generatorParameters());
+
+    const request_retention = 0.8;
+    const update_w = [
+      1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902,
+    ];
+    f.parameters = generatorParameters({
+      request_retention: request_retention,
+      w: update_w,
+      enable_fuzz: true,
+    });
+    expect(f.parameters.request_retention).toEqual(request_retention);
+    expect(f.parameters.w).toEqual(update_w);
+    expect(f.parameters.enable_fuzz).toEqual(true);
+    expect(f.interval_modifier).toEqual(
+      f.calculate_interval_modifier(request_retention),
+    );
+
+    f.parameters.request_retention = default_request_retention;
+    expect(f.interval_modifier).toEqual(
+      f.calculate_interval_modifier(default_request_retention),
+    );
+
+    f.parameters.w = default_w;
+    expect(f.parameters.w).toEqual(default_w);
+
+    f.parameters.maximum_interval = 365;
+    expect(f.parameters.maximum_interval).toEqual(365);
+
+    f.parameters.enable_fuzz = default_enable_fuzz;
+    expect(f.parameters.enable_fuzz).toEqual(default_enable_fuzz);
+
+    f.parameters = {} // check default values
+    expect(f.parameters).toEqual(generatorParameters());
+
+  });
+
+  test("calculate_interval_modifier", () => {
+    const f = new FSRSAlgorithm(generatorParameters());
+    expect(f.interval_modifier).toEqual(
+      f.calculate_interval_modifier(default_request_retention),
+    );
+    expect(() => {
+      f.parameters.request_retention = 1.2;
+    }).toThrow("Requested retention rate should be in the range (0,1]");
+    expect(() => {
+      f.parameters.request_retention = -0.2;
+    }).toThrow("Requested retention rate should be in the range (0,1]");
   });
 });
