@@ -9,7 +9,7 @@ export const default_w = [
 ];
 export const default_enable_fuzz = false;
 
-export const FSRSVersion: string = "3.5.3";
+export const FSRSVersion: string = "3.5.4";
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>,
