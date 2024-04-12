@@ -32,7 +32,9 @@
     "rollup-plugin-esbuild": "^6.1.1",
     "ts-jest": "^29.1.1",
     "tslib": "^2.6.2",
-    "typedoc": "^0.25.3",
+    "typedoc": "^0.25.13",
+    "typedoc-plugin-extras": "^3.0.0",
+    "typedoc-plugin-katex": "^0.1.2",
     "typescript": "^5.2.2"
   },
   "scripts": {
@@ -48,7 +50,7 @@
     "patch": "npm version patch",
     "test_publish": "yalc publish",
     "predocs": "rimraf ./docs",
-    "docs": "typedoc src/fsrs --out docs",
+    "docs": "typedoc",
     "clean": "rimraf ./dist ./docs"
   },
   "author": "ishiko",

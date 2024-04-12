@@ -65,8 +65,14 @@ devDependencies:
     specifier: ^2.6.2
     version: 2.6.2
   typedoc:
-    specifier: ^0.25.3
-    version: 0.25.4(typescript@5.3.3)
+    specifier: ^0.25.13
+    version: 0.25.13(typescript@5.3.3)
+  typedoc-plugin-extras:
+    specifier: ^3.0.0
+    version: 3.0.0(typedoc@0.25.13)
+  typedoc-plugin-katex:
+    specifier: ^0.1.2
+    version: 0.1.2
   typescript:
     specifier: ^5.2.2
     version: 5.3.3
@@ -3620,12 +3626,24 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /typedoc@0.25.4(typescript@5.3.3):
-    resolution: {integrity: sha512-Du9ImmpBCw54bX275yJrxPVnjdIyJO/84co0/L9mwe0R3G4FSR6rQ09AlXVRvZEGMUg09+z/usc8mgygQ1aidA==}
+  /typedoc-plugin-extras@3.0.0(typedoc@0.25.13):
+    resolution: {integrity: sha512-eiAe3qtm2WbV5owdncpt0zHZPqsNZH2mzNGILPd4zqrvEZie3Et9es4cpGZ+8lHO/SI0pVKwsAj7IuMxPNOdYg==}
+    peerDependencies:
+      typedoc: 0.25.x
+    dependencies:
+      typedoc: 0.25.13(typescript@5.3.3)
+    dev: true
+
+  /typedoc-plugin-katex@0.1.2:
+    resolution: {integrity: sha512-2TsaDyvQVYq1yEa7v7MPz4GEM1iWlu4QWeEtcx3B1FyLdHRDoAf0aEW2zo7By8aOyrI1yWA4hnAZKYg1iW/HHA==}
+    dev: true
+
+  /typedoc@0.25.13(typescript@5.3.3):
+    resolution: {integrity: sha512-pQqiwiJ+Z4pigfOnnysObszLiU3mVLWAExSPf+Mu06G/qsc3wzbuM56SZQvONhHLncLUhYzOVkjFFpFfL5AzhQ==}
     engines: {node: '>= 16'}
     hasBin: true
     peerDependencies:
-      typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x
+      typescript: 4.6.x || 4.7.x || 4.8.x || 4.9.x || 5.0.x || 5.1.x || 5.2.x || 5.3.x || 5.4.x
     dependencies:
       lunr: 2.3.9
       marked: 4.3.0
