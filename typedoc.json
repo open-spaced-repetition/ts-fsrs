@@ -1,0 +1,17 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "name": "TS-FSRS",
+  "titleLink": "https://open-spaced-repetition.github.io/ts-fsrs/",
+  "entryPoints": [
+    "./src/fsrs"
+  ],
+  "out": "./docs",
+  "navigationLinks": {
+    "Docs": "https://open-spaced-repetition.github.io/ts-fsrs/",
+    "GitHub": "https://github.com/open-spaced-repetition/ts-fsrs"
+  },
+  "plugin": [
+    "typedoc-plugin-katex",
+    "typedoc-plugin-extras"
+  ]
+}
