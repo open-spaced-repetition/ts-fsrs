@@ -2,3 +2,6 @@
 /lib/
 .idea
 example/.env.local
+
+/coverage/
+/docs/
