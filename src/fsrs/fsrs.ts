@@ -159,20 +159,29 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
-  get_retrievability = (
+  /**
+   * Get the retrievability of the card
+   * @param card  Card to be processed
+   * @param now  Current time or scheduled time
+   * @param format  default:true , Convert the result to another type. (Optional)
+   * @returns  The retrievability of the card,if format is true, the result is a string, otherwise it is a number
+   */
+  get_retrievability<T extends boolean>(
     card: CardInput | Card,
     now: Date,
-  ): undefined | string => {
+    format: T = true as T,
+  ): undefined | (T extends true ? string : number) {
     const processedCard = this.preProcessCard(card);
     now = this.preProcessDate(now);
     if (processedCard.state !== State.Review) {
       return undefined;
     }
     const t = Math.max(now.diff(processedCard.last_review as Date, "days"), 0);
-    return (
-      (this.forgetting_curve(t, processedCard.stability) * 100).toFixed(2) + "%"
-    );
-  };
+    const r = this.forgetting_curve(t, processedCard.stability);
+    return (format ? (r * 100).toFixed(2) + "%" : Number(r)) as T extends true
+      ? string
+      : number;
+  }
 
   /**
    *
