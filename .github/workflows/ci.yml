@@ -77,9 +77,6 @@ jobs:
       - name: Run tests and collect coverage
         run: pnpm run test::coverage
 
-      - name: echo repo
-        run: echo ${{ env.GITHUB_REPOSITORY }}
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v4.0.1
         with:
