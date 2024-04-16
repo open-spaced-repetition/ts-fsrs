@@ -4,14 +4,15 @@
 name: Publish Package
 
 on:
-  release:
-    types: [ published ]
-  pull_request:
+  workflow_run:
+    workflows: [ci]
     types:
-      - closed
+      - completed
+    branches: [main, master]
+  release:
+    types: [published]
 
 jobs:
-
   publish-npm:
     runs-on: ubuntu-latest
     permissions:
@@ -19,33 +20,49 @@ jobs:
       packages: write # allow GITHUB_TOKEN to publish packages
       id-token: write
     steps:
-      - name: Check Pull Request Status
-        run: |
-          if [ "${{ github.event.pull_request.merged }}" = "true" ]; then
-            echo "Pull request merged successfully."
-          else
-            echo "Pull request not merged. Skipping further steps."
-            exit 0
-          fi
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 16
       - uses: pnpm/action-setup@v2.2.2
         with:
           version: 8.7.1
-      - run: pnpm install
-      - run: pnpm lint
-      - run: pnpm test
-      - run: pnpm build
-      - name: Determine Target Branch
-        id: determine-branch
-        run: echo "::set-output name=branch::${{ github.event.pull_request.base.ref }}"
 
-      - name: Determine Tag
-        id: determine-tag
-        run: echo "::set-output name=tag::${{ steps.determine-branch.outputs.branch == 'master' && 'latest' || 'beta' }}"
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      - uses: actions/cache@v4
+        name: Setup pnpm cache
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Run tests and collect coverage
+        run: pnpm run test::coverage
+
+      - run: pnpm build
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: ${{ env.GITHUB_REPOSITORY }}
+          fail_ci_if_error: true
 
       - name: Publish Package to NPM
         uses: JS-DevTools/npm-publish@v2
         with:
           token: ${{secrets.npm_token}}
           provenance: true
-          tag: ${{ steps.determine-tag.outputs.tag }}
+          tag: latest
