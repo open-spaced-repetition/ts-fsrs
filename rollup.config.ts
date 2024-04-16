@@ -41,6 +41,28 @@ export default defineConfig([
             commonjs(),
         ],
         external: ["seedrandom"],
+    }, 
+    {
+        input: 'src/fsrs/index.ts',
+        output: {
+            file: 'dist/index.umd.js', 
+            format: 'umd',
+            name: 'FSRS',
+            sourcemap: true,
+            globals: {
+                seedrandom: 'seedrandom',
+            },
+        },
+        plugins: [
+            resolve(), 
+            esbuild({ 
+                target: 'es2017',
+                minify: true,
+                sourceMap: true,
+            }),
+            commonjs(),
+        ],
+        external: ["seedrandom"],
     },
     {
         input: 'src/fsrs/index.ts',
