@@ -41,8 +41,8 @@
   "scripts": {
     "lint": "eslint --fix src/ && prettier --write src/",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
-    "test": "jest --passWithNoTests",
-    "test:coverage": "jest --coverage",
+    "test": "jest --config=jest.config.js --passWithNoTests",
+    "test::coverage": "jest --config=jest.config.js --coverage",
     "prebuild": "rimraf ./dist",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
