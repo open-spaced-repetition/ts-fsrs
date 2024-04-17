@@ -3,6 +3,7 @@
   "version": "3.5.7",
   "description": "ts-fsrs is a ES modules package based on TypeScript, used to implement the Free Spaced Repetition Scheduler (FSRS) algorithm. It helps developers apply FSRS to their flashcard applications, there by improving the user learning experience.",
   "main": "dist/index.cjs",
+  "umd": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
   "keywords": [
@@ -40,8 +41,8 @@
   "scripts": {
     "lint": "eslint --fix src/ && prettier --write src/",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
-    "test": "jest --passWithNoTests",
-    "test:coverage": "jest --coverage",
+    "test": "jest --config=jest.config.js --passWithNoTests",
+    "test::coverage": "jest --config=jest.config.js --coverage",
     "prebuild": "rimraf ./dist",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
