@@ -168,17 +168,17 @@ export class FSRS extends FSRSAlgorithm {
    */
   get_retrievability<T extends boolean>(
     card: CardInput | Card,
-    now: Date,
+    now: DateInput | Date,
     format: T = true as T,
   ): undefined | (T extends true ? string : number) {
     const processedCard = this.preProcessCard(card);
-    now = this.preProcessDate(now);
+    const _now = this.preProcessDate(now);
     if (processedCard.state !== State.Review) {
       return undefined;
     }
-    const t = Math.max(now.diff(processedCard.last_review as Date, "days"), 0);
-    const r = this.forgetting_curve(t, processedCard.stability);
-    return (format ? (r * 100).toFixed(2) + "%" : r) as T extends true
+    const t = Math.max(_now.diff(processedCard.last_review as Date, "days"), 0);
+    const r = this.forgetting_curve(t, Math.round(processedCard.stability));
+    return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number;
   }
