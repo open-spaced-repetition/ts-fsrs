@@ -63,6 +63,7 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 - [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (CDNを使用して ts-fsrs ESM
   パッケージにアクセスする)
 - [実際のケース - Next.js+Prismaを利用する](https://github.com/ishiko732/ts-fsrs-demo)
+- [モダンなフラッシュカード - Next.jsやtRPCなど技術を利用している](https://github.com/zsh-eng/spaced)
 
 # 基本的な使い方
 
