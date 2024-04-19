@@ -62,6 +62,7 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
 - [参考调度 - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
 - [浏览器使用](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (使用CDN来访问ts-fsrs ESM包)
 - [案例应用 - 基于Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
+- [现代化抽成卡 - Next.js+Drizzle+tRPC](https://github.com/zsh-eng/spaced)
 
 # 基本使用方法
 
