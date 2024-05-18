@@ -58,6 +58,14 @@ describe("forgetting_curve", () => {
       1.0, 0.946059, 0.9299294, 0.92216794, 0.9, 0.79394596,
     ]);
   });
+  it("retrievability[s = 1.0, day = [0,3] ]", () => {
+    const expected = [1.0, 0.9, 0.82502865, 0.76613088];
+    const elapsed_days = [0, 1, 2, 3];
+    elapsed_days.forEach((day, index) => {
+      expect(forgetting_curve(day, 1.0)).toBe(expected[index]);
+      expect(algorithm.forgetting_curve(day, 1.0)).toBe(expected[index]);
+    });
+  });
 });
 
 describe("init_ds", () => {
