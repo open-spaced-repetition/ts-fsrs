@@ -148,7 +148,9 @@ const ParamsComponent = ({ f, setF }) => {
         aria-label="request retention"
         defaultValue={f.parameters.request_retention}
         onChange={(e) =>
-          e.target.value>0 && handleChange("request_retention", e.target.value)
+          e.target.value > 0 &&
+          e.target.value < 1 &&
+          handleChange("request_retention", e.target.value)
         }
       />
       <div className="label text-xs">
@@ -170,7 +172,9 @@ const ParamsComponent = ({ f, setF }) => {
         step={1}
         aria-label="maximum interval"
         defaultValue={f.parameters.maximum_interval}
-        onChange={(e) => handleChange("maximum_interval", e.target.value)}
+        onChange={(e) =>
+          e.target.value > 0 && handleChange("maximum_interval", e.target.value)
+        }
       />
       <div className="label text-xs">
         The maximum number of days between reviews of a card. When the review
