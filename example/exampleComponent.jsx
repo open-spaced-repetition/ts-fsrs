@@ -72,12 +72,14 @@ const ExampleLog = ({ logRecord, className }) => {
   );
 };
 
-const ScheduledButton = ({ rating, children, handleClick }) => {
+const ScheduledButton = ({ rating, children, handleClick, tip }) => {
   return (
     <button
       onClick={(e) => handleClick(e, rating)}
       rating={rating}
       className="mx-4 px-4 py-2 font-semibold text-sm bg-sky-500 hover:bg-cyan-500 text-white rounded-none shadow-sm"
+      title={tip}
+      aria-label={tip}
     >
       {children}
     </button>
@@ -103,16 +105,32 @@ const ExampleGenerator = ({ f, cards, setCards, setLogs, className }) => {
   };
   return (
     <div>
-      <ScheduledButton rating={Rating.Again} handleClick={handleClick}>
+      <ScheduledButton
+        rating={Rating.Again}
+        handleClick={handleClick}
+        tip={"your answer was completely incorrect."}
+      >
         Again
       </ScheduledButton>
-      <ScheduledButton rating={Rating.Hard} handleClick={handleClick}>
+      <ScheduledButton
+        rating={Rating.Hard}
+        handleClick={handleClick}
+        tip={"your answer was partially correct, and/or you hesitated a lot."}
+      >
         Hard
       </ScheduledButton>
-      <ScheduledButton rating={Rating.Good} handleClick={handleClick}>
+      <ScheduledButton
+        rating={Rating.Good}
+        handleClick={handleClick}
+        tip={"you answered correctly with a little bit of hesitation."}
+      >
         Good
       </ScheduledButton>
-      <ScheduledButton rating={Rating.Easy} handleClick={handleClick}>
+      <ScheduledButton
+        rating={Rating.Easy}
+        handleClick={handleClick}
+        tip={"you answered correctly with no hesitation."}
+      >
         Easy
       </ScheduledButton>
       <div className="pt-4">Next review:{review.toLocaleString()}</div>
