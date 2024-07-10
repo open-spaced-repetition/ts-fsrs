@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -15,12 +15,14 @@ ts-fsrs 是一个基于TypeScript开发的[ES modules包](https://gist.github.co
 
 # 使用ts-fsrs
 
-你需要运行在 Node.js (>=16.0.0)上，并且在`package.json`默认使用 `"type":"module"`。
+`ts-fsrs@3.x`需要运行在 Node.js (>=16.0.0)上，`ts-fsrs@4.x`需要运行在 Node.js (>=18.0.0)上。
+从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # 例子

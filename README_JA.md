@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -15,12 +15,14 @@ ts-fsrsは[自由間隔重複スケジューラ（FSRS）アルゴリズム](htt
 
 # ts-fsrsの使用方法
 
-Node.js (バージョン >= 16.0.0)を実行する環境を準備して、`package.json`で`"type":"module"`をデフォルトに設定してください。
+`ts-fsrs@3.x`はNode.js（>=16.0.0）で動作する必要があります。`ts-fsrs@4.x`からは、最小必要なNode.jsバージョンは18.0.0です。
+`ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # 例

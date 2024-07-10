@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -13,12 +13,14 @@ ts-fsrs is a [ES modules package](https://gist.github.com/sindresorhus/a39789f98
 developers apply FSRS to their flashcard applications, there by improving the user learning experience.
 
 # Usage
-You need to run on Node.js (>=16.0.0) , using the `"type":"module"` by default in `package.json`.
+The ts-fsrs@3.x package requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is 18.0.0.
+From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # Example
