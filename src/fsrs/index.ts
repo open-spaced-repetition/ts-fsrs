@@ -1,10 +1,10 @@
-export * from "./scheduler";
-export * from "./default";
-export * from "./help";
-export * from "./algorithm"
-export * from "./fsrs";
+export * from './scheduler'
+export * from './default'
+export * from './help'
+export * from './algorithm'
+export * from './fsrs'
 
-export type * from "./type";
+export type * from './type'
 export type {
   FSRSParameters,
   Card,
@@ -16,6 +16,6 @@ export type {
   Grade,
   CardInput,
   ReviewLogInput,
-  DateInput
-} from "./models";
-export { State, Rating } from "./models";
+  DateInput,
+} from './models'
+export { State, Rating } from './models'

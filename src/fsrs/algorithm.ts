@@ -1,42 +1,42 @@
-import pseudorandom from "seedrandom";
-import { generatorParameters } from "./default";
-import {SchedulingCard} from './scheduler'
-import {FSRSParameters, Grade, Rating} from "./models";
-import type { int } from "./type";
-import { get_fuzz_range } from "./help";
+import pseudorandom from 'seedrandom'
+import { generatorParameters } from './default'
+import { SchedulingCard } from './scheduler'
+import { FSRSParameters, Grade, Rating } from './models'
+import type { int } from './type'
+import { get_fuzz_range } from './help'
 
 /**
  * @default DECAY = -0.5
  */
-export const DECAY: number = -0.5;
+export const DECAY: number = -0.5
 /**
  * FACTOR = Math.pow(0.9, 1 / DECAY) - 1= 19 / 81
  *
  * $$\text{FACTOR} = \frac{19}{81}$$
  * @default FACTOR = 19 / 81
  */
-export const FACTOR: number = 19 / 81;
+export const FACTOR: number = 19 / 81
 
 /**
  * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
  */
 export class FSRSAlgorithm {
-  protected param!: FSRSParameters;
-  protected intervalModifier!: number;
-  protected seed?: string;
+  protected param!: FSRSParameters
+  protected intervalModifier!: number
+  protected seed?: string
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
       generatorParameters(params),
-      this.params_handler_proxy(),
-    );
+      this.params_handler_proxy()
+    )
     this.intervalModifier = this.calculate_interval_modifier(
-      this.param.request_retention,
-    );
+      this.param.request_retention
+    )
   }
 
   get interval_modifier(): number {
-    return this.intervalModifier;
+    return this.intervalModifier
   }
 
   /**
@@ -48,16 +48,16 @@ export class FSRSAlgorithm {
    */
   calculate_interval_modifier(request_retention: number): number {
     if (request_retention <= 0 || request_retention > 1) {
-      throw new Error("Requested retention rate should be in the range (0,1]");
+      throw new Error('Requested retention rate should be in the range (0,1]')
     }
-    return +((Math.pow(request_retention, 1 / DECAY) - 1) / FACTOR).toFixed(8);
+    return +((Math.pow(request_retention, 1 / DECAY) - 1) / FACTOR).toFixed(8)
   }
 
   /**
    * Get the parameters of the algorithm.
    */
   get parameters(): FSRSParameters {
-    return this.param;
+    return this.param
   }
 
   /**
@@ -65,45 +65,45 @@ export class FSRSAlgorithm {
    * @param params Partial<FSRSParameters>
    */
   set parameters(params: Partial<FSRSParameters>) {
-    this.update_parameters(params);
+    this.update_parameters(params)
   }
 
   private params_handler_proxy(): ProxyHandler<FSRSParameters> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this: FSRSAlgorithm = this;
+    const _this: FSRSAlgorithm = this
     return {
       set: function (target, prop, value) {
-        if (prop === "request_retention" && Number.isFinite(value)) {
+        if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value),
-          );
+            Number(value)
+          )
         }
         // @ts-ignore
-        target[prop] = value;
-        return true;
+        target[prop] = value
+        return true
       },
-    };
+    }
   }
 
   private update_parameters(params: Partial<FSRSParameters>): void {
-    const _params = generatorParameters(params);
+    const _params = generatorParameters(params)
     for (const key in _params) {
       if (key in this.param) {
-        const paramKey = key as keyof FSRSParameters;
-        this.param[paramKey] = _params[paramKey] as never;
+        const paramKey = key as keyof FSRSParameters
+        this.param[paramKey] = _params[paramKey] as never
       }
     }
   }
 
   init_ds(s: SchedulingCard): void {
-    s.again.difficulty = this.init_difficulty(Rating.Again);
-    s.again.stability = this.init_stability(Rating.Again);
-    s.hard.difficulty = this.init_difficulty(Rating.Hard);
-    s.hard.stability = this.init_stability(Rating.Hard);
-    s.good.difficulty = this.init_difficulty(Rating.Good);
-    s.good.stability = this.init_stability(Rating.Good);
-    s.easy.difficulty = this.init_difficulty(Rating.Easy);
-    s.easy.stability = this.init_stability(Rating.Easy);
+    s.again.difficulty = this.init_difficulty(Rating.Again)
+    s.again.stability = this.init_stability(Rating.Again)
+    s.hard.difficulty = this.init_difficulty(Rating.Hard)
+    s.hard.stability = this.init_stability(Rating.Hard)
+    s.good.difficulty = this.init_difficulty(Rating.Good)
+    s.good.stability = this.init_stability(Rating.Good)
+    s.easy.difficulty = this.init_difficulty(Rating.Easy)
+    s.easy.stability = this.init_stability(Rating.Easy)
   }
 
   /**
@@ -118,35 +118,35 @@ export class FSRSAlgorithm {
     s: SchedulingCard,
     last_d: number,
     last_s: number,
-    retrievability: number,
+    retrievability: number
   ): void {
-    s.again.difficulty = this.next_difficulty(last_d, Rating.Again);
+    s.again.difficulty = this.next_difficulty(last_d, Rating.Again)
     s.again.stability = this.next_forget_stability(
       last_d,
       last_s,
-      retrievability,
-    );
-    s.hard.difficulty = this.next_difficulty(last_d, Rating.Hard);
+      retrievability
+    )
+    s.hard.difficulty = this.next_difficulty(last_d, Rating.Hard)
     s.hard.stability = this.next_recall_stability(
       last_d,
       last_s,
       retrievability,
-      Rating.Hard,
-    );
-    s.good.difficulty = this.next_difficulty(last_d, Rating.Good);
+      Rating.Hard
+    )
+    s.good.difficulty = this.next_difficulty(last_d, Rating.Good)
     s.good.stability = this.next_recall_stability(
       last_d,
       last_s,
       retrievability,
-      Rating.Good,
-    );
-    s.easy.difficulty = this.next_difficulty(last_d, Rating.Easy);
+      Rating.Good
+    )
+    s.easy.difficulty = this.next_difficulty(last_d, Rating.Easy)
     s.easy.stability = this.next_recall_stability(
       last_d,
       last_s,
       retrievability,
-      Rating.Easy,
-    );
+      Rating.Easy
+    )
   }
 
   /**
@@ -158,7 +158,7 @@ export class FSRSAlgorithm {
    * @return Stability (interval when R=90%)
    */
   init_stability(g: Grade): number {
-    return Math.max(this.param.w[g - 1], 0.1);
+    return Math.max(this.param.w[g - 1], 0.1)
   }
 
   /**
@@ -173,8 +173,8 @@ export class FSRSAlgorithm {
   init_difficulty(g: Grade): number {
     return +Math.min(
       Math.max(this.param.w[4] - (g - 3) * this.param.w[5], 1),
-      10,
-    ).toFixed(8);
+      10
+    ).toFixed(8)
   }
 
   /**
@@ -185,15 +185,15 @@ export class FSRSAlgorithm {
    * @return {number} - The fuzzed interval.
    **/
   apply_fuzz(ivl: number, elapsed_days: number, enable_fuzz?: boolean): int {
-    if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int;
-    const generator = pseudorandom(this.seed);
-    const fuzz_factor = generator();
+    if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
+    const generator = pseudorandom(this.seed)
+    const fuzz_factor = generator()
     const { min_ivl, max_ivl } = get_fuzz_range(
       ivl,
       elapsed_days,
-      this.param.maximum_interval,
-    );
-    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int;
+      this.param.maximum_interval
+    )
+    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int
   }
 
   /**
@@ -205,13 +205,13 @@ export class FSRSAlgorithm {
   next_interval(
     s: number,
     elapsed_days: number,
-    enable_fuzz: boolean = this.param.enable_fuzz,
+    enable_fuzz: boolean = this.param.enable_fuzz
   ): int {
     const newInterval = Math.min(
       Math.max(1, Math.round(s * this.intervalModifier)),
-      this.param.maximum_interval,
-    ) as int;
-    return this.apply_fuzz(newInterval, elapsed_days, enable_fuzz);
+      this.param.maximum_interval
+    ) as int
+    return this.apply_fuzz(newInterval, elapsed_days, enable_fuzz)
   }
 
   /**
@@ -223,10 +223,10 @@ export class FSRSAlgorithm {
    * @return {number} $$\text{next}_D$$
    */
   next_difficulty(d: number, g: Grade): number {
-    const next_d = d - this.param.w[6] * (g - 3);
+    const next_d = d - this.param.w[6] * (g - 3)
     return this.constrain_difficulty(
-      this.mean_reversion(this.param.w[4], next_d),
-    );
+      this.mean_reversion(this.param.w[4], next_d)
+    )
   }
 
   /**
@@ -235,7 +235,7 @@ export class FSRSAlgorithm {
    * @param {number} difficulty $$D \in [1,10]$$
    */
   constrain_difficulty(difficulty: number): number {
-    return Math.min(Math.max(+difficulty.toFixed(8), 1), 10);
+    return Math.min(Math.max(+difficulty.toFixed(8), 1), 10)
   }
 
   /**
@@ -247,8 +247,8 @@ export class FSRSAlgorithm {
    */
   mean_reversion(init: number, current: number): number {
     return +(this.param.w[7] * init + (1 - this.param.w[7]) * current).toFixed(
-      8,
-    );
+      8
+    )
   }
 
   /**
@@ -261,8 +261,8 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_r new stability after recall
    */
   next_recall_stability(d: number, s: number, r: number, g: Grade): number {
-    const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1;
-    const easy_bound = Rating.Easy === g ? this.param.w[16] : 1;
+    const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1
+    const easy_bound = Rating.Easy === g ? this.param.w[16] : 1
     return +(
       s *
       (1 +
@@ -272,7 +272,7 @@ export class FSRSAlgorithm {
           (Math.exp((1 - r) * this.param.w[10]) - 1) *
           hard_penalty *
           easy_bound)
-    ).toFixed(8);
+    ).toFixed(8)
   }
 
   /**
@@ -289,7 +289,7 @@ export class FSRSAlgorithm {
       Math.pow(d, -this.param.w[12]) *
       (Math.pow(s + 1, this.param.w[13]) - 1) *
       Math.exp((1 - r) * this.param.w[14])
-    ).toFixed(8);
+    ).toFixed(8)
   }
 
   /**
@@ -300,6 +300,6 @@ export class FSRSAlgorithm {
    * @return {number} r Retrievability (probability of recall)
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
-    return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8);
+    return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
   }
 }

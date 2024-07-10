@@ -1,26 +1,26 @@
-import { Card, DateInput, FSRSParameters, State } from "./models";
-import { fixDate } from "./help";
+import { Card, DateInput, FSRSParameters, State } from './models'
+import { fixDate } from './help'
 
-export const default_request_retention = 0.9;
-export const default_maximum_interval = 36500;
+export const default_request_retention = 0.9
+export const default_maximum_interval = 36500
 export const default_w = [
   0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
   0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
-];
-export const default_enable_fuzz = false;
+]
+export const default_enable_fuzz = false
 
-export const FSRSVersion: string = "3.5.7";
+export const FSRSVersion: string = '3.5.7'
 
 export const generatorParameters = (
-  props?: Partial<FSRSParameters>,
+  props?: Partial<FSRSParameters>
 ): FSRSParameters => {
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: props?.w || default_w,
     enable_fuzz: props?.enable_fuzz || default_enable_fuzz,
-  };
-};
+  }
+}
 
 /**
  * Create an empty card
@@ -54,7 +54,7 @@ export const generatorParameters = (
  */
 export function createEmptyCard<R = Card>(
   now?: DateInput,
-  afterHandler?: (card: Card) => R,
+  afterHandler?: (card: Card) => R
 ): R {
   const emptyCard: Card = {
     due: now ? fixDate(now) : new Date(),
@@ -66,10 +66,10 @@ export function createEmptyCard<R = Card>(
     lapses: 0,
     state: State.New,
     last_review: undefined,
-  };
-  if (afterHandler && typeof afterHandler === "function") {
-    return afterHandler(emptyCard);
+  }
+  if (afterHandler && typeof afterHandler === 'function') {
+    return afterHandler(emptyCard)
   } else {
-    return emptyCard as R;
+    return emptyCard as R
   }
 }
