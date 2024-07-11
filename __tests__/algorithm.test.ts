@@ -62,10 +62,6 @@ describe('forgetting_curve', () => {
 
 describe('init_ds', () => {
   const params = generatorParameters()
-  //w=[
-  //   0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
-  //   0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
-  // ];
   const algorithm: FSRSAlgorithm = new FSRSAlgorithm(params)
   it('initial stability ', () => {
     const collection: number[] = []
@@ -87,16 +83,18 @@ describe('init_ds', () => {
       const d = algorithm.init_difficulty(grade)
       collection.push(d)
       expected.push(
-        new Decimal(params.w[4])
-          .sub(new Decimal(grade - 3).mul(new Decimal(params.w[5])))
-          .toNumber()
+        +new Decimal(params.w[4])
+          .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
+          .add(1)
+          .toFixed(8)
       )
     })
     expect(collection).toEqual(expected)
-    // again: w[4]-w[5]*(-2)
-    // hard: w[4]-w[5]*(-1)
-    // good: w[4]-w[5]*(0)
-    // easy: w[4]-w[5]*(1)
+    // e^0 = 1
+    // again: w[4]- e^(0*w[5]) +1
+    // hard: w[4]-e^(1*w[5]) +1
+    // good: w[4]-e^(2*w[5]) +1
+    // easy: w[4]-e^(3*w[5]) +1
   })
 })
 
@@ -133,7 +131,7 @@ describe('next_ds', () => {
       collection.push(d)
       expected.push(expected_d)
     })
-    expect(collection).toEqual([6.66816418, 5.83669392, 5.00522366, 4.1737534])
+    expect(collection).toEqual([7.0084, 6.0684, 5.1284, 4.1884])
     expect(collection).toEqual(expected)
   })
 
@@ -220,15 +218,18 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      26.98093855, 14.12848781, 63.60068241, 208.72742276,
+      28.24771401, 15.63251171, 67.60081724, 232.78974428,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.9016012, 2.0777825, 2.3257503, 2.62916465,
+      1.77730267, 2.06413987, 2.4601486, 2.96337958,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
     expect(next_s_collection).toEqual([
-      1.9016012, 14.12848781, 63.60068241, 208.72742276,
+      s_fail_collection[0],
+      s_recall_collection[1],
+      s_recall_collection[2],
+      s_recall_collection[3],
     ])
     expect(next_s_collection).toEqual(expected_next_s)
   })
@@ -310,7 +311,7 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,

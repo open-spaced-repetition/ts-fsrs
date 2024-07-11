@@ -57,7 +57,7 @@ describe('FSRS V4 AC by py-fsrs', () => {
     }
 
     expect(ivl_history).toEqual([
-      0, 5, 16, 43, 106, 236, 0, 0, 12, 25, 47, 85, 147,
+      0, 7, 32, 117, 365, 997, 0, 0, 15, 38, 87, 183, 361,
     ])
   })
 
@@ -90,7 +90,7 @@ describe('FSRS V4 AC by py-fsrs', () => {
       states.push(first_card.state)
     }
     expect(stability).toEqual([1.14, 1.01, 5.44, 14.67])
-    expect(difficulty).toEqual([8.4348, 6.8686, 5.3024, 3.7362])
+    expect(difficulty).toEqual([5.3024, 1.51398241, 1, 1])
     expect(reps).toEqual([1, 1, 1, 1])
     expect(lapses).toEqual([0, 0, 0, 0])
     expect(elapsed_days).toEqual([0, 0, 0, 0])
