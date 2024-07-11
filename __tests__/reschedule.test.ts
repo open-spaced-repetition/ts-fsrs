@@ -8,23 +8,23 @@ import {
   FSRS,
   get_fuzz_range,
   State,
-} from "../src/fsrs";
+} from '../src/fsrs'
 
-describe("FSRS reschedule", () => {
-  const DECAY: number = -0.5;
-  const FACTOR: number = 19 / 81;
-  const request_retentions = [default_request_retention, 0.95, 0.85, 0.8];
+describe('FSRS reschedule', () => {
+  const DECAY: number = -0.5
+  const FACTOR: number = 19 / 81
+  const request_retentions = [default_request_retention, 0.95, 0.85, 0.8]
 
   type CardType = Card & {
-    cid: number;
-  };
-
-  function cardHandler(card: Card) {
-    (card as CardType)["cid"] = 1;
-    return card as CardType;
+    cid: number
   }
 
-  const newCard = createEmptyCard(undefined, cardHandler);
+  function cardHandler(card: Card) {
+    ;(card as CardType)['cid'] = 1
+    return card as CardType
+  }
+
+  const newCard = createEmptyCard(undefined, cardHandler)
   const learningCard: CardType = {
     cid: 1,
     due: new Date(),
@@ -35,11 +35,11 @@ describe("FSRS reschedule", () => {
     reps: 1,
     lapses: 0,
     state: State.Learning,
-    last_review: new Date("2024-03-08 05:00:00"),
-  };
+    last_review: new Date('2024-03-08 05:00:00'),
+  }
   const reviewCard: CardType = {
     cid: 1,
-    due: new Date("2024-03-17 04:43:02"),
+    due: new Date('2024-03-17 04:43:02'),
     stability: 48.26139059062234,
     difficulty: 5.67,
     elapsed_days: 18,
@@ -47,11 +47,11 @@ describe("FSRS reschedule", () => {
     reps: 8,
     lapses: 1,
     state: State.Review,
-    last_review: new Date("2024-01-26 04:43:02"),
-  };
+    last_review: new Date('2024-01-26 04:43:02'),
+  }
   const relearningCard: CardType = {
     cid: 1,
-    due: new Date("2024-02-15 08:43:05"),
+    due: new Date('2024-02-15 08:43:05'),
     stability: 0.27,
     difficulty: 10,
     elapsed_days: 2,
@@ -59,85 +59,85 @@ describe("FSRS reschedule", () => {
     reps: 42,
     lapses: 8,
     state: State.Relearning,
-    last_review: new Date("2024-02-15 08:38:05"),
-  };
-
-  function dateHandler(date: Date) {
-    return date.getTime();
+    last_review: new Date('2024-02-15 08:38:05'),
   }
 
-  const cards = [newCard, learningCard, reviewCard, relearningCard];
-  it("reschedule", () => {
+  function dateHandler(date: Date) {
+    return date.getTime()
+  }
+
+  const cards = [newCard, learningCard, reviewCard, relearningCard]
+  it('reschedule', () => {
     for (const requestRetention of request_retentions) {
-      const f: FSRS = fsrs({ request_retention: requestRetention });
+      const f: FSRS = fsrs({ request_retention: requestRetention })
       const intervalModifier =
-        (Math.pow(requestRetention, 1 / DECAY) - 1) / FACTOR;
-      const reschedule_cards = f.reschedule(cards);
+        (Math.pow(requestRetention, 1 / DECAY) - 1) / FACTOR
+      const reschedule_cards = f.reschedule(cards)
       if (reschedule_cards.length > 0) {
         // next_ivl !== scheduled_days
-        expect(reschedule_cards.length).toBeGreaterThanOrEqual(1);
-        expect(reschedule_cards[0].cid).toBeGreaterThanOrEqual(1);
+        expect(reschedule_cards.length).toBeGreaterThanOrEqual(1)
+        expect(reschedule_cards[0].cid).toBeGreaterThanOrEqual(1)
 
         const { min_ivl, max_ivl } = get_fuzz_range(
           Math.round(reviewCard.stability * intervalModifier),
           reviewCard.elapsed_days,
-          default_maximum_interval,
-        );
+          default_maximum_interval
+        )
         expect(reschedule_cards[0].scheduled_days).toBeGreaterThanOrEqual(
-          min_ivl,
-        );
-        expect(reschedule_cards[0].scheduled_days).toBeLessThanOrEqual(max_ivl);
+          min_ivl
+        )
+        expect(reschedule_cards[0].scheduled_days).toBeLessThanOrEqual(max_ivl)
         expect(reschedule_cards[0].due).toEqual(
           date_scheduler(
             reviewCard.last_review!,
             reschedule_cards[0].scheduled_days,
-            true,
-          ),
-        );
+            true
+          )
+        )
       }
     }
-  });
+  })
 
-  it("reschedule[dateHandler]", () => {
+  it('reschedule[dateHandler]', () => {
     for (const requestRetention of request_retentions) {
-      const f: FSRS = fsrs({ request_retention: requestRetention });
+      const f: FSRS = fsrs({ request_retention: requestRetention })
       const intervalModifier =
-        (Math.pow(requestRetention, 1 / DECAY) - 1) / FACTOR;
+        (Math.pow(requestRetention, 1 / DECAY) - 1) / FACTOR
       const [rescheduleCard] = f.reschedule([reviewCard], {
         dateHandler,
-      });
+      })
       if (rescheduleCard) {
         // next_ivl !== scheduled_days
-        expect(rescheduleCard.cid).toEqual(1);
+        expect(rescheduleCard.cid).toEqual(1)
         const { min_ivl, max_ivl } = get_fuzz_range(
           Math.round(reviewCard.stability * intervalModifier),
           reviewCard.elapsed_days,
-          default_maximum_interval,
-        );
+          default_maximum_interval
+        )
         // reviewCard.stability * intervalModifier = 115.73208467290684 = ivl = 116
         // max_ivl=124 expected = 124
 
-        expect(rescheduleCard.scheduled_days).toBeGreaterThanOrEqual(min_ivl);
-        expect(rescheduleCard.scheduled_days).toBeLessThanOrEqual(max_ivl);
+        expect(rescheduleCard.scheduled_days).toBeGreaterThanOrEqual(min_ivl)
+        expect(rescheduleCard.scheduled_days).toBeLessThanOrEqual(max_ivl)
         expect(rescheduleCard.due as unknown as number).toEqual(
           date_scheduler(
             reviewCard.last_review!,
             rescheduleCard.scheduled_days,
-            true,
-          ).getTime(),
-        );
-        expect(typeof rescheduleCard.due).toEqual("number");
+            true
+          ).getTime()
+        )
+        expect(typeof rescheduleCard.due).toEqual('number')
       }
     }
-  });
+  })
 
-  it("reschedule[next_ivl === scheduled_days]", () => {
-    const f: FSRS = fsrs();
+  it('reschedule[next_ivl === scheduled_days]', () => {
+    const f: FSRS = fsrs()
     const reschedule_cards = f.reschedule(
       [
         {
           cid: 1,
-          due: new Date("2024-03-13 04:43:02"),
+          due: new Date('2024-03-13 04:43:02'),
           stability: 48.26139059062234,
           difficulty: 5.67,
           elapsed_days: 18,
@@ -145,24 +145,24 @@ describe("FSRS reschedule", () => {
           reps: 8,
           lapses: 1,
           state: State.Review,
-          last_review: new Date("2024-01-26 04:43:02"),
+          last_review: new Date('2024-01-26 04:43:02'),
         },
       ],
-      { enable_fuzz: false },
-    );
-    expect(reschedule_cards.length).toEqual(0);
-  });
+      { enable_fuzz: false }
+    )
+    expect(reschedule_cards.length).toEqual(0)
+  })
 
-  it("reschedule by empty array", () => {
-    const f: FSRS = fsrs();
-    const reschedule_cards = f.reschedule([]);
-    expect(reschedule_cards.length).toEqual(0);
-  });
+  it('reschedule by empty array', () => {
+    const f: FSRS = fsrs()
+    const reschedule_cards = f.reschedule([])
+    expect(reschedule_cards.length).toEqual(0)
+  })
 
-  it("reschedule by not array", () => {
-    const f: FSRS = fsrs();
-    expect(() =>{f.reschedule(createEmptyCard() as unknown as Card[])}).toThrow(
-      "cards must be an array",
-    );
-  });
-});
+  it('reschedule by not array', () => {
+    const f: FSRS = fsrs()
+    expect(() => {
+      f.reschedule(createEmptyCard() as unknown as Card[])
+    }).toThrow('cards must be an array')
+  })
+})
