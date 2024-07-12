@@ -172,6 +172,16 @@ describe('next_ds', () => {
         .toFixed(8)
     }
 
+    function next_short_term_stability(s: number, g: number) {
+      return +new Decimal(s)
+        .mul(
+          new Decimal(params.w[17])
+            .mul(new Decimal(g).sub(3).add(params.w[18]))
+            .exp()
+        )
+        .toFixed(8)
+    }
+
     function next_s(d: number, s: number, r: number, g: number) {
       if (g < 1 || g > 4) {
         throw new Error('Invalid grade')
@@ -184,14 +194,18 @@ describe('next_ds', () => {
 
     const s_recall_collection: number[] = []
     const s_fail_collection: number[] = []
+    const s_short_collection: number[] = []
     const next_s_collection: number[] = []
+
     const expected_s_recall: number[] = []
     const expected_s_fail: number[] = []
     const expected_next_s: number[] = []
+    const expected_s_short: number[] = []
 
     const s = [5, 5, 5, 5]
     const d = [1, 2, 3, 4]
     const r = [0.9, 0.8, 0.7, 0.6]
+
     Grades.forEach((grade, index) => {
       const s_recall = algorithm.next_recall_stability(
         d[index],
@@ -204,12 +218,18 @@ describe('next_ds', () => {
         s[index],
         r[index]
       )
+      const s_short = algorithm.next_short_term_stability(s[index], grade)
+
       s_recall_collection.push(s_recall)
       s_fail_collection.push(s_fail)
+      s_short_collection.push(s_short)
+
       expected_s_fail.push(next_forget_stability(d[index], s[index], r[index]))
       expected_s_recall.push(
         next_recall_stability(d[index], s[index], r[index], grade)
       )
+      expected_s_short.push(next_short_term_stability(s[index], grade))
+
       if (grade === Rating.Again) {
         next_s_collection.push(s_fail)
       } else {
@@ -225,6 +245,11 @@ describe('next_ds', () => {
       1.77730267, 2.06413987, 2.4601486, 2.96337958,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
+    expect(s_short_collection).toEqual([
+      2.60293047, 4.2065293, 6.79806432, 10.98617773,
+    ])
+    expect(s_short_collection).toEqual(expected_s_short)
+
     expect(next_s_collection).toEqual([
       s_fail_collection[0],
       s_recall_collection[1],
