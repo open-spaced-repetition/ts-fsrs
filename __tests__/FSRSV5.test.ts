@@ -8,12 +8,12 @@ import {
   Grades,
 } from '../src/fsrs'
 
-// Ref: https://github.com/open-spaced-repetition/py-fsrs/blob/ecd68e453611eb808c7367c7a5312d7cadeedf5c/tests/test_fsrs.py#L1
-describe('FSRS V4 AC by py-fsrs', () => {
+describe('FSRS V5 ', () => {
   const f: FSRS = fsrs({
     w: [
-      1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902,
+      0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
+      0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
+      0.6468,
     ],
     enable_fuzz: false,
   })
@@ -55,9 +55,8 @@ describe('FSRS V4 AC by py-fsrs', () => {
       now = card.due
       scheduling_cards = f.repeat(card, now)
     }
-
     expect(ivl_history).toEqual([
-      0, 5, 24, 91, 293, 820, 0, 0, 20, 49, 109, 225, 436,
+      0, 4, 17, 57, 163, 412, 0, 0, 8, 15, 27, 49, 86,
     ])
   })
 
@@ -89,8 +88,8 @@ describe('FSRS V4 AC by py-fsrs', () => {
       scheduled_days.push(first_card.scheduled_days)
       states.push(first_card.state)
     }
-    expect(stability).toEqual([1.14, 1.01, 5.44, 14.67])
-    expect(difficulty).toEqual([5.3024, 1.51398241, 1, 1])
+    expect(stability).toEqual([0.4197, 1.1869, 3.0412, 15.2441])
+    expect(difficulty).toEqual([7.1434, 6.23225985, 4.49094334, 1.16304343])
     expect(reps).toEqual([1, 1, 1, 1])
     expect(lapses).toEqual([0, 0, 0, 0])
     expect(elapsed_days).toEqual([0, 0, 0, 0])
