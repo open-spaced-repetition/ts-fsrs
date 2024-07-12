@@ -16,7 +16,6 @@ ts-fsrsは[自由間隔重複スケジューラ（FSRS）アルゴリズム](htt
 ts-fsrsのワークフローについては、以下のリソースを参照してください。
 > - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
-> - <img style="display: block;-webkit-user-select: none;margin: auto;cursor: zoom-in;background-color: hsl(0, 0%, 90%);transition: background-color 300ms;" src="https://drive.usercontent.google.com/download?id=1jpenkAgL870_2lrBYoEAV7VKhHVWm_K6&amp;export=view&amp;authuser=0">
 
 
 # ts-fsrsの使用方法
