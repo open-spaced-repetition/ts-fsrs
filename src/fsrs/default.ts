@@ -4,8 +4,9 @@ import { fixDate } from './help'
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_w = [
-  0.41, 1.18, 3.04, 15.24, 7.14, 0.64, 1.0, 0.06, 1.65, 0.17, 1.11, 2.02, 0.09,
-  0.3, 2.12, 0.24, 2.94, 0.48, 0.64,
+  0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
+  0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
+  0.6468,
 ]
 export const default_enable_fuzz = false
 

@@ -131,7 +131,7 @@ describe('next_ds', () => {
       collection.push(d)
       expected.push(expected_d)
     })
-    expect(collection).toEqual([7.0084, 6.0684, 5.1284, 4.1884])
+    expect(collection).toEqual([7.0109708, 6.07771798, 5.14446516, 4.21121234])
     expect(collection).toEqual(expected)
   })
 
@@ -238,15 +238,15 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      28.24771401, 15.63251171, 67.60081724, 232.78974428,
+      28.60303182, 16.24044223, 68.61087855, 237.0869306,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.77730267, 2.06413987, 2.4601486, 2.96337958,
+      1.79896722, 2.0890141, 2.48973974, 2.99909845,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
     expect(s_short_collection).toEqual([
-      2.60293047, 4.2065293, 6.79806432, 10.98617773,
+      2.57947991, 4.20673912, 6.86055123, 11.18851485,
     ])
     expect(s_short_collection).toEqual(expected_s_short)
 
