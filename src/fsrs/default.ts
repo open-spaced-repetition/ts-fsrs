@@ -19,7 +19,7 @@ export const generatorParameters = (
     if (props.w.length === 19) {
       w = props?.w
     } else if (props.w.length === 17) {
-      w = props?.w.concat([0.48, 0.64])
+      w = props?.w.concat([0.0, 0.0])
       console.debug('[FSRS V5]auto fill w to 19 length')
     }
   }
