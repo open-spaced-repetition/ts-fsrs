@@ -40,7 +40,8 @@
     "typescript": "^5.5.3"
   },
   "scripts": {
-    "lint": "eslint --fix src/ && prettier --write src/",
+    "lint": "eslint src/",
+    "lint::fix": "eslint --fix src/ && prettier --write src/",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "test": "jest --config=jest.config.js --passWithNoTests",
     "test::coverage": "jest --config=jest.config.js --coverage",
