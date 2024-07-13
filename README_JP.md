@@ -13,6 +13,11 @@ ts-fsrsは[自由間隔重複スケジューラ（FSRS）アルゴリズム](htt
 を実装するための、TypeScriptで開発された[ESモジュールパッケージ](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
 です。このツールは、開発者がFSRSアルゴリズムを彼らのフラッシュカードアプリケーションに適用し、ユーザーの学習体験を向上させるのに役立ちます。
 
+ts-fsrsのワークフローについては、以下のリソースを参照してください。
+> - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
+> - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
+
+
 # ts-fsrsの使用方法
 
 Node.js (バージョン >= 16.0.0)を実行する環境を準備して、`package.json`で`"type":"module"`をデフォルトに設定してください。

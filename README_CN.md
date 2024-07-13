@@ -13,6 +13,8 @@ ts-fsrs 是一个基于TypeScript开发的[ES modules包](https://gist.github.co
 ，用于实现[自由间隔重复调度器（FSRS）算法](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler/blob/main/README_CN.md)
 的工具。它可以帮助开发者将FSRS应用到他们的记忆卡应用中，从而提升用户的学习体验。
 
+> 你可以通过[ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)来获取ts-fsrs的工作流信息。
+
 # 使用ts-fsrs
 
 你需要运行在 Node.js (>=16.0.0)上，并且在`package.json`默认使用 `"type":"module"`。

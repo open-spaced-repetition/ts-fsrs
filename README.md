@@ -12,6 +12,11 @@
 ts-fsrs is a [ES modules package](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) based on TypeScript, used to implement the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler). It helps
 developers apply FSRS to their flashcard applications, there by improving the user learning experience.
 
+The workflow for TS-FSRS can be referenced from the following resources:
+> - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (You may provide commentary)
+> - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
+
+
 # Usage
 You need to run on Node.js (>=16.0.0) , using the `"type":"module"` by default in `package.json`.
 
