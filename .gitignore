@@ -5,3 +5,5 @@ example/.env.local
 
 /coverage/
 /docs/
+
+/dist

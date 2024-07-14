@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -9,20 +9,20 @@
 [![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
 [![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
-ts-fsrs 是一个基于TypeScript开发的[ES modules包](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
-，用于实现[自由间隔重复调度器（FSRS）算法](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler/blob/main/README_CN.md)
-的工具。它可以帮助开发者将FSRS应用到他们的记忆卡应用中，从而提升用户的学习体验。
+ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)、[CommonJS](https://en.wikipedia.org/wiki/CommonJS)和UMD。它实现了[自由间隔重复调度器（FSRS）算法](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler/blob/main/README_CN.md)，使开发人员能够将FSRS集成到他们的闪卡应用程序中，从而增强用户的学习体验。
 
 > 你可以通过[ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)来获取ts-fsrs的工作流信息。
 
 # 使用ts-fsrs
 
-你需要运行在 Node.js (>=16.0.0)上，并且在`package.json`默认使用 `"type":"module"`。
+`ts-fsrs@3.x`需要运行在 Node.js (>=16.0.0)上，`ts-fsrs@4.x`需要运行在 Node.js (>=18.0.0)上。
+从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # 例子

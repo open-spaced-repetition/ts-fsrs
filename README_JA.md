@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -9,9 +9,7 @@
 [![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
 [![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
-ts-fsrsは[自由間隔重複スケジューラ（FSRS）アルゴリズム](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler)
-を実装するための、TypeScriptで開発された[ESモジュールパッケージ](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)
-です。このツールは、開発者がFSRSアルゴリズムを彼らのフラッシュカードアプリケーションに適用し、ユーザーの学習体験を向上させるのに役立ちます。
+ts-fsrsはTypeScriptに基づいた多機能なパッケージで、[ESモジュール]((https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c))、[CommonJS](https://en.wikipedia.org/wiki/CommonJS)、UMDに対応しています。[自由間隔重複スケジューラ（FSRS）アルゴリズム](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) を実装しており、開発者がFSRSをフラッシュカードアプリケーションに統合することで、ユーザーの学習体験を向上させることができます。
 
 ts-fsrsのワークフローについては、以下のリソースを参照してください。
 > - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
@@ -20,12 +18,14 @@ ts-fsrsのワークフローについては、以下のリソースを参照し�
 
 # ts-fsrsの使用方法
 
-Node.js (バージョン >= 16.0.0)を実行する環境を準備して、`package.json`で`"type":"module"`をデフォルトに設定してください。
+`ts-fsrs@3.x`はNode.js（>=16.0.0）で動作する必要があります。`ts-fsrs@4.x`からは、最小必要なNode.jsバージョンは18.0.0です。
+`ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # 例

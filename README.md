@@ -1,4 +1,4 @@
-[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JP.md)
+[Introduction](./README.md) | [简体中文](./README_CN.md) ｜[はじめに](./README_JA.md)
 
 ---
 
@@ -9,8 +9,7 @@
 [![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
 [![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
-ts-fsrs is a [ES modules package](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c) based on TypeScript, used to implement the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler). It helps
-developers apply FSRS to their flashcard applications, there by improving the user learning experience.
+ts-fsrs is a versatile package based on TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
 
 The workflow for TS-FSRS can be referenced from the following resources:
 > - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (You may provide commentary)
@@ -18,12 +17,14 @@ The workflow for TS-FSRS can be referenced from the following resources:
 
 
 # Usage
-You need to run on Node.js (>=16.0.0) , using the `"type":"module"` by default in `package.json`.
+The ts-fsrs@3.x package requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is 18.0.0.
+From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
 ```
 npm install ts-fsrs
 yarn install ts-fsrs
 pnpm install ts-fsrs
+bun install ts-fsrs
 ```
 
 # Example
