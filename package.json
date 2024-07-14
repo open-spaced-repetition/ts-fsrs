@@ -1,16 +1,28 @@
 {
   "name": "ts-fsrs",
   "version": "3.5.7",
-  "description": "ts-fsrs is a ES modules package based on TypeScript, used to implement the Free Spaced Repetition Scheduler (FSRS) algorithm. It helps developers apply FSRS to their flashcard applications, there by improving the user learning experience.",
+  "description": "ts-fsrs is a versatile package based on TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
   "main": "dist/index.cjs",
   "umd": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
-  "keywords": [
-    "SuperMemo",
-    "Anki",
-    "FSRS"
-  ],
+  "scripts": {
+    "lint": "eslint src/",
+    "lint::fix": "eslint --fix src/ && prettier --write src/",
+    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
+    "test": "jest --config=jest.config.js --passWithNoTests",
+    "test::coverage": "jest --config=jest.config.js --coverage",
+    "test::publish": "yalc publish",
+    "prebuild": "rimraf ./dist",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
+    "build:types": "tsc --project ./tsconfig.json --declaration true",
+    "major": "npm version major",
+    "minor": "npm version minor",
+    "patch": "npm version patch",
+    "predocs": "rimraf ./docs",
+    "docs": "typedoc",
+    "clean": "rimraf ./dist ./docs"
+  },
   "dependencies": {
     "seedrandom": "^3.0.5"
   },
@@ -39,25 +51,13 @@
     "typedoc-plugin-katex": "^0.1.2",
     "typescript": "^5.5.3"
   },
-  "scripts": {
-    "lint": "eslint src/",
-    "lint::fix": "eslint --fix src/ && prettier --write src/",
-    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
-    "test": "jest --config=jest.config.js --passWithNoTests",
-    "test::coverage": "jest --config=jest.config.js --coverage",
-    "prebuild": "rimraf ./dist",
-    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "build:types": "tsc --project ./tsconfig.json --declaration true",
-    "major": "npm version major",
-    "minor": "npm version minor",
-    "patch": "npm version patch",
-    "test_publish": "yalc publish",
-    "predocs": "rimraf ./docs",
-    "docs": "typedoc",
-    "clean": "rimraf ./dist ./docs"
-  },
   "author": "ishiko",
   "license": "MIT",
+  "keywords": [
+    "SuperMemo",
+    "Anki",
+    "FSRS"
+  ],
   "files": [
     "dist",
     "README.md",
