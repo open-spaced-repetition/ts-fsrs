@@ -106,6 +106,19 @@ export class FSRSAlgorithm {
     s.easy.stability = this.init_stability(Rating.Easy)
   }
 
+  next_short_term_ds(s: SchedulingCard): void {
+    const last_d = s.again.difficulty
+    const last_s = s.again.stability
+    s.again.difficulty = this.next_difficulty(last_d, Rating.Again)
+    s.again.stability = this.next_short_term_stability(last_s, Rating.Again)
+    s.hard.difficulty = this.next_difficulty(last_d, Rating.Hard)
+    s.hard.stability = this.next_short_term_stability(last_s, Rating.Hard)
+    s.good.difficulty = this.next_difficulty(last_d, Rating.Good)
+    s.good.stability = this.next_short_term_stability(last_s, Rating.Good)
+    s.easy.difficulty = this.next_difficulty(last_d, Rating.Easy)
+    s.easy.stability = this.next_short_term_stability(last_s, Rating.Easy)
+  }
+
   /**
    * Updates the difficulty and stability values of the scheduling card based on the last difficulty,
    * last stability, and the current retrievability.
@@ -163,18 +176,17 @@ export class FSRSAlgorithm {
 
   /**
    * The formula used is :
-   * $$D_0(G) = w_4 - (G-3) \cdot w_5 $$
+   * $$D_0(G) = w_4 - e^{(G-1) \cdot w_5} + 1 $$
    * $$D_0 = \min \lbrace \max \lbrace D_0(G),1 \rbrace,10 \rbrace$$
-   * where the $$D_0(3)=w_4$$ when the first rating is good.
+   * where the $$D_0(1)=w_4$$ when the first rating is good.
    *
    * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return {number} Difficulty $$D \in [1,10]$$
    */
   init_difficulty(g: Grade): number {
-    return +Math.min(
-      Math.max(this.param.w[4] - (g - 3) * this.param.w[5], 1),
-      10
-    ).toFixed(8)
+    return this.constrain_difficulty(
+      this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1
+    )
   }
 
   /**
@@ -289,6 +301,18 @@ export class FSRSAlgorithm {
       Math.pow(d, -this.param.w[12]) *
       (Math.pow(s + 1, this.param.w[13]) - 1) *
       Math.exp((1 - r) * this.param.w[14])
+    ).toFixed(8)
+  }
+
+  /**
+   * The formula used is :
+   * $$S^\prime_s(S,G) = S \cdot e^{w_{17} \cdot (G-3+w_{18})}$$
+   * @param {number} s Stability (interval when R=90%)
+   * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
+   */
+  next_short_term_stability(s: number, g: Grade): number {
+    return +(
+      s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]))
     ).toFixed(8)
   }
 

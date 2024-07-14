@@ -126,13 +126,16 @@ export class FSRS extends FSRSAlgorithm {
         break
       case State.Learning:
       case State.Relearning:
-        hard_interval = 0
+        this.next_short_term_ds(s)
         good_interval = this.next_interval(s.good.stability, interval)
         easy_interval = Math.max(
           this.next_interval(s.easy.stability, interval),
           good_interval + 1
-        )
-        s.schedule(now, hard_interval, good_interval, easy_interval)
+        ) as int
+        s.good.scheduled_days = good_interval
+        s.good.due = now.scheduler(good_interval, true)
+        s.easy.scheduled_days = easy_interval
+        s.easy.due = now.scheduler(easy_interval, true)
         break
       case State.Review: {
         const last_d = processedCard.difficulty

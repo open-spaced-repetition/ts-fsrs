@@ -4,20 +4,30 @@ import { fixDate } from './help'
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_w = [
-  0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
-  0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
+  0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
+  0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
+  0.6468,
 ]
 export const default_enable_fuzz = false
 
-export const FSRSVersion: string = '3.5.7'
+export const FSRSVersion: string = 'v3.5.7 using FSRS V5.0'
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
+  let w = default_w
+  if (props?.w) {
+    if (props.w.length === 19) {
+      w = props?.w
+    } else if (props.w.length === 17) {
+      w = props?.w.concat([0.0, 0.0])
+      console.debug('[FSRS V5]auto fill w to 19 length')
+    }
+  }
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
-    w: props?.w || default_w,
+    w: w,
     enable_fuzz: props?.enable_fuzz || default_enable_fuzz,
   }
 }
