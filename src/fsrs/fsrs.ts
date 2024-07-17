@@ -13,7 +13,7 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { int } from './type'
+import type { int } from './types'
 import { FSRSAlgorithm } from './algorithm'
 
 export class FSRS extends FSRSAlgorithm {

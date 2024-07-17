@@ -1,4 +1,4 @@
-import type { int, unit } from './type'
+import type { int, unit } from './types'
 import type { DateInput, Grade } from './models'
 import { Rating, State } from './models'
 

@@ -2,7 +2,7 @@ import pseudorandom from 'seedrandom'
 import { generatorParameters } from './default'
 import { SchedulingCard } from './scheduler'
 import { FSRSParameters, Grade, Rating } from './models'
-import type { int } from './type'
+import type { int } from './types'
 import { get_fuzz_range } from './help'
 
 /**
