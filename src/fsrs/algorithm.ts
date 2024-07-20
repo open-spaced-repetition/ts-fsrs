@@ -23,7 +23,7 @@ export const FACTOR: number = 19 / 81
 export class FSRSAlgorithm {
   protected param!: FSRSParameters
   protected intervalModifier!: number
-  protected seed?: string
+  protected _seed?: string
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
@@ -37,6 +37,10 @@ export class FSRSAlgorithm {
 
   get interval_modifier(): number {
     return this.intervalModifier
+  }
+
+  set seed(seed: string) {
+    this._seed = seed
   }
 
   /**

@@ -1,17 +1,22 @@
-import { fixDate } from './help'
 import {
   Card,
   CardInput,
   DateInput,
   Rating,
+  ReviewLog,
+  ReviewLogInput,
   State,
 } from './models'
-
 
 export class TypeConvert {
   static card<T extends Card | CardInput>(card: T): Card {
     return {
       ...card,
+      state: TypeConvert.state(card.state),
+      due: TypeConvert.time(card.due),
+      last_review: card.last_review
+        ? TypeConvert.time(card.last_review)
+        : undefined,
     } as Card
   }
   static rating(value: unknown): Rating {
@@ -56,5 +61,14 @@ export class TypeConvert {
       return new Date(value)
     }
     throw new Error(`Invalid date:[${value}]`)
+  }
+  static review_log(log: ReviewLogInput | ReviewLog): ReviewLog {
+    return {
+      ...log,
+      due: TypeConvert.time(log.due),
+      rating: TypeConvert.rating(log.rating),
+      state: TypeConvert.state(log.state),
+      review: TypeConvert.time(log.review),
+    } satisfies ReviewLog
   }
 }

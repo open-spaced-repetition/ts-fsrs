@@ -10,7 +10,6 @@ export type int = number & { __int__: void }
 export type double = number & { __double__: void }
 
 export interface IScheduler {
-  new (card: Card, now: Date): this
   preview(): RecordLog
   review(state: Grade): RecordLogItem
   addPlugin(plugin: ISchedulerLifecycle): this
