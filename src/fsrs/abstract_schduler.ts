@@ -258,19 +258,19 @@ export class AbstractScheduler implements IScheduler {
 
     const item_again = {
       card: next_again,
-      log: this.buildLog(grade),
+      log: this.buildLog(Rating.Again),
     } satisfies RecordLogItem
     const item_hard = {
       card: next_hard,
-      log: this.buildLog(grade),
+      log: this.buildLog(Rating.Hard),
     } satisfies RecordLogItem
     const item_good = {
       card: next_good,
-      log: this.buildLog(grade),
+      log: this.buildLog(Rating.Good),
     } satisfies RecordLogItem
     const item_easy = {
       card: next_easy,
-      log: this.buildLog(grade),
+      log: this.buildLog(Rating.Easy),
     } satisfies RecordLogItem
 
     this.next.set(Rating.Again, item_again)
