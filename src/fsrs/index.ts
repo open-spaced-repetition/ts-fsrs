@@ -19,3 +19,5 @@ export type {
   DateInput,
 } from './models'
 export { State, Rating } from './models'
+
+export * from './convert'
