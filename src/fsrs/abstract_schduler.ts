@@ -61,8 +61,13 @@ export abstract class AbstractScheduler implements IScheduler {
       case State.Learning:
       case State.Relearning:
         return this.learningState(grade)
-      case State.Review:
-        return this.reviewState(grade)
+      case State.Review: {
+        const item = this.reviewState(grade)
+        if (!item) {
+          throw new Error('Invalid grade')
+        }
+        return item
+      }
     }
   }
 
