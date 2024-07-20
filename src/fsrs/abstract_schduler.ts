@@ -13,7 +13,6 @@ import {
 } from './models'
 import { int, IScheduler, ISchedulerLifecycle } from './types'
 
-
 export class AbstractScheduler implements IScheduler {
   private last: Card
   private current: Card
@@ -22,7 +21,11 @@ export class AbstractScheduler implements IScheduler {
   private seed: string = ''
   private algorithm: FSRSAlgorithm
 
-  constructor(card:  CardInput | Card, now: DateInput, algorithm: FSRSAlgorithm) {
+  constructor(
+    card: CardInput | Card,
+    now: DateInput,
+    algorithm: FSRSAlgorithm
+  ) {
     this.algorithm = algorithm
 
     this.last = TypeConvert.card(card)
@@ -43,7 +46,7 @@ export class AbstractScheduler implements IScheduler {
     this.initSeed()
     this.algorithm.seed = this.seed
   }
-  
+
   public preview(): RecordLog {
     return {
       [Rating.Again]: this.review(Rating.Again),
@@ -239,6 +242,7 @@ export class AbstractScheduler implements IScheduler {
     next_again.scheduled_days = 0
     next_again.due = this.review_time.scheduler(5 as int)
     next_again.state = State.Relearning
+    next_again.lapses += 1
     next_hard.scheduled_days = hard_interval
     next_hard.due =
       hard_interval > 0
@@ -251,8 +255,6 @@ export class AbstractScheduler implements IScheduler {
     next_easy.scheduled_days = easy_interval
     next_easy.due = this.review_time.scheduler(easy_interval, true)
     next_easy.state = State.Review
-
-
 
     const item_again = {
       card: next_again,
