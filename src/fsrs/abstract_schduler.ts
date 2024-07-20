@@ -11,7 +11,7 @@ import {
   CardInput,
   DateInput,
 } from './models'
-import { int, IScheduler, ISchedulerLifecycle } from './types'
+import type { int, IScheduler } from './types'
 
 export class AbstractScheduler implements IScheduler {
   private last: Card
@@ -278,10 +278,6 @@ export class AbstractScheduler implements IScheduler {
     this.next.set(Rating.Good, item_good)
     this.next.set(Rating.Easy, item_easy)
     return this.next.get(grade)!
-  }
-
-  addPlugin(plugin: ISchedulerLifecycle): this {
-    throw new Error('Method not implemented.')
   }
 
   private initSeed() {
