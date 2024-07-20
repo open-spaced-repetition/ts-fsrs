@@ -1,6 +1,5 @@
 import pseudorandom from 'seedrandom'
 import { generatorParameters } from './default'
-import { SchedulingCard } from './scheduler'
 import { FSRSParameters, Grade, Rating } from './models'
 import type { int } from './types'
 import { get_fuzz_range } from './help'
@@ -99,72 +98,6 @@ export class FSRSAlgorithm {
     }
   }
 
-  init_ds(s: SchedulingCard): void {
-    s.again.difficulty = this.init_difficulty(Rating.Again)
-    s.again.stability = this.init_stability(Rating.Again)
-    s.hard.difficulty = this.init_difficulty(Rating.Hard)
-    s.hard.stability = this.init_stability(Rating.Hard)
-    s.good.difficulty = this.init_difficulty(Rating.Good)
-    s.good.stability = this.init_stability(Rating.Good)
-    s.easy.difficulty = this.init_difficulty(Rating.Easy)
-    s.easy.stability = this.init_stability(Rating.Easy)
-  }
-
-  next_short_term_ds(s: SchedulingCard): void {
-    const last_d = s.again.difficulty
-    const last_s = s.again.stability
-    s.again.difficulty = this.next_difficulty(last_d, Rating.Again)
-    s.again.stability = this.next_short_term_stability(last_s, Rating.Again)
-    s.hard.difficulty = this.next_difficulty(last_d, Rating.Hard)
-    s.hard.stability = this.next_short_term_stability(last_s, Rating.Hard)
-    s.good.difficulty = this.next_difficulty(last_d, Rating.Good)
-    s.good.stability = this.next_short_term_stability(last_s, Rating.Good)
-    s.easy.difficulty = this.next_difficulty(last_d, Rating.Easy)
-    s.easy.stability = this.next_short_term_stability(last_s, Rating.Easy)
-  }
-
-  /**
-   * Updates the difficulty and stability values of the scheduling card based on the last difficulty,
-   * last stability, and the current retrievability.
-   * @param {SchedulingCard} s scheduling Card
-   * @param {number} last_d Difficulty
-   * @param {number} last_s Stability
-   * @param retrievability Retrievability
-   */
-  next_ds(
-    s: SchedulingCard,
-    last_d: number,
-    last_s: number,
-    retrievability: number
-  ): void {
-    s.again.difficulty = this.next_difficulty(last_d, Rating.Again)
-    s.again.stability = this.next_forget_stability(
-      last_d,
-      last_s,
-      retrievability
-    )
-    s.hard.difficulty = this.next_difficulty(last_d, Rating.Hard)
-    s.hard.stability = this.next_recall_stability(
-      last_d,
-      last_s,
-      retrievability,
-      Rating.Hard
-    )
-    s.good.difficulty = this.next_difficulty(last_d, Rating.Good)
-    s.good.stability = this.next_recall_stability(
-      last_d,
-      last_s,
-      retrievability,
-      Rating.Good
-    )
-    s.easy.difficulty = this.next_difficulty(last_d, Rating.Easy)
-    s.easy.stability = this.next_recall_stability(
-      last_d,
-      last_s,
-      retrievability,
-      Rating.Easy
-    )
-  }
 
   /**
    * The formula used is :

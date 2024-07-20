@@ -1,4 +1,3 @@
-import { SchedulingCard } from './scheduler'
 import { date_scheduler } from './help'
 import {
   Card,
