@@ -14,12 +14,14 @@ import {
 } from './models'
 import type { int } from './types'
 import { FSRSAlgorithm } from './algorithm'
-import { AbstractScheduler } from './abstract_schduler'
 import { TypeConvert } from './convert'
+import BasicScheduler from './impl/basic_schduler'
 
 export class FSRS extends FSRSAlgorithm {
+  private Schduler
   constructor(param: Partial<FSRSParameters>) {
     super(param)
+    this.Schduler = BasicScheduler
   }
 
   /**
@@ -84,8 +86,9 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: RecordLog) => R
   ): R {
-    const scheduler = new AbstractScheduler(card, now, this)
-    const recordLog = scheduler.preview()
+    const Schduler = this.Schduler
+    const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
+    const recordLog = instace.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
     } else {
@@ -321,7 +324,8 @@ export class FSRS extends FSRSAlgorithm {
     }
     const processedCard: T[] = []
     for (const card of cards) {
-      if (TypeConvert.state(card.state) !== State.Review || !card.last_review) continue
+      if (TypeConvert.state(card.state) !== State.Review || !card.last_review)
+        continue
       const scheduled_days = Math.floor(card.scheduled_days) as int
       const next_ivl = this.next_interval(
         +card.stability.toFixed(2),
