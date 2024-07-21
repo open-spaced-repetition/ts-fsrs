@@ -211,16 +211,10 @@ export default class LongTermScheduler extends AbstractScheduler {
     easy_interval = Math.max(easy_interval, good_interval + 1) as int
 
     next_again.scheduled_days = again_interval
-    next_again.due =
-      again_interval > 0
-        ? this.review_time.scheduler(again_interval as int)
-        : this.review_time.scheduler(again_interval as int, false)
+    next_again.due = this.review_time.scheduler(again_interval as int)
 
     next_hard.scheduled_days = hard_interval
-    next_hard.due =
-      hard_interval > 0
-        ? this.review_time.scheduler(hard_interval, true)
-        : this.review_time.scheduler(10 as int)
+    next_hard.due = this.review_time.scheduler(hard_interval, true)
 
     next_good.scheduled_days = good_interval
     next_good.due = this.review_time.scheduler(good_interval, true)
