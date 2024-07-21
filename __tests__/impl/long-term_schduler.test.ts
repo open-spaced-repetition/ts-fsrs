@@ -1,9 +1,11 @@
 import {
   createEmptyCard,
   fsrs,
+  FSRSAlgorithm,
   generatorParameters,
   Grade,
   Rating,
+  State,
 } from '../../src/fsrs'
 import LongTermScheduler from '../../src/fsrs/impl/long_term_schduler'
 
@@ -204,5 +206,20 @@ describe('Long-term  schduler', () => {
       6.21014718, 8.13955406, 9.0056661, 8.88014936, 7.82983963, 9.65007924, 10,
       9.80746516,
     ])
+  })
+
+  test('[State.Learning]invalid grade', () => {
+    const now = new Date(2022, 11, 29, 12, 30, 0, 0)
+    const cardByNew = createEmptyCard(now)
+    cardByNew.state = State.Learning
+    const longtermScheduler = new LongTermScheduler(
+      cardByNew,
+      now,
+      f satisfies FSRSAlgorithm
+    )
+    // TODO
+    expect(() => longtermScheduler.review('invalid' as unknown as Grade)).toThrow(
+      'Long-term Scheduler not implemented.'
+    )
   })
 })
