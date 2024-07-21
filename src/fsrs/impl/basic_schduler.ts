@@ -145,6 +145,8 @@ export default class BasicScheduler extends AbstractScheduler {
 
     this.next_interval(next_again, next_hard, next_good, next_easy, interval)
     this.next_state(next_again, next_hard, next_good, next_easy)
+    next_again.lapses += 1
+    
 
     const item_again = {
       card: next_again,
@@ -268,7 +270,7 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy: Card
   ) {
     next_again.state = State.Relearning
-    next_again.lapses += 1
+    // next_again.lapses += 1
 
     next_hard.state = State.Review
 
