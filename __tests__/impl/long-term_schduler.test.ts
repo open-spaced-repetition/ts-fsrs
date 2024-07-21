@@ -5,6 +5,7 @@ import {
   Grade,
   Rating,
 } from '../../src/fsrs'
+import LongTermScheduler from '../../src/fsrs/impl/long_term_schduler'
 
 describe('Long-term  schduler', () => {
   const w = [
