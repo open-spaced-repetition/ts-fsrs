@@ -4,6 +4,7 @@ import {
   CardInput,
   DateInput,
   FSRSParameters,
+  Grade,
   Rating,
   RecordLog,
   RecordLogItem,
@@ -25,6 +26,7 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   /**
+   * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
    * @param now Current time or scheduled time
    * @param afterHandler Convert the result to another type. (Optional)
@@ -93,6 +95,81 @@ export class FSRS extends FSRSAlgorithm {
       return afterHandler(recordLog)
     } else {
       return recordLog as R
+    }
+  }
+
+  /**
+   * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param grade Rating of the review (Again, Hard, Good, Easy)
+   * @param afterHandler Convert the result to another type. (Optional)
+   * @example
+   * ```
+   * const card: Card = createEmptyCard(new Date());
+   * const f = fsrs();
+   * const recordLogItem = f.next(card, new Date(), Rating.Again);
+   * ```
+   * @example
+   * ```
+   * interface RevLogUnchecked
+   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
+   *   cid: string;
+   *   due: Date | number;
+   *   state: StateType;
+   *   review: Date | number;
+   *   rating: RatingType;
+   * }
+   *
+   * interface NextRecordLog {
+   *   card: CardUnChecked; //see method: createEmptyCard
+   *   log: RevLogUnchecked;
+   * }
+   *
+   * function nextAfterHandler(recordLogItem: RecordLogItem) {
+   *       const record = {
+   *         card: {
+   *           ...(recordLogItem.card as Card & { cid: string }),
+   *           due: recordLogItem.card.due.getTime(),
+   *           state: State[recordLogItem.card.state] as StateType,
+   *           last_review: recordLogItem.card.last_review
+   *             ? recordLogItem.card.last_review!.getTime()
+   *             : null,
+   *         },
+   *         log: {
+   *           ...recordLogItem.log,
+   *           cid: (recordLogItem.card as Card & { cid: string }).cid,
+   *           due: recordLogItem.log.due.getTime(),
+   *           review: recordLogItem.log.review.getTime(),
+   *           state: State[recordLogItem.log.state] as StateType,
+   *           rating: Rating[recordLogItem.log.rating] as RatingType,
+   *         },
+   *       };
+   *     }
+   *     return record;
+   * }
+   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
+   * const f = fsrs();
+   * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
+   * ```
+   */
+  next<R = RecordLog>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    afterHandler?: (recordLog: RecordLogItem) => R
+  ): R {
+    const Schduler = this.Schduler
+    const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
+    const g = TypeConvert.rating(grade)
+    if (g === Rating.Manual) {
+      throw new Error('Cannot review a manual rating')
+    }
+    const recordLogItem = instace.review(g)
+    if (afterHandler && typeof afterHandler === 'function') {
+      return afterHandler(recordLogItem)
+    } else {
+      return recordLogItem as R
     }
   }
 
