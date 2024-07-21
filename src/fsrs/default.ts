@@ -29,9 +29,9 @@ export const generatorParameters = (
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
-    enable_fuzz: props?.enable_fuzz || default_enable_fuzz,
+    enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
     enable_short_term:
-      props?.enable_short_term || defualt_enable_short_term,
+      props?.enable_short_term ?? defualt_enable_short_term,
   } satisfies FSRSParameters
 }
 
