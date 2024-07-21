@@ -1,5 +1,5 @@
 import { Card, DateInput, FSRSParameters, State } from './models'
-import { fixDate } from './help'
+import { TypeConvert } from './convert'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
@@ -67,7 +67,7 @@ export function createEmptyCard<R = Card>(
   afterHandler?: (card: Card) => R
 ): R {
   const emptyCard: Card = {
-    due: now ? fixDate(now) : new Date(),
+    due: now ? TypeConvert.time(now) : new Date(),
     stability: 0,
     difficulty: 0,
     elapsed_days: 0,

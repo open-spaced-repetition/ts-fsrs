@@ -1,5 +1,4 @@
-import { SchedulingCard } from './scheduler'
-import { date_scheduler, fixDate, fixRating, fixState } from './help'
+import { date_scheduler } from './help'
 import {
   Card,
   CardInput,
@@ -13,35 +12,16 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { int } from './type'
+import type { int } from './types'
 import { FSRSAlgorithm } from './algorithm'
+import { TypeConvert } from './convert'
+import BasicScheduler from './impl/basic_schduler'
 
 export class FSRS extends FSRSAlgorithm {
+  private Schduler
   constructor(param: Partial<FSRSParameters>) {
     super(param)
-  }
-
-  private preProcessCard(_card: CardInput | Card): Card {
-    return {
-      ..._card,
-      state: fixState(_card.state),
-      due: fixDate(_card.due),
-      last_review: _card.last_review ? fixDate(_card.last_review) : undefined,
-    }
-  }
-
-  private preProcessDate(_date: DateInput): Date {
-    return fixDate(_date)
-  }
-
-  private preProcessLog(_log: ReviewLogInput | ReviewLog): ReviewLog {
-    return {
-      ..._log,
-      due: fixDate(_log.due),
-      rating: fixRating(_log.rating),
-      state: fixState(_log.state),
-      review: fixDate(_log.review),
-    }
+    this.Schduler = BasicScheduler
   }
 
   /**
@@ -106,55 +86,9 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: RecordLog) => R
   ): R {
-    const processedCard = this.preProcessCard(card)
-    now = this.preProcessDate(now)
-    const s = new SchedulingCard(processedCard, now).update_state(
-      processedCard.state
-    )
-    this.seed = String(now.getTime()) + String(processedCard.reps)
-    let easy_interval, good_interval, hard_interval
-    const interval = processedCard.elapsed_days
-    switch (processedCard.state) {
-      case State.New:
-        this.init_ds(s)
-        s.again.due = now.scheduler(1 as int)
-        s.hard.due = now.scheduler(5 as int)
-        s.good.due = now.scheduler(10 as int)
-        easy_interval = this.next_interval(s.easy.stability, interval)
-        s.easy.scheduled_days = easy_interval
-        s.easy.due = now.scheduler(easy_interval, true)
-        break
-      case State.Learning:
-      case State.Relearning:
-        this.next_short_term_ds(s)
-        good_interval = this.next_interval(s.good.stability, interval)
-        easy_interval = Math.max(
-          this.next_interval(s.easy.stability, interval),
-          good_interval + 1
-        ) as int
-        s.good.scheduled_days = good_interval
-        s.good.due = now.scheduler(good_interval, true)
-        s.easy.scheduled_days = easy_interval
-        s.easy.due = now.scheduler(easy_interval, true)
-        break
-      case State.Review: {
-        const last_d = processedCard.difficulty
-        const last_s = processedCard.stability
-        const retrievability = this.forgetting_curve(interval, last_s)
-        this.next_ds(s, last_d, last_s, retrievability)
-        hard_interval = this.next_interval(s.hard.stability, interval)
-        good_interval = this.next_interval(s.good.stability, interval)
-        hard_interval = Math.min(hard_interval, good_interval)
-        good_interval = Math.max(good_interval, hard_interval + 1)
-        easy_interval = Math.max(
-          this.next_interval(s.easy.stability, interval),
-          good_interval + 1
-        )
-        s.schedule(now, hard_interval, good_interval, easy_interval)
-        break
-      }
-    }
-    const recordLog = s.record_log(processedCard, now)
+    const Schduler = this.Schduler
+    const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
+    const recordLog = instace.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
     } else {
@@ -174,8 +108,8 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     format: T = true as T
   ): undefined | (T extends true ? string : number) {
-    const processedCard = this.preProcessCard(card)
-    now = this.preProcessDate(now)
+    const processedCard = TypeConvert.card(card)
+    now = TypeConvert.time(now)
     if (processedCard.state !== State.Review) {
       return undefined
     }
@@ -216,8 +150,8 @@ export class FSRS extends FSRSAlgorithm {
     log: ReviewLogInput,
     afterHandler?: (prevCard: Card) => R
   ): R {
-    const processedCard = this.preProcessCard(card)
-    const processedLog = this.preProcessLog(log)
+    const processedCard = TypeConvert.card(card)
+    const processedLog = TypeConvert.review_log(log)
     if (processedLog.rating === Rating.Manual) {
       throw new Error('Cannot rollback a manual rating')
     }
@@ -318,8 +252,8 @@ export class FSRS extends FSRSAlgorithm {
     reset_count: boolean = false,
     afterHandler?: (recordLogItem: RecordLogItem) => R
   ): R {
-    const processedCard = this.preProcessCard(card)
-    now = this.preProcessDate(now)
+    const processedCard = TypeConvert.card(card)
+    now = TypeConvert.time(now)
     const scheduled_days =
       processedCard.state === State.New
         ? 0
@@ -390,7 +324,8 @@ export class FSRS extends FSRSAlgorithm {
     }
     const processedCard: T[] = []
     for (const card of cards) {
-      if (fixState(card.state) !== State.Review || !card.last_review) continue
+      if (TypeConvert.state(card.state) !== State.Review || !card.last_review)
+        continue
       const scheduled_days = Math.floor(card.scheduled_days) as int
       const next_ivl = this.next_interval(
         +card.stability.toFixed(2),
