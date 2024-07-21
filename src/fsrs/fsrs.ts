@@ -126,28 +126,27 @@ export class FSRS extends FSRSAlgorithm {
    *   log: RevLogUnchecked;
    * }
    *
-   * function nextAfterHandler(recordLogItem: RecordLogItem) {
-   *       const record = {
-   *         card: {
-   *           ...(recordLogItem.card as Card & { cid: string }),
-   *           due: recordLogItem.card.due.getTime(),
-   *           state: State[recordLogItem.card.state] as StateType,
-   *           last_review: recordLogItem.card.last_review
-   *             ? recordLogItem.card.last_review!.getTime()
-   *             : null,
-   *         },
-   *         log: {
-   *           ...recordLogItem.log,
-   *           cid: (recordLogItem.card as Card & { cid: string }).cid,
-   *           due: recordLogItem.log.due.getTime(),
-   *           review: recordLogItem.log.review.getTime(),
-   *           state: State[recordLogItem.log.state] as StateType,
-   *           rating: Rating[recordLogItem.log.rating] as RatingType,
-   *         },
-   *       };
-   *     }
-   *     return record;
-   * }
+  function nextAfterHandler(recordLogItem: RecordLogItem) {
+    const recordItem = {
+      card: {
+        ...(recordLogItem.card as Card & { cid: string }),
+        due: recordLogItem.card.due.getTime(),
+        state: State[recordLogItem.card.state] as StateType,
+        last_review: recordLogItem.card.last_review
+          ? recordLogItem.card.last_review!.getTime()
+          : null,
+      },
+      log: {
+        ...recordLogItem.log,
+        cid: (recordLogItem.card as Card & { cid: string }).cid,
+        due: recordLogItem.log.due.getTime(),
+        review: recordLogItem.log.review.getTime(),
+        state: State[recordLogItem.log.state] as StateType,
+        rating: Rating[recordLogItem.log.rating] as RatingType,
+      },
+    };
+    return recordItem
+  }
    * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
    * const f = fsrs();
    * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);

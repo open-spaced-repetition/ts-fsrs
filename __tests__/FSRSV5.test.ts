@@ -9,14 +9,12 @@ import {
 } from '../src/fsrs'
 
 describe('FSRS V5 ', () => {
-  const f: FSRS = fsrs({
-    w: [
-      0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
-      0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
-      0.6468,
-    ],
-    enable_fuzz: false,
-  })
+  const w = [
+    0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
+    0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
+    0.6468,
+  ]
+  const f: FSRS = fsrs({ w })
   const grade: Grade[] = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
   it('ivl_history', () => {
     let card = createEmptyCard()
@@ -48,6 +46,9 @@ describe('FSRS V5 ', () => {
         expect(scheduling_cards[check].log.elapsed_days).toEqual(
           card.last_review ? now.diff(card.last_review as Date, 'days') : 0
         )
+        const _f = fsrs({ w })
+        const next = _f.next(card, now, check)
+        expect(scheduling_cards[check]).toEqual(next)
       }
       card = scheduling_cards[rating].card
       const ivl = card.scheduled_days
@@ -125,5 +126,15 @@ describe('get retrievability', () => {
         fsrs.get_retrievability(sc[grade].card, sc[grade].card.due, false)
       ).toBe(r_number[index])
     })
+  })
+})
+
+describe('fsrs.next method', () => {
+  const fsrs = new FSRS({})
+  test('invalid grade', () => {
+    const card = createEmptyCard()
+    const now = new Date()
+    const g = Rating.Manual as unknown as Grade
+    expect(() => fsrs.next(card, now, g)).toThrow('Cannot review a manual rating')
   })
 })

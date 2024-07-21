@@ -101,6 +101,27 @@ describe('afterHandler', () => {
   //   }
   //   return record;
   // }
+  function nextAfterHandler(recordLogItem: RecordLogItem) {
+    const recordItem = {
+      card: {
+        ...(recordLogItem.card as Card & { cid: string }),
+        due: recordLogItem.card.due.getTime(),
+        state: State[recordLogItem.card.state] as StateType,
+        last_review: recordLogItem.card.last_review
+          ? recordLogItem.card.last_review!.getTime()
+          : null,
+      },
+      log: {
+        ...recordLogItem.log,
+        cid: (recordLogItem.card as Card & { cid: string }).cid,
+        due: recordLogItem.log.due.getTime(),
+        review: recordLogItem.log.review.getTime(),
+        state: State[recordLogItem.log.state] as StateType,
+        rating: Rating[recordLogItem.log.rating] as RatingType,
+      },
+    }
+    return recordItem
+  }
 
   function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
     return {
@@ -156,6 +177,31 @@ describe('afterHandler', () => {
       expect(typeof repeat[i].log.rating === 'string').toEqual(true)
       expect(repeat[i].card.cid).toEqual('test001')
       expect(repeat[i].log.cid).toEqual(repeat[i].card.cid)
+    }
+  })
+
+  it('next[afterHandler]', () => {
+    const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler)
+    for (const grade of Grades) {
+      const next = f.next(
+        emptyCardFormAfterHandler,
+        now,
+        grade,
+        nextAfterHandler
+      )
+      expect('card' in next).toEqual(true)
+      expect('log' in next).toEqual(true)
+
+      expect(Number.isSafeInteger(next.card.due)).toEqual(true)
+      expect(typeof next.card.state === 'string').toEqual(true)
+      expect(Number.isSafeInteger(next.card.last_review)).toEqual(true)
+
+      expect(Number.isSafeInteger(next.log.due)).toEqual(true)
+      expect(Number.isSafeInteger(next.log.review)).toEqual(true)
+      expect(typeof next.log.state === 'string').toEqual(true)
+      expect(typeof next.log.rating === 'string').toEqual(true)
+      expect(next.card.cid).toEqual('test001')
+      expect(next.log.cid).toEqual(next.card.cid)
     }
   })
 
