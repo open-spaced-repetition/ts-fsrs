@@ -49,11 +49,11 @@ describe('Long-term  schduler', () => {
       now = card.due
     }
 
-    expect(ivl_history).toEqual([3, 6, 17, 42, 95, 200, 8, 2, 3, 3, 6, 10, 17])
+    expect(ivl_history).toEqual([3, 6, 17, 42, 95, 200, 8, 2, 3, 5, 8, 14, 23])
     expect(s_history).toEqual([
       0.57587467, 6.28341418, 16.83356103, 41.95128557, 95.07063986,
-      199.53765138, 8.31519008, 1.59859456, 1.59859456, 3.49350932, 5.58821385,
-      9.83641092, 16.95422162,
+      199.53765138, 8.31519008, 1.96276113, 3.06877302, 4.90880017, 8.15177579,
+      13.50873393, 22.92901865,
     ])
     expect(d_history).toEqual([
       7.1434, 7.1434, 7.1434, 7.1434, 7.1434, 7.1434, 9.00990564, 10,
@@ -85,12 +85,11 @@ describe('Long-term  schduler', () => {
       d_history.push(card.difficulty)
       now = card.due
     }
-
-    expect(ivl_history).toEqual([1, 2, 3, 8, 2, 2, 3, 8])
+    expect(ivl_history).toEqual([1, 2, 3, 8, 2, 2, 4, 10])
 
     expect(s_history).toEqual([
-      0.21652154, 0.21652154, 1.32177381, 7.69767996, 1.91650418, 1.91650418,
-      3.02442382, 8.45226282,
+      0.21652154, 0.51780862, 1.8183783, 8.18593986, 1.96087115, 2.23717242,
+      3.33185406, 10.31008873,
     ])
     expect(d_history).toEqual([
       9.00990564, 9.81735598, 9.63713135, 8.53580104, 10, 10, 9.80746516,
@@ -122,12 +121,11 @@ describe('Long-term  schduler', () => {
       d_history.push(card.difficulty)
       now = card.due
     }
-
-    expect(ivl_history).toEqual([2, 3, 17, 3, 3, 5, 15, 3])
+    expect(ivl_history).toEqual([2, 3, 17, 3, 4, 6, 18, 3])
 
     expect(s_history).toEqual([
-      0.35311368, 3.40179546, 16.86596974, 2.9223039, 2.9223039, 4.91748183,
-      15.09437624, 2.71341838,
+      0.35311368, 3.40179546, 16.86596974, 2.9223039, 3.73601023, 6.27595217,
+      18.057595, 2.96541083,
     ])
     expect(d_history).toEqual([
       8.07665282, 8.01375158, 7.02183706, 8.89653604, 9.71162749, 9.53852896,
@@ -160,11 +158,11 @@ describe('Long-term  schduler', () => {
       now = card.due
     }
 
-    expect(ivl_history).toEqual([3, 17, 3, 3, 6, 23, 3, 3])
+    expect(ivl_history).toEqual([3, 17, 3, 4, 8, 30, 4, 4])
 
     expect(s_history).toEqual([
-      0.57587467, 17.3937106, 2.98322161, 2.98322161, 6.06697209, 23.2008818,
-      3.36166219, 3.36166219,
+      0.57587467, 17.3937106, 2.98322161, 4.08808234, 7.99405969, 29.76078201,
+      3.78204811, 4.44627015,
     ])
     expect(d_history).toEqual([
       7.1434, 6.21014718, 8.13955406, 9.0056661, 8.88014936, 7.82983963,
@@ -196,11 +194,11 @@ describe('Long-term  schduler', () => {
       now = card.due
     }
 
-    expect(ivl_history).toEqual([4, 1, 2, 3, 13, 3, 3, 4])
+    expect(ivl_history).toEqual([4, 1, 2, 3, 13, 3, 3, 5])
 
     expect(s_history).toEqual([
-      0.93916394, 0.70772253, 0.70772253, 2.9537906, 12.61933619, 2.51177108,
-      2.51177108, 4.07590188,
+      0.93916394, 0.70772253, 1.16119435, 3.42301186, 12.97577367, 2.53486926,
+      3.06202367, 4.60523893,
     ])
     expect(d_history).toEqual([
       6.21014718, 8.13955406, 9.0056661, 8.88014936, 7.82983963, 9.65007924, 10,
@@ -218,8 +216,8 @@ describe('Long-term  schduler', () => {
       f satisfies FSRSAlgorithm
     )
     // TODO
-    expect(() => longtermScheduler.review('invalid' as unknown as Grade)).toThrow(
-      'Long-term Scheduler not implemented.'
-    )
+    expect(() =>
+      longtermScheduler.review('invalid' as unknown as Grade)
+    ).toThrow('Long-term Scheduler not implemented.')
   })
 })
