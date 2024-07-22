@@ -96,8 +96,11 @@ export default class LongTermScheduler extends AbstractScheduler {
     )
   }
 
+  /**
+   * @see https://github.com/open-spaced-repetition/ts-fsrs/issues/98#issuecomment-2241923194
+   */
   protected override learningState(grade: Grade): RecordLogItem {
-    throw new Error('Long-term Scheduler not implemented.')
+    return this.reviewState(grade)
   }
   protected override reviewState(grade: Grade): RecordLogItem {
     const exist = this.next.get(grade)

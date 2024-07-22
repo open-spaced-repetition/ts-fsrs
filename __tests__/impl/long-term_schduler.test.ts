@@ -206,18 +206,43 @@ describe('Long-term  schduler', () => {
     ])
   })
 
-  test('[State.Learning]invalid grade', () => {
-    const now = new Date(2022, 11, 29, 12, 30, 0, 0)
-    const cardByNew = createEmptyCard(now)
-    cardByNew.state = State.Learning
-    const longtermScheduler = new LongTermScheduler(
-      cardByNew,
-      now,
-      f satisfies FSRSAlgorithm
-    )
-    // TODO
-    expect(() =>
-      longtermScheduler.review('invalid' as unknown as Grade)
-    ).toThrow('Long-term Scheduler not implemented.')
+  test('[State.(Re)Learning]switch long-term schduler', () => {
+    // Good(short)->Good(long)->Again(long)->Good(long)->Good(short)->Again(short)
+    const ivl_history: number[] = []
+    const s_history: number[] = []
+    const d_history: number[] = []
+    const state_history: string[] = []
+
+    const grades: Grade[] = [
+      Rating.Good,
+      Rating.Good,
+      Rating.Again,
+      Rating.Good,
+      Rating.Good,
+      Rating.Again,
+    ]
+    const short_term = [true, false, false, false, true, true]
+
+    let now = new Date(2022, 11, 29, 12, 30, 0, 0)
+    let card = createEmptyCard(now)
+    const f = fsrs({ w })
+    for (let i = 0; i < grades.length; i++) {
+      const grade = grades[i]
+      const enable = short_term[i]
+      f.parameters.enable_short_term = enable
+      const record = f.repeat(card, now)[grade]
+      card = record.card
+      now = card.due
+      ivl_history.push(card.scheduled_days)
+      s_history.push(card.stability)
+      d_history.push(card.difficulty)
+      state_history.push(State[card.state])
+    }
+    expect(ivl_history).toEqual([0, 4, 1, 4, 12, 0])
+    expect(s_history).toEqual([
+      3.0412, 3.0412, 1.20788692, 3.83856852, 12.23542321, 2.48288917,
+    ])
+    expect(d_history).toEqual([4.49094334, 4.66971892, 6.70295066, 6.73263695,6.76032238,8.65264745])
+    expect(state_history).toEqual(['Learning', 'Review', 'Review', 'Review','Review','Relearning'])
   })
 })
