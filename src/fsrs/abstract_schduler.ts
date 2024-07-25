@@ -55,20 +55,23 @@ export abstract class AbstractScheduler implements IScheduler {
   }
   public review(grade: Grade): RecordLogItem {
     const { state } = this.last
+    let item: RecordLogItem | undefined
     switch (state) {
       case State.New:
-        return this.newState(grade)
+        item = this.newState(grade)
+        break
       case State.Learning:
       case State.Relearning:
-        return this.learningState(grade)
-      case State.Review: {
-        const item = this.reviewState(grade)
-        if (!item) {
-          throw new Error('Invalid grade')
-        }
-        return item
-      }
+        item = this.learningState(grade)
+        break
+      case State.Review:
+        item = this.reviewState(grade)
+        break
     }
+    if (item) {
+      return item
+    }
+    throw new Error('Invalid grade')
   }
 
   protected abstract newState(grade: Grade): RecordLogItem
