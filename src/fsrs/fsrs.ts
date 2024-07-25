@@ -17,12 +17,32 @@ import type { int } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_schduler'
+import LongTermScheduler from './impl/long_term_schduler'
 
 export class FSRS extends FSRSAlgorithm {
   private Schduler
   constructor(param: Partial<FSRSParameters>) {
     super(param)
-    this.Schduler = BasicScheduler
+    const { enable_short_term } = this.parameters
+    this.Schduler = enable_short_term ? BasicScheduler : LongTermScheduler
+  }
+
+  protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
+    const _this: FSRS = this satisfies FSRS
+    return {
+      set: function (target, prop, value) {
+        if (prop === 'request_retention' && Number.isFinite(value)) {
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(value)
+          )
+        } else if (prop === 'enable_short_term') {
+          _this.Schduler = value === true ? BasicScheduler : LongTermScheduler
+        }
+        // @ts-ignore
+        target[prop] = value
+        return true
+      },
+    }
   }
 
   /**

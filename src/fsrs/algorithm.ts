@@ -71,7 +71,7 @@ export class FSRSAlgorithm {
     this.update_parameters(params)
   }
 
-  private params_handler_proxy(): ProxyHandler<FSRSParameters> {
+  protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
     // eslint-disable-next-line @typescript-eslint/no-this-alias
     const _this: FSRSAlgorithm = this
     return {

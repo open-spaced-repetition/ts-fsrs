@@ -74,6 +74,7 @@ export interface FSRSParameters {
   maximum_interval: number
   w: number[]
   enable_fuzz: boolean
+  enable_short_term: boolean
 }
 
 export type RescheduleOptions = {
