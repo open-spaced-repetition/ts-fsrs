@@ -102,5 +102,12 @@
   },
   "include": ["src"],
   "exclude": ["node_modules", "**/__tests__/*"],
-  "detectCycles": true
+  "detectCycles": true,
+  "ts-node": {
+    "experimentalSpecifierResolution": "node",
+    "transpileOnly": true, // you can specify ts-node options here
+    "compilerOptions": {
+      "module": "commonjs" // you can also override compilerOptions.  Only ts-node will use these overrides
+    }
+  },
 }
