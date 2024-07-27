@@ -165,8 +165,8 @@ export class FSRSAlgorithm {
 
   /**
    * The formula used is :
-   * $$\text{next}_d = D - w_6 \cdot (R - 2)$$
-   * $$D^\prime(D,R) = w_5 \cdot D_0(2) +(1 - w_5) \cdot \text{next}_d$$
+   * $$\text{next}_d = D - w_6 \cdot (g - 3)$$
+   * $$D^\prime(D,R) = w_7 \cdot D_0(4) +(1 - w_7) \cdot \text{next}_d$$
    * @param {number} d Difficulty $$D \in [1,10]$$
    * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return {number} $$\text{next}_D$$
@@ -174,7 +174,7 @@ export class FSRSAlgorithm {
   next_difficulty(d: number, g: Grade): number {
     const next_d = d - this.param.w[6] * (g - 3)
     return this.constrain_difficulty(
-      this.mean_reversion(this.param.w[4], next_d)
+      this.mean_reversion(this.init_difficulty(Rating.Easy), next_d)
     )
   }
 
