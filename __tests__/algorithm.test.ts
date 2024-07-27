@@ -117,10 +117,17 @@ describe('next_ds', () => {
         return Math.min(Math.max(+new Decimal(difficulty).toFixed(8), 1), 10)
       }
 
+      function init_difficulty(g: number) {
+        return +new Decimal(params.w[4])
+          .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
+          .add(1)
+          .toFixed(8)
+      }
+
       const next_d = new Decimal(d)
         .sub(new Decimal(params.w[6]).mul(new Decimal(g - 3)))
         .toNumber()
-      return constrain_difficulty(mean_reversion(params.w[4], next_d))
+      return constrain_difficulty(mean_reversion(init_difficulty(4), next_d))
     }
 
     const collection: number[] = []
@@ -131,7 +138,7 @@ describe('next_ds', () => {
       collection.push(d)
       expected.push(expected_d)
     })
-    expect(collection).toEqual([7.0109708, 6.07771798, 5.14446516, 4.21121234])
+    expect(collection).toEqual([6.60789477, 5.67464195, 4.74138913, 3.80813631])
     expect(collection).toEqual(expected)
   })
 

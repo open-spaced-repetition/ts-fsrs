@@ -57,7 +57,7 @@ describe('FSRS V5 ', () => {
       scheduling_cards = f.repeat(card, now)
     }
     expect(ivl_history).toEqual([
-      0, 4, 17, 57, 163, 412, 0, 0, 8, 15, 27, 49, 86,
+      0, 4, 17, 62, 198, 563, 0, 0, 9, 27, 74, 190, 457,
     ])
   })
 
@@ -135,6 +135,8 @@ describe('fsrs.next method', () => {
     const card = createEmptyCard()
     const now = new Date()
     const g = Rating.Manual as unknown as Grade
-    expect(() => fsrs.next(card, now, g)).toThrow('Cannot review a manual rating')
+    expect(() => fsrs.next(card, now, g)).toThrow(
+      'Cannot review a manual rating'
+    )
   })
 })
