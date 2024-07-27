@@ -72,7 +72,7 @@ export class FSRSAlgorithm {
   }
 
   protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
-    const _this: FSRSAlgorithm = this satisfies FSRSAlgorithm
+    const _this = this satisfies FSRSAlgorithm
     return {
       set: function (
         target: FSRSParameters,

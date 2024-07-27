@@ -28,7 +28,7 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
-    const _this: FSRS = this satisfies FSRS
+    const _this = this satisfies FSRS
     return {
       set: function (
         target: FSRSParameters,
