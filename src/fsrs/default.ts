@@ -4,9 +4,9 @@ import { TypeConvert } from './convert'
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_w = [
-  0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
-  0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
-  0.6468,
+  0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616,
+  0.1544, 1.0824, 1.9813, 0.0953, 0.2975, 2.2042, 0.2407, 2.9466, 0.5034,
+  0.6567,
 ]
 export const default_enable_fuzz = false
 export const defualt_enable_short_term = true
@@ -30,8 +30,7 @@ export const generatorParameters = (
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term:
-      props?.enable_short_term ?? defualt_enable_short_term,
+    enable_short_term: props?.enable_short_term ?? defualt_enable_short_term,
   } satisfies FSRSParameters
 }
 
