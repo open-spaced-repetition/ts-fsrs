@@ -72,17 +72,19 @@ export class FSRSAlgorithm {
   }
 
   protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    const _this: FSRSAlgorithm = this
+    const _this = this satisfies FSRSAlgorithm
     return {
-      set: function (target, prop, value) {
+      set: function (
+        target: FSRSParameters,
+        prop: keyof FSRSParameters,
+        value: FSRSParameters[keyof FSRSParameters]
+      ) {
         if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
           )
         }
-        // @ts-ignore
-        target[prop] = value
+        Reflect.set(target, prop, value)
         return true
       },
     }
@@ -97,7 +99,6 @@ export class FSRSAlgorithm {
       }
     }
   }
-
 
   /**
    * The formula used is :
