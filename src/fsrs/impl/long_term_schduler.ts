@@ -26,17 +26,8 @@ export default class LongTermScheduler extends AbstractScheduler {
 
     this.init_ds(next_again, next_hard, next_good, next_easy)
     const first_interval = 0
-    const first_stability = next_again.stability
-    const first_difficulty = next_again.difficulty
 
-    this.next_short_term_ds(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      first_difficulty,
-      first_stability
-    )
+    this.next_short_term_ds(next_again, next_hard, next_good, next_easy)
     this.next_interval(
       next_again,
       next_hard,
@@ -73,43 +64,41 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_again: Card,
     next_hard: Card,
     next_good: Card,
-    next_easy: Card,
-    difficulty: number,
-    stability: number
+    next_easy: Card
   ): void {
     next_again.difficulty = this.algorithm.next_difficulty(
-      difficulty,
+      next_again.difficulty,
       Rating.Again
     )
     next_again.stability = this.algorithm.next_short_term_stability(
-      stability,
+      next_again.stability,
       Rating.Again
     )
 
     next_hard.difficulty = this.algorithm.next_difficulty(
-      difficulty,
+      next_hard.difficulty,
       Rating.Hard
     )
     next_hard.stability = this.algorithm.next_short_term_stability(
-      stability,
+      next_hard.stability,
       Rating.Hard
     )
 
     next_good.difficulty = this.algorithm.next_difficulty(
-      difficulty,
+      next_good.difficulty,
       Rating.Good
     )
     next_good.stability = this.algorithm.next_short_term_stability(
-      stability,
+      next_good.stability,
       Rating.Good
     )
 
     next_easy.difficulty = this.algorithm.next_difficulty(
-      difficulty,
+      next_easy.difficulty,
       Rating.Easy
     )
     next_easy.stability = this.algorithm.next_short_term_stability(
-      stability,
+      next_easy.stability,
       Rating.Easy
     )
   }
