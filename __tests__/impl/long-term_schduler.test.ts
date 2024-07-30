@@ -42,6 +42,10 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
@@ -82,6 +86,10 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
@@ -118,6 +126,10 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
@@ -154,6 +166,10 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
@@ -190,6 +206,10 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
@@ -234,6 +254,14 @@ describe('Long-term  schduler', () => {
       const enable = short_term[i]
       f.parameters.enable_short_term = enable
       const record = f.repeat(card, now)[grade]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs({ ...params, enable_short_term: enable }).next(
+        card,
+        now,
+        grade
+      )
+      expect(record).toEqual(next)
+
       card = record.card
       now = card.due
       ivl_history.push(card.scheduled_days)
