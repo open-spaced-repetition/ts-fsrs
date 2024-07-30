@@ -42,25 +42,28 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
       now = card.due
     }
-
     expect(ivl_history).toEqual([
-      3, 7, 21, 60, 158, 390, 11, 2, 5, 13, 33, 79, 184,
+      3, 13, 48, 155, 445, 1158, 17, 3, 9, 27, 74, 190, 457,
     ])
     expect(s_history).toEqual([
-      0.57587467, 6.87994283, 21.35900027, 59.97135827, 158.31738168,
-      390.28403347, 10.97158339, 2.35722772, 5.41695678, 13.11380293,
-      32.50206204, 79.19030952, 184.25083571,
+      3.0412, 13.09130698, 48.15848988, 154.93732625, 445.05562739,
+      1158.07779739, 16.63063166, 2.98878859, 9.46334669, 26.94735845,
+      73.97228121, 189.70368068, 457.43785852,
     ])
     expect(d_history).toEqual([
-      6.74032397, 6.36441526, 6.0138428, 5.68689892, 5.38199106, 5.09763399,
-      6.69894823, 8.19233389, 7.71855971, 7.27671791, 6.86465625, 6.48036755,
-      6.1219799,
+      4.49094334, 4.26664289, 4.05746029, 3.86237659, 3.68044154, 3.51076891,
+      5.21903785, 6.81216947, 6.43141837, 6.0763299, 5.74517439, 5.43633876,
+      5.14831865,
     ])
   })
 
@@ -82,21 +85,25 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
       now = card.due
     }
-    expect(ivl_history).toEqual([1, 2, 3, 14, 3, 4, 8, 34])
+    expect(ivl_history).toEqual([1, 2, 5, 31, 4, 6, 14, 71])
 
     expect(s_history).toEqual([
-      0.21652154, 0.57883165, 2.75860692, 14.17790785, 2.66869241, 3.62352774,
-      7.6088889, 33.82907094,
+      0.4197, 1.0344317, 4.81220091, 31.07244353, 3.94952214, 5.69573414,
+      14.10008388, 71.33039653,
     ])
     expect(d_history).toEqual([
-      8.60682961, 9.03837124, 8.50757415, 7.07929996, 8.54704991, 8.98262069,
-      8.45558118, 7.03081132,
+      7.1434, 7.67357679, 7.23476684, 5.89227986, 7.44003496, 7.95021855,
+      7.49276295, 6.13288703,
     ])
   })
 
@@ -118,21 +125,25 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
       now = card.due
     }
-    expect(ivl_history).toEqual([2, 4, 26, 4, 5, 13, 67, 5])
+    expect(ivl_history).toEqual([2, 7, 54, 5, 8, 22, 130, 7])
 
     expect(s_history).toEqual([
-      0.35311368, 3.82215283, 25.65963413, 3.62919153, 5.38579333, 12.54261943,
-      66.53407633, 5.47466879,
+      1.1869, 6.59167572, 53.76078737, 5.13329038, 7.91598767, 22.353464,
+      129.65007831, 7.25750204,
     ])
     expect(d_history).toEqual([
-      7.67357679, 7.23476684, 5.89227986, 7.44003496, 7.95021855, 7.49276295,
-      6.13288703, 7.66442521,
+      6.23225985, 5.89059466, 4.63870489, 6.27095095, 6.8599308, 6.47596059,
+      5.18461715, 6.78006872,
     ])
   })
 
@@ -154,22 +165,25 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
       now = card.due
     }
-
-    expect(ivl_history).toEqual([3, 19, 3, 5, 13, 73, 6, 8])
+    expect(ivl_history).toEqual([3, 33, 4, 7, 24, 166, 8, 13])
 
     expect(s_history).toEqual([
-      0.57587467, 19.1514419, 3.17243454, 4.70631523, 12.88705197, 72.51830855,
-      5.70211402, 8.22198803,
+      3.0412, 32.65484522, 4.26210549, 7.16183801, 23.58957904, 166.25211957,
+      8.13553136, 12.60456051,
     ])
     expect(d_history).toEqual([
-      6.74032397, 5.43116244, 7.00999686, 7.54916502, 7.11874042, 5.78407362,
-      7.33912183, 7.85610697,
+      4.49094334, 3.33339007, 5.05361435, 5.72464269, 5.4171909, 4.19720854,
+      5.85921145, 6.47594255,
     ])
   })
   test('test5', () => {
@@ -190,22 +204,25 @@ describe('Long-term  schduler', () => {
     const d_history: number[] = []
     for (const rating of ratings) {
       const record = f.repeat(card, now)[rating]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs(params).next(card, now, rating)
+      expect(record).toEqual(next)
+
       card = record.card
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
       now = card.due
     }
-
-    expect(ivl_history).toEqual([4, 1, 2, 5, 30, 4, 6, 14])
+    expect(ivl_history).toEqual([15, 3, 6, 26, 226, 10, 17, 55])
 
     expect(s_history).toEqual([
-      0.93916394, 0.71202904, 1.28884718, 4.82236231, 29.76149698, 3.87021442,
-      5.53831177, 13.53596018,
+      15.2441, 3.25621013, 6.31387378, 25.90156323, 226.22071942, 9.55915065,
+      16.56937382, 55.3790909,
     ])
     expect(d_history).toEqual([
-      5.80707115, 7.36056932, 7.8761089, 7.42364829, 6.0684307, 7.60431324,
-      8.10342447, 7.63564279,
+      1.16304343, 3.02954907, 3.83699941, 3.65677478, 2.55544447, 4.32810228,
+      5.04803013, 4.78618203,
     ])
   })
 
@@ -234,6 +251,14 @@ describe('Long-term  schduler', () => {
       const enable = short_term[i]
       f.parameters.enable_short_term = enable
       const record = f.repeat(card, now)[grade]
+      // https://github.com/open-spaced-repetition/ts-fsrs/issues/105
+      const next = fsrs({ ...params, enable_short_term: enable }).next(
+        card,
+        now,
+        grade
+      )
+      expect(record).toEqual(next)
+
       card = record.card
       now = card.due
       ivl_history.push(card.scheduled_days)

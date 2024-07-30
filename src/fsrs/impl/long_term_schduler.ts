@@ -16,12 +16,6 @@ export default class LongTermScheduler extends AbstractScheduler {
       return exist
     }
 
-    const first_difficulty = this.algorithm.init_difficulty(grade)
-    const first_stability = this.algorithm.init_stability(grade)
-    const first_interval = 0
-
-    this.current.difficulty = first_difficulty
-    this.current.stability = first_stability
     this.current.scheduled_days = 0
     this.current.elapsed_days = 0
 
@@ -30,14 +24,9 @@ export default class LongTermScheduler extends AbstractScheduler {
     const next_good = TypeConvert.card(this.current)
     const next_easy = TypeConvert.card(this.current)
 
-    this.next_short_term_ds(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      first_difficulty,
-      first_stability
-    )
+    this.init_ds(next_again, next_hard, next_good, next_easy)
+    const first_interval = 0
+
     this.next_interval(
       next_again,
       next_hard,
@@ -51,49 +40,23 @@ export default class LongTermScheduler extends AbstractScheduler {
     return this.next.get(grade)!
   }
 
-  private next_short_term_ds(
+  private init_ds(
     next_again: Card,
     next_hard: Card,
     next_good: Card,
-    next_easy: Card,
-    difficulty: number,
-    stability: number
+    next_easy: Card
   ): void {
-    next_again.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Again
-    )
-    next_again.stability = this.algorithm.next_short_term_stability(
-      stability,
-      Rating.Again
-    )
+    next_again.difficulty = this.algorithm.init_difficulty(Rating.Again)
+    next_again.stability = this.algorithm.init_stability(Rating.Again)
 
-    next_hard.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Hard
-    )
-    next_hard.stability = this.algorithm.next_short_term_stability(
-      stability,
-      Rating.Hard
-    )
+    next_hard.difficulty = this.algorithm.init_difficulty(Rating.Hard)
+    next_hard.stability = this.algorithm.init_stability(Rating.Hard)
 
-    next_good.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Good
-    )
-    next_good.stability = this.algorithm.next_short_term_stability(
-      stability,
-      Rating.Good
-    )
+    next_good.difficulty = this.algorithm.init_difficulty(Rating.Good)
+    next_good.stability = this.algorithm.init_stability(Rating.Good)
 
-    next_easy.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Easy
-    )
-    next_easy.stability = this.algorithm.next_short_term_stability(
-      stability,
-      Rating.Easy
-    )
+    next_easy.difficulty = this.algorithm.init_difficulty(Rating.Easy)
+    next_easy.stability = this.algorithm.init_stability(Rating.Easy)
   }
 
   /**
