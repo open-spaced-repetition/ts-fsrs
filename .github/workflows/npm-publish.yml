@@ -60,10 +60,9 @@ jobs:
       - run: pnpm build
 
       - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4.0.1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          slug: ${{ env.GITHUB_REPOSITORY }}
           fail_ci_if_error: true
 
       - name: Publish Package to NPM
