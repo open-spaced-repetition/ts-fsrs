@@ -5,7 +5,11 @@ concurrency:
   cancel-in-progress: true
 
 on:
-  workflow_dispatch:
+  workflow_call:
+    secrets:
+      codecov_token:
+        required: true
+
   pull_request:
     branches:
       - main
