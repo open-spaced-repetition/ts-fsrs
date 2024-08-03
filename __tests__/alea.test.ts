@@ -87,4 +87,23 @@ describe('Alea PRNG Tests', () => {
     expect(state1.s2).not.toEqual(state2.s2)
     expect(next1).not.toEqual(next2)
   })
+
+  it('s2<0', () => {
+    const seed = 12345
+    const generator = alea(seed).importState({
+      c: 0,
+      s0: 0,
+      s1: 0,
+      s2: -0.5,
+    })
+    const results = generator()
+    const state = generator.state()
+    expect(results).toEqual(0)
+    expect(state).toEqual({
+      c: 0,
+      s0: 0,
+      s1: -0.5,
+      s2: 0,
+    })
+  })
 })
