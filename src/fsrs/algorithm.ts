@@ -1,8 +1,8 @@
-import pseudorandom from 'seedrandom'
 import { generatorParameters } from './default'
 import { FSRSParameters, Grade, Rating } from './models'
 import type { int } from './types'
 import { get_fuzz_range } from './help'
+import { alea } from './alea'
 
 /**
  * @default DECAY = -0.5
@@ -136,7 +136,7 @@ export class FSRSAlgorithm {
    **/
   apply_fuzz(ivl: number, elapsed_days: number, enable_fuzz?: boolean): int {
     if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
-    const generator = pseudorandom(this.seed)
+    const generator = alea(this.seed)
     const fuzz_factor = generator()
     const { min_ivl, max_ivl } = get_fuzz_range(
       ivl,
