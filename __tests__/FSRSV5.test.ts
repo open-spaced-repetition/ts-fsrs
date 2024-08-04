@@ -116,8 +116,8 @@ describe('get retrievability', () => {
   test('return retrievability percentage for review cards', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = [undefined, undefined, undefined, '90.00%']
-    const r_number = [undefined, undefined, undefined, 0.9]
+    const r = [undefined, undefined, undefined, '90.26%']
+    const r_number = [undefined, undefined, undefined, 0.90260891]
     Grades.forEach((grade, index) => {
       expect(fsrs.get_retrievability(sc[grade].card, sc[grade].card.due)).toBe(
         r[index]

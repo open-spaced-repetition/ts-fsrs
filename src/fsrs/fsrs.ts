@@ -213,7 +213,7 @@ export class FSRS extends FSRSAlgorithm {
       return undefined
     }
     const t = Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
-    const r = this.forgetting_curve(t, Math.round(processedCard.stability))
+    const r = this.forgetting_curve(t, +processedCard.stability.toFixed(2))
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number
