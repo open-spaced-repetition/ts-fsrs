@@ -1,13 +1,12 @@
 import {
+  CardInput,
   createEmptyCard,
   fsrs,
-  FSRSAlgorithm,
   generatorParameters,
   Grade,
   Rating,
   State,
 } from '../../src/fsrs'
-import LongTermScheduler from '../../src/fsrs/impl/long_term_schduler'
 
 describe('Long-term  schduler', () => {
   const w = [
@@ -281,5 +280,40 @@ describe('Long-term  schduler', () => {
       'Review',
       'Relearning',
     ])
+  })
+
+  test('[Long-term]get_retrievability ', () => {
+    const f = fsrs({
+      w: [
+        0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616,
+        0.1544, 1.0824, 1.9813, 0.0953, 0.2975, 2.2042, 0.2407, 2.9466, 0.5034,
+        0.6567,
+      ],
+      enable_short_term: false,
+    })
+    const now = '2024-08-03T18:15:34.500Z'
+    const view_date = '2024-08-03T18:25:34.500Z'
+    let card: CardInput = createEmptyCard(now)
+    card = f.repeat(card, now)[Rating.Again].card
+    let r = f.get_retrievability(card, view_date)
+    expect(r).toEqual('100.00%')
+
+    card = {
+      cid: 81,
+      due: '2024-08-04T18:15:34.500Z',
+      stability: 0.5,
+      difficulty: 7.2102,
+      elapsed_days: 0,
+      scheduled_days: 1,
+      reps: 1,
+      lapses: 0,
+      state: 'Review',
+      last_review: '2024-08-03T18:15:34.500Z',
+      nid: 82,
+      suspended: false,
+      deleted: false,
+    } as CardInput
+    r = f.get_retrievability(card, view_date)
+    expect(r).toEqual('100.00%')
   })
 })

@@ -262,6 +262,9 @@ export class FSRSAlgorithm {
    * @return {number} r Retrievability (probability of recall)
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
+    if (stability === 0) {
+      return 1
+    }
     return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
   }
 }
