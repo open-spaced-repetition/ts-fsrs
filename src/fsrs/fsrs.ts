@@ -175,7 +175,7 @@ export class FSRS extends FSRSAlgorithm {
    * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
    * ```
    */
-  next<R = RecordLog>(
+  next<R = RecordLogItem>(
     card: CardInput | Card,
     now: DateInput,
     grade: Grade,
