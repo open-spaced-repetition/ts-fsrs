@@ -11,7 +11,7 @@ export const default_w = [
 export const default_enable_fuzz = false
 export const defualt_enable_short_term = true
 
-export const FSRSVersion: string = 'v4.1.0 using FSRS V5.0'
+export const FSRSVersion: string = 'v4.1.1 using FSRS V5.0'
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
