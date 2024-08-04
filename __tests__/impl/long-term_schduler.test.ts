@@ -301,7 +301,7 @@ describe('Long-term  schduler', () => {
     card = {
       cid: 81,
       due: '2024-08-04T18:15:34.500Z',
-      stability: 0.5,
+      stability: 0.4072,
       difficulty: 7.2102,
       elapsed_days: 0,
       scheduled_days: 1,
