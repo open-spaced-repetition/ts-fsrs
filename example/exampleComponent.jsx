@@ -241,6 +241,30 @@ const ParamsComponent = ({ f, setF }) => {
         prevent cards from sticking together and always being reviewed on the
         same day.
       </div>
+
+      <div className="flex py-4">
+        <label htmlFor="enable_short-term" className="pr-4">
+        enable_short-term:
+        </label>
+        <input
+          name="enable_short-term"
+          type="checkbox"
+          className="toggle toggle-info mt-1"
+          aria-label="enable short-term"
+          defaultChecked={f.parameters.enable_short_term}
+          onChange={(e) => handleChange("enable_short_term", e.target.checked)}
+        />
+      </div>
+      <div className="label text-xs">
+        When disabled, this allow user to skip the short-term schedule.
+      </div>
+      <hr className="pt-4"/>
+      <div>
+        <div>current apply parameters:</div>
+        <div>{Object.keys(f.parameters).map(key=><p key={key}>
+          {`${key} : ${JSON.stringify(f.parameters[key])}`}
+        </p>)}</div>
+      </div>
     </div>
   );
 };
