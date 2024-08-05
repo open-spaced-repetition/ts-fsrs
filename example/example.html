@@ -9,7 +9,11 @@
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp"></script>
     <script type="module">
+        // production
         import * as tsFsrs from 'https://cdn.jsdelivr.net/npm/ts-fsrs@latest/+esm';
+        // development,please use this: pnpm run build
+        // import * as tsFsrs from '../dist/index.mjs';
+        
         window.tsfsrs = tsFsrs
     </script>
     <title>TS-FSRS example</title>
