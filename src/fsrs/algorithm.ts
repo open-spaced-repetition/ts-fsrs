@@ -136,7 +136,7 @@ export class FSRSAlgorithm {
    **/
   apply_fuzz(ivl: number, elapsed_days: number, enable_fuzz?: boolean): int {
     if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
-    const generator = alea(this.seed)
+    const generator = alea(this._seed) // I do not want others to directly access the seed externally.
     const fuzz_factor = generator()
     const { min_ivl, max_ivl } = get_fuzz_range(
       ivl,
