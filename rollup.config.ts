@@ -4,7 +4,6 @@ import esbuild from 'rollup-plugin-esbuild';
 import commonjs from '@rollup/plugin-commonjs';
 import dts from 'rollup-plugin-dts';
 
-
 export default defineConfig([
     {
         input: {
@@ -30,17 +29,15 @@ export default defineConfig([
             },
         ],
         plugins: [
-            // 对于 fs、path 等内置模块不再搜索 node_modules
             resolve({preferBuiltins: true}),
-            // 设置目标为 node >= 16.0
             esbuild({
-                target: 'node16.0',
+                target: 'node18.0',
                 sourceMap: true,
                 minify: true,
             }),
             commonjs(),
         ],
-        external: ["seedrandom"],
+        external: [],
     }, 
     {
         input: 'src/fsrs/index.ts',
@@ -49,9 +46,6 @@ export default defineConfig([
             format: 'umd',
             name: 'FSRS',
             sourcemap: true,
-            globals: {
-                seedrandom: 'seedrandom',
-            },
         },
         plugins: [
             resolve(), 
@@ -62,7 +56,7 @@ export default defineConfig([
             }),
             commonjs(),
         ],
-        external: ["seedrandom"],
+        external: [],
     },
     {
         input: 'src/fsrs/index.ts',
@@ -77,6 +71,6 @@ export default defineConfig([
                 respectExternal: true,
             }),
         ],
-        external: ["seedrandom"],
+        external: [],
     },
 ]);
