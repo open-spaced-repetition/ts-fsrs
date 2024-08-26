@@ -61,6 +61,30 @@ describe('FSRS V5 ', () => {
     ])
   })
 
+  it('memory state', () => {
+    let card = createEmptyCard()
+    let now = new Date(2022, 11, 29, 12, 30, 0, 0)
+    let scheduling_cards = f.repeat(card, now)
+    const ratings: Grade[] = [
+      Rating.Again,
+      Rating.Good,
+      Rating.Good,
+      Rating.Good,
+      Rating.Good,
+      Rating.Good,
+    ]
+    const intervals: number[] = [0, 0, 1, 3, 8, 21]
+    for (const [index, rating] of ratings.entries()) {
+      card = scheduling_cards[rating].card
+      now = new Date(now.getTime() + intervals[index] * 24 * 60 * 60 * 1000)
+      scheduling_cards = f.repeat(card, now)
+    }
+
+    const { stability, difficulty } = scheduling_cards[Rating.Good].card
+    expect(stability).toBeCloseTo(71.4554, 4)
+    expect(difficulty).toBeCloseTo(5.0976, 4)
+  })
+
   it('first repeat', () => {
     const card = createEmptyCard()
     const now = new Date(2022, 11, 29, 12, 30, 0, 0)
