@@ -80,8 +80,9 @@ describe('FSRS V5 ', () => {
       scheduling_cards = f.repeat(card, now)
     }
 
-    expect(scheduling_cards[Rating.Good].card.stability).toBeCloseTo(71.4554, 4)
-    expect(scheduling_cards[Rating.Good].card.difficulty).toBeCloseTo(5.0976, 4)
+    const { stability, difficulty } = scheduling_cards[Rating.Good].card
+    expect(stability).toBeCloseTo(71.4554, 4)
+    expect(difficulty).toBeCloseTo(5.0976, 4)
   })
 
   it('first repeat', () => {
