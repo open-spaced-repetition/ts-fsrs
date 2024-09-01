@@ -9,9 +9,9 @@ export const default_w = [
   0.6567,
 ]
 export const default_enable_fuzz = false
-export const defualt_enable_short_term = true
+export const default_enable_short_term = true
 
-export const FSRSVersion: string = 'v4.1.2 using FSRS V5.0'
+export const FSRSVersion: string = 'v4.1.3 using FSRS V5.0'
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
@@ -30,7 +30,7 @@ export const generatorParameters = (
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term: props?.enable_short_term ?? defualt_enable_short_term,
+    enable_short_term: props?.enable_short_term ?? default_enable_short_term,
   } satisfies FSRSParameters
 }
 
