@@ -13,7 +13,7 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { int } from './types'
+import type { int, IPreview } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_schduler'
@@ -106,10 +106,10 @@ export class FSRS extends FSRSAlgorithm {
    * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
    * ```
    */
-  repeat<R = RecordLog>(
+  repeat<R = IPreview>(
     card: CardInput | Card,
     now: DateInput,
-    afterHandler?: (recordLog: RecordLog) => R
+    afterHandler?: (recordLog: IPreview) => R
   ): R {
     const Schduler = this.Schduler
     const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
