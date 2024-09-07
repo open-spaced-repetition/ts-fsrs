@@ -15,7 +15,6 @@ describe('FSRS V5 ', () => {
     0.6468,
   ]
   const f: FSRS = fsrs({ w })
-  const grade: Grade[] = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
   it('ivl_history', () => {
     let card = createEmptyCard()
     let now = new Date(2022, 11, 29, 12, 30, 0, 0)
@@ -37,7 +36,7 @@ describe('FSRS V5 ', () => {
     ]
     const ivl_history: number[] = []
     for (const rating of ratings) {
-      for (const check of grade) {
+      for (const check of Grades) {
         const rollbackCard = f.rollback(
           scheduling_cards[check].card,
           scheduling_cards[check].log
@@ -89,12 +88,6 @@ describe('FSRS V5 ', () => {
     const card = createEmptyCard()
     const now = new Date(2022, 11, 29, 12, 30, 0, 0)
     const scheduling_cards = f.repeat(card, now)
-    const grades: Grade[] = [
-      Rating.Again,
-      Rating.Hard,
-      Rating.Good,
-      Rating.Easy,
-    ]
 
     const stability: number[] = []
     const difficulty: number[] = []
@@ -103,8 +96,8 @@ describe('FSRS V5 ', () => {
     const reps: number[] = []
     const lapses: number[] = []
     const states: State[] = []
-    for (const rating of grades) {
-      const first_card = scheduling_cards[rating].card
+    for (const item of scheduling_cards) {
+      const first_card = item.card
       stability.push(first_card.stability)
       difficulty.push(first_card.difficulty)
       reps.push(first_card.reps)

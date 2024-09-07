@@ -25,7 +25,17 @@ describe('basic schduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
+    for (const item of preview) {
+      expect(item).toEqual(basicScheduler.review(<Grade>item.log.rating))
+    }
+    const iterator = preview[Symbol.iterator]()
+    expect(iterator.next().value).toEqual(again)
+    expect(iterator.next().value).toEqual(hard)
+    expect(iterator.next().value).toEqual(good)
+    expect(iterator.next().value).toEqual(easy)
+    expect(iterator.next().done).toBeTruthy()
   })
   it('[State.New]invalid grade', () => {
     const card = createEmptyCard(now)
@@ -52,7 +62,11 @@ describe('basic schduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
+    for (const item of preview) {
+      expect(item).toEqual(basicScheduler.review(<Grade>item.log.rating))
+    }
   })
   it('[State.Learning]invalid grade', () => {
     const cardByNew = createEmptyCard(now)
@@ -82,7 +96,11 @@ describe('basic schduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
+    for (const item of preview) {
+      expect(item).toEqual(basicScheduler.review(<Grade>item.log.rating))
+    }
   })
   it('[State.Review]invalid grade', () => {
     const cardByNew = createEmptyCard(now)

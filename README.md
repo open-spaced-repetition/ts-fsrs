@@ -17,7 +17,7 @@ The workflow for TS-FSRS can be referenced from the following resources:
 
 
 # Usage
-The ts-fsrs@3.x package requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is 18.0.0.
+The `ts-fsrs@3.x` package requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.
 From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
 ```
@@ -32,15 +32,17 @@ bun install ts-fsrs
 ```typescript
 import {createEmptyCard, formatDate, fsrs, generatorParameters, Rating, Grades} from 'ts-fsrs';
 
-const params = generatorParameters({ enable_fuzz: true });
+const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
 const f = fsrs(params);
 const card = createEmptyCard(new Date('2022-2-1 10:00:00'));// createEmptyCard();
 const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
 // console.log(scheduling_cards);
-Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
-    const { log, card } = scheduling_cards[grade];
+for (const item of scheduling_cards) {
+    // grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
+    const grade = item.log.rating
+    const { log, card } = item;
     console.group(`${Rating[grade]}`);
     console.table({
         [`card_${Rating[grade]}`]: {
@@ -57,7 +59,7 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
     });
     console.groupEnd();
     console.log('----------------------------------------------------------------');
-});
+}
 ```
 
 More refer:
@@ -105,6 +107,8 @@ import {
 let card: Card = createEmptyCard();
 const f: FSRS = new FSRS(); // or const f: FSRS = fsrs(params);
 let scheduling_cards: RecordLog = f.repeat(card, new Date());
+// if you want to specify the grade, you can use the following code: (ts-fsrs >=4.0.0)
+// let scheduling_card: RecordLog = f.next(card, new Date(), Rating.Good);
 ```
 
 ## 4. **Retrieving Scheduled Cards**:

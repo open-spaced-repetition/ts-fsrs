@@ -1,8 +1,8 @@
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
+import { Grades } from './help'
 import {
   type Card,
-  type RecordLog,
   type Grade,
   type RecordLogItem,
   State,
@@ -11,7 +11,7 @@ import {
   type CardInput,
   type DateInput,
 } from './models'
-import type { IScheduler } from './types'
+import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
   protected last: Card
@@ -45,14 +45,22 @@ export abstract class AbstractScheduler implements IScheduler {
     this.initSeed()
   }
 
-  public preview(): RecordLog {
+  public preview(): IPreview {
     return {
       [Rating.Again]: this.review(Rating.Again),
       [Rating.Hard]: this.review(Rating.Hard),
       [Rating.Good]: this.review(Rating.Good),
       [Rating.Easy]: this.review(Rating.Easy),
-    } satisfies RecordLog
+      [Symbol.iterator]: this.previewIterator.bind(this),
+    } satisfies IPreview
   }
+
+  private *previewIterator(): IterableIterator<RecordLogItem> {
+    for (const grade of Grades) {
+      yield this.review(grade)
+    }
+  }
+
   public review(grade: Grade): RecordLogItem {
     const { state } = this.last
     let item: RecordLogItem | undefined

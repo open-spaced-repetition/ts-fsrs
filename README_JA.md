@@ -33,15 +33,17 @@ bun install ts-fsrs
 ```typescript
 import {createEmptyCard, formatDate, fsrs, generatorParameters, Rating, Grades} from 'ts-fsrs';
 
-const params = generatorParameters({enable_fuzz: true});
+const params = generatorParameters({ enable_fuzz: true, enable_short_term: false });
 const f = fsrs(params);
 const card = createEmptyCard(new Date('2022-2-1 10:00:00'));// createEmptyCard();
 const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
 // console.log(scheduling_cards);
-Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
-    const {log, card} = scheduling_cards[grade];
+for (const item of scheduling_cards) {
+    // grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
+    const grade = item.log.rating
+    const { log, card } = item;
     console.group(`${Rating[grade]}`);
     console.table({
         [`card_${Rating[grade]}`]: {
@@ -58,7 +60,7 @@ Grades.forEach(grade => { // [Rating.Again, Rating.Hard, Rating.Good, Rating.Eas
     });
     console.groupEnd();
     console.log('----------------------------------------------------------------');
-});
+}
 ```
 
 もっと:
@@ -114,6 +116,8 @@ import {
 let card: Card = createEmptyCard();
 const f: FSRS = new FSRS(); // or const f: FSRS = fsrs(params);
 let scheduling_cards: RecordLog = f.repeat(card, new Date());
+// もしくは、開発者が評価を指定する場合：（ＴＳ－ＦＳＲＳのバージョンは4.0.0以降である必要があります）
+// let scheduling_cards: RecordLog = f.repeat(card, new Date(), Rating.Good);
 ```
 
 ## 4. **スケジュールされたカードの取得**:

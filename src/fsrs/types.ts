@@ -1,5 +1,4 @@
 import type {
-  Card,
   Grade,
   RecordLog,
   RecordLogItem,
@@ -9,7 +8,11 @@ export type unit = 'days' | 'minutes'
 export type int = number & { __int__: void }
 export type double = number & { __double__: void }
 
+export interface IPreview extends RecordLog {
+  [Symbol.iterator](): IterableIterator<RecordLogItem>
+}
+
 export interface IScheduler {
-  preview(): RecordLog
+  preview(): IPreview
   review(state: Grade): RecordLogItem
 }
