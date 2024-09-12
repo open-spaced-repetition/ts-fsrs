@@ -210,7 +210,7 @@ export class FSRS extends FSRSAlgorithm {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
     const t = processedCard.state !== State.New ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0) : 0
-    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(2)) : 0
+    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number
