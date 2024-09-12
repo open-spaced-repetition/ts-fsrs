@@ -123,18 +123,18 @@ describe('FSRS V5 ', () => {
 
 describe('get retrievability', () => {
   const fsrs = new FSRS({})
-  test('return undefined for non-review cards', () => {
+  test('return 0.00% for new cards', () => {
     const card = createEmptyCard()
     const now = new Date()
-    const expected = undefined
+    const expected = '0.00%'
     expect(fsrs.get_retrievability(card, now)).toBe(expected)
   })
 
   test('return retrievability percentage for review cards', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = [undefined, undefined, undefined, '90.26%']
-    const r_number = [undefined, undefined, undefined, 0.90260891]
+    const r = ['100.00%', '100.00%', '100.00%', '90.26%']
+    const r_number = [1, 1, 1, 0.9026208]
     Grades.forEach((grade, index) => {
       expect(fsrs.get_retrievability(sc[grade].card, sc[grade].card.due)).toBe(
         r[index]
@@ -143,6 +143,39 @@ describe('get retrievability', () => {
         fsrs.get_retrievability(sc[grade].card, sc[grade].card.due, false)
       ).toBe(r_number[index])
     })
+  })
+
+  test('fake the current system time', () => {
+    const card = createEmptyCard('2023-12-01 04:00:00')
+    const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
+    const r = ['100.00%', '100.00%', '100.00%', '90.26%']
+    const r_number = [1, 1, 1, 0.9026208]
+    jest.useFakeTimers()
+    Grades.forEach((grade, index) => {
+      jest.setSystemTime(sc[grade].card.due)
+      expect(fsrs.get_retrievability(sc[grade].card)).toBe(r[index])
+      expect(fsrs.get_retrievability(sc[grade].card, undefined, false)).toBe(
+        r_number[index]
+      )
+    })
+    jest.useRealTimers()
+  })
+
+  test('loop Again', () => {
+    const fsrs = new FSRS({})
+    let card = createEmptyCard()
+    let now = new Date()
+    let i = 0
+    while (i < 10 ** 3) {
+      card = fsrs.next(card, now, Rating.Again).card
+      now = card.due
+      i++
+
+      const r = fsrs.get_retrievability(card, now, false)
+      console.debug(`Loop ${i}: s:${card.stability} r:${r} `)
+
+      expect(r).not.toBeNaN()
+    }
   })
 })
 
