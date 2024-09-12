@@ -126,7 +126,7 @@ describe('get retrievability', () => {
   test('return 0.00% for new cards', () => {
     const card = createEmptyCard()
     const now = new Date()
-    const expected = "0.00%"
+    const expected = '0.00%'
     expect(fsrs.get_retrievability(card, now)).toBe(expected)
   })
 
@@ -143,6 +143,23 @@ describe('get retrievability', () => {
         fsrs.get_retrievability(sc[grade].card, sc[grade].card.due, false)
       ).toBe(r_number[index])
     })
+  })
+
+  test('loop Again', () => {
+    const fsrs = new FSRS({})
+    let card = createEmptyCard()
+    let now = new Date()
+    let i = 0
+    while (i < 10 ** 3) {
+      card = fsrs.next(card, now, Rating.Again).card
+      now = card.due
+      i++
+
+      const r = fsrs.get_retrievability(card, now, false)
+      console.debug(`Loop ${i}: s:${card.stability} r:${r} `)
+      
+      expect(r).not.toBeNaN()
+    }
   })
 })
 
