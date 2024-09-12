@@ -204,16 +204,13 @@ export class FSRS extends FSRSAlgorithm {
    */
   get_retrievability<T extends boolean>(
     card: CardInput | Card,
-    now: DateInput,
+    now?: DateInput,
     format: T = true as T
-  ): undefined | (T extends true ? string : number) {
+  ): (T extends true ? string : number) {
     const processedCard = TypeConvert.card(card)
-    now = TypeConvert.time(now)
-    if (processedCard.state !== State.Review) {
-      return undefined
-    }
+    now = now ? TypeConvert.time(now) : new Date()
     const t = Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
-    const r = this.forgetting_curve(t, +processedCard.stability.toFixed(2))
+    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(2)) : 0
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number

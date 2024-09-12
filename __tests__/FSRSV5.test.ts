@@ -123,10 +123,10 @@ describe('FSRS V5 ', () => {
 
 describe('get retrievability', () => {
   const fsrs = new FSRS({})
-  test('return undefined for non-review cards', () => {
+  test('return 0% for new cards', () => {
     const card = createEmptyCard()
     const now = new Date()
-    const expected = undefined
+    const expected = "0%"
     expect(fsrs.get_retrievability(card, now)).toBe(expected)
   })
 
