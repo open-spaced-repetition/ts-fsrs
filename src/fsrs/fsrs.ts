@@ -16,15 +16,15 @@ import {
 import type { int, IPreview } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
-import BasicScheduler from './impl/basic_schduler'
-import LongTermScheduler from './impl/long_term_schduler'
+import BasicScheduler from './impl/basic_scheduler'
+import LongTermScheduler from './impl/long_term_scheduler'
 
 export class FSRS extends FSRSAlgorithm {
-  private Schduler
+  private Scheduler
   constructor(param: Partial<FSRSParameters>) {
     super(param)
     const { enable_short_term } = this.parameters
-    this.Schduler = enable_short_term ? BasicScheduler : LongTermScheduler
+    this.Scheduler = enable_short_term ? BasicScheduler : LongTermScheduler
   }
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
@@ -40,7 +40,7 @@ export class FSRS extends FSRSAlgorithm {
             Number(value)
           )
         } else if (prop === 'enable_short_term') {
-          _this.Schduler = value === true ? BasicScheduler : LongTermScheduler
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         }
         Reflect.set(target, prop, value)
         return true
@@ -111,8 +111,8 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: IPreview) => R
   ): R {
-    const Schduler = this.Schduler
-    const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
+    const Scheduler = this.Scheduler
+    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
     const recordLog = instace.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
@@ -181,8 +181,8 @@ export class FSRS extends FSRSAlgorithm {
     grade: Grade,
     afterHandler?: (recordLog: RecordLogItem) => R
   ): R {
-    const Schduler = this.Schduler
-    const instace = new Schduler(card, now, this satisfies FSRSAlgorithm)
+    const Scheduler = this.Scheduler
+    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')

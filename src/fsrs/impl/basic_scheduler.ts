@@ -1,4 +1,4 @@
-import { AbstractScheduler } from '../abstract_schduler'
+import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import {
   type Card,

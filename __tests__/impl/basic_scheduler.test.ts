@@ -5,9 +5,9 @@ import {
   Grade,
   Rating,
 } from '../../src/fsrs'
-import BasicScheduler from '../../src/fsrs/impl/basic_schduler'
+import BasicScheduler from '../../src/fsrs/impl/basic_scheduler'
 
-describe('basic schduler', () => {
+describe('basic scheduler', () => {
   const params = generatorParameters()
   const algorithm = new FSRSAlgorithm(params)
   const now = new Date()
