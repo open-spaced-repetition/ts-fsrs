@@ -6,7 +6,7 @@ import {
     Rating,
 } from '../../src/fsrs'
 
-describe('basic schduler', () => {
+describe('basic scheduler', () => {
     const now = new Date()
 
     it('[Symbol.iterator]', () => {
