@@ -187,3 +187,7 @@ export function get_fuzz_range(
   min_ivl = Math.min(min_ivl, max_ivl)
   return { min_ivl, max_ivl }
 }
+
+export function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
