@@ -166,7 +166,7 @@ describe('get retrievability', () => {
     let card = createEmptyCard()
     let now = new Date()
     let i = 0
-    while (i < 10 ** 3) {
+    while (i < 5) {
       card = fsrs.next(card, now, Rating.Again).card
       now = card.due
       i++

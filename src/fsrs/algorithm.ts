@@ -1,7 +1,7 @@
 import { generatorParameters } from './default'
 import { FSRSParameters, Grade, Rating } from './models'
 import type { int } from './types'
-import { get_fuzz_range } from './help'
+import { clamp, get_fuzz_range } from './help'
 import { alea } from './alea'
 
 /**
@@ -213,15 +213,17 @@ export class FSRSAlgorithm {
   next_recall_stability(d: number, s: number, r: number, g: Grade): number {
     const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1
     const easy_bound = Rating.Easy === g ? this.param.w[16] : 1
-    return +(
+    return +clamp(
       s *
-      (1 +
-        Math.exp(this.param.w[8]) *
-          (11 - d) *
-          Math.pow(s, -this.param.w[9]) *
-          (Math.exp((1 - r) * this.param.w[10]) - 1) *
-          hard_penalty *
-          easy_bound)
+        (1 +
+          Math.exp(this.param.w[8]) *
+            (11 - d) *
+            Math.pow(s, -this.param.w[9]) *
+            (Math.exp((1 - r) * this.param.w[10]) - 1) *
+            hard_penalty *
+            easy_bound),
+      0.01,
+      36500.0
     ).toFixed(8)
   }
 
@@ -234,11 +236,13 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
-    return +(
+    return +clamp(
       this.param.w[11] *
-      Math.pow(d, -this.param.w[12]) *
-      (Math.pow(s + 1, this.param.w[13]) - 1) *
-      Math.exp((1 - r) * this.param.w[14])
+        Math.pow(d, -this.param.w[12]) *
+        (Math.pow(s + 1, this.param.w[13]) - 1) *
+        Math.exp((1 - r) * this.param.w[14]),
+      0.01,
+      36500.0
     ).toFixed(8)
   }
 
@@ -249,8 +253,10 @@ export class FSRSAlgorithm {
    * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
    */
   next_short_term_stability(s: number, g: Grade): number {
-    return +(
-      s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]))
+    return +clamp(
+      s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18])),
+      0.01,
+      36500.0
     ).toFixed(8)
   }
 
