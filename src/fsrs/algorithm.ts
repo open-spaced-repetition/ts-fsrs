@@ -223,7 +223,7 @@ export class FSRSAlgorithm {
             hard_penalty *
             easy_bound),
       0.01,
-      this.param.maximum_interval
+      36500.0
     ).toFixed(8)
   }
 
@@ -242,7 +242,7 @@ export class FSRSAlgorithm {
         (Math.pow(s + 1, this.param.w[13]) - 1) *
         Math.exp((1 - r) * this.param.w[14]),
       0.01,
-      this.param.maximum_interval
+      36500.0
     ).toFixed(8)
   }
 
@@ -256,7 +256,7 @@ export class FSRSAlgorithm {
     return +clamp(
       s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18])),
       0.01,
-      this.param.maximum_interval
+      36500.0
     ).toFixed(8)
   }
 
