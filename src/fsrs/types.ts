@@ -1,4 +1,5 @@
 import type {
+  DateInput,
   Grade,
   RecordLog,
   RecordLogItem,
@@ -15,4 +16,10 @@ export interface IPreview extends RecordLog {
 export interface IScheduler {
   preview(): IPreview
   review(state: Grade): RecordLogItem
+}
+
+
+export type RescheduleOptions = {
+  enable_fuzz?: boolean
+  dateHandler?: (date: Date) => DateInput
 }

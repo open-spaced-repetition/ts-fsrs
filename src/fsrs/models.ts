@@ -77,7 +77,29 @@ export interface FSRSParameters {
   enable_short_term: boolean
 }
 
-export type RescheduleOptions = {
-  enable_fuzz?: boolean
-  dateHandler?: (date: Date) => DateInput
+export interface FSRSReview {
+  /**
+   * 0-4: Manual, Again, Hard, Good, Easy
+   * = revlog.rating
+   */
+  rating: Rating
+  /**
+   * The number of days that passed
+   * = revlog.elapsed_days
+   * = round(revlog[-1].review - revlog[-2].review)
+   */
+  delta_t: number
+}
+
+export interface FSRSHistory {
+  /**
+   * 0-4: Manual, Again, Hard, Good, Easy
+   * = revlog.rating
+   */
+  rating: Rating
+  /**
+   * The number of days that passed
+   * = revlog.review
+   */
+  reviewed_at: DateInput
 }

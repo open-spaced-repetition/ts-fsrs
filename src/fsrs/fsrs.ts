@@ -8,12 +8,11 @@ import {
   Rating,
   RecordLog,
   RecordLogItem,
-  RescheduleOptions,
   ReviewLog,
   ReviewLogInput,
   State,
 } from './models'
-import type { int, IPreview } from './types'
+import type { int, IPreview, RescheduleOptions } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
@@ -425,8 +424,7 @@ export class FSRS extends FSRSAlgorithm {
       const scheduled_days = Math.floor(card.scheduled_days) as int
       const next_ivl = this.next_interval(
         +card.stability.toFixed(2),
-        Math.round(card.elapsed_days),
-        options.enable_fuzz ?? true
+        Math.round(card.elapsed_days)
       )
       if (next_ivl === scheduled_days || next_ivl === 0) continue
 
