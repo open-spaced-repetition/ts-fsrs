@@ -18,13 +18,27 @@ import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
+import { AbstractScheduler } from './abstract_scheduler'
 
 export class FSRS extends FSRSAlgorithm {
-  private Scheduler
+  private Scheduler: typeof AbstractScheduler
   constructor(param: Partial<FSRSParameters>) {
     super(param)
     const { enable_short_term } = this.parameters
     this.Scheduler = enable_short_term ? BasicScheduler : LongTermScheduler
+  }
+
+  private getSchedulerInstance(
+    card: Card | CardInput,
+    now: DateInput
+  ): AbstractScheduler {
+    const Scheduler = this.Scheduler
+    const instance: AbstractScheduler = Reflect.construct(Scheduler, [
+      card,
+      now,
+      this satisfies FSRSAlgorithm,
+    ])
+    return instance
   }
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
@@ -111,9 +125,8 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: IPreview) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
-    const recordLog = instace.preview()
+    const instance = this.getSchedulerInstance(card, now)
+    const recordLog = instance.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
     } else {
@@ -181,13 +194,12 @@ export class FSRS extends FSRSAlgorithm {
     grade: Grade,
     afterHandler?: (recordLog: RecordLogItem) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
+    const instance = this.getSchedulerInstance(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')
     }
-    const recordLogItem = instace.review(g)
+    const recordLogItem = instance.review(g)
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLogItem)
     } else {
@@ -206,11 +218,17 @@ export class FSRS extends FSRSAlgorithm {
     card: CardInput | Card,
     now?: DateInput,
     format: T = true as T
-  ): (T extends true ? string : number) {
+  ): T extends true ? string : number {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
-    const t = processedCard.state !== State.New ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0) : 0
-    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0
+    const t =
+      processedCard.state !== State.New
+        ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
+        : 0
+    const r =
+      processedCard.state !== State.New
+        ? this.forgetting_curve(t, +processedCard.stability.toFixed(8))
+        : 0
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number
