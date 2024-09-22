@@ -134,8 +134,8 @@ export class FSRSAlgorithm {
    * @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    * @return {number} - The fuzzed interval.
    **/
-  apply_fuzz(ivl: number, elapsed_days: number, enable_fuzz?: boolean): int {
-    if (!enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
+  apply_fuzz(ivl: number, elapsed_days: number): int {
+    if (!this.param.enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
     const generator = alea(this._seed) // I do not want others to directly access the seed externally.
     const fuzz_factor = generator()
     const { min_ivl, max_ivl } = get_fuzz_range(
@@ -156,7 +156,7 @@ export class FSRSAlgorithm {
       Math.max(1, Math.round(s * this.intervalModifier)),
       this.param.maximum_interval
     ) as int
-    return this.apply_fuzz(newInterval, elapsed_days, this.param.enable_fuzz)
+    return this.apply_fuzz(newInterval, elapsed_days)
   }
 
   /**

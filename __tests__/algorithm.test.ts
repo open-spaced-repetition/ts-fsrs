@@ -332,6 +332,21 @@ describe('FSRS apply_fuzz', () => {
     expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
     expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
   })
+
+  test('return original interval when ivl is less than 3', () => {
+    const ivl = 3
+    const enable_fuzz = true
+    const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz })
+    algorithm.seed = 'NegativeS2Seed'
+    const { min_ivl, max_ivl } = get_fuzz_range(
+      Math.round(ivl),
+      0,
+      default_maximum_interval
+    )
+    const fuzzedInterval = algorithm.apply_fuzz(ivl, 0)
+    expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
+    expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
+  })
 })
 
 describe('change Params', () => {

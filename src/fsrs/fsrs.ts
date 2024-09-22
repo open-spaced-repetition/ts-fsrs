@@ -11,7 +11,7 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { int, IPreview, RescheduleOptions } from './types'
+import type { IPreview, RescheduleOptions } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
@@ -435,13 +435,37 @@ export class FSRS extends FSRSAlgorithm {
     let card: Card | undefined = undefined
     for (const [index, review] of reviews.entries()) {
       card = <Card>(card || createEmptyCard(review.review))
+      let log: ReviewLog
       if (!skipManual && review.rating === Rating.Manual) {
-        if (!review.state) {
+        if (typeof review.state === 'undefined') {
           throw new Error('reschedule: state is required for manual rating')
         }
         if (<State>review.state === State.New) {
+          log = {
+            rating: Rating.Manual,
+            state: <State>review.state,
+            due: <Date>review.due,
+            stability: card.stability,
+            difficulty: card.difficulty,
+            elapsed_days: review.elapsed_days,
+            last_elapsed_days: card.elapsed_days,
+            scheduled_days: card.scheduled_days,
+            review: <Date>review.review,
+          }
           card = createEmptyCard<Card>(review.review)
+          card.last_review = review.review
         } else {
+          log = {
+            rating: Rating.Manual,
+            state: <State>review.state,
+            due: <Date>review.due,
+            stability: card.stability,
+            difficulty: card.difficulty,
+            elapsed_days: review.elapsed_days,
+            last_elapsed_days: card.elapsed_days,
+            scheduled_days: card.scheduled_days,
+            review: <Date>review.review,
+          }
           card = <Card>{
             ...card,
             state: <State>review.state,
@@ -453,26 +477,15 @@ export class FSRS extends FSRSAlgorithm {
             scheduled_days: review.scheduled_days || card.scheduled_days,
             reps: index,
           }
-          const log = {
-            rating: Rating.Manual,
-            state: <State>review.state,
-            due: <Date>review.due,
-            stability: card.stability,
-            difficulty: card.difficulty,
-            elapsed_days: review.elapsed_days,
-            last_elapsed_days: card.elapsed_days,
-            scheduled_days: card.scheduled_days,
-            review: <Date>review.review,
-          }
-          datum.push(
-            <T>(
-              (recordLogHandler && typeof recordLogHandler === 'function'
-                ? recordLogHandler({ card, log })
-                : { card, log })
-            )
-          )
-          continue
         }
+        datum.push(
+          <T>(
+            (recordLogHandler && typeof recordLogHandler === 'function'
+              ? recordLogHandler({ card, log })
+              : { card, log })
+          )
+        )
+        continue
       }
       const item = this.next(card, review.review, <Grade>review.rating)
       card = item.card
