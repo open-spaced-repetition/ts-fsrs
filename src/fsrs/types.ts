@@ -1,8 +1,10 @@
 import type {
-  DateInput,
+  Card,
+  FSRSHistory,
   Grade,
   RecordLog,
   RecordLogItem,
+  ReviewLog,
 } from './models'
 
 export type unit = 'days' | 'minutes'
@@ -18,8 +20,8 @@ export interface IScheduler {
   review(state: Grade): RecordLogItem
 }
 
-
-export type RescheduleOptions = {
-  enable_fuzz?: boolean
-  dateHandler?: (date: Date) => DateInput
+export type RescheduleOptions<T> = {
+  recordLogHandler:(recordLog: RecordLogItem) => T
+  reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) => number
+  skipManual: boolean
 }

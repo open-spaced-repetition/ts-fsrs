@@ -3,6 +3,7 @@ import {
   Card,
   CardInput,
   DateInput,
+  FSRSHistory,
   FSRSParameters,
   Grade,
   Rating,
@@ -17,6 +18,7 @@ import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
+import { createEmptyCard } from './default'
 
 export class FSRS extends FSRSAlgorithm {
   private Scheduler
@@ -205,11 +207,17 @@ export class FSRS extends FSRSAlgorithm {
     card: CardInput | Card,
     now?: DateInput,
     format: T = true as T
-  ): (T extends true ? string : number) {
+  ): T extends true ? string : number {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
-    const t = processedCard.state !== State.New ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0) : 0
-    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0
+    const t =
+      processedCard.state !== State.New
+        ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
+        : 0
+    const r =
+      processedCard.state !== State.New
+        ? this.forgetting_curve(t, +processedCard.stability.toFixed(8))
+        : 0
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number
@@ -410,35 +418,70 @@ export class FSRS extends FSRSAlgorithm {
    * ```
    *
    */
-  reschedule<T extends CardInput | Card>(
-    cards: Array<T>,
-    options: RescheduleOptions = {}
+  reschedule<T = RecordLogItem>(
+    reviews: FSRSHistory[] = [],
+    options: Partial<RescheduleOptions<T>> = {}
   ): Array<T> {
-    if (!Array.isArray(cards)) {
-      throw new Error('cards must be an array')
+    const {
+      recordLogHandler,
+      reviewsOrderBy,
+      skipManual: skip = true,
+    } = options
+    if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {
+      reviews.sort(reviewsOrderBy)
     }
-    const processedCard: T[] = []
-    for (const card of cards) {
-      if (TypeConvert.state(card.state) !== State.Review || !card.last_review)
-        continue
-      const scheduled_days = Math.floor(card.scheduled_days) as int
-      const next_ivl = this.next_interval(
-        +card.stability.toFixed(2),
-        Math.round(card.elapsed_days)
-      )
-      if (next_ivl === scheduled_days || next_ivl === 0) continue
-
-      const processCard: T = { ...card }
-      processCard.scheduled_days = next_ivl
-      const new_due = date_scheduler(processCard.last_review!, next_ivl, true)
-      if (options.dateHandler && typeof options.dateHandler === 'function') {
-        processCard.due = options.dateHandler(new_due)
-      } else {
-        processCard.due = new_due
+    if (skip) {
+      reviews = reviews.filter((review) => review.rating !== Rating.Manual)
+    }
+    const datum: T[] = []
+    let card: Card | undefined = undefined
+    for (const [index, review] of reviews.entries()) {
+      card = <Card>(card || createEmptyCard(review.review))
+      if (!skip && review.rating === Rating.Manual) {
+        if (!review.state) {
+          throw new Error('reschedule: state is required for manual rating')
+        }
+        if (<State>review.state === State.New) {
+          card = createEmptyCard<Card>(review.review)
+        } else {
+          card = <Card>{
+            ...card,
+            state: <State>review.state,
+            due: <Date>review.due,
+            last_review: <Date>review.review,
+            stability: review.stability || card.stability,
+            difficulty: review.difficulty || card.difficulty,
+            elapsed_days: review.elapsed_days || card.elapsed_days,
+            scheduled_days: review.scheduled_days || card.scheduled_days,
+            reps: index,
+          }
+          const log = {
+            rating: Rating.Manual,
+            state: <State>review.state,
+            due: <Date>review.due,
+            stability: card.stability,
+            difficulty: card.difficulty,
+            elapsed_days: review.elapsed_days,
+            last_elapsed_days: card.elapsed_days,
+            scheduled_days: card.scheduled_days,
+            review: <Date>review.review,
+          }
+          datum.push(
+            <T>(
+              (recordLogHandler
+                ? recordLogHandler({ card, log })
+                : { card, log })
+            )
+          )
+          continue
+        }
       }
-      processedCard.push(processCard)
+      const item = this.next(card, review.review, <Grade>review.rating)
+      card = item.card
+      datum.push(<T>(recordLogHandler ? recordLogHandler(item) : item))
     }
-    return processedCard
+
+    return datum
   }
 }
 

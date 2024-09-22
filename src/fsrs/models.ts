@@ -91,15 +91,19 @@ export interface FSRSReview {
   delta_t: number
 }
 
-export interface FSRSHistory {
-  /**
-   * 0-4: Manual, Again, Hard, Good, Easy
-   * = revlog.rating
-   */
-  rating: Rating
-  /**
-   * The number of days that passed
-   * = revlog.review
-   */
-  reviewed_at: DateInput
-}
+export type FSRSHistory = Partial<
+  Exclude<ReviewLog, 'rating' | 'review' | 'due'>
+> &
+  (
+    | {
+        rating: Grade
+        review: DateInput
+      }
+    | {
+        rating: Rating.Manual
+        due: DateInput
+        state: State
+        review: DateInput
+        elapsed_days: number
+      }
+  )
