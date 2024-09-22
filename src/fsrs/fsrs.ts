@@ -455,13 +455,22 @@ export class FSRS extends FSRSAlgorithm {
           card = createEmptyCard<Card>(review.review)
           card.last_review = review.review
         } else {
+          if (typeof review.due === 'undefined') {
+            throw new Error('reschedule: due is required for manual rating')
+          }
+          const scheduled_days =
+            review.due.diff(review.review as Date, 'days') || 0
+          const elapsed_days =
+            review.elapsed_days ||
+            review.review.diff(card.last_review as Date, 'days') ||
+            0
           log = {
             rating: Rating.Manual,
             state: <State>review.state,
-            due: <Date>review.due,
+            due: <Date>card.last_review || card.due,
             stability: card.stability,
             difficulty: card.difficulty,
-            elapsed_days: review.elapsed_days,
+            elapsed_days: elapsed_days,
             last_elapsed_days: card.elapsed_days,
             scheduled_days: card.scheduled_days,
             review: <Date>review.review,
@@ -473,9 +482,9 @@ export class FSRS extends FSRSAlgorithm {
             last_review: <Date>review.review,
             stability: review.stability || card.stability,
             difficulty: review.difficulty || card.difficulty,
-            elapsed_days: review.elapsed_days || card.elapsed_days,
-            scheduled_days: review.scheduled_days || card.scheduled_days,
-            reps: index,
+            elapsed_days: elapsed_days,
+            scheduled_days: scheduled_days,
+            reps: index + 1,
           }
         }
         datum.push(
@@ -485,17 +494,17 @@ export class FSRS extends FSRSAlgorithm {
               : { card, log })
           )
         )
-        continue
-      }
-      const item = this.next(card, review.review, <Grade>review.rating)
-      card = item.card
-      datum.push(
-        <T>(
-          (recordLogHandler && typeof recordLogHandler === 'function'
-            ? recordLogHandler(item)
-            : item)
+      } else {
+        const item = this.next(card, review.review, <Grade>review.rating)
+        card = item.card
+        datum.push(
+          <T>(
+            (recordLogHandler && typeof recordLogHandler === 'function'
+              ? recordLogHandler(item)
+              : item)
+          )
         )
-      )
+      }
     }
 
     return datum
