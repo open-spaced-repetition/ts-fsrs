@@ -1,4 +1,3 @@
-import { date_scheduler } from './help'
 import {
   Card,
   CardInput,
@@ -7,7 +6,6 @@ import {
   FSRSParameters,
   Grade,
   Rating,
-  RecordLog,
   RecordLogItem,
   ReviewLog,
   ReviewLogInput,
@@ -425,19 +423,19 @@ export class FSRS extends FSRSAlgorithm {
     const {
       recordLogHandler,
       reviewsOrderBy,
-      skipManual: skip = true,
+      skipManual: skipManual = true,
     } = options
     if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {
       reviews.sort(reviewsOrderBy)
     }
-    if (skip) {
+    if (skipManual) {
       reviews = reviews.filter((review) => review.rating !== Rating.Manual)
     }
     const datum: T[] = []
     let card: Card | undefined = undefined
     for (const [index, review] of reviews.entries()) {
       card = <Card>(card || createEmptyCard(review.review))
-      if (!skip && review.rating === Rating.Manual) {
+      if (!skipManual && review.rating === Rating.Manual) {
         if (!review.state) {
           throw new Error('reschedule: state is required for manual rating')
         }
@@ -468,7 +466,7 @@ export class FSRS extends FSRSAlgorithm {
           }
           datum.push(
             <T>(
-              (recordLogHandler
+              (recordLogHandler && typeof recordLogHandler === 'function'
                 ? recordLogHandler({ card, log })
                 : { card, log })
             )
@@ -478,7 +476,13 @@ export class FSRS extends FSRSAlgorithm {
       }
       const item = this.next(card, review.review, <Grade>review.rating)
       card = item.card
-      datum.push(<T>(recordLogHandler ? recordLogHandler(item) : item))
+      datum.push(
+        <T>(
+          (recordLogHandler && typeof recordLogHandler === 'function'
+            ? recordLogHandler(item)
+            : item)
+        )
+      )
     }
 
     return datum
