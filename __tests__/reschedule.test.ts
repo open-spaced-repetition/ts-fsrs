@@ -26,7 +26,7 @@ type reviewState = {
   scheduled_days: number
 }
 
-const MOCK_NOW = new Date(2024, 7, 11, 1, 0, 0)
+const MOCK_NOW = new Date(1723338000000 /**2024, 7, 11, 1, 0, 0 UTC**/)
 
 // https://github.com/open-spaced-repetition/ts-fsrs/issues/112#issuecomment-2286238381
 
@@ -91,7 +91,7 @@ function experiment(
             : {
                 rating: Rating.Manual,
                 state: State.New,
-                due: MOCK_NOW,
+                due: new Date(MOCK_NOW),
                 stability: 0,
                 difficulty: 0,
                 elapsed_days: 0,
@@ -255,44 +255,42 @@ describe('FSRS reschedule', () => {
         ({
           rating: <Grade>rating,
           review: new Date(
-            new Date(MOCK_NOW).valueOf() + 1000 * 60 * 60 * 24 * (index + 1)
+            new Date(MOCK_NOW).getTime() + 1000 * 60 * 60 * 24 * (index + 1)
           ),
           state: rating === Rating.Manual ? State.Review : undefined,
           difficulty: 3.2828565,
           stability: 21.79806877,
-          due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z GMT+8*/),
+          due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z*/),
         }) satisfies FSRSHistory
     )
     const expected = {
       card: {
-        due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z GMT+8*/),
+        due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
         elapsed_days: 1,
-        scheduled_days: 22,
+        scheduled_days: 21,
         reps: 3,
         lapses: 0,
         state: 2,
-        last_review: new Date(
-          1723568400000 /**2024-08-13T17:00:00.000Z GMT+8*/
-        ),
+        last_review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
       },
       log: {
         rating: 0,
         state: 2,
-        due: new Date(1723482000000 /**'2024-08-12T17:00:00.000Z GMT+8*/),
+        due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
-        review: new Date(1723568400000 /**'2024-08-13T17:00:00.000Z GMT+8'*/),
+        review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
       },
     }
 
     const nextItemExpected = {
       card: {
-        due: new Date(1725814800000 /**2024-09-08T17:00:00.000Z*/),
+        due: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
         stability: 24.84609459,
         difficulty: 3.2828565,
         elapsed_days: 1,
@@ -300,18 +298,18 @@ describe('FSRS reschedule', () => {
         reps: 4,
         lapses: 0,
         state: State.Review,
-        last_review: new Date(1723654800000 /**2024-08-14T17:00:00.000Z*/),
+        last_review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
       },
       log: {
         rating: Rating.Good,
         state: State.Review,
-        due: new Date(1723568400000 /**2024-08-13T17:00:00.000Z*/),
+        due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
-        scheduled_days: 22,
-        review: new Date(1723654800000 /**2024-08-14T17:00:00.000Z*/),
+        scheduled_days: 21,
+        review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
       },
     }
 
@@ -327,36 +325,34 @@ describe('FSRS reschedule', () => {
         ({
           rating: <Grade>rating,
           review: new Date(
-            new Date(MOCK_NOW).valueOf() + 1000 * 60 * 60 * 24 * (index + 1)
+            new Date(MOCK_NOW).getTime() + 1000 * 60 * 60 * 24 * (index + 1)
           ),
           state: rating === Rating.Manual ? State.Review : undefined,
-          due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z GMT+8'*/),
+          due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
         }) satisfies FSRSHistory
     )
     const expected = {
       card: {
-        due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z' GMT+8*/),
+        due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
-        scheduled_days: 22,
+        scheduled_days: 21,
         reps: 3,
         lapses: 0,
         state: State.Review,
-        last_review: new Date(
-          1723568400000 /**'2024-08-13T17:00:00.000Z GMT+8'*/
-        ),
+        last_review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
       },
       log: {
         rating: Rating.Manual,
         state: State.Review,
-        due: new Date(1723482000000 /**'2024-08-12T17:00:00.000Z' GMT+8*/),
+        due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
-        review: new Date(1723568400000 /**'2024-08-13T17:00:00.000Z' GMT+8*/),
+        review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
       },
     }
 
