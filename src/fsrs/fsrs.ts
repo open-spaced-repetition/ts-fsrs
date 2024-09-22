@@ -19,9 +19,11 @@ import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
 import { AbstractScheduler } from './abstract_scheduler'
+import { createEmptyCard } from './default'
 
 export class FSRS extends FSRSAlgorithm {
   private Scheduler: typeof AbstractScheduler
+  private unstable_scheduler = false
   constructor(param: Partial<FSRSParameters>) {
     super(param)
     const { enable_short_term } = this.parameters
@@ -53,7 +55,7 @@ export class FSRS extends FSRSAlgorithm {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
           )
-        } else if (prop === 'enable_short_term') {
+        } else if (prop === 'enable_short_term' && !_this.unstable_scheduler) {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         }
         Reflect.set(target, prop, value)
@@ -64,6 +66,38 @@ export class FSRS extends FSRSAlgorithm {
 
   get_scheduler() {
     return this.Scheduler
+  }
+
+  set_unstable_scheduler(scheduler: typeof AbstractScheduler) {
+    // validate scheduler
+    const now = new Date()
+    const instance = Reflect.construct(scheduler, [
+      createEmptyCard(now),
+      now,
+      this satisfies FSRSAlgorithm,
+    ])
+    if (!instance || !('preview' in instance) || !('review' in instance)) {
+      throw new Error('Invalid scheduler')
+    }
+    // single test
+    const record = instance.preview()
+    const recordItem = instance.review(Rating.Good)
+    if (!record || !recordItem || record[Rating.Good] !== recordItem) {
+      throw new Error('Invalid scheduler')
+    }
+
+    // set scheduler
+    this.Scheduler = scheduler
+    this.unstable_scheduler = true
+    return {
+      reset: () => {
+        this.Scheduler = this.param.enable_short_term
+          ? BasicScheduler
+          : LongTermScheduler
+        this.unstable_scheduler = false
+        return true
+      },
+    }
   }
 
   /**
