@@ -106,4 +106,46 @@ describe('Alea PRNG Tests', () => {
       s2: 0,
     })
   })
+
+  it('seed 1727015666066', () => {
+    const seed = '1727015666066' // constructor s0 = -0.4111432870849967 +1
+    const generator = alea(seed)
+    const results = generator()
+    const state = generator.state()
+    expect(results).toEqual(0.6320083506871015)
+    expect(state).toEqual({
+      c: 1828249,
+      s0: 0.5888567129150033,
+      s1: 0.5074866858776659,
+      s2: 0.6320083506871015,
+    })
+  })
+
+  it('seed Seedp5fxh9kf4r0', () => {
+    const seed = 'Seedp5fxh9kf4r0' // constructor s1 = -0.3221628828905523 +1
+    const generator = alea(seed)
+    const results = generator()
+    const state = generator.state()
+    expect(results).toEqual(0.14867847645655274)
+    expect(state).toEqual({
+      c: 1776946,
+      s0: 0.6778371171094477,
+      s1: 0.0770602801349014,
+      s2: 0.14867847645655274,
+    })
+  })
+
+  it('seed NegativeS2Seed', () => {
+    const seed = 'NegativeS2Seed' // constructor s2 = -0.07867425470612943 +1
+    const generator = alea(seed)
+    const results = generator()
+    const state = generator.state()
+    expect(results).toEqual(0.830770346801728)
+    expect(state).toEqual({
+      c: 952982,
+      s0: 0.25224833423271775,
+      s1: 0.9213257452938706,
+      s2: 0.830770346801728,
+    })
+  })
 })
