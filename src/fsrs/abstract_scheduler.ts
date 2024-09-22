@@ -14,6 +14,7 @@ import {
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
+  public static scheduler_name = 'AbstractScheduler'
   protected last: Card
   protected current: Card
   protected review_time: Date
@@ -109,5 +110,9 @@ export abstract class AbstractScheduler implements IScheduler {
       scheduled_days: this.current.scheduled_days,
       review: this.review_time,
     } satisfies ReviewLog
+  }
+
+  static get name(): string {
+    return this.scheduler_name
   }
 }

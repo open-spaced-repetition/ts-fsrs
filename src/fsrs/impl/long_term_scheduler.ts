@@ -10,6 +10,8 @@ import {
 import type { int } from '../types'
 
 export default class LongTermScheduler extends AbstractScheduler {
+  public static scheduler_name = 'LongTermScheduler'
+
   protected override newState(grade: Grade): RecordLogItem {
     const exist = this.next.get(grade)
     if (exist) {

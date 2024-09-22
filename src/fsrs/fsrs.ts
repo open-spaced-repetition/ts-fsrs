@@ -62,6 +62,10 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  get_scheduler() {
+    return this.Scheduler
+  }
+
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed

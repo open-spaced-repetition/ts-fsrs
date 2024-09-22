@@ -10,6 +10,8 @@ import {
 import type { int } from '../types'
 
 export default class BasicScheduler extends AbstractScheduler {
+  public static scheduler_name = 'BasicScheduler'
+
   protected override newState(grade: Grade): RecordLogItem {
     const exist = this.next.get(grade)
     if (exist) {
