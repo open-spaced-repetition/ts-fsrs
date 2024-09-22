@@ -10,7 +10,6 @@ import {
   RescheduleOptions,
   ReviewLog,
   State,
-  TypeConvert,
 } from '../src/fsrs'
 import { FSRSHistory } from '../src/fsrs/models'
 
@@ -261,12 +260,12 @@ describe('FSRS reschedule', () => {
           state: rating === Rating.Manual ? State.Review : undefined,
           difficulty: 3.2828565,
           stability: 21.79806877,
-          due: new Date('2024-09-04T17:00:00.000Z'),
+          due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z GMT+8*/),
         }) satisfies FSRSHistory
     )
     const expected = {
       card: {
-        due: TypeConvert.time('2024-09-04T17:00:00.000Z'),
+        due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z GMT+8*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
         elapsed_days: 1,
@@ -274,24 +273,26 @@ describe('FSRS reschedule', () => {
         reps: 3,
         lapses: 0,
         state: 2,
-        last_review: TypeConvert.time('2024-08-13T17:00:00.000Z'),
+        last_review: new Date(
+          1723568400000 /**2024-08-13T17:00:00.000Z GMT+8*/
+        ),
       },
       log: {
         rating: 0,
         state: 2,
-        due: TypeConvert.time('2024-08-12T17:00:00.000Z'),
+        due: new Date(1723482000000 /**'2024-08-12T17:00:00.000Z GMT+8*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
-        review: TypeConvert.time('2024-08-13T17:00:00.000Z'),
+        review: new Date(1723568400000 /**'2024-08-13T17:00:00.000Z GMT+8'*/),
       },
     }
 
     const nextItemExpected = {
       card: {
-        due: TypeConvert.time('2024-09-08T17:00:00.000Z'),
+        due: new Date(1725814800000 /**2024-09-08T17:00:00.000Z*/),
         stability: 24.84609459,
         difficulty: 3.2828565,
         elapsed_days: 1,
@@ -299,18 +300,18 @@ describe('FSRS reschedule', () => {
         reps: 4,
         lapses: 0,
         state: State.Review,
-        last_review: TypeConvert.time('2024-08-14T17:00:00.000Z'),
+        last_review: new Date(1723654800000 /**2024-08-14T17:00:00.000Z*/),
       },
       log: {
         rating: Rating.Good,
         state: State.Review,
-        due: TypeConvert.time('2024-08-13T17:00:00.000Z'),
+        due: new Date(1723568400000 /**2024-08-13T17:00:00.000Z*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 22,
-        review: TypeConvert.time('2024-08-14T17:00:00.000Z'),
+        review: new Date(1723654800000 /**2024-08-14T17:00:00.000Z*/),
       },
     }
 
@@ -329,12 +330,12 @@ describe('FSRS reschedule', () => {
             new Date(MOCK_NOW).valueOf() + 1000 * 60 * 60 * 24 * (index + 1)
           ),
           state: rating === Rating.Manual ? State.Review : undefined,
-          due: new Date('2024-09-04T17:00:00.000Z'),
+          due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z GMT+8'*/),
         }) satisfies FSRSHistory
     )
     const expected = {
       card: {
-        due: TypeConvert.time('2024-09-04T17:00:00.000Z'),
+        due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z' GMT+8*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
@@ -342,18 +343,20 @@ describe('FSRS reschedule', () => {
         reps: 3,
         lapses: 0,
         state: State.Review,
-        last_review: TypeConvert.time('2024-08-13T17:00:00.000Z'),
+        last_review: new Date(
+          1723568400000 /**'2024-08-13T17:00:00.000Z GMT+8'*/
+        ),
       },
       log: {
         rating: Rating.Manual,
         state: State.Review,
-        due: TypeConvert.time('2024-08-12T17:00:00.000Z'),
+        due: new Date(1723482000000 /**'2024-08-12T17:00:00.000Z' GMT+8*/),
         stability: 18.67917062,
         difficulty: 3.2828565,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
-        review: TypeConvert.time('2024-08-13T17:00:00.000Z'),
+        review: new Date(1723568400000 /**'2024-08-13T17:00:00.000Z' GMT+8*/),
       },
     }
 
