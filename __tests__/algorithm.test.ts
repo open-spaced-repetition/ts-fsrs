@@ -274,7 +274,7 @@ describe('next_interval', () => {
       (_, i) => (i + 1) / 10
     )
     const intervals: number[] = desired_retentions.map((r) =>
-      fsrs({ request_retention: r }).next_interval(1.0, 0, false)
+      fsrs({ request_retention: r }).next_interval(1.0, 0)
     )
     expect(intervals).toEqual([422, 102, 43, 22, 13, 8, 4, 2, 1, 1])
   })
@@ -284,14 +284,15 @@ describe('next_interval', () => {
     const params = generatorParameters({ maximum_interval: 365 })
     const intervalModifier =
       (Math.pow(params.request_retention, 1 / DECAY) - 1) / FACTOR
-    const f: FSRS = fsrs(params)
+    let f: FSRS = fsrs(params)
 
     const s = 737.47
-    const next_ivl = f.next_interval(s, 0, false)
+    const next_ivl = f.next_interval(s, 0)
     expect(next_ivl).toEqual(params.maximum_interval)
 
     const t_fuzz = 98
-    const next_ivl_fuzz = f.next_interval(s, t_fuzz, true)
+    f = fsrs({ ...params, enable_fuzz: true })
+    const next_ivl_fuzz = fsrs(params).next_interval(s, t_fuzz)
     const { min_ivl, max_ivl } = get_fuzz_range(
       Math.round(s * intervalModifier),
       t_fuzz,

@@ -38,8 +38,7 @@ export default class BasicScheduler extends AbstractScheduler {
       case Rating.Easy: {
         const easy_interval = this.algorithm.next_interval(
           next.stability,
-          this.current.elapsed_days,
-          this.algorithm.parameters.enable_fuzz
+          this.current.elapsed_days
         )
         next.scheduled_days = easy_interval
         next.due = this.review_time.scheduler(easy_interval as int, true)
