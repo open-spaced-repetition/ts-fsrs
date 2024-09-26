@@ -1,5 +1,6 @@
 import type {
   Card,
+  CardInput,
   FSRSHistory,
   Grade,
   RecordLog,
@@ -21,7 +22,8 @@ export interface IScheduler {
 }
 
 export type RescheduleOptions<T> = {
-  recordLogHandler:(recordLog: RecordLogItem) => T
+  recordLogHandler: (recordLog: RecordLogItem) => T
   reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) => number
   skipManual: boolean
+  card?: CardInput
 }

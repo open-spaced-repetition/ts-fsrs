@@ -17,6 +17,7 @@ import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
 import { createEmptyCard } from './default'
+import { Reschedule } from './reschedule'
 
 export class FSRS extends FSRSAlgorithm {
   private Scheduler
@@ -411,81 +412,16 @@ export class FSRS extends FSRSAlgorithm {
     if (skipManual) {
       reviews = reviews.filter((review) => review.rating !== Rating.Manual)
     }
-    const datum: T[] = []
-    let card: Card | undefined = undefined
-    for (const [index, review] of reviews.entries()) {
-      card = <Card>(card || createEmptyCard(review.review))
-      let log: ReviewLog
-      if (!skipManual && review.rating === Rating.Manual) {
-        if (typeof review.state === 'undefined') {
-          throw new Error('reschedule: state is required for manual rating')
-        }
-        if (<State>review.state === State.New) {
-          log = {
-            rating: Rating.Manual,
-            state: <State>review.state,
-            due: <Date>review.due,
-            stability: card.stability,
-            difficulty: card.difficulty,
-            elapsed_days: review.elapsed_days,
-            last_elapsed_days: card.elapsed_days,
-            scheduled_days: card.scheduled_days,
-            review: <Date>review.review,
-          }
-          card = createEmptyCard<Card>(review.review)
-          card.last_review = review.review
-        } else {
-          if (typeof review.due === 'undefined') {
-            throw new Error('reschedule: due is required for manual rating')
-          }
-          const scheduled_days = review.due.diff(review.review as Date, 'days')
-          const elapsed_days =
-            review.elapsed_days ||
-            review.review.diff(card.last_review as Date, 'days')
-          log = {
-            rating: Rating.Manual,
-            state: <State>review.state,
-            due: <Date>card.last_review,
-            stability: card.stability,
-            difficulty: card.difficulty,
-            elapsed_days: elapsed_days,
-            last_elapsed_days: card.elapsed_days,
-            scheduled_days: card.scheduled_days,
-            review: <Date>review.review,
-          }
-          card = <Card>{
-            ...card,
-            state: <State>review.state,
-            due: <Date>review.due,
-            last_review: <Date>review.review,
-            stability: review.stability || card.stability,
-            difficulty: review.difficulty || card.difficulty,
-            elapsed_days: elapsed_days,
-            scheduled_days: scheduled_days,
-            reps: index + 1,
-          }
-        }
-        datum.push(
-          <T>(
-            (recordLogHandler && typeof recordLogHandler === 'function'
-              ? recordLogHandler({ card, log })
-              : { card, log })
-          )
-        )
-      } else {
-        const item = this.next(card, review.review, <Grade>review.rating)
-        card = item.card
-        datum.push(
-          <T>(
-            (recordLogHandler && typeof recordLogHandler === 'function'
-              ? recordLogHandler(item)
-              : item)
-          )
-        )
-      }
-    }
+    const rescheduleSvc = new Reschedule(this)
 
-    return datum
+    const collections = rescheduleSvc.reschedule(
+      options.card || createEmptyCard(),
+      reviews
+    )
+    if (recordLogHandler && typeof recordLogHandler === 'function') {
+      return collections.map(recordLogHandler)
+    }
+    return collections as T[]
   }
 }
 
