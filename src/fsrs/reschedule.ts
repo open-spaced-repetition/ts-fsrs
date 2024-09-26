@@ -26,7 +26,7 @@ export class Reschedule {
     card: Card,
     state: State,
     reviewed: Date,
-    elapsed_days?: number,
+    elapsed_days: number,
     stability?: number,
     difficulty?: number,
     due?: Date
@@ -43,7 +43,7 @@ export class Reschedule {
         due: <Date>due ?? reviewed,
         stability: card.stability,
         difficulty: card.difficulty,
-        elapsed_days: elapsed_days || 0,
+        elapsed_days: elapsed_days,
         last_elapsed_days: card.elapsed_days,
         scheduled_days: card.scheduled_days,
         review: <Date>reviewed,
@@ -55,8 +55,6 @@ export class Reschedule {
         throw new Error('reschedule: due is required for manual rating')
       }
       const scheduled_days = due.diff(reviewed as Date, 'days')
-      elapsed_days =
-        elapsed_days || reviewed.diff(card.last_review as Date, 'days')
       log = {
         rating: Rating.Manual,
         state: <State>state,
@@ -90,11 +88,16 @@ export class Reschedule {
     for (const review of reviews) {
       let item: RecordLogItem
       if (review.rating === Rating.Manual) {
+        // ref: abstract_scheduler.ts#init
+        let interval = 0
+        if (_card.state !== State.New && _card.last_review) {
+          interval = review.review.diff(_card.last_review as Date, 'days')
+        }
         item = this.processManual(
           _card,
           review.state,
           review.review,
-          review.elapsed_days,
+          interval,
           review.stability,
           review.difficulty,
           review.due

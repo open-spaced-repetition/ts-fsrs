@@ -92,7 +92,7 @@ export interface FSRSReview {
 }
 
 export type FSRSHistory = Partial<
-  Exclude<ReviewLog, 'rating' | 'review' | 'due'>
+  Exclude<ReviewLog, 'rating' | 'review' | 'due' | 'elapsed_days'>
 > &
   (
     | {
@@ -104,6 +104,5 @@ export type FSRSHistory = Partial<
         due: DateInput
         state: State
         review: DateInput
-        elapsed_days: number
       }
   )
