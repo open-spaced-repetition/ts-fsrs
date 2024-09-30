@@ -389,6 +389,72 @@ describe('FSRS reschedule', () => {
     expect(reschedule_item).toBeNull()
   })
 
+  it('case : get reschedule item', () => {
+    const test = [Rating.Easy, Rating.Good, Rating.Good, Rating.Good]
+    const reviews = test.map(
+      (rating, index) =>
+        ({
+          rating: <Grade>rating,
+          review: new Date(
+            new Date(MOCK_NOW).getTime() + 1000 * 60 * 60 * 24 * (index + 1)
+          ),
+          state: rating === Rating.Manual ? State.Review : undefined,
+          due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
+        }) satisfies FSRSHistory
+    )
+
+    const expected = {
+      card: {
+        due: new Date(1725843600000 /**'2024-09-09T01:00:00.000Z'*/),
+        stability: 24.84609459,
+        difficulty: 3.2828565,
+        elapsed_days: 1,
+        scheduled_days: 25,
+        reps: 4,
+        lapses: 0,
+        state: State.Review,
+        last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
+      },
+      log: {
+        rating: Rating.Good,
+        state: State.Review,
+        due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
+        stability: 21.79806877,
+        difficulty: 3.2828565,
+        elapsed_days: 1,
+        last_elapsed_days: 1,
+        scheduled_days: 22,
+        review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
+      },
+    }
+    const cur_card = createEmptyCard(MOCK_NOW)
+    const { collections: control, reschedule_item } = scheduler.reschedule(
+      cur_card,
+      reviews,
+      {
+        skipManual: false,
+        update_memory_state: true,
+      }
+    )
+    expect(control[control.length - 1]).toEqual(expected)
+    expect(reschedule_item).toEqual({
+      card: {
+        ...expected.card,
+        last_review: MOCK_NOW,
+        reps: cur_card.reps + 1,
+      },
+      log: {
+        ...expected.log,
+        rating: Rating.Manual,
+        state: cur_card.state,
+        due: cur_card.last_review || cur_card.due,
+        stability: cur_card.stability,
+        difficulty: cur_card.difficulty,
+        review: MOCK_NOW,
+      },
+    } satisfies RecordLogItem)
+  })
+
   it('Handling the case of an empty set.', () => {
     const control = scheduler.reschedule(createEmptyCard(), [])
     expect(control).toEqual({

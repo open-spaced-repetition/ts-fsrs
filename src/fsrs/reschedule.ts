@@ -84,8 +84,8 @@ export class Reschedule {
       const scheduled_days = due.diff(reviewed as Date, 'days')
       log = {
         rating: Rating.Manual,
-        state: <State>state,
-        due: <Date>card.last_review,
+        state: <State>card.state,
+        due: card.last_review || card.due,
         stability: card.stability,
         difficulty: card.difficulty,
         elapsed_days: elapsed_days,
@@ -159,9 +159,13 @@ export class Reschedule {
     if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
       return null
     }
+    let interval = 0
+    if (cur_card.state !== State.New && cur_card.last_review) {
+      interval = log.review.diff(cur_card.last_review as Date, 'days')
+    }
     return this.handleManualRating(
-      reschedule_card,
-      cur_card.state,
+      cur_card,
+      reschedule_card.state,
       log.review,
       log.elapsed_days,
       update_memory ? reschedule_card.stability : undefined,
