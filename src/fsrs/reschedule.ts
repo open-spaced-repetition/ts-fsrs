@@ -2,27 +2,54 @@ import { TypeConvert } from './convert'
 import { createEmptyCard } from './default'
 import type { FSRS } from './fsrs'
 import {
-  Card,
-  CardInput,
-  FSRSHistory,
-  Grade,
+  type Card,
+  type CardInput,
+  type FSRSHistory,
+  type Grade,
   Rating,
-  RecordLogItem,
-  ReviewLog,
+  type RecordLogItem,
+  type ReviewLog,
   State,
 } from './models'
 
+/**
+ * The `Reschedule` class provides methods to handle the rescheduling of cards based on their review history.
+ * determine the next review dates and update the card's state accordingly.
+ */
 export class Reschedule {
   private fsrs: FSRS
+  /**
+   * Creates an instance of the `Reschedule` class.
+   * @param fsrs - An instance of the FSRS class used for scheduling.
+   */
   constructor(fsrs: FSRS) {
     this.fsrs = fsrs
   }
 
+  /**
+   * Replays a review for a card and determines the next review date based on the given rating.
+   * @param card - The card being reviewed.
+   * @param reviewed - The date the card was reviewed.
+   * @param rating - The grade given to the card during the review.
+   * @returns A `RecordLogItem` containing the updated card and review log.
+   */
   replay(card: Card, reviewed: Date, rating: Grade): RecordLogItem {
     return this.fsrs.next(card, reviewed, rating)
   }
 
-  processManual(
+  /**
+   * Processes a manual review for a card, allowing for custom state, stability, difficulty, and due date.
+   * @param card - The card being reviewed.
+   * @param state - The state of the card after the review.
+   * @param reviewed - The date the card was reviewed.
+   * @param elapsed_days - The number of days since the last review.
+   * @param stability - (Optional) The stability of the card.
+   * @param difficulty - (Optional) The difficulty of the card.
+   * @param due - (Optional) The due date for the next review.
+   * @returns A `RecordLogItem` containing the updated card and review log.
+   * @throws Will throw an error if the state or due date is not provided when required.
+   */
+  handleManualRating(
     card: Card,
     state: State,
     reviewed: Date,
@@ -82,9 +109,16 @@ export class Reschedule {
     return { card: next_card, log }
   }
 
-  reschedule(card: CardInput, reviews: FSRSHistory[]) {
+  /**
+   * Reschedules a card based on its review history.
+   *
+   * @param current_card - The card to be rescheduled.
+   * @param reviews - An array of review history objects.
+   * @returns An array of record log items representing the rescheduling process.
+   */
+  reschedule(current_card: CardInput, reviews: FSRSHistory[]) {
     const collections: RecordLogItem[] = []
-    let _card = TypeConvert.card(card)
+    let _card = createEmptyCard<Card>(current_card.due)
     for (const review of reviews) {
       let item: RecordLogItem
       if (review.rating === Rating.Manual) {
@@ -93,7 +127,7 @@ export class Reschedule {
         if (_card.state !== State.New && _card.last_review) {
           interval = review.review.diff(_card.last_review as Date, 'days')
         }
-        item = this.processManual(
+        item = this.handleManualRating(
           _card,
           review.state,
           review.review,
@@ -109,5 +143,30 @@ export class Reschedule {
       _card = item.card
     }
     return collections
+  }
+
+  calculateManualRecord(
+    current_card: CardInput,
+    record_log_item?: RecordLogItem,
+    update_memory?: boolean
+  ): RecordLogItem | null {
+    if (!record_log_item) {
+      return null
+    }
+    // if first_card === recordItem.card then return null
+    const { card: reschedule_card, log } = record_log_item
+    const cur_card = <Card>TypeConvert.card(current_card) // copy card
+    if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
+      return null
+    }
+    return this.handleManualRating(
+      reschedule_card,
+      cur_card.state,
+      log.review,
+      log.elapsed_days,
+      update_memory ? reschedule_card.stability : undefined,
+      update_memory ? reschedule_card.difficulty : undefined,
+      reschedule_card.due
+    )
   }
 }
