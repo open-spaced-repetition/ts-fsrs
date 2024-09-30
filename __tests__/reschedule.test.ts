@@ -437,6 +437,7 @@ describe('FSRS reschedule', () => {
         now: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       }
     )
+    const scheduled_days = reschedule_item!.card.due.diff(cur_card.due, 'days')
     expect(control[control.length - 1]).toEqual(expected)
     expect(reschedule_item).toEqual({
       card: {
@@ -449,6 +450,8 @@ describe('FSRS reschedule', () => {
         rating: Rating.Manual,
         state: cur_card.state,
         due: cur_card.last_review || cur_card.due,
+        last_elapsed_days: cur_card.elapsed_days,
+        scheduled_days: scheduled_days,
         stability: cur_card.stability,
         difficulty: cur_card.difficulty,
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
