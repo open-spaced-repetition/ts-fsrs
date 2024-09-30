@@ -434,13 +434,14 @@ describe('FSRS reschedule', () => {
       {
         skipManual: false,
         update_memory_state: true,
+        now: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       }
     )
     expect(control[control.length - 1]).toEqual(expected)
     expect(reschedule_item).toEqual({
       card: {
         ...expected.card,
-        last_review: MOCK_NOW,
+        last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
         reps: cur_card.reps + 1,
       },
       log: {
@@ -450,7 +451,7 @@ describe('FSRS reschedule', () => {
         due: cur_card.last_review || cur_card.due,
         stability: cur_card.stability,
         difficulty: cur_card.difficulty,
-        review: MOCK_NOW,
+        review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       },
     } satisfies RecordLogItem)
   })

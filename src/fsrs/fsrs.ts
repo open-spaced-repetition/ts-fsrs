@@ -406,6 +406,7 @@ export class FSRS extends FSRSAlgorithm {
       recordLogHandler,
       reviewsOrderBy,
       skipManual: skipManual = true,
+      now: now = new Date(),
       update_memory_state: updateMemoryState = false,
     } = options
     if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {
@@ -424,6 +425,7 @@ export class FSRS extends FSRSAlgorithm {
     const cur_card = TypeConvert.card(current_card)
     const manual_item = rescheduleSvc.calculateManualRecord(
       cur_card,
+      now,
       len ? collections[len - 1] : undefined,
       updateMemoryState
     )

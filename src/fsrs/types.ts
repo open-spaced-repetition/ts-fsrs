@@ -1,6 +1,7 @@
 import type {
   Card,
   CardInput,
+  DateInput,
   FSRSHistory,
   Grade,
   RecordLog,
@@ -26,6 +27,7 @@ export type RescheduleOptions<T = RecordLogItem> = {
   reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) => number
   skipManual: boolean
   update_memory_state: boolean
+  now: DateInput
   first_card?: CardInput
 }
 

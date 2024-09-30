@@ -4,6 +4,7 @@ import type { FSRS } from './fsrs'
 import {
   type Card,
   type CardInput,
+  DateInput,
   type FSRSHistory,
   type Grade,
   Rating,
@@ -147,6 +148,7 @@ export class Reschedule {
 
   calculateManualRecord(
     current_card: CardInput,
+    now: DateInput,
     record_log_item?: RecordLogItem,
     update_memory?: boolean
   ): RecordLogItem | null {
@@ -166,7 +168,7 @@ export class Reschedule {
     return this.handleManualRating(
       cur_card,
       reschedule_card.state,
-      log.review,
+      TypeConvert.time(now),
       log.elapsed_days,
       update_memory ? reschedule_card.stability : undefined,
       update_memory ? reschedule_card.difficulty : undefined,
