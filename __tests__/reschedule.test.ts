@@ -427,36 +427,45 @@ describe('FSRS reschedule', () => {
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       },
     }
-    const cur_card = createEmptyCard(MOCK_NOW)
-    const { collections: control, reschedule_item } = scheduler.reschedule(
-      cur_card,
-      reviews,
-      {
-        skipManual: false,
-        update_memory_state: true,
-        now: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
-      }
-    )
-    const scheduled_days = reschedule_item!.card.due.diff(cur_card.due, 'days')
-    expect(control[control.length - 1]).toEqual(expected)
-    expect(reschedule_item).toEqual({
-      card: {
-        ...expected.card,
-        last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
-        reps: cur_card.reps + 1,
-      },
-      log: {
-        ...expected.log,
-        rating: Rating.Manual,
-        state: cur_card.state,
-        due: cur_card.last_review || cur_card.due,
-        last_elapsed_days: cur_card.elapsed_days,
-        scheduled_days: scheduled_days,
-        stability: cur_card.stability,
-        difficulty: cur_card.difficulty,
-        review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
-      },
-    } satisfies RecordLogItem)
+    let cur_card = createEmptyCard(MOCK_NOW)
+    let index = 0
+    const review_at = new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/)
+    for (const _ of test) {
+      const { collections: control, reschedule_item } = scheduler.reschedule(
+        cur_card,
+        reviews,
+        {
+          skipManual: false,
+          update_memory_state: true,
+          now: review_at,
+        }
+      )
+      const scheduled_days = reschedule_item!.card.due.diff(
+        cur_card.due,
+        'days'
+      )
+      expect(control[control.length - 1]).toEqual(expected)
+      expect(reschedule_item).toEqual({
+        card: {
+          ...expected.card,
+          last_review: review_at,
+          reps: cur_card.reps + 1,
+        },
+        log: {
+          ...expected.log,
+          rating: Rating.Manual,
+          state: cur_card.state,
+          due: cur_card.last_review || cur_card.due,
+          last_elapsed_days: cur_card.elapsed_days,
+          scheduled_days: scheduled_days,
+          stability: cur_card.stability,
+          difficulty: cur_card.difficulty,
+          review: review_at,
+        },
+      } satisfies RecordLogItem)
+      cur_card = control[index++].card
+      // index++
+    }
   })
 
   it('Handling the case of an empty set.', () => {
