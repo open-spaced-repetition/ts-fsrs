@@ -11,7 +11,7 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { IPreview, RescheduleOptions } from './types'
+import type { IPreview, IReschedule, RescheduleOptions } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
@@ -398,13 +398,15 @@ export class FSRS extends FSRSAlgorithm {
    *
    */
   reschedule<T = RecordLogItem>(
+    current_card: CardInput | Card,
     reviews: FSRSHistory[] = [],
     options: Partial<RescheduleOptions<T>> = {}
-  ): Array<T> {
+  ): IReschedule<T> {
     const {
       recordLogHandler,
       reviewsOrderBy,
       skipManual: skipManual = true,
+      update_memory_state: updateMemoryState = false,
     } = options
     if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {
       reviews.sort(reviewsOrderBy)
@@ -415,13 +417,27 @@ export class FSRS extends FSRSAlgorithm {
     const rescheduleSvc = new Reschedule(this)
 
     const collections = rescheduleSvc.reschedule(
-      options.card || createEmptyCard(),
+      options.first_card || createEmptyCard(),
       reviews
     )
+    const len = collections.length
+    const cur_card = TypeConvert.card(current_card)
+    const manual_item = rescheduleSvc.calculateManualRecord(
+      cur_card,
+      len ? collections[len - 1] : undefined,
+      updateMemoryState
+    )
+
     if (recordLogHandler && typeof recordLogHandler === 'function') {
-      return collections.map(recordLogHandler)
+      return {
+        collections: collections.map(recordLogHandler),
+        reschedule_item: manual_item ? recordLogHandler(manual_item) : null,
+      }
     }
-    return collections as T[]
+    return {
+      collections,
+      reschedule_item: manual_item,
+    } as IReschedule<T>
   }
 }
 

@@ -21,9 +21,15 @@ export interface IScheduler {
   review(state: Grade): RecordLogItem
 }
 
-export type RescheduleOptions<T> = {
+export type RescheduleOptions<T = RecordLogItem> = {
   recordLogHandler: (recordLog: RecordLogItem) => T
   reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) => number
   skipManual: boolean
-  card?: CardInput
+  update_memory_state: boolean
+  first_card?: CardInput
+}
+
+export type IReschedule<T = RecordLogItem> = {
+  collections: T[]
+  reschedule_item: T | null
 }

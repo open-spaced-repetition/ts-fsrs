@@ -127,10 +127,10 @@ function experiment(
   return output
 }
 
-function testReschedule<T = RecordLogItem>(
+function testReschedule(
   scheduler: FSRS,
   tests: number[][],
-  options: Partial<RescheduleOptions<T>> = {}
+  options: Partial<RescheduleOptions> = {}
 ) {
   for (const test of tests) {
     const reviews = test.map((rating, index) => ({
@@ -140,7 +140,11 @@ function testReschedule<T = RecordLogItem>(
       ),
       state: rating === Rating.Manual ? State.New : undefined,
     }))
-    const control = <RecordLogItem[]>scheduler.reschedule(reviews, options)
+    const { collections: control } = scheduler.reschedule(
+      createEmptyCard(),
+      reviews,
+      options
+    )
     const experimentResult = experiment(
       scheduler,
       reviews,
@@ -230,7 +234,7 @@ describe('FSRS reschedule', () => {
       ),
     }))
     expect(() => {
-      scheduler.reschedule(reviews, { skipManual: false })
+      scheduler.reschedule(createEmptyCard(), reviews, { skipManual: false })
     }).toThrow('reschedule: state is required for manual rating')
   })
 
@@ -244,7 +248,7 @@ describe('FSRS reschedule', () => {
       state: rating === Rating.Manual ? State.Review : undefined,
     }))
     expect(() => {
-      scheduler.reschedule(reviews, { skipManual: false })
+      scheduler.reschedule(createEmptyCard(), reviews, { skipManual: false })
     }).toThrow('reschedule: due is required for manual rating')
   })
 
@@ -313,7 +317,13 @@ describe('FSRS reschedule', () => {
       },
     }
 
-    const control = scheduler.reschedule(reviews, { skipManual: false })
+    const { collections: control } = scheduler.reschedule(
+      createEmptyCard(),
+      reviews,
+      {
+        skipManual: false,
+      }
+    )
     expect(control[2]).toEqual(expected)
     expect(control[3]).toEqual(nextItemExpected)
   })
@@ -356,15 +366,40 @@ describe('FSRS reschedule', () => {
       },
     }
 
-    const control = scheduler.reschedule(reviews, { skipManual: false })
+    const current_card = {
+      due: new Date(1725584400000 /**'2024-09-06T01:00:00.000Z'*/),
+      stability: 21.79806877,
+      difficulty: 3.2828565,
+      elapsed_days: 1,
+      scheduled_days: 22,
+      reps: 4,
+      lapses: 0,
+      state: State.Review,
+      last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
+    }
+
+    const { collections: control, reschedule_item } = scheduler.reschedule(
+      current_card,
+      reviews,
+      {
+        skipManual: false,
+      }
+    )
     expect(control[2]).toEqual(expected)
+    expect(reschedule_item).toBeNull()
   })
 
   it('Handling the case of an empty set.', () => {
-    const control = scheduler.reschedule([])
-    expect(control).toEqual([])
+    const control = scheduler.reschedule(createEmptyCard(), [])
+    expect(control).toEqual({
+      collections: [],
+      reschedule_item: null,
+    })
 
-    const control2 = scheduler.reschedule()
-    expect(control2).toEqual([])
+    const control2 = scheduler.reschedule(createEmptyCard())
+    expect(control2).toEqual({
+      collections: [],
+      reschedule_item: null,
+    })
   })
 })
