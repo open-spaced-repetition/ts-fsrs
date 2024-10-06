@@ -392,10 +392,42 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   /**
+   * Reschedules the current card and returns the rescheduled collections and reschedule item.
    *
-   * @param reviews Review history
-   * @param options Reschedule options (Optional)
-   *
+   * @template T - The type of the record log item.
+   * @param {CardInput | Card} current_card - The current card to be rescheduled.
+   * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
+   * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
+   * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
+   * 
+   * @example
+   * ```
+    const f = fsrs()
+        const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+        const reviews_at = [
+          new Date(2024, 8, 13),
+          new Date(2024, 8, 13),
+          new Date(2024, 8, 17),
+          new Date(2024, 8, 28),
+        ]
+
+        const reviews: FSRSHistory[] = []
+        for (let i = 0; i < grades.length; i++) {
+          reviews.push({
+            rating: grades[i],
+            review: reviews_at[i],
+          })
+        }
+
+        const results_short = scheduler.reschedule(
+          createEmptyCard(),
+          reviews,
+          {
+            skipManual: false,
+          }
+        )
+        console.log(results_short)
+   * ```
    */
   reschedule<T = RecordLogItem>(
     current_card: CardInput | Card,

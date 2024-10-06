@@ -481,4 +481,62 @@ describe('FSRS reschedule', () => {
       reschedule_item: null,
     })
   })
+
+  it('case : basic test', () => {
+    const f = fsrs()
+    const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+    const reviews_at = [
+      new Date(2024, 8, 13),
+      new Date(2024, 8, 13),
+      new Date(2024, 8, 17),
+      new Date(2024, 8, 28),
+    ]
+
+    const reviews: FSRSHistory[] = []
+    for (let i = 0; i < grades.length; i++) {
+      reviews.push({
+        rating: grades[i],
+        review: reviews_at[i],
+      })
+    }
+
+    const results_short = scheduler.reschedule(
+      createEmptyCard(),
+      reviews,
+      {
+        skipManual: false,
+      }
+    )
+    const ivl_history_short = results_short.collections.map((item) => item.card.scheduled_days)
+    const s_history_short = results_short.collections.map((item) => item.card.stability)
+    const d_history_short = results_short.collections.map((item) => item.card.difficulty)
+
+    expect(results_short.reschedule_item).not.toBeNull()
+    expect(results_short.collections.length).toEqual(4)
+    expect(ivl_history_short).toEqual([0, 4, 15, 40])
+    expect(s_history_short).toEqual([3.1262, 4.35097949, 14.94870008, 39.68105285])
+    expect(d_history_short).toEqual([5.31457783, 5.26703555, 5.22060576, 5.17526243])
+
+    // switch long-term scheduler
+    f.parameters.enable_short_term = false
+    const results = f.reschedule(createEmptyCard(), reviews, {
+      skipManual: false,
+    })
+    const ivl_history_long = results.collections.map(
+      (item) => item.card.scheduled_days
+    )
+    const s_history_long = results.collections.map(
+      (item) => item.card.stability
+    )
+    const d_history_long = results.collections.map(
+      (item) => item.card.difficulty
+    )
+    expect(results.reschedule_item).not.toBeNull()
+    expect(results.collections.length).toEqual(4)
+    expect(ivl_history_long).toEqual([3, 4, 14, 39])
+    expect(s_history_long).toEqual([3.1262, 3.1262, 13.89723677, 38.7694699])
+    expect(d_history_long).toEqual([
+      5.31457783, 5.26703555, 5.22060576, 5.17526243,
+    ])
+  })
 })
