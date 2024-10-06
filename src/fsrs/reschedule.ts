@@ -122,6 +122,7 @@ export class Reschedule {
     let _card = createEmptyCard<Card>(current_card.due)
     for (const review of reviews) {
       let item: RecordLogItem
+      review.review = TypeConvert.time(review.review)
       if (review.rating === Rating.Manual) {
         // ref: abstract_scheduler.ts#init
         let interval = 0
@@ -135,7 +136,7 @@ export class Reschedule {
           interval,
           review.stability,
           review.difficulty,
-          review.due
+          review.due ? TypeConvert.time(review.due) : undefined
         )
       } else {
         item = this.replay(_card, review.review, review.rating)
