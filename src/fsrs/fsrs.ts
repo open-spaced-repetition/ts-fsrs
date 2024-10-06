@@ -395,7 +395,6 @@ export class FSRS extends FSRSAlgorithm {
    * Reschedules the current card and returns the rescheduled collections and reschedule item.
    *
    * @template T - The type of the record log item.
-   * @template D - The type of the date input.
    * @param {CardInput | Card} current_card - The current card to be rescheduled.
    * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
    * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
