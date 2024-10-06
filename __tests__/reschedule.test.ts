@@ -10,8 +10,9 @@ import {
   RescheduleOptions,
   ReviewLog,
   State,
+  TypeConvert,
 } from '../src/fsrs'
-import { FSRSHistory } from '../src/fsrs/models'
+import { Card, DateInput, FSRSHistory } from '../src/fsrs/models'
 
 type reviewState = {
   difficulty: number
@@ -76,6 +77,7 @@ function experiment(
           card = item.card
           log = item.log
         } else {
+          review.review = TypeConvert.time(review.review)
           log = state[index - 1]
             ? {
                 rating: Rating.Manual,
@@ -186,7 +188,8 @@ describe('FSRS reschedule', () => {
       }
     }
     testReschedule(scheduler, tests, {
-      reviewsOrderBy: (a, b) => a.review.getTime() - b.review.getTime(),
+      reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) =>
+        date_diff(a.review, b.review, 'days'),
       recordLogHandler: (recordLog) => recordLog,
     })
   })
@@ -219,7 +222,8 @@ describe('FSRS reschedule', () => {
     }
     console.debug('reschedule case size:', tests.length)
     testReschedule(scheduler, tests, {
-      reviewsOrderBy: (a, b) => a.review.getTime() - b.review.getTime(),
+      reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) =>
+        date_diff(a.review, b.review, 'days'),
       recordLogHandler: (recordLog) => recordLog,
       skipManual: false,
     })
@@ -500,22 +504,28 @@ describe('FSRS reschedule', () => {
       })
     }
 
-    const results_short = scheduler.reschedule(
-      createEmptyCard(),
-      reviews,
-      {
-        skipManual: false,
-      }
+    const results_short = f.reschedule(createEmptyCard(), reviews, {
+      skipManual: false,
+    })
+    const ivl_history_short = results_short.collections.map(
+      (item) => item.card.scheduled_days
     )
-    const ivl_history_short = results_short.collections.map((item) => item.card.scheduled_days)
-    const s_history_short = results_short.collections.map((item) => item.card.stability)
-    const d_history_short = results_short.collections.map((item) => item.card.difficulty)
+    const s_history_short = results_short.collections.map(
+      (item) => item.card.stability
+    )
+    const d_history_short = results_short.collections.map(
+      (item) => item.card.difficulty
+    )
 
     expect(results_short.reschedule_item).not.toBeNull()
     expect(results_short.collections.length).toEqual(4)
     expect(ivl_history_short).toEqual([0, 4, 15, 40])
-    expect(s_history_short).toEqual([3.1262, 4.35097949, 14.94870008, 39.68105285])
-    expect(d_history_short).toEqual([5.31457783, 5.26703555, 5.22060576, 5.17526243])
+    expect(s_history_short).toEqual([
+      3.1262, 4.35097949, 14.94870008, 39.68105285,
+    ])
+    expect(d_history_short).toEqual([
+      5.31457783, 5.26703555, 5.22060576, 5.17526243,
+    ])
 
     // switch long-term scheduler
     f.parameters.enable_short_term = false
@@ -538,5 +548,96 @@ describe('FSRS reschedule', () => {
     expect(d_history_long).toEqual([
       5.31457783, 5.26703555, 5.22060576, 5.17526243,
     ])
+  })
+
+  it('case : current card = reschedule card', () => {
+    const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+    const reviews_at: number[] = [
+      Date.UTC(2024, 8, 13, 0, 0, 0),
+      Date.UTC(2024, 8, 13, 0, 0, 0),
+      Date.UTC(2024, 8, 17, 0, 0, 0),
+      Date.UTC(2024, 8, 28, 0, 0, 0),
+    ]
+
+    const reviews: FSRSHistory[] = []
+    for (let i = 0; i < grades.length; i++) {
+      reviews.push({
+        rating: grades[i],
+        review: reviews_at[i],
+      })
+    }
+    const current_card = {
+      due: new Date(1730937600000 /** 2024-11-07T00:00:00.000Z */),
+      stability: 39.68105285,
+      difficulty: 5.17526243,
+      elapsed_days: 11,
+      scheduled_days: 40,
+      reps: 4,
+      lapses: 0,
+      state: State.Review,
+      last_review: Date.UTC(2024, 9, 27, 0, 0, 0),
+    }
+
+    const results_short = scheduler.reschedule(current_card, reviews, {
+      recordLogHandler: (recordLog) => {
+        return recordLog
+      },
+      skipManual: false,
+      first_card: createEmptyCard(Date.UTC(2024, 8, 13, 0, 0, 0)),
+      update_memory_state: true,
+      now: Date.UTC(2024, 9, 27, 0, 0, 0),
+    })
+    expect(results_short.reschedule_item).toBeNull()
+  })
+
+  it('case : forget', () => {
+    const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+    const reviews_at: number[] = [
+      Date.UTC(2024, 8, 13, 0, 0, 0),
+      Date.UTC(2024, 8, 13, 0, 0, 0),
+      Date.UTC(2024, 8, 17, 0, 0, 0),
+      Date.UTC(2024, 8, 28, 0, 0, 0),
+    ]
+
+    const reviews: FSRSHistory[] = []
+    for (let i = 0; i < grades.length; i++) {
+      reviews.push({
+        rating: grades[i],
+        review: reviews_at[i],
+      })
+    }
+    const first_card = createEmptyCard(Date.UTC(2024, 8, 28, 0, 0, 0))
+    let current_card: Card = createEmptyCard()
+    const history_card: Card[] = []
+    for (const review of reviews) {
+      const item = scheduler.next(
+        current_card,
+        review.review,
+        <Grade>review.rating
+      )
+      current_card = item.card
+      history_card.push(current_card)
+    }
+    const { card: forget_card } = scheduler.forget(
+      current_card,
+      Date.UTC(2024, 9, 27, 0, 0, 0)
+    )
+    current_card = forget_card
+
+    const { reschedule_item } = scheduler.reschedule(current_card!, reviews, {
+      first_card: first_card,
+      update_memory_state: true,
+      now: Date.UTC(2024, 9, 27, 0, 0, 0),
+    })
+    expect(reschedule_item).not.toBeNull()
+    expect(reschedule_item!.card.due).toEqual(
+      history_card[history_card.length - 1].due
+    )
+    expect(reschedule_item!.card.stability).toEqual(
+      history_card[history_card.length - 1].stability
+    )
+    expect(reschedule_item!.card.difficulty).toEqual(
+      history_card[history_card.length - 1].difficulty
+    )
   })
 })
