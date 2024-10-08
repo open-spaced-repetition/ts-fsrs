@@ -162,10 +162,6 @@ export class Reschedule {
     if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
       return null
     }
-    let interval = 0
-    if (cur_card.state !== State.New && cur_card.last_review) {
-      interval = log.review.diff(cur_card.last_review as Date, 'days')
-    }
     cur_card.scheduled_days = reschedule_card.due.diff(
       cur_card.due as Date,
       'days'
