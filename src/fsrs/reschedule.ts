@@ -119,18 +119,18 @@ export class Reschedule {
    */
   reschedule(current_card: CardInput, reviews: FSRSHistory[]) {
     const collections: RecordLogItem[] = []
-    let _card = createEmptyCard<Card>(current_card.due)
+    let cur_card = createEmptyCard<Card>(current_card.due)
     for (const review of reviews) {
       let item: RecordLogItem
       review.review = TypeConvert.time(review.review)
       if (review.rating === Rating.Manual) {
         // ref: abstract_scheduler.ts#init
         let interval = 0
-        if (_card.state !== State.New && _card.last_review) {
-          interval = review.review.diff(_card.last_review as Date, 'days')
+        if (cur_card.state !== State.New && cur_card.last_review) {
+          interval = review.review.diff(cur_card.last_review as Date, 'days')
         }
         item = this.handleManualRating(
-          _card,
+          cur_card,
           review.state,
           review.review,
           interval,
@@ -139,10 +139,10 @@ export class Reschedule {
           review.due ? TypeConvert.time(review.due) : undefined
         )
       } else {
-        item = this.replay(_card, review.review, review.rating)
+        item = this.replay(cur_card, review.review, review.rating)
       }
       collections.push(item)
-      _card = item.card
+      cur_card = item.card
     }
     return collections
   }
