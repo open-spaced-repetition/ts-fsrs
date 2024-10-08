@@ -1,23 +1,23 @@
-import { date_scheduler } from './help'
 import {
   Card,
   CardInput,
   DateInput,
+  FSRSHistory,
   FSRSParameters,
   Grade,
   Rating,
-  RecordLog,
   RecordLogItem,
-  RescheduleOptions,
   ReviewLog,
   ReviewLogInput,
   State,
 } from './models'
-import type { int, IPreview } from './types'
+import type { IPreview, IReschedule, RescheduleOptions } from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
+import { createEmptyCard } from './default'
+import { Reschedule } from './reschedule'
 
 export class FSRS extends FSRSAlgorithm {
   private Scheduler
@@ -206,11 +206,17 @@ export class FSRS extends FSRSAlgorithm {
     card: CardInput | Card,
     now?: DateInput,
     format: T = true as T
-  ): (T extends true ? string : number) {
+  ): T extends true ? string : number {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
-    const t = processedCard.state !== State.New ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0) : 0
-    const r = processedCard.state !== State.New ? this.forgetting_curve(t, +processedCard.stability.toFixed(8)) : 0
+    const t =
+      processedCard.state !== State.New
+        ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
+        : 0
+    const r =
+      processedCard.state !== State.New
+        ? this.forgetting_curve(t, +processedCard.stability.toFixed(8))
+        : 0
     return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
       ? string
       : number
@@ -386,61 +392,86 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   /**
+   * Reschedules the current card and returns the rescheduled collections and reschedule item.
    *
-   * @param cards scheduled card collection
-   * @param options Reschedule options,fuzz is enabled by default.If the type of due is not Date, please implement dataHandler.
+   * @template T - The type of the record log item.
+   * @param {CardInput | Card} current_card - The current card to be rescheduled.
+   * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
+   * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
+   * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
+   * 
    * @example
-   * ```typescript
-   * type CardType = Card & {
-   *     cid: number;
-   * };
-   * const reviewCard: CardType = {
-   *     cid: 1,
-   *     due: new Date("2024-03-17 04:43:02"),
-   *     stability: 48.26139059062234,
-   *     difficulty: 5.67,
-   *     elapsed_days: 18,
-   *     scheduled_days: 51,
-   *     reps: 8,
-   *     lapses: 1,
-   *     state: State.Review,
-   *     last_review: new Date("2024-01-26 04:43:02"),
-   * };
-   * const f = fsrs();
-   * const reschedule_cards = f.reschedule([reviewCard]);
    * ```
-   *
-   */
-  reschedule<T extends CardInput | Card>(
-    cards: Array<T>,
-    options: RescheduleOptions = {}
-  ): Array<T> {
-    if (!Array.isArray(cards)) {
-      throw new Error('cards must be an array')
-    }
-    const processedCard: T[] = []
-    for (const card of cards) {
-      if (TypeConvert.state(card.state) !== State.Review || !card.last_review)
-        continue
-      const scheduled_days = Math.floor(card.scheduled_days) as int
-      const next_ivl = this.next_interval(
-        +card.stability.toFixed(2),
-        Math.round(card.elapsed_days),
-        options.enable_fuzz ?? true
-      )
-      if (next_ivl === scheduled_days || next_ivl === 0) continue
+    const f = fsrs()
+        const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+        const reviews_at = [
+          new Date(2024, 8, 13),
+          new Date(2024, 8, 13),
+          new Date(2024, 8, 17),
+          new Date(2024, 8, 28),
+        ]
 
-      const processCard: T = { ...card }
-      processCard.scheduled_days = next_ivl
-      const new_due = date_scheduler(processCard.last_review!, next_ivl, true)
-      if (options.dateHandler && typeof options.dateHandler === 'function') {
-        processCard.due = options.dateHandler(new_due)
-      } else {
-        processCard.due = new_due
-      }
-      processedCard.push(processCard)
+        const reviews: FSRSHistory[] = []
+        for (let i = 0; i < grades.length; i++) {
+          reviews.push({
+            rating: grades[i],
+            review: reviews_at[i],
+          })
+        }
+
+        const results_short = scheduler.reschedule(
+          createEmptyCard(),
+          reviews,
+          {
+            skipManual: false,
+          }
+        )
+        console.log(results_short)
+   * ```
+   */
+  reschedule<T = RecordLogItem>(
+    current_card: CardInput | Card,
+    reviews: FSRSHistory[] = [],
+    options: Partial<RescheduleOptions<T>> = {}
+  ): IReschedule<T> {
+    const {
+      recordLogHandler,
+      reviewsOrderBy,
+      skipManual: skipManual = true,
+      now: now = new Date(),
+      update_memory_state: updateMemoryState = false,
+    } = options
+    if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {
+      reviews.sort(reviewsOrderBy)
     }
-    return processedCard
+    if (skipManual) {
+      reviews = reviews.filter((review) => review.rating !== Rating.Manual)
+    }
+    const rescheduleSvc = new Reschedule(this)
+
+    const collections = rescheduleSvc.reschedule(
+      options.first_card || createEmptyCard(),
+      reviews
+    )
+    const len = collections.length
+    const cur_card = TypeConvert.card(current_card)
+    const manual_item = rescheduleSvc.calculateManualRecord(
+      cur_card,
+      now,
+      len ? collections[len - 1] : undefined,
+      updateMemoryState
+    )
+
+    if (recordLogHandler && typeof recordLogHandler === 'function') {
+      return {
+        collections: collections.map(recordLogHandler),
+        reschedule_item: manual_item ? recordLogHandler(manual_item) : null,
+      }
+    }
+    return {
+      collections,
+      reschedule_item: manual_item,
+    } as IReschedule<T>
   }
 }
 
