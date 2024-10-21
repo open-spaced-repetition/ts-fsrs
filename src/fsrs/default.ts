@@ -11,7 +11,7 @@ export const default_w = [
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
 
-export const FSRSVersion: string = 'v4.4.1 using FSRS V5.0'
+export const FSRSVersion: string = 'v4.4.2 using FSRS V5.0'
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
@@ -22,6 +22,8 @@ export const generatorParameters = (
       w = props?.w
     } else if (props.w.length === 17) {
       w = props?.w.concat([0.0, 0.0])
+      w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
+      w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
       console.debug('[FSRS V5]auto fill w to 19 length')
     }
   }
