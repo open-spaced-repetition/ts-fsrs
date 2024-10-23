@@ -10,9 +10,9 @@ import {
 
 describe('FSRS V5 ', () => {
   const w = [
-    0.4197, 1.1869, 3.0412, 15.2441, 7.1434, 0.6477, 1.0007, 0.0674, 1.6597,
-    0.1712, 1.1178, 2.0225, 0.0904, 0.3025, 2.1214, 0.2498, 2.9466, 0.4891,
-    0.6468,
+    0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
+    0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
+    0.6621,
   ]
   const f: FSRS = fsrs({ w })
   it('ivl_history', () => {
@@ -56,7 +56,7 @@ describe('FSRS V5 ', () => {
       scheduling_cards = f.repeat(card, now)
     }
     expect(ivl_history).toEqual([
-      0, 4, 17, 62, 198, 563, 0, 0, 9, 31, 96, 267, 682,
+      0, 4, 14, 44, 125, 328, 0, 0, 7, 16, 34, 71, 142,
     ])
   })
 
@@ -80,8 +80,8 @@ describe('FSRS V5 ', () => {
     }
 
     const { stability, difficulty } = scheduling_cards[Rating.Good].card
-    expect(stability).toBeCloseTo(71.4554, 4)
-    expect(difficulty).toBeCloseTo(5.0976, 4)
+    expect(stability).toBeCloseTo(48.4848, 4)
+    expect(difficulty).toBeCloseTo(7.0866, 4)
   })
 
   it('first repeat', () => {
@@ -106,12 +106,12 @@ describe('FSRS V5 ', () => {
       scheduled_days.push(first_card.scheduled_days)
       states.push(first_card.state)
     }
-    expect(stability).toEqual([0.4197, 1.1869, 3.0412, 15.2441])
-    expect(difficulty).toEqual([7.1434, 6.23225985, 4.49094334, 1.16304343])
+    expect(stability).toEqual([0.40255, 1.18385, 3.173, 15.69105])
+    expect(difficulty).toEqual([7.1949, 6.48830527, 5.28243442, 3.22450159])
     expect(reps).toEqual([1, 1, 1, 1])
     expect(lapses).toEqual([0, 0, 0, 0])
     expect(elapsed_days).toEqual([0, 0, 0, 0])
-    expect(scheduled_days).toEqual([0, 0, 0, 15])
+    expect(scheduled_days).toEqual([0, 0, 0, 16])
     expect(states).toEqual([
       State.Learning,
       State.Learning,
