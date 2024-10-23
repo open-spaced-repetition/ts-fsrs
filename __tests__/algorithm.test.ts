@@ -124,9 +124,16 @@ describe('next_ds', () => {
           .toFixed(8)
       }
 
-      const next_d = new Decimal(d)
-        .sub(new Decimal(params.w[6]).mul(new Decimal(g - 3)))
-        .toNumber()
+      function linear_damping(delta_d: number, old_d: number): number {
+        return +new Decimal(delta_d)
+          .mul(new Decimal(10).sub(old_d))
+          .div(9)
+          .toFixed(8)
+      }
+      const delta_d = new Decimal(-params.w[6]).mul(new Decimal(g - 3))
+      const next_d = +new Decimal(d)
+        .add(linear_damping(delta_d.toNumber(), d))
+        .toFixed(8)
       return constrain_difficulty(mean_reversion(init_difficulty(4), next_d))
     }
 
@@ -138,7 +145,7 @@ describe('next_ds', () => {
       collection.push(d)
       expected.push(expected_d)
     })
-    expect(collection).toEqual([7.04017216, 5.9999955, 4.95981884, 3.91964218])
+    expect(collection).toEqual([6.60703511, 5.7994339, 4.99183271, 4.18423151])
     expect(collection).toEqual(expected)
   })
 
@@ -245,15 +252,16 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      27.43740902, 15.27687386, 65.24019626, 224.35058851,
+      25.77614184, 14.12189062, 60.40439635, 208.97595604,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.73909651, 2.0293769, 2.43393181, 2.95208552,
+      1.70284991, 1.97988166, 2.37599408, 2.88853913,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
+
     expect(s_short_collection).toEqual([
-      2.54268521, 4.20645686, 6.95889497, 11.51235369,
+      2.50514262, 4.19920687, 7.03885607, 11.79877447,
     ])
     expect(s_short_collection).toEqual(expected_s_short)
 

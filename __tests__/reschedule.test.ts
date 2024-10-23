@@ -287,8 +287,8 @@ describe('FSRS reschedule', () => {
         rating: 0,
         state: 2,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 18.67917062,
-        difficulty: 3.2828565,
+        stability: 18.80877052,
+        difficulty: 3.22450159,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
@@ -299,8 +299,8 @@ describe('FSRS reschedule', () => {
     const nextItemExpected = {
       card: {
         due: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
-        stability: 24.84609459,
-        difficulty: 3.2828565,
+        stability: 24.7796143,
+        difficulty: 3.28258807,
         elapsed_days: 1,
         scheduled_days: 25,
         reps: 4,
@@ -348,8 +348,8 @@ describe('FSRS reschedule', () => {
     const expected = {
       card: {
         due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
-        stability: 18.67917062,
-        difficulty: 3.2828565,
+        stability: 18.80877052,
+        difficulty: 3.22450159,
         elapsed_days: 1,
         scheduled_days: 21,
         reps: 3,
@@ -361,8 +361,8 @@ describe('FSRS reschedule', () => {
         rating: Rating.Manual,
         state: State.Review,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 18.67917062,
-        difficulty: 3.2828565,
+        stability: 18.80877052,
+        difficulty: 3.22450159,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 19,
@@ -410,8 +410,8 @@ describe('FSRS reschedule', () => {
     const expected = {
       card: {
         due: new Date(1725843600000 /**'2024-09-09T01:00:00.000Z'*/),
-        stability: 24.84609459,
-        difficulty: 3.2828565,
+        stability: 24.86663381,
+        difficulty: 3.22450159,
         elapsed_days: 1,
         scheduled_days: 25,
         reps: 4,
@@ -423,8 +423,8 @@ describe('FSRS reschedule', () => {
         rating: Rating.Good,
         state: State.Review,
         due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
-        stability: 21.79806877,
-        difficulty: 3.2828565,
+        stability: 21.86357285,
+        difficulty: 3.22450159,
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 22,
@@ -519,12 +519,12 @@ describe('FSRS reschedule', () => {
 
     expect(results_short.reschedule_item).not.toBeNull()
     expect(results_short.collections.length).toEqual(4)
-    expect(ivl_history_short).toEqual([0, 4, 15, 40])
+    expect(ivl_history_short).toEqual([0, 4, 14, 38])
     expect(s_history_short).toEqual([
-      3.1262, 4.35097949, 14.94870008, 39.68105285,
+      3.173, 4.46685806, 14.21728391, 37.90805078,
     ])
     expect(d_history_short).toEqual([
-      5.31457783, 5.26703555, 5.22060576, 5.17526243,
+      5.28243442, 5.27296793, 5.26354498, 5.25416538,
     ])
 
     // switch long-term scheduler
@@ -543,10 +543,10 @@ describe('FSRS reschedule', () => {
     )
     expect(results.reschedule_item).not.toBeNull()
     expect(results.collections.length).toEqual(4)
-    expect(ivl_history_long).toEqual([3, 4, 14, 39])
-    expect(s_history_long).toEqual([3.1262, 3.1262, 13.89723677, 38.7694699])
+    expect(ivl_history_long).toEqual([3, 4, 13, 37])
+    expect(s_history_long).toEqual([3.173, 3.173, 12.96611898, 36.73449305])
     expect(d_history_long).toEqual([
-      5.31457783, 5.26703555, 5.22060576, 5.17526243,
+      5.28243442, 5.27296793, 5.26354498, 5.25416538,
     ])
   })
 
@@ -567,12 +567,12 @@ describe('FSRS reschedule', () => {
       })
     }
     const current_card = {
-      due: new Date(1730937600000 /** 2024-11-07T00:00:00.000Z */),
-      stability: 39.68105285,
-      difficulty: 5.17526243,
+      due: new Date(1730764800000 /** 2024-11-05T00:00:00.000Z */),
+      stability: 37.90805078,
+      difficulty: 5.25416538,
       elapsed_days: 11,
-      scheduled_days: 40,
-      reps: 4,
+      scheduled_days: 9,
+      reps: 5,
       lapses: 0,
       state: State.Review,
       last_review: Date.UTC(2024, 9, 27, 0, 0, 0),
