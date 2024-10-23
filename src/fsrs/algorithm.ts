@@ -131,7 +131,6 @@ export class FSRSAlgorithm {
    * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
    * @param {number} ivl - The interval to be fuzzed.
    * @param {number} elapsed_days t days since the last review
-   * @param {number} enable_fuzz - This adds a small random delay to the new interval time to prevent cards from sticking together and always being reviewed on the same day.
    * @return {number} - The fuzzed interval.
    **/
   apply_fuzz(ivl: number, elapsed_days: number): int {
@@ -160,15 +159,24 @@ export class FSRSAlgorithm {
   }
 
   /**
+   * @see https://github.com/open-spaced-repetition/fsrs4anki/issues/697
+   */
+  linear_damping(delta_d: number, old_d: number): number {
+    return +((delta_d * (10 - old_d)) / 9).toFixed(8)
+  }
+
+  /**
    * The formula used is :
-   * $$\text{next}_d = D - w_6 \cdot (g - 3)$$
+   * $$\text{delta}_d = -w_6 \cdot (g - 3)$$
+   * $$\text{next}_d = D + \text{linear damping}(\text{delta}_d , D)$$
    * $$D^\prime(D,R) = w_7 \cdot D_0(4) +(1 - w_7) \cdot \text{next}_d$$
    * @param {number} d Difficulty $$D \in [1,10]$$
    * @param {Grade} g Grade (rating at Anki) [1.again,2.hard,3.good,4.easy]
    * @return {number} $$\text{next}_D$$
    */
   next_difficulty(d: number, g: Grade): number {
-    const next_d = d - this.param.w[6] * (g - 3)
+    const delta_d = -this.param.w[6] * (g - 3)
+    const next_d = d + this.linear_damping(delta_d, d)
     return this.constrain_difficulty(
       this.mean_reversion(this.init_difficulty(Rating.Easy), next_d)
     )

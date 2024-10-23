@@ -4,9 +4,9 @@ import { TypeConvert } from './convert'
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_w = [
-  0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616,
-  0.1544, 1.0824, 1.9813, 0.0953, 0.2975, 2.2042, 0.2407, 2.9466, 0.5034,
-  0.6567,
+  0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
+  0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
+  0.6621,
 ]
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
