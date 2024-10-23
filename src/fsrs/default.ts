@@ -24,7 +24,7 @@ export const generatorParameters = (
       w = props?.w.concat([0.0, 0.0])
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
       w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
-      w[6] += 0.5;
+      w[6] = +(w[6] + 0.5).toFixed(8)
       console.debug('[FSRS V5]auto fill w to 19 length')
     }
   }
