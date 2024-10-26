@@ -162,7 +162,7 @@ export class FSRSAlgorithm {
    * @see https://github.com/open-spaced-repetition/fsrs4anki/issues/697
    */
   linear_damping(delta_d: number, old_d: number): number {
-    return +((delta_d * (10 - old_d)) / 9).toFixed(8)
+    return +(delta_d * (10 - old_d) / 9).toFixed(8)
   }
 
   /**
