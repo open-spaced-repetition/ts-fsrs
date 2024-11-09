@@ -16,6 +16,8 @@ export type {
   CardInput,
   ReviewLogInput,
   DateInput,
+  FSRSReview,
+  FSRSHistory,
 } from './models'
 export { State, Rating } from './models'
 
