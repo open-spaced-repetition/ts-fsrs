@@ -27,7 +27,7 @@ export function DefaultInitSeedStrategy(this: AbstractScheduler): string {
  * const record = f.repeat(card, new Date())
  * ```
  */
-export function GenCardIdSeedStrategy(
+export function GenSeedStrategyWithCardId(
   card_id_field: string | number
 ): TSeedStrategy {
   return function (this: AbstractScheduler): string {
