@@ -160,8 +160,8 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: IPreview) => R
   ): R {
-    const instace = this.getScheduler(card, now)
-    const recordLog = instace.preview()
+    const instance = this.getScheduler(card, now)
+    const recordLog = instance.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
     } else {
@@ -229,12 +229,12 @@ export class FSRS extends FSRSAlgorithm {
     grade: Grade,
     afterHandler?: (recordLog: RecordLogItem) => R
   ): R {
-    const instace = this.getScheduler(card, now)
+    const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')
     }
-    const recordLogItem = instace.review(g)
+    const recordLogItem = instance.review(g)
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLogItem)
     } else {
