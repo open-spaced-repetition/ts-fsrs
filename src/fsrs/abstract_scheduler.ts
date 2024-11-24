@@ -11,8 +11,8 @@ import {
   type CardInput,
   type DateInput,
 } from './models'
-import { DefaultInitSeedStrategy } from './strategy'
-import type { TSeedStrategy } from './strategy/types'
+import { DefaultInitSeedStrategy } from './strategies'
+import type { TSeedStrategy } from './strategies/types'
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {

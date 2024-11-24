@@ -23,18 +23,13 @@ import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
 import { createEmptyCard } from './default'
 import { Reschedule } from './reschedule'
-import { DefaultInitSeedStrategy } from './strategy/seed'
+import { DefaultInitSeedStrategy } from './strategies/seed'
 import {
   StrategyMode,
   type TSeedStrategy,
   type TSchedulerStrategy,
   type TStrategyHandler,
-} from './strategy/types'
-
-// private
-const DEFAULT_STRATEGY = {
-  [StrategyMode.SEED]: DefaultInitSeedStrategy,
-}
+} from './strategies/types'
 
 export class FSRS extends FSRSAlgorithm {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
@@ -94,7 +89,7 @@ export class FSRS extends FSRSAlgorithm {
     ) as TSchedulerStrategy | undefined
 
     const Scheduler = schedulerStrategy || this.Scheduler
-    const Seed = seedStrategy || DEFAULT_STRATEGY[StrategyMode.SEED]
+    const Seed = seedStrategy || DefaultInitSeedStrategy
     const instance = new Scheduler(card, now, this, {
       seed: Seed,
     })
