@@ -62,7 +62,7 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   useStrategy<T extends StrategyMode>(
-    mode: StrategyMode,
+    mode: T,
     handler: TStrategyHandler<T>
   ): this {
     this.strategyHandler.set(mode, handler)
