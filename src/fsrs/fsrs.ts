@@ -11,16 +11,34 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { IPreview, IReschedule, RescheduleOptions } from './types'
+import {
+  type IPreview,
+  type IReschedule,
+  type RescheduleOptions,
+  type IScheduler,
+} from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
 import { createEmptyCard } from './default'
 import { Reschedule } from './reschedule'
+import { DefaultInitSeedStrategy } from './strategy/seed'
+import {
+  StrategyMode,
+  type TSeedStrategy,
+  type TSchedulerStrategy,
+  type TStrategyHandler,
+} from './strategy/types'
+
+// private
+const DEFAULT_STRATEGY = {
+  [StrategyMode.SEED]: DefaultInitSeedStrategy,
+}
 
 export class FSRS extends FSRSAlgorithm {
-  private Scheduler
+  private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
+  private Scheduler: TSchedulerStrategy
   constructor(param: Partial<FSRSParameters>) {
     super(param)
     const { enable_short_term } = this.parameters
@@ -46,6 +64,42 @@ export class FSRS extends FSRSAlgorithm {
         return true
       },
     }
+  }
+
+  useStrategy<T extends StrategyMode>(
+    mode: StrategyMode,
+    handler: TStrategyHandler<T>
+  ): this {
+    this.strategyHandler.set(mode, handler)
+    return this
+  }
+
+  clearStrategy(mode?: StrategyMode): this {
+    if (mode) {
+      this.strategyHandler.delete(mode)
+    } else {
+      this.strategyHandler.clear()
+    }
+    return this
+  }
+
+  private getScheduler(card: CardInput | Card, now: DateInput): IScheduler {
+    const seedStrategy = this.strategyHandler.get(StrategyMode.SEED) as
+      | TSeedStrategy
+      | undefined
+
+    // Strategy scheduler
+    const schedulerStrategy = this.strategyHandler.get(
+      StrategyMode.SCHEDULER
+    ) as TSchedulerStrategy | undefined
+
+    const Scheduler = schedulerStrategy || this.Scheduler
+    const Seed = seedStrategy || DEFAULT_STRATEGY[StrategyMode.SEED]
+    const instance = new Scheduler(card, now, this, {
+      seed: Seed,
+    })
+
+    return instance
   }
 
   /**
@@ -111,8 +165,7 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: IPreview) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
+    const instace = this.getScheduler(card, now)
     const recordLog = instace.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
@@ -181,8 +234,7 @@ export class FSRS extends FSRSAlgorithm {
     grade: Grade,
     afterHandler?: (recordLog: RecordLogItem) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
+    const instace = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')

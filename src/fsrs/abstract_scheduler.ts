@@ -11,6 +11,8 @@ import {
   type CardInput,
   type DateInput,
 } from './models'
+import { DefaultInitSeedStrategy } from './strategy'
+import type { TSeedStrategy } from './strategy/types'
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
@@ -19,13 +21,20 @@ export abstract class AbstractScheduler implements IScheduler {
   protected review_time: Date
   protected next: Map<Grade, RecordLogItem> = new Map()
   protected algorithm: FSRSAlgorithm
+  private initSeedStrategy: TSeedStrategy
 
   constructor(
     card: CardInput | Card,
     now: DateInput,
-    algorithm: FSRSAlgorithm
+    algorithm: FSRSAlgorithm,
+    strategies: {
+      seed: TSeedStrategy
+    } = {
+      seed: DefaultInitSeedStrategy,
+    }
   ) {
     this.algorithm = algorithm
+    this.initSeedStrategy = strategies.seed.bind(this)
 
     this.last = TypeConvert.card(card)
     this.current = TypeConvert.card(card)
@@ -42,7 +51,7 @@ export abstract class AbstractScheduler implements IScheduler {
     this.current.last_review = this.review_time
     this.current.elapsed_days = interval
     this.current.reps += 1
-    this.initSeed()
+    this.algorithm.seed = this.initSeedStrategy()
   }
 
   public preview(): IPreview {
@@ -87,13 +96,6 @@ export abstract class AbstractScheduler implements IScheduler {
   protected abstract learningState(grade: Grade): RecordLogItem
 
   protected abstract reviewState(grade: Grade): RecordLogItem
-
-  private initSeed() {
-    const time = this.review_time.getTime()
-    const reps = this.current.reps
-    const mul = this.current.difficulty * this.current.stability
-    this.algorithm.seed = `${time}_${reps}_${mul}`
-  }
 
   protected buildLog(rating: Grade): ReviewLog {
     const { last_review, due, elapsed_days } = this.last
