@@ -27,7 +27,9 @@ export function DefaultInitSeedStrategy(this: AbstractScheduler): string {
  * const record = f.repeat(card, new Date())
  * ```
  */
-export function GenCardIdSeedStrategy(card_id_field: string): TSeedStrategy {
+export function GenCardIdSeedStrategy(
+  card_id_field: string | number
+): TSeedStrategy {
   return function (this: AbstractScheduler): string {
     // https://github.com/open-spaced-repetition/ts-fsrs/issues/131#issuecomment-2408426225
     const card_id = Reflect.get(this.current, card_id_field) ?? 0
