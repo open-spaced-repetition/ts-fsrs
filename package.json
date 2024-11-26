@@ -70,5 +70,10 @@
   "homepage": "https://github.com/open-spaced-repetition/ts-fsrs#readme",
   "engines": {
     "node": ">=18.0.0"
+  },
+  "pnpm": {
+    "overrides": {
+      "is-core-module": "npm:@nolyfill/is-core-module@^1"
+    }
   }
 }
