@@ -1,12 +1,10 @@
 import type {
-  Card,
   CardInput,
   DateInput,
   FSRSHistory,
   Grade,
   RecordLog,
   RecordLogItem,
-  ReviewLog,
 } from './models'
 
 export type unit = 'days' | 'minutes'

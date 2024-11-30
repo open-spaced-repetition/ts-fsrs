@@ -11,16 +11,29 @@ import {
   ReviewLogInput,
   State,
 } from './models'
-import type { IPreview, IReschedule, RescheduleOptions } from './types'
+import {
+  type IPreview,
+  type IReschedule,
+  type RescheduleOptions,
+  type IScheduler,
+} from './types'
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
 import { createEmptyCard } from './default'
 import { Reschedule } from './reschedule'
+import { DefaultInitSeedStrategy } from './strategies/seed'
+import {
+  StrategyMode,
+  type TSeedStrategy,
+  type TSchedulerStrategy,
+  type TStrategyHandler,
+} from './strategies/types'
 
 export class FSRS extends FSRSAlgorithm {
-  private Scheduler
+  private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
+  private Scheduler: TSchedulerStrategy
   constructor(param: Partial<FSRSParameters>) {
     super(param)
     const { enable_short_term } = this.parameters
@@ -46,6 +59,42 @@ export class FSRS extends FSRSAlgorithm {
         return true
       },
     }
+  }
+
+  useStrategy<T extends StrategyMode>(
+    mode: T,
+    handler: TStrategyHandler<T>
+  ): this {
+    this.strategyHandler.set(mode, handler)
+    return this
+  }
+
+  clearStrategy(mode?: StrategyMode): this {
+    if (mode) {
+      this.strategyHandler.delete(mode)
+    } else {
+      this.strategyHandler.clear()
+    }
+    return this
+  }
+
+  private getScheduler(card: CardInput | Card, now: DateInput): IScheduler {
+    const seedStrategy = this.strategyHandler.get(StrategyMode.SEED) as
+      | TSeedStrategy
+      | undefined
+
+    // Strategy scheduler
+    const schedulerStrategy = this.strategyHandler.get(
+      StrategyMode.SCHEDULER
+    ) as TSchedulerStrategy | undefined
+
+    const Scheduler = schedulerStrategy || this.Scheduler
+    const Seed = seedStrategy || DefaultInitSeedStrategy
+    const instance = new Scheduler(card, now, this, {
+      seed: Seed,
+    })
+
+    return instance
   }
 
   /**
@@ -111,9 +160,8 @@ export class FSRS extends FSRSAlgorithm {
     now: DateInput,
     afterHandler?: (recordLog: IPreview) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
-    const recordLog = instace.preview()
+    const instance = this.getScheduler(card, now)
+    const recordLog = instance.preview()
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLog)
     } else {
@@ -181,13 +229,12 @@ export class FSRS extends FSRSAlgorithm {
     grade: Grade,
     afterHandler?: (recordLog: RecordLogItem) => R
   ): R {
-    const Scheduler = this.Scheduler
-    const instace = new Scheduler(card, now, this satisfies FSRSAlgorithm)
+    const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')
     }
-    const recordLogItem = instace.review(g)
+    const recordLogItem = instance.review(g)
     if (afterHandler && typeof afterHandler === 'function') {
       return afterHandler(recordLogItem)
     } else {

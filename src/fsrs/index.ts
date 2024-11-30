@@ -22,3 +22,8 @@ export type {
 export { State, Rating } from './models'
 
 export * from './convert'
+
+export * from './strategies'
+export * from './abstract_scheduler'
+export * from './impl/basic_scheduler'
+export * from './impl/long_term_scheduler'
