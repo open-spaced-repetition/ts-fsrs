@@ -233,19 +233,22 @@ export class FSRSAlgorithm {
   /**
    * The formula used is :
    * $$S^\prime_f(D,S,R) = w_{11}\cdot D^{-w_{12}}\cdot ((S+1)^{w_{13}}-1) \cdot e^{w_{14}\cdot(1-R)}$$
+   * $$S^\prime_f = \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, \frac{S}{e^{w_{17} \cdot w_{18}}} \rbrace$$
    * @param {number} d Difficulty D \in [1,10]
    * @param {number} s Stability (interval when R=90%)
    * @param {number} r Retrievability (probability of recall)
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
+    const new_s_max = s / Math.exp(this.param.w[17] * this.param.w[18])
+
     return +clamp(
       this.param.w[11] *
         Math.pow(d, -this.param.w[12]) *
         (Math.pow(s + 1, this.param.w[13]) - 1) *
         Math.exp((1 - r) * this.param.w[14]),
       0.01,
-      36500.0
+      new_s_max
     ).toFixed(8)
   }
 
