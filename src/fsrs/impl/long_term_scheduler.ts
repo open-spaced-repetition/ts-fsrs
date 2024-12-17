@@ -112,11 +112,15 @@ export default class LongTermScheduler extends AbstractScheduler {
       difficulty,
       Rating.Again
     )
-    next_again.stability = this.algorithm.next_forget_stability(
-      difficulty,
+    next_again.stability = Math.min(
       stability,
-      retrievability
+      this.algorithm.next_forget_stability(
+        difficulty,
+        stability,
+        retrievability
+      )
     )
+
     next_hard.difficulty = this.algorithm.next_difficulty(
       difficulty,
       Rating.Hard

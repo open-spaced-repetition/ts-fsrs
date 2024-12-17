@@ -233,6 +233,8 @@ export class FSRSAlgorithm {
   /**
    * The formula used is :
    * $$S^\prime_f(D,S,R) = w_{11}\cdot D^{-w_{12}}\cdot ((S+1)^{w_{13}}-1) \cdot e^{w_{14}\cdot(1-R)}$$
+   * enable_short_term = true : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, \frac{S}{e^{w_{17} \cdot w_{18}}} \rbrace$$
+   * enable_short_term = false : $$S^\prime_f \in \min \lbrace \max \lbrace S^\prime_f,0.01\rbrace, S \rbrace$$
    * @param {number} d Difficulty D \in [1,10]
    * @param {number} s Stability (interval when R=90%)
    * @param {number} r Retrievability (probability of recall)
