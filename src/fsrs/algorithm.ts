@@ -241,18 +241,13 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
-    let new_s_max = s
-    if (this.param.enable_short_term) {
-      new_s_max = s / Math.exp(this.param.w[17] * this.param.w[18])
-    }
-
     return +clamp(
       this.param.w[11] *
         Math.pow(d, -this.param.w[12]) *
         (Math.pow(s + 1, this.param.w[13]) - 1) *
         Math.exp((1 - r) * this.param.w[14]),
       0.01,
-      new_s_max
+      36500.0
     ).toFixed(8)
   }
 
