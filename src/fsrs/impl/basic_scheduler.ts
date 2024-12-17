@@ -186,17 +186,19 @@ export default class BasicScheduler extends AbstractScheduler {
       difficulty,
       Rating.Again
     )
-    next_again.stability = this.algorithm.next_forget_stability(
-      difficulty,
-      stability,
-      retrievability
-    )
     const nextSMin =
       stability /
       Math.exp(
         this.algorithm.parameters.w[17] * this.algorithm.parameters.w[18]
       )
-    next_again.stability = Math.min(nextSMin, next_again.stability)
+    next_again.stability = Math.min(
+      +nextSMin.toFixed(8),
+      this.algorithm.next_forget_stability(
+        difficulty,
+        stability,
+        retrievability
+      )
+    )
 
     next_hard.difficulty = this.algorithm.next_difficulty(
       difficulty,
