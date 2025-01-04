@@ -1,6 +1,6 @@
 import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
-import { Grades } from './help'
+import { dateDiffInDays, Grades } from './help'
 import {
   type Card,
   type Grade,
@@ -46,7 +46,7 @@ export abstract class AbstractScheduler implements IScheduler {
     const { state, last_review } = this.current
     let interval = 0 // card.state === State.New => 0
     if (state !== State.New && last_review) {
-      interval = this.review_time.diff(last_review as Date, 'days')
+      interval = dateDiffInDays(last_review, this.review_time)
     }
     this.current.last_review = this.review_time
     this.current.elapsed_days = interval

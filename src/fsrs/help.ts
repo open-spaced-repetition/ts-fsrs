@@ -191,3 +191,19 @@ export function get_fuzz_range(
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
+
+export function dateDiffInDays(last: Date, cur: Date) {
+  // Discard the time and time-zone information.
+  const utc1 = Date.UTC(
+    last.getUTCFullYear(),
+    last.getUTCMonth(),
+    last.getUTCDate()
+  )
+  const utc2 = Date.UTC(
+    cur.getUTCFullYear(),
+    cur.getUTCMonth(),
+    cur.getUTCDate()
+  )
+
+  return Math.floor((utc2 - utc1) / 86400000 /** 1000 * 60 * 60 * 24*/)
+}
