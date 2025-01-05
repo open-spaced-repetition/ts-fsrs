@@ -106,3 +106,8 @@ export type FSRSHistory = Partial<
         review: DateInput | Date
       }
   )
+
+export interface FSRSState {
+  stability: number
+  difficulty: number
+}
