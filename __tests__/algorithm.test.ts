@@ -518,4 +518,13 @@ describe('next_state', () => {
       f.next_state(init, 1, 5 /** invalid grade */)
     }).toThrow('invalid memory state')
   })
+
+  it('clamped s', () => {
+    const f = fsrs()
+    const state = { difficulty: 9.98210112, stability: 0.01020119 }
+
+    const newState = f.next_state(state, 1, 1)
+
+    expect(newState.stability).toBeGreaterThanOrEqual(0.01)
+  })
 })

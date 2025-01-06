@@ -319,7 +319,7 @@ export class FSRSAlgorithm {
         w_18 = this.param.w[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
-      new_s = Math.min(next_s_min, s_after_fail)
+      new_s = clamp(next_s_min, 0.01, s_after_fail)
     }
     if (t === 0 && this.param.enable_short_term) {
       new_s = s_after_short_term
