@@ -289,8 +289,11 @@ export class FSRSAlgorithm {
       difficulty: 0,
       stability: 0,
     }
-    if (g < 0 || g > 4 || t < 0) {
-      throw new Error('invalid memory state')
+    if (t < 0) {
+      throw new Error(`Invalid delta_t "${t}"`)
+    }
+    if (g < 0 || g > 4) {
+      throw new Error(`Invalid grade "${g}"`)
     }
     if (d === 0 && s === 0) {
       return {
