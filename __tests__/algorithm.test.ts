@@ -460,3 +460,53 @@ describe('change Params', () => {
     }).toThrow('Requested retention rate should be in the range (0,1]')
   })
 })
+
+describe('next_state', () => {
+  it('next_state not NaN', () => {
+    const f = fsrs()
+    const next_state = f.next_state(
+      { stability: 0, difficulty: 0 },
+      1,
+      1 /** Again */
+    )
+
+    expect(Number.isNaN(next_state.stability)).toBe(false)
+    expect(next_state).toEqual(f.next_state(null, 1, 1 /** Again */))
+    expect(next_state).toEqual(
+      f.next_state({ difficulty: 0, stability: 0 }, 1, 1 /** Again */)
+    )
+  })
+
+  it('invalid memory state', () => {
+    const f = fsrs()
+
+    const init = f.next_state(null, 0, 3 /** Good */)
+    // d<1
+    expect(() => {
+      f.next_state(
+        { stability: init.stability, difficulty: 0 },
+        1,
+        1 /** Again */
+      )
+    }).toThrow('invalid memory state')
+
+    // s<0.01
+    expect(() => {
+      f.next_state(
+        { stability: 0, difficulty: init.stability },
+        1,
+        1 /** Again */
+      )
+    }).toThrow('invalid memory state')
+
+    // g<0
+    expect(() => {
+      f.next_state(init, 1, -1 /** invalid grade */)
+    }).toThrow('invalid memory state')
+
+    // g>4
+    expect(() => {
+      f.next_state(init, 1, 5 /** invalid grade */)
+    }).toThrow('invalid memory state')
+  })
+})

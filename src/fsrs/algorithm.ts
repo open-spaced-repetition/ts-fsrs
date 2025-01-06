@@ -285,14 +285,20 @@ export class FSRSAlgorithm {
    * @returns The next state of memory with updated difficulty and stability.
    */
   next_state(memory_state: FSRSState | null, t: number, g: number): FSRSState {
-    if (!memory_state) {
+    const { difficulty: d, stability: s } = memory_state ?? {
+      difficulty: 0,
+      stability: 0,
+    }
+    if (d === 0 && s === 0) {
       return {
         difficulty: this.init_difficulty(clamp(g, 1, 4)),
         stability: this.init_stability(clamp(g, 1, 4)),
       }
     }
-    const { difficulty: d, stability: s } = memory_state
-    if (g < 1 || g > 4) {
+    if (d < 1 || s < 0.01 || g < 0 || g > 4) {
+      throw new Error('invalid memory state')
+    }
+    if (g === 0) {
       return {
         difficulty: d,
         stability: s,
