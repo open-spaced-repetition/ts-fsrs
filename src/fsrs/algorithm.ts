@@ -1,5 +1,5 @@
 import { generatorParameters } from './default'
-import { FSRSParameters, Grade, Rating } from './models'
+import { FSRSParameters, FSRSState, Grade, Rating } from './models'
 import type { int } from './types'
 import { clamp, get_fuzz_range } from './help'
 import { alea } from './alea'
@@ -274,5 +274,61 @@ export class FSRSAlgorithm {
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
     return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
+  }
+
+  /**
+   * Calculates the next state of memory based on the current state, time elapsed, and grade.
+   *
+   * @param memory_state - The current state of memory, which can be null.
+   * @param t - The time elapsed since the last review.
+   * @param {Rating} g Grade (Rating[0.Manual,1.Again,2.Hard,3.Good,4.Easy])
+   * @returns The next state of memory with updated difficulty and stability.
+   */
+  next_state(memory_state: FSRSState | null, t: number, g: number): FSRSState {
+    const { difficulty: d, stability: s } = memory_state ?? {
+      difficulty: 0,
+      stability: 0,
+    }
+    if (t < 0) {
+      throw new Error(`Invalid delta_t "${t}"`)
+    }
+    if (g < 0 || g > 4) {
+      throw new Error(`Invalid grade "${g}"`)
+    }
+    if (d === 0 && s === 0) {
+      return {
+        difficulty: this.init_difficulty(g),
+        stability: this.init_stability(g),
+      }
+    }
+    if (g === 0) {
+      return {
+        difficulty: d,
+        stability: s,
+      }
+    }
+    if (d < 1 || s < 0.01) {
+      throw new Error(`Invalid memory state { difficulty: ${d}, stability: ${s} }`)
+    }
+    const r = this.forgetting_curve(t, s)
+    const s_after_success = this.next_recall_stability(d, s, r, g)
+    const s_after_fail = this.next_forget_stability(d, s, r)
+    const s_after_short_term = this.next_short_term_stability(s, g)
+    let new_s = s_after_success
+    if (g === 1) {
+      let [w_17, w_18] = [0, 0]
+      if (this.param.enable_short_term) {
+        w_17 = this.param.w[17]
+        w_18 = this.param.w[18]
+      }
+      const next_s_min = s / Math.exp(w_17 * w_18)
+      new_s = clamp(next_s_min, 0.01, s_after_fail)
+    }
+    if (t === 0 && this.param.enable_short_term) {
+      new_s = s_after_short_term
+    }
+
+    const new_d = this.next_difficulty(d, g)
+    return { difficulty: new_d, stability: new_s }
   }
 }

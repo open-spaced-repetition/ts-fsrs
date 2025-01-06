@@ -18,6 +18,7 @@ export type {
   DateInput,
   FSRSReview,
   FSRSHistory,
+  FSRSState
 } from './models'
 export { State, Rating } from './models'
 
