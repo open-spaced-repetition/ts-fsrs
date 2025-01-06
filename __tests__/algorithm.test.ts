@@ -516,7 +516,7 @@ describe('next_state', () => {
     // g>4
     expect(() => {
       f.next_state(init, 1, 5 /** invalid grade */)
-    }).toThrow('invalid memory state')
+    }).toThrow(/^Invalid grade/)
   })
 
   it('clamped s', () => {
