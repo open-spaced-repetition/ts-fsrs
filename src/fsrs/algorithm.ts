@@ -287,12 +287,12 @@ export class FSRSAlgorithm {
   next_state(memory_state: FSRSState | null, t: number, g: number): FSRSState {
     if (!memory_state) {
       return {
-        difficulty: this.init_difficulty(g),
-        stability: this.init_stability(g),
+        difficulty: this.init_difficulty(clamp(g, 1, 4)),
+        stability: this.init_stability(clamp(g, 1, 4)),
       }
     }
     const { difficulty: d, stability: s } = memory_state
-    if (g === 0) {
+    if (g < 1 || g > 4) {
       return {
         difficulty: d,
         stability: s,
@@ -304,7 +304,13 @@ export class FSRSAlgorithm {
     const s_after_short_term = this.next_short_term_stability(s, g)
     let new_s = s_after_success
     if (g === 1) {
-      new_s = s_after_fail
+      let [w_17, w_18] = [0, 0]
+      if (this.param.enable_short_term) {
+        w_17 = this.param.w[17]
+        w_18 = this.param.w[18]
+      }
+      const next_s_min = s / Math.exp(w_17 * w_18)
+      new_s = Math.min(next_s_min, s_after_fail)
     }
     if (t === 0 && this.param.enable_short_term) {
       new_s = s_after_short_term
