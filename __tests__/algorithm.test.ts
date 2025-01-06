@@ -499,6 +499,15 @@ describe('next_state', () => {
       )
     }).toThrow('invalid memory state')
 
+    // t<0
+    expect(() => {
+      f.next_state(
+        { stability: 0, difficulty: 0 },
+        -1 /** invalid delta_t */,
+        1 /** Again */
+      )
+    }).toThrow('invalid memory state')
+
     // g<0
     expect(() => {
       f.next_state(init, 1, -1 /** invalid grade */)

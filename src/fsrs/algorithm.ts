@@ -289,20 +289,23 @@ export class FSRSAlgorithm {
       difficulty: 0,
       stability: 0,
     }
+    if (g < 0 || g > 4 || t < 0) {
+      throw new Error('invalid memory state')
+    }
     if (d === 0 && s === 0) {
       return {
-        difficulty: this.init_difficulty(clamp(g, 1, 4)),
-        stability: this.init_stability(clamp(g, 1, 4)),
+        difficulty: this.init_difficulty(g),
+        stability: this.init_stability(g),
       }
-    }
-    if (d < 1 || s < 0.01 || g < 0 || g > 4) {
-      throw new Error('invalid memory state')
     }
     if (g === 0) {
       return {
         difficulty: d,
         stability: s,
       }
+    }
+    if (d < 1 || s < 0.01) {
+      throw new Error('invalid memory state')
     }
     const r = this.forgetting_curve(t, s)
     const s_after_success = this.next_recall_stability(d, s, r, g)
