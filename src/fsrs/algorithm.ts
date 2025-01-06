@@ -305,7 +305,7 @@ export class FSRSAlgorithm {
       }
     }
     if (d < 1 || s < 0.01) {
-      throw new Error('invalid memory state')
+      throw new Error(`Invalid memory state { difficulty: ${d}, stability: ${s} }`)
     }
     const r = this.forgetting_curve(t, s)
     const s_after_success = this.next_recall_stability(d, s, r, g)
