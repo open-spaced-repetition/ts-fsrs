@@ -506,7 +506,7 @@ describe('next_state', () => {
         -1 /** invalid delta_t */,
         1 /** Again */
       )
-    }).toThrow('invalid memory state')
+    }).toThrow(/^Invalid delta_t/)
 
     // g<0
     expect(() => {
