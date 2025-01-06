@@ -497,7 +497,7 @@ describe('next_state', () => {
         1,
         1 /** Again */
       )
-    }).toThrow('invalid memory state')
+    }).toThrow(/^Invalid memory state/)
 
     // t<0
     expect(() => {
