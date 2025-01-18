@@ -5,23 +5,34 @@
       "type": "node",
       "request": "launch",
       "name": "ts-fsrs debug",
-      "skipFiles": ["<node_internals>/**"],
+      "skipFiles": [
+        "<node_internals>/**",
+        "${workspaceFolder}/node_modules/**"
+      ],
       "env": {
         // "DEBUG": "*",
       },
       "outputCapture": "std",
-      "runtimeExecutable": "nodemon",
+      "runtimeExecutable": "tsx",
       "restart": true,
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
-      "args": ["${workspaceFolder}/debug/index.ts"]
+      "args": ["watch","${workspaceFolder}/debug/index.ts"]
     },
     {
       "type": "node",
       "request": "attach",
       "name": "Node: Nodemon",
       "processId": "${command:PickProcess}",
-      "restart": true
+      "restart": true,
+      "port": 9229,
+      "skipFiles": [
+        // Node.js internal core modules
+        "<node_internals>/**",
+
+        // Ignore all dependencies (optional)
+        "${workspaceFolder}/node_modules/**"
+      ]
     }
   ]
 }
