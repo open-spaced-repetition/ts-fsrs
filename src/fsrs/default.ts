@@ -1,5 +1,6 @@
 import { Card, DateInput, FSRSParameters, State } from './models'
 import { TypeConvert } from './convert'
+import { version } from '../../package.json';
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
@@ -11,7 +12,7 @@ export const default_w = [
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
 
-export const FSRSVersion: string = 'v4.6.0 using FSRS-5.0'
+export const FSRSVersion: string = `v${version} using FSRS-5.0`
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>

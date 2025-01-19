@@ -1,4 +1,5 @@
 import { defineConfig } from 'rollup'
+import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
 import esbuild from 'rollup-plugin-esbuild'
 import commonjs from '@rollup/plugin-commonjs'
@@ -32,6 +33,10 @@ export default defineConfig([
       },
     ],
     plugins: [
+      json({
+        preferConst: true,
+        compact: true,
+      }),
       resolve({ preferBuiltins: true }),
       esbuild({
         target: 'node18.0',
@@ -51,6 +56,10 @@ export default defineConfig([
       sourcemap: true,
     },
     plugins: [
+      json({
+        preferConst: true,
+        compact: true,
+      }),
       resolve(),
       esbuild({
         target: 'es2017',
