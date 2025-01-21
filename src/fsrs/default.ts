@@ -1,6 +1,7 @@
 import { Card, DateInput, FSRSParameters, State } from './models'
 import { TypeConvert } from './convert'
-import { version } from '../../package.json';
+import { version } from '../../package.json'
+import { clamp } from './help'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
@@ -13,6 +14,30 @@ export const default_enable_fuzz = false
 export const default_enable_short_term = true
 
 export const FSRSVersion: string = `v${version} using FSRS-5.0`
+
+export const S_MIN = 0.01
+export const INIT_S_MAX = 100.0
+export const CLAMP_PARAMETERS: Array<[number /**min */, number /**max */]> = [
+  [S_MIN, INIT_S_MAX] /** initial stability (Again) */,
+  [S_MIN, INIT_S_MAX] /** initial stability (Hard) */,
+  [S_MIN, INIT_S_MAX] /** initial stability (Good) */,
+  [S_MIN, INIT_S_MAX] /** initial stability (Easy) */,
+  [1.0, 10.0] /** initial difficulty (Good) */,
+  [0.001, 4.0] /** initial difficulty (multiplier) */,
+  [0.001, 4.0] /** difficulty (multiplier) */,
+  [0.001, 0.75] /** difficulty (multiplier) */,
+  [0.0, 4.5] /** stability (exponent) */,
+  [0.0, 0.8] /** stability (negative power) */,
+  [0.001, 3.5] /** stability (exponent) */,
+  [0.001, 5.0] /** fail stability (multiplier) */,
+  [0.001, 0.25] /** fail stability (negative power) */,
+  [0.001, 0.9] /** fail stability (power) */,
+  [0.0, 4.0] /** fail stability (exponent) */,
+  [0.0, 1.0] /** stability (multiplier for Hard) */,
+  [1.0, 6.0] /** stability (multiplier for Easy) */,
+  [0.0, 2.0] /** short-term stability (exponent) */,
+  [0.0, 2.0] /** short-term stability (exponent) */,
+]
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
@@ -29,6 +54,9 @@ export const generatorParameters = (
       console.debug('[FSRS V5]auto fill w to 19 length')
     }
   }
+  w = w.map((w, index) =>
+    clamp(w, CLAMP_PARAMETERS[index][0], CLAMP_PARAMETERS[index][1])
+  )
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,

@@ -1,5 +1,7 @@
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
+import { S_MIN } from '../default'
+import { clamp } from '../help'
 import {
   type Card,
   type Grade,
@@ -112,14 +114,12 @@ export default class LongTermScheduler extends AbstractScheduler {
       difficulty,
       Rating.Again
     )
-    next_again.stability = Math.min(
+    const s_after_fail = this.algorithm.next_forget_stability(
+      difficulty,
       stability,
-      this.algorithm.next_forget_stability(
-        difficulty,
-        stability,
-        retrievability
-      )
+      retrievability
     )
+    next_again.stability = clamp(stability, S_MIN, s_after_fail)
 
     next_hard.difficulty = this.algorithm.next_difficulty(
       difficulty,

@@ -1,4 +1,4 @@
-import { generatorParameters } from './default'
+import { generatorParameters, S_MIN } from './default'
 import { FSRSParameters, FSRSState, Grade, Rating } from './models'
 import type { int } from './types'
 import { clamp, get_fuzz_range } from './help'
@@ -225,7 +225,7 @@ export class FSRSAlgorithm {
             (Math.exp((1 - r) * this.param.w[10]) - 1) *
             hard_penalty *
             easy_bound),
-      0.01,
+      S_MIN,
       36500.0
     ).toFixed(8)
   }
@@ -246,7 +246,7 @@ export class FSRSAlgorithm {
         Math.pow(d, -this.param.w[12]) *
         (Math.pow(s + 1, this.param.w[13]) - 1) *
         Math.exp((1 - r) * this.param.w[14]),
-      0.01,
+      S_MIN,
       36500.0
     ).toFixed(8)
   }
@@ -260,7 +260,7 @@ export class FSRSAlgorithm {
   next_short_term_stability(s: number, g: Grade): number {
     return +clamp(
       s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18])),
-      0.01,
+      S_MIN,
       36500.0
     ).toFixed(8)
   }
@@ -307,8 +307,10 @@ export class FSRSAlgorithm {
         stability: s,
       }
     }
-    if (d < 1 || s < 0.01) {
-      throw new Error(`Invalid memory state { difficulty: ${d}, stability: ${s} }`)
+    if (d < 1 || s < S_MIN) {
+      throw new Error(
+        `Invalid memory state { difficulty: ${d}, stability: ${s} }`
+      )
     }
     const r = this.forgetting_curve(t, s)
     const s_after_success = this.next_recall_stability(d, s, r, g)
@@ -322,7 +324,7 @@ export class FSRSAlgorithm {
         w_18 = this.param.w[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
-      new_s = clamp(next_s_min, 0.01, s_after_fail)
+      new_s = clamp(+next_s_min.toFixed(8), S_MIN, s_after_fail)
     }
     if (t === 0 && this.param.enable_short_term) {
       new_s = s_after_short_term
