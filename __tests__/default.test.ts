@@ -1,4 +1,5 @@
 import {
+  CLAMP_PARAMETERS,
   createEmptyCard,
   default_enable_fuzz,
   default_maximum_interval,
@@ -44,6 +45,20 @@ describe('default params', () => {
       0.4, 0.6, 2.4, 5.8, 6.81, 0.44675014, 1.36, 0.01, 1.49, 0.14, 0.94, 2.18,
       0.05, 0.34, 1.26, 0.29, 2.61, 0.0, 0.0,
     ])
+  })
+
+  it('clamp w to limit the minimum', () => {
+    const w = Array.from({ length: 19 }, (_) => 0)
+    const params = generatorParameters({ w })
+    const w_min = CLAMP_PARAMETERS.map((x) => x[0])
+    expect(params.w).toEqual(w_min)
+  })
+
+  it('clamp w to limit the maximum', () => {
+    const w = Array.from({ length: 19 }, (_) => Number.MAX_VALUE)
+    const params = generatorParameters({ w })
+    const w_max = CLAMP_PARAMETERS.map((x) => x[1])
+    expect(params.w).toEqual(w_max)
   })
 })
 
