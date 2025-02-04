@@ -24,6 +24,7 @@
       # "vscodevim.vim"
       "dbaeumer.vscode-eslint"
       "esbenp.prettier-vscode"
+      "yoavbls.pretty-ts-errors"
     ];
 
     # Enable previews
