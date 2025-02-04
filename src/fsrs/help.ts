@@ -54,8 +54,8 @@ export function date_scheduler(
 ): Date {
   return new Date(
     isDay
-      ? fixDate(now).getTime() + t * 24 * 60 * 60 * 1000
-      : fixDate(now).getTime() + t * 60 * 1000
+      ? TypeConvert.time(now).getTime() + t * 24 * 60 * 60 * 1000
+      : TypeConvert.time(now).getTime() + t * 60 * 1000
   )
 }
 
@@ -63,7 +63,7 @@ export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   if (!now || !pre) {
     throw new Error('Invalid date')
   }
-  const diff = fixDate(now).getTime() - fixDate(pre).getTime()
+  const diff = TypeConvert.time(now).getTime() - TypeConvert.time(pre).getTime()
   let r = 0
   switch (unit) {
     case 'days':
@@ -77,7 +77,7 @@ export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
 }
 
 export function formatDate(dateInput: DateInput): string {
-  const date = fixDate(dateInput)
+  const date = TypeConvert.time(dateInput)
   const year: number = date.getFullYear()
   const month: number = date.getMonth() + 1
   const day: number = date.getDate()
@@ -103,8 +103,8 @@ export function show_diff_message(
   unit?: boolean,
   timeUnit: string[] = TIMEUNITFORMAT
 ): string {
-  due = fixDate(due)
-  last_review = fixDate(last_review)
+  due = TypeConvert.time(due)
+  last_review = TypeConvert.time(last_review)
   if (timeUnit.length !== TIMEUNITFORMAT.length) {
     timeUnit = TIMEUNITFORMAT
   }
