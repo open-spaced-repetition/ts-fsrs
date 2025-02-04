@@ -12,7 +12,7 @@
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
     pkgs.pnpm
-    pkgs.nodejs
+    pkgs.nodejs_18
     pkgs.fish
   ];
 
