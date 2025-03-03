@@ -6,6 +6,7 @@
   "umd": "dist/index.umd.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "lint": "eslint src/",
     "lint::fix": "eslint --fix src/ && prettier --write src/",
@@ -17,7 +18,7 @@
     "prepare": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
     "predocs": "rimraf ./docs",
-    "docs": "typedoc"
+    "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.23.0",
@@ -38,9 +39,8 @@
     "ts-jest": "^29.3.0",
     "tslib": "^2.8.1",
     "tsx": "^4.19.3",
-    "typedoc": "^0.26.4",
+    "typedoc": "0.28.3",
     "typedoc-plugin-extras": "^3.1.0",
-    "typedoc-plugin-katex": "^0.1.2",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.28.0"
   },
