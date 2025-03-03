@@ -25,6 +25,7 @@
       "dbaeumer.vscode-eslint"
       "esbenp.prettier-vscode"
       "yoavbls.pretty-ts-errors"
+      "esbenp.prettier-vscode"
     ];
 
     # Enable previews
