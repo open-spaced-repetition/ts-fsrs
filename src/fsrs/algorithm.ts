@@ -17,6 +17,20 @@ export const DECAY: number = -0.5
 export const FACTOR: number = 19 / 81
 
 /**
+ * The formula used is :
+ * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
+ * @param {number} elapsed_days t days since the last review
+ * @param {number} stability Stability (interval when R=90%)
+ * @return {number} r Retrievability (probability of recall)
+ */
+export function forgetting_curve(
+  elapsed_days: number,
+  stability: number
+): number {
+  return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
+}
+
+/**
  * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
  */
 export class FSRSAlgorithm {
@@ -265,16 +279,7 @@ export class FSRSAlgorithm {
     ).toFixed(8)
   }
 
-  /**
-   * The formula used is :
-   * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
-   * @param {number} elapsed_days t days since the last review
-   * @param {number} stability Stability (interval when R=90%)
-   * @return {number} r Retrievability (probability of recall)
-   */
-  forgetting_curve(elapsed_days: number, stability: number): number {
-    return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
-  }
+  forgetting_curve = forgetting_curve
 
   /**
    * Calculates the next state of memory based on the current state, time elapsed, and grade.
