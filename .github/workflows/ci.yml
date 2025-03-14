@@ -79,6 +79,9 @@ jobs:
 
       - name: Lint
         run: pnpm run lint
+      
+      - name: Format
+        run: pnpm prettier -c src/
 
       - name: Run tests and collect coverage
         run: pnpm run test::coverage
