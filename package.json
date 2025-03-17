@@ -23,7 +23,7 @@
     "@eslint/js": "^9.22.0",
     "@rollup/plugin-commonjs": "^28.0.3",
     "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/jest": "^29.5.14",
     "@types/node": "^20.17.24",
     "decimal.js": "^10.5.0",
@@ -42,7 +42,7 @@
     "typedoc-plugin-extras": "^3.1.0",
     "typedoc-plugin-katex": "^0.1.2",
     "typescript": "^5.8.2",
-    "typescript-eslint": "^8.26.0"
+    "typescript-eslint": "^8.26.1"
   },
   "author": "ishiko",
   "license": "MIT",
