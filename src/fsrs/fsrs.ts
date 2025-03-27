@@ -103,13 +103,13 @@ export class FSRS extends FSRSAlgorithm {
    * @param now Current time or scheduled time
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```
+   * ```typescript
    * const card: Card = createEmptyCard(new Date());
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date());
    * ```
    * @example
-   * ```
+   * ```typescript
    * interface RevLogUnchecked
    *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
    *   cid: string;
@@ -176,13 +176,13 @@ export class FSRS extends FSRSAlgorithm {
    * @param grade Rating of the review (Again, Hard, Good, Easy)
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```
+   * ```typescript
    * const card: Card = createEmptyCard(new Date());
    * const f = fsrs();
    * const recordLogItem = f.next(card, new Date(), Rating.Again);
    * ```
    * @example
-   * ```
+   * ```typescript
    * interface RevLogUnchecked
    *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
    *   cid: string;
@@ -275,7 +275,7 @@ export class FSRS extends FSRSAlgorithm {
    * @param log last review log
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```
+   * ```typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCardFormAfterHandler = createEmptyCard(now);
@@ -285,7 +285,7 @@ export class FSRS extends FSRSAlgorithm {
    * ```
    *
    * @example
-   * ```
+   * ```typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
@@ -351,7 +351,7 @@ export class FSRS extends FSRSAlgorithm {
    * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```
+   * ```typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCard = createEmptyCard(now);
@@ -361,7 +361,7 @@ export class FSRS extends FSRSAlgorithm {
    * ```
    *
    * @example
-   * ```
+   * ```typescript
    * interface RepeatRecordLog {
    *   card: CardUnChecked; //see method: createEmptyCard
    *   log: RevLogUnchecked; //see method: fsrs.repeat()
@@ -446,9 +446,9 @@ export class FSRS extends FSRSAlgorithm {
    * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
    * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
    * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
-   * 
+   *
    * @example
-   * ```
+   * ```typescript
     const f = fsrs()
         const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
         const reviews_at = [
