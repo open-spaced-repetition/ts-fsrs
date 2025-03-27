@@ -449,31 +449,31 @@ export class FSRS extends FSRSAlgorithm {
    *
    * @example
    * ```typescript
-    const f = fsrs()
-        const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
-        const reviews_at = [
-          new Date(2024, 8, 13),
-          new Date(2024, 8, 13),
-          new Date(2024, 8, 17),
-          new Date(2024, 8, 28),
-        ]
-
-        const reviews: FSRSHistory[] = []
-        for (let i = 0; i < grades.length; i++) {
-          reviews.push({
-            rating: grades[i],
-            review: reviews_at[i],
-          })
-        }
-
-        const results_short = scheduler.reschedule(
-          createEmptyCard(),
-          reviews,
-          {
-            skipManual: false,
-          }
-        )
-        console.log(results_short)
+   * const f = fsrs()
+   * const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
+   * const reviews_at = [
+   *   new Date(2024, 8, 13),
+   *   new Date(2024, 8, 13),
+   *   new Date(2024, 8, 17),
+   *   new Date(2024, 8, 28),
+   * ]
+   *
+   * const reviews: FSRSHistory[] = []
+   * for (let i = 0; i < grades.length; i++) {
+   *   reviews.push({
+   *     rating: grades[i],
+   *     review: reviews_at[i],
+   *   })
+   * }
+   *
+   * const results_short = scheduler.reschedule(
+   *   createEmptyCard(),
+   *   reviews,
+   *   {
+   *     skipManual: false,
+   *   }
+   * )
+   * console.log(results_short)
    * ```
    */
   reschedule<T = RecordLogItem>(
