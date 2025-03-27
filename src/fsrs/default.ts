@@ -71,11 +71,11 @@ export const generatorParameters = (
  * @param now Current time
  * @param afterHandler Convert the result to another type. (Optional)
  * @example
- * ```
+ * ```typescript
  * const card: Card = createEmptyCard(new Date());
  * ```
  * @example
- * ```
+ * ```typescript
  * interface CardUnChecked
  *   extends Omit<Card, "due" | "last_review" | "state"> {
  *   cid: string;
