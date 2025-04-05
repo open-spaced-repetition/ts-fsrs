@@ -61,7 +61,7 @@ describe('default params', () => {
     expect(params.w).toEqual(w_max)
   })
 
-  it('default w be overwritten', () => {
+  it('default w can not be overwritten', () => {
     expect(() => {
       default_w[4] = 0.5
     }).toThrow()
