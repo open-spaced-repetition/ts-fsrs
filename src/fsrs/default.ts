@@ -5,11 +5,11 @@ import { clamp } from './help'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
-export const default_w = [
+export const default_w = Object.freeze([
   0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
   0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
   0.6621,
-]
+]) satisfies readonly number[]
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
 
@@ -17,35 +17,35 @@ export const FSRSVersion: string = `v${version} using FSRS-5.0`
 
 export const S_MIN = 0.01
 export const INIT_S_MAX = 100.0
-export const CLAMP_PARAMETERS: Array<[number /**min */, number /**max */]> = [
-  [S_MIN, INIT_S_MAX] /** initial stability (Again) */,
-  [S_MIN, INIT_S_MAX] /** initial stability (Hard) */,
-  [S_MIN, INIT_S_MAX] /** initial stability (Good) */,
-  [S_MIN, INIT_S_MAX] /** initial stability (Easy) */,
-  [1.0, 10.0] /** initial difficulty (Good) */,
-  [0.001, 4.0] /** initial difficulty (multiplier) */,
-  [0.001, 4.0] /** difficulty (multiplier) */,
-  [0.001, 0.75] /** difficulty (multiplier) */,
-  [0.0, 4.5] /** stability (exponent) */,
-  [0.0, 0.8] /** stability (negative power) */,
-  [0.001, 3.5] /** stability (exponent) */,
-  [0.001, 5.0] /** fail stability (multiplier) */,
-  [0.001, 0.25] /** fail stability (negative power) */,
-  [0.001, 0.9] /** fail stability (power) */,
-  [0.0, 4.0] /** fail stability (exponent) */,
-  [0.0, 1.0] /** stability (multiplier for Hard) */,
-  [1.0, 6.0] /** stability (multiplier for Easy) */,
-  [0.0, 2.0] /** short-term stability (exponent) */,
-  [0.0, 2.0] /** short-term stability (exponent) */,
-]
+export const CLAMP_PARAMETERS = Object.freeze([
+  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Again) */,
+  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Hard) */,
+  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Good) */,
+  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Easy) */,
+  Object.freeze([1.0, 10.0]) /** initial difficulty (Good) */,
+  Object.freeze([0.001, 4.0]) /** initial difficulty (multiplier) */,
+  Object.freeze([0.001, 4.0]) /** difficulty (multiplier) */,
+  Object.freeze([0.001, 0.75]) /** difficulty (multiplier) */,
+  Object.freeze([0.0, 4.5]) /** stability (exponent) */,
+  Object.freeze([0.0, 0.8]) /** stability (negative power) */,
+  Object.freeze([0.001, 3.5]) /** stability (exponent) */,
+  Object.freeze([0.001, 5.0]) /** fail stability (multiplier) */,
+  Object.freeze([0.001, 0.25]) /** fail stability (negative power) */,
+  Object.freeze([0.001, 0.9]) /** fail stability (power) */,
+  Object.freeze([0.0, 4.0]) /** fail stability (exponent) */,
+  Object.freeze([0.0, 1.0]) /** stability (multiplier for Hard) */,
+  Object.freeze([1.0, 6.0]) /** stability (multiplier for Easy) */,
+  Object.freeze([0.0, 2.0]) /** short-term stability (exponent) */,
+  Object.freeze([0.0, 2.0]) /** short-term stability (exponent) */,
+]) as readonly (readonly [number /** min */, number /** max */])[]
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  let w = default_w
+  let w: number[] = [...default_w]
   if (props?.w) {
     if (props.w.length === 19) {
-      w = props?.w
+      w = [...props.w]
     } else if (props.w.length === 17) {
       w = props?.w.concat([0.0, 0.0])
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)

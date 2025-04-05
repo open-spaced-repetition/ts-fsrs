@@ -143,12 +143,12 @@ export function fixRating(value: unknown): Rating {
   return TypeConvert.rating(value)
 }
 
-export const Grades: Readonly<Grade[]> = [
+export const Grades: Readonly<Grade[]> = Object.freeze([
   Rating.Again,
   Rating.Hard,
   Rating.Good,
   Rating.Easy,
-] as const
+])
 
 const FUZZ_RANGES = [
   {
