@@ -67,7 +67,7 @@ describe('default params', () => {
     }).toThrow()
   })
 
-  it('CLAMP_PARAMETERS be overwritten', () => {
+  it('CLAMP_PARAMETERS can not be overwritten', () => {
     expect(() => {
       // @ts-expect-error test modify
       CLAMP_PARAMETERS[4] = [0.5, 0.5]
