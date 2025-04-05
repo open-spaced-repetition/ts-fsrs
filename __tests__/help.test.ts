@@ -198,7 +198,7 @@ describe('fixRating', () => {
   })
 })
 
-describe('default value be overwritten', () => {
+describe('default values can not be overwritten', () => {
   it('Grades be overwritten', () => {
     expect(() => {
       // @ts-expect-error test modify
