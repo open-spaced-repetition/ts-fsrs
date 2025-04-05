@@ -60,6 +60,19 @@ describe('default params', () => {
     const w_max = CLAMP_PARAMETERS.map((x) => x[1])
     expect(params.w).toEqual(w_max)
   })
+
+  it('default w be overwritten', () => {
+    expect(() => {
+      default_w[4] = 0.5
+    }).toThrow()
+  })
+
+  it('CLAMP_PARAMETERS be overwritten', () => {
+    expect(() => {
+      // @ts-expect-error test modify
+      CLAMP_PARAMETERS[4] = [0.5, 0.5]
+    }).toThrow()
+  })
 })
 
 describe('default Card', () => {
