@@ -9,7 +9,7 @@ export const default_w = Object.freeze([
   0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
   0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
   0.6621,
-]) as number[]
+]) satisfies readonly number[]
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
 
@@ -42,10 +42,10 @@ export const CLAMP_PARAMETERS = Object.freeze([
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  let w = [...default_w]
+  let w: number[] = [...default_w]
   if (props?.w) {
     if (props.w.length === 19) {
-      w = props?.w
+      w = [...props.w]
     } else if (props.w.length === 17) {
       w = props?.w.concat([0.0, 0.0])
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)

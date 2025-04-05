@@ -63,6 +63,7 @@ describe('default params', () => {
 
   it('default w can not be overwritten', () => {
     expect(() => {
+      // @ts-expect-error test modify
       default_w[4] = 0.5
     }).toThrow()
   })
