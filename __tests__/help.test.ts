@@ -197,3 +197,13 @@ describe('fixRating', () => {
     )
   })
 })
+
+describe('default values can not be overwritten', () => {
+  it('Grades can not be overwritten', () => {
+    expect(() => {
+      // @ts-expect-error test modify
+      Grades[4] = Rating.Manual
+    }).toThrow()
+    expect(Grades.length).toEqual(4)
+  })
+})
