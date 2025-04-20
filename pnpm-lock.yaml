@@ -69,8 +69,8 @@ importers:
         specifier: 0.28.3
         version: 0.28.3(typescript@5.8.2)
       typedoc-plugin-extras:
-        specifier: ^3.1.0
-        version: 3.1.0(typedoc@0.28.3(typescript@5.8.2))
+        specifier: 4.0.0
+        version: 4.0.0(typedoc@0.28.3(typescript@5.8.2))
       typescript:
         specifier: ^5.8.2
         version: 5.8.2
@@ -1997,10 +1997,10 @@ packages:
     resolution: {integrity: sha512-2dBz5D5ycHIoliLYLi0Q2V7KRaDlH0uWIvmk7TYlAg5slqwiPv1ezJdZm1QEM0xgk29oYWMCbIG7E6gHpvChlg==}
     engines: {node: '>=16'}
 
-  typedoc-plugin-extras@3.1.0:
-    resolution: {integrity: sha512-8tNeq2fgl2HCUZ6eZuAoLLKEvB/WrRS4He9MtTfo3X3Pa8Iw3TS5D0g8krDhUXUk1uHpXVAVHm8rSOMS2mdJRw==}
+  typedoc-plugin-extras@4.0.0:
+    resolution: {integrity: sha512-wqImx4K39u9+M4mkRvBxds8BMzlxKXrhHwtOAGvgtQza+E9+h9YmYJIJsnFyF06XRmv/02tQIBan76A3GdpZFg==}
     peerDependencies:
-      typedoc: 0.26.x
+      typedoc: 0.27.x
 
   typedoc@0.28.3:
     resolution: {integrity: sha512-5svOCTfXvVSh6zbZKSQluZhR8yN2tKpTeHZxlmWpE6N5vc3R8k/jhg9nnD6n5tN9/ObuQTojkONrOxFdUFUG9w==}
@@ -4240,7 +4240,7 @@ snapshots:
 
   type-fest@4.38.0: {}
 
-  typedoc-plugin-extras@3.1.0(typedoc@0.28.3(typescript@5.8.2)):
+  typedoc-plugin-extras@4.0.0(typedoc@0.28.3(typescript@5.8.2)):
     dependencies:
       typedoc: 0.28.3(typescript@5.8.2)
 
