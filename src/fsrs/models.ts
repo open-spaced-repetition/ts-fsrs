@@ -75,6 +75,8 @@ export interface FSRSParameters {
   w: number[] | readonly number[]
   enable_fuzz: boolean
   enable_short_term: boolean
+  num_learning_steps: number
+  num_relearning_steps: number
 }
 
 export interface FSRSReview {
