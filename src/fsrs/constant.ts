@@ -2,6 +2,16 @@ import { version } from '../../package.json'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
+export const default_enable_fuzz = false
+export const default_enable_short_term = true
+export const default_num_learning_steps = 2 // New->Learning,Learning->Learning
+export const default_num_relearning_steps = 1 // Relearning->Relearning
+
+export const FSRSVersion: string = `v${version} using FSRS-5.0`
+
+export const S_MIN = 0.001
+export const S_MAX = 36500.0
+export const INIT_S_MAX = 100.0
 export const FSRS5_DEFAULT_DECAY = 0.5
 export const FSRS6_DEFAULT_DECAY = 0.2
 export const default_w = Object.freeze([
@@ -27,15 +37,6 @@ export const default_w = Object.freeze([
   0.1437,
   FSRS6_DEFAULT_DECAY,
 ]) satisfies readonly number[]
-export const default_enable_fuzz = false
-export const default_enable_short_term = true
-export const default_num_learning_steps = 2 // New->Learning,Learning->Learning
-export const default_num_relearning_steps = 1 // Relearning->Relearning
-
-export const FSRSVersion: string = `v${version} using FSRS-5.0`
-
-export const S_MIN = 0.01
-export const INIT_S_MAX = 100.0
 
 export const CLAMP_PARAMETERS = (w17_w18_ceiling: number) => [
   [S_MIN, INIT_S_MAX] /** initial stability (Again) */,
