@@ -11,13 +11,14 @@ import {
   default_request_retention,
   default_w,
   FSRS5_DEFAULT_DECAY,
+  W17_W18_Ceiling,
 } from './constant'
 
 export const clipParameters = (
   parameters: number[],
   numRelearningSteps: number
 ) => {
-  let w17_w18_ceiling = 2.0
+  let w17_w18_ceiling = W17_W18_Ceiling
   if (Math.max(0, numRelearningSteps) > 1) {
     // PLS = w11 * D ^ -w12 * [(S + 1) ^ w13 - 1] * e ^ (w14 * (1 - R))
     // PLS * e ^ (num_relearning_steps * w17 * w18) should be <= S
@@ -48,16 +49,15 @@ export const migrateParameters = (
     case 21:
       return [...parameters]
     case 19:
-      console.debug('[FSRS-6]auto fill w to 21 length')
+      console.debug('[FSRS-6]auto fill w from 19 to 21 length')
       return [...parameters, 0.0, FSRS5_DEFAULT_DECAY]
     case 17: {
       const w = [...parameters]
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
       w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
       w[6] = +(w[6] + 0.5).toFixed(8)
-      w.concat([0.0, 0.0, FSRS5_DEFAULT_DECAY])
-      console.debug('[FSRS-6]auto fill w to 21 length')
-      return w
+      console.debug('[FSRS-6]auto fill w from 17 to 21 length')
+      return w.concat([0.0, 0.0, 0.0, FSRS5_DEFAULT_DECAY])
     }
     default:
       console.warn('[FSRS]Invalid parameters length, using default parameters')

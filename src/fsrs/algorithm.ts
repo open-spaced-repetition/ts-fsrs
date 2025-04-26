@@ -14,7 +14,7 @@ export const computeDecayFactor = (
 ) => {
   const decay = -parameters[20]
   const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1.0
-  return { decay, factor }
+  return { decay, factor: +factor.toFixed(8) }
 }
 
 /**
@@ -49,6 +49,7 @@ export class FSRSAlgorithm {
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
     )
+    this.forgetting_curve = forgetting_curve.bind(this, this.param.w)
   }
 
   get interval_modifier(): number {
@@ -140,9 +141,8 @@ export class FSRSAlgorithm {
    * @return {number} Difficulty $$D \in [1,10]$$
    */
   init_difficulty(g: Grade): number {
-    return this.constrain_difficulty(
-      this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1
-    )
+    const d = this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1
+    return clamp(+d.toFixed(8), 1, 10)
   }
 
   /**
@@ -195,18 +195,11 @@ export class FSRSAlgorithm {
   next_difficulty(d: number, g: Grade): number {
     const delta_d = -this.param.w[6] * (g - 3)
     const next_d = d + this.linear_damping(delta_d, d)
-    return this.constrain_difficulty(
-      this.mean_reversion(this.init_difficulty(Rating.Easy), next_d)
+    return clamp(
+      this.mean_reversion(this.init_difficulty(Rating.Easy), next_d),
+      1,
+      10
     )
-  }
-
-  /**
-   * The formula used is :
-   * $$\min \lbrace \max \lbrace D_0,1 \rbrace,10\rbrace$$
-   * @param {number} difficulty $$D \in [1,10]$$
-   */
-  constrain_difficulty(difficulty: number): number {
-    return Math.min(Math.max(+difficulty.toFixed(8), 1), 10)
   }
 
   /**
@@ -284,8 +277,14 @@ export class FSRSAlgorithm {
     return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
   }
 
-  forgetting_curve = forgetting_curve.bind(this, this.param.w)
-
+  /**
+   * The formula used is :
+   * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
+   * @param {number} elapsed_days t days since the last review
+   * @param {number} stability Stability (interval when R=90%)
+   * @return {number} r Retrievability (probability of recall)
+   */
+  forgetting_curve: (elapsed_days: number, stability: number) => number
   /**
    * Calculates the next state of memory based on the current state, time elapsed, and grade.
    *

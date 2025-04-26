@@ -38,6 +38,7 @@ export const default_w = Object.freeze([
   FSRS6_DEFAULT_DECAY,
 ]) satisfies readonly number[]
 
+export const W17_W18_Ceiling = 2.0
 export const CLAMP_PARAMETERS = (w17_w18_ceiling: number) => [
   [S_MIN, INIT_S_MAX] /** initial stability (Again) */,
   [S_MIN, INIT_S_MAX] /** initial stability (Hard) */,
