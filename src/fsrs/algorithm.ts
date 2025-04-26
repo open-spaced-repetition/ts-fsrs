@@ -1,4 +1,8 @@
-import { generatorParameters } from './default'
+import {
+  clipParameters,
+  generatorParameters,
+  migrateParameters,
+} from './default'
 import { FSRSParameters, FSRSState, Grade, Rating } from './models'
 import type { int } from './types'
 import { clamp, get_fuzz_range } from './help'
@@ -101,6 +105,15 @@ export class FSRSAlgorithm {
         if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
+          )
+        } else if (prop === 'w') {
+          value = clipParameters(
+            migrateParameters(value as FSRSParameters['w']),
+            target.num_relearning_steps
+          )
+          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(target.request_retention)
           )
         }
         Reflect.set(target, prop, value)

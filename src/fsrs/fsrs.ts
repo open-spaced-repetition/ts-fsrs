@@ -17,11 +17,11 @@ import {
   type RescheduleOptions,
   type IScheduler,
 } from './types'
-import { FSRSAlgorithm } from './algorithm'
+import { forgetting_curve, FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
-import { createEmptyCard } from './default'
+import { clipParameters, createEmptyCard, migrateParameters } from './default'
 import { Reschedule } from './reschedule'
 import { DefaultInitSeedStrategy } from './strategies/seed'
 import {
@@ -54,6 +54,15 @@ export class FSRS extends FSRSAlgorithm {
           )
         } else if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
+        } else if (prop === 'w') {
+          value = clipParameters(
+            migrateParameters(value as FSRSParameters['w']),
+            target.num_relearning_steps
+          )
+          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(target.request_retention)
+          )
         }
         Reflect.set(target, prop, value)
         return true

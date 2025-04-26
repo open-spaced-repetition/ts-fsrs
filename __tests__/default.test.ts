@@ -1,6 +1,7 @@
 import {
   createEmptyCard,
   default_w,
+  fsrs,
   FSRS5_DEFAULT_DECAY,
   generatorParameters,
   W17_W18_Ceiling,
@@ -77,6 +78,10 @@ describe('default params', () => {
       w: [0.40255],
     })
     expect(params.w).toEqual(default_w)
+
+    const f = fsrs(params)
+    f.parameters.w = [0]
+    expect(f.parameters.w).toEqual(default_w)
   })
 
   it('if num relearning steps > 1', () => {
