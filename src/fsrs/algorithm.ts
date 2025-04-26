@@ -1,20 +1,21 @@
-import { generatorParameters, S_MIN } from './default'
+import { generatorParameters } from './default'
 import { FSRSParameters, FSRSState, Grade, Rating } from './models'
 import type { int } from './types'
 import { clamp, get_fuzz_range } from './help'
 import { alea } from './alea'
-
+import { S_MIN } from './constant'
 /**
- * @default DECAY = -0.5
- */
-export const DECAY: number = -0.5
-/**
- * FACTOR = Math.pow(0.9, 1 / DECAY) - 1= 19 / 81
+ * $$\text{decay} = -w_{20}$$
  *
- * $$\text{FACTOR} = \frac{19}{81}$$
- * @default FACTOR = 19 / 81
+ * $$\text{factor} = e^{\frac{\ln 0.9}{\text{decay}}} - 1$$
  */
-export const FACTOR: number = 19 / 81
+export const computeDecayFactor = (
+  parameters: number[] | readonly number[]
+) => {
+  const decay = -parameters[20]
+  const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1.0
+  return { decay, factor }
+}
 
 /**
  * The formula used is :
@@ -24,10 +25,12 @@ export const FACTOR: number = 19 / 81
  * @return {number} r Retrievability (probability of recall)
  */
 export function forgetting_curve(
+  parameters: number[] | readonly number[],
   elapsed_days: number,
   stability: number
 ): number {
-  return +Math.pow(1 + (FACTOR * elapsed_days) / stability, DECAY).toFixed(8)
+  const { decay, factor } = computeDecayFactor(parameters)
+  return +Math.pow(1 + (factor * elapsed_days) / stability, decay).toFixed(8)
 }
 
 /**
@@ -57,7 +60,7 @@ export class FSRSAlgorithm {
   }
 
   /**
-   * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-45
+   * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-5
    *
    * The formula used is: $$I(r,s) = (r^{\frac{1}{DECAY}} - 1) / FACTOR \times s$$
    * @param request_retention 0<request_retention<=1,Requested retention rate
@@ -67,7 +70,8 @@ export class FSRSAlgorithm {
     if (request_retention <= 0 || request_retention > 1) {
       throw new Error('Requested retention rate should be in the range (0,1]')
     }
-    return +((Math.pow(request_retention, 1 / DECAY) - 1) / FACTOR).toFixed(8)
+    const { decay, factor } = computeDecayFactor(this.param.w)
+    return +((Math.pow(request_retention, 1 / decay) - 1) / factor).toFixed(8)
   }
 
   /**
@@ -272,14 +276,15 @@ export class FSRSAlgorithm {
    * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
    */
   next_short_term_stability(s: number, g: Grade): number {
-    return +clamp(
-      s * Math.exp(this.param.w[17] * (g - 3 + this.param.w[18])),
-      S_MIN,
-      36500.0
-    ).toFixed(8)
+    const sinc =
+      Math.pow(s, -this.param.w[19]) *
+      Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]))
+
+    const maskedSinc = g >= 3 ? Math.max(sinc, 1.0) : sinc
+    return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
   }
 
-  forgetting_curve = forgetting_curve
+  forgetting_curve = forgetting_curve.bind(this, this.param.w)
 
   /**
    * Calculates the next state of memory based on the current state, time elapsed, and grade.

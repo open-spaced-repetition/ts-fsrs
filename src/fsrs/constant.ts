@@ -58,6 +58,6 @@ export const CLAMP_PARAMETERS = (w17_w18_ceiling: number) => [
   [1.0, 6.0] /** stability (multiplier for Easy) */,
   [0.0, w17_w18_ceiling] /** short-term stability (exponent) */,
   [0.0, w17_w18_ceiling] /** short-term stability (exponent) */,
-  [0.0, 0.8],
-  [0.1, 0.8],
+  [0.0, 0.8] /** short-term last-stability (exponent) */,
+  [0.1, 0.8] /** decay */,
 ]
