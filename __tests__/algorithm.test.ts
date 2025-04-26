@@ -1,30 +1,73 @@
 import {
-  DECAY,
+  clamp,
+  computeDecayFactor,
   default_enable_fuzz,
   default_maximum_interval,
   default_request_retention,
   default_w,
-  FACTOR,
   fsrs,
   FSRS,
+  FSRS5_DEFAULT_DECAY,
+  FSRS6_DEFAULT_DECAY,
   FSRSAlgorithm,
   generatorParameters,
   get_fuzz_range,
   Grades,
   Rating,
+  S_MIN,
 } from '../src/fsrs'
 import Decimal from 'decimal.js'
+const _computeDecayFactor = (decay: number) => {
+  const DECAY = -decay
+  const FACTOR = +new Decimal(0.9)
+    .pow(new Decimal(1).div(DECAY))
+    .sub(1)
+    .toFixed(8)
+  return { DECAY, FACTOR }
+}
 
 describe('FACTOR[DECAY = -0.5]', () => {
-  it('FACTOR', () => {
-    expect(19 / 81).toEqual(new Decimal(19).div(81).toNumber())
-    expect(FACTOR).toEqual(new Decimal(19).div(81).toNumber())
-    expect(FACTOR).toEqual(
-      new Decimal(0.9).pow(new Decimal(1).div(DECAY)).sub(1).toNumber()
-    )
-    expect(new Decimal(19).div(81).toNumber()).toEqual(
-      new Decimal(0.9).pow(new Decimal(1).div(DECAY)).sub(1).toNumber()
-    )
+  it('FACTOR[FSRS-5]', () => {
+    const w = [
+      0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046,
+      1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898,
+      0.51655, 0.6621,
+    ]
+    const params = generatorParameters({ w })
+    const { DECAY, FACTOR } = _computeDecayFactor(FSRS5_DEFAULT_DECAY)
+    const { decay, factor } = computeDecayFactor(params.w)
+    expect(DECAY).toEqual(decay)
+    expect(FACTOR).toEqual(factor)
+  })
+  it('FACTOR[FSRS-6]', () => {
+    const w = [
+      0.2172,
+      1.1771,
+      3.2602,
+      16.1507,
+      7.0114,
+      0.57,
+      2.0966,
+      0.0069,
+      1.5261,
+      0.112,
+      1.0178,
+      1.849,
+      0.1133,
+      0.3127,
+      2.2934,
+      0.2191,
+      3.0004,
+      0.7536,
+      0.3332,
+      0.1437,
+      FSRS6_DEFAULT_DECAY,
+    ]
+    const params = generatorParameters({ w })
+    const { DECAY, FACTOR } = _computeDecayFactor(FSRS6_DEFAULT_DECAY)
+    const { decay, factor } = computeDecayFactor(params.w)
+    expect(DECAY).toEqual(decay)
+    expect(FACTOR).toEqual(factor)
   })
 })
 
@@ -35,7 +78,7 @@ describe('forgetting_curve', () => {
   //   0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
   // ];
   const algorithm: FSRSAlgorithm = new FSRSAlgorithm(params)
-
+  const { DECAY, FACTOR } = _computeDecayFactor(algorithm.parameters.w[20])
   function forgetting_curve(elapsed_days: number, stability: number): number {
     return +new Decimal(
       new Decimal(1)
@@ -43,20 +86,18 @@ describe('forgetting_curve', () => {
         .pow(DECAY)
     ).toFixed(8)
   }
-
-  const delta_t = [0, 1, 2, 3, 4, 5]
-  const s = [1.0, 2.0, 3.0, 4.0, 4.0, 2.0]
+  // https://github.com/open-spaced-repetition/fsrs-rs/blob/3e2f0b423fed194d238cdcb55c1baccd0eca63f0/src/pre_training.rs#L289-L296
+  const delta_t = [0, 1, 2, 3]
+  const s = 1.0
   const collection: number[] = []
   const expected: number[] = []
   it('retrievability', () => {
     for (let i = 0; i < delta_t.length; i++) {
-      collection.push(algorithm.forgetting_curve(delta_t[i], s[i]))
-      expected.push(forgetting_curve(delta_t[i], s[i]))
+      collection.push(algorithm.forgetting_curve(delta_t[i], s))
+      expected.push(forgetting_curve(delta_t[i], s))
     }
     expect(collection).toEqual(expected)
-    expect(collection).toEqual([
-      1.0, 0.946059, 0.9299294, 0.92216794, 0.9, 0.79394596,
-    ])
+    expect(collection).toEqual([1.0, 0.9, 0.84028938, 0.79850017])
   })
 })
 
@@ -110,11 +151,7 @@ describe('next_ds', () => {
       function mean_reversion(init: number, current: number): number {
         const f1 = new Decimal(params.w[7]).mul(init)
         const f2 = new Decimal(1).sub(new Decimal(params.w[7])).mul(current)
-        return f1.add(f2).toNumber()
-      }
-
-      function constrain_difficulty(difficulty: number): number {
-        return Math.min(Math.max(+new Decimal(difficulty).toFixed(8), 1), 10)
+        return +f1.add(f2).toFixed(8)
       }
 
       function init_difficulty(g: number) {
@@ -134,7 +171,7 @@ describe('next_ds', () => {
       const next_d = +new Decimal(d)
         .add(linear_damping(delta_d.toNumber(), d))
         .toFixed(8)
-      return constrain_difficulty(mean_reversion(init_difficulty(4), next_d))
+      return clamp(mean_reversion(init_difficulty(4), next_d), 1, 10)
     }
 
     const collection: number[] = []
@@ -145,8 +182,10 @@ describe('next_ds', () => {
       collection.push(d)
       expected.push(expected_d)
     })
-    expect(collection).toEqual([6.60703511, 5.7994339, 4.99183271, 4.18423151])
     expect(collection).toEqual(expected)
+    expect(collection).toEqual([
+      7.296_110_45, 6.139_369_64, 4.982_628_83, 3.825_888_01,
+    ])
   })
 
   it('next_stability', () => {
@@ -187,13 +226,15 @@ describe('next_ds', () => {
     }
 
     function next_short_term_stability(s: number, g: number) {
-      return +new Decimal(s)
-        .mul(
-          new Decimal(params.w[17])
-            .mul(new Decimal(g).sub(3).add(params.w[18]))
-            .exp()
-        )
-        .toFixed(8)
+      const sinc = +new Decimal(new Decimal(s).pow(-params.w[19])).mul(
+        new Decimal(params.w[17])
+          .mul(new Decimal(g).sub(3).add(params.w[18]))
+          .exp()
+      )
+
+      const maskedSinc = g >= 3 ? Math.max(sinc, 1.0) : sinc
+
+      return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
     }
 
     function next_s(d: number, s: number, r: number, g: number) {
@@ -252,16 +293,16 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      25.77614184, 14.12189062, 60.40439635, 208.97595604,
+      25.578_480_55, 13.550_500_9, 59.868_790_8, 207.703_826_33,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.70284991, 1.97988166, 2.37599408, 2.88853913,
+      1.746_929_11, 2.031_279_47, 2.440_167_48, 2.970_743_62,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
 
     expect(s_short_collection).toEqual([
-      2.50514262, 4.19920687, 7.03885607, 11.79877447,
+      1.129_823_25, 2.400_461_97, 5.100_105_39, 10.835_862_17,
     ])
     expect(s_short_collection).toEqual(expected_s_short)
 
@@ -282,16 +323,21 @@ describe('next_interval', () => {
       (_, i) => (i + 1) / 10
     )
     const intervals: number[] = desired_retentions.map((r) =>
-      fsrs({ request_retention: r }).next_interval(1.0, 0)
+      fsrs({
+        request_retention: r,
+        maximum_interval: Number.MAX_VALUE,
+      }).next_interval(1.0, 0)
     )
-    expect(intervals).toEqual([422, 102, 43, 22, 13, 8, 4, 2, 1, 1])
+    // https://github.com/open-spaced-repetition/fsrs-rs/blob/3e2f0b423fed194d238cdcb55c1baccd0eca63f0/src/inference.rs#L548-L557
+    expect(intervals).toEqual([144193, 4505, 592, 139, 45, 17, 7, 3, 1, 1])
   })
 
   // https://github.com/open-spaced-repetition/ts-fsrs/pull/74
   it('next_ivl[max_limit]', () => {
     const params = generatorParameters({ maximum_interval: 365 })
+    const { decay, factor } = computeDecayFactor(params.w)
     const intervalModifier =
-      (Math.pow(params.request_retention, 1 / DECAY) - 1) / FACTOR
+      (Math.pow(params.request_retention, 1 / decay) - 1) / factor
     let f: FSRS = fsrs(params)
 
     const s = 737.47
@@ -367,7 +413,7 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.2,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,
@@ -412,7 +458,7 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.2,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,
@@ -521,10 +567,10 @@ describe('next_state', () => {
 
   it('clamped s', () => {
     const f = fsrs()
-    const state = { difficulty: 9.98210112, stability: 0.01020119 }
+    const state = { difficulty: 9.98210112, stability: 0.00102011 }
 
     const newState = f.next_state(state, 1, 1)
 
-    expect(newState.stability).toBeGreaterThanOrEqual(0.01)
+    expect(newState.stability).toBeGreaterThanOrEqual(S_MIN)
   })
 })
