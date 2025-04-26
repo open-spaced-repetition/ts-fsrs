@@ -69,10 +69,10 @@ export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
   const num_learning_steps = Number.isFinite(props?.num_learning_steps)
-    ? props!.num_learning_steps!
+    ? Math.max(0, props!.num_learning_steps!)
     : default_num_learning_steps
   const num_relearning_steps = Number.isFinite(props?.num_relearning_steps)
-    ? props!.num_relearning_steps!
+    ? Math.max(0, props!.num_relearning_steps!)
     : default_num_relearning_steps
   const w = clipParameters(migrateParameters(props?.w), num_relearning_steps)
   return {
