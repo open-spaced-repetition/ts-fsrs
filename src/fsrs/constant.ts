@@ -7,7 +7,7 @@ export const default_enable_short_term = true
 export const default_num_learning_steps = 2 // New->Learning,Learning->Learning
 export const default_num_relearning_steps = 1 // Relearning->Relearning
 
-export const FSRSVersion: string = `v${version} using FSRS-5.0`
+export const FSRSVersion: string = `v${version} using FSRS-6.0`
 
 export const S_MIN = 0.001
 export const S_MAX = 36500.0
