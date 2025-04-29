@@ -5,6 +5,7 @@ import {
   Rating,
   State,
 } from '../../src/fsrs'
+import { GradeType, StepUnit } from '../../src/fsrs/models'
 
 describe('ConvertStepUnitToMinutes', () => {
   it('1m', () => {
@@ -31,7 +32,7 @@ describe('ConvertStepUnitToMinutes', () => {
   })
 })
 
-describe('LearningStepsStrategy', () => {
+describe('learning_steps', () => {
   it(`learning_steps = ['1m', '10m']`, () => {
     const params = generatorParameters({
       learning_steps: ['1m', '10m'],
@@ -60,6 +61,180 @@ describe('LearningStepsStrategy', () => {
     })
   })
 
+  it(`learning_steps = [{ Again: '5m', Hard: '10m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({})
+  })
+
+  it(`learning_steps = [{ Again: '5m', Hard: '10m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '7m',
+      Good: '30m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 7, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 30, next_step: 2 },
+    })
+  })
+
+  it(`learning_steps = [{ Again: '5m', Hard: '10m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({})
+  })
+
+  it(`learning_steps = [
+    { Again: '5m', Hard: '10m', Good: '15m' }, 
+    { Again: '1m', Hard: '7m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '7m',
+      Good: '30m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 7, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 30, next_step: 2 },
+    })
+  })
+
+  it(`learning_steps = [
+    '1m', 
+    { Again: '1m', Hard: '2m', Good: '15m' }]`, () => {
+    const step1: StepUnit = '1m'
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '2m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 8, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 2 },
+    })
+  })
+
+  it(`learning_steps = [
+    '1m', 
+    { Again: '1m', Hard: '2m', Good: '15m' }]`, () => {
+    const step1: StepUnit = '1m'
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '2m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      learning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 8, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 2 },
+    })
+  })
+})
+
+describe('relearning_steps', () => {
   it(`relearning_steps = ['10m']`, () => {
     const params = generatorParameters({
       relearning_steps: ['10m'],
@@ -87,6 +262,204 @@ describe('LearningStepsStrategy', () => {
       State.Relearning,
       Number.MAX_VALUE
     )
+
+    expect(result).toEqual({})
+  })
+
+  it(`relearning_steps = ['10m', '20m']`, () => {
+    const params = generatorParameters({
+      relearning_steps: ['10m', '20m'],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 10, next_step: 0 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 15, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 20, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 2)
+    expect(result).toEqual({})
+  })
+
+  it(`relearning_steps = [{ Again: '5m', Hard: '10m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      relearning_steps: [step1],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
+
+    expect(result).toEqual({})
+  })
+
+  it(`relearning_steps = [
+    { Again: '5m', Hard: '10m', Good: '15m' }, 
+    { Again: '1m', Hard: '7m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '10m',
+      Good: '15m',
+    }
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '7m',
+      Good: '30m',
+    }
+    const params = generatorParameters({
+      relearning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 10, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 7, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 30, next_step: 2 },
+    })
+  })
+
+  it(`relearning_steps = [
+    '1m', 
+    { Again: '1m', Hard: '2m', Good: '15m' }]`, () => {
+    const step1: StepUnit = '1m'
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '2m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      relearning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+    })
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 8, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 2 },
+    })
+  })
+
+  it(`relearning_steps = [
+    '1m', 
+    { Again: '1m', Hard: '2m', Good: '15m' }]`, () => {
+    const step1: StepUnit = '1m'
+    const step2: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '2m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      relearning_steps: [step1, step2],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 8, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 1 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 2 },
+    })
+  })
+
+  it(`relearning_steps = [
+    { Again: '1m', Hard: '2m', Good: '15m' }]`, () => {
+    const step1: { [K in GradeType]?: StepUnit } = {
+      Again: '1m',
+      Hard: '2m',
+      Good: '15m',
+    }
+    const params = generatorParameters({
+      relearning_steps: [step1],
+    })
+
+    let result = DefaultLearningStepsStrategy(params, State.Review, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 0 },
+      [Rating.Good]: { scheduled_minutes: 15, next_step: 1 },
+    })
+
+    result = DefaultLearningStepsStrategy(params, State.Relearning, 1)
 
     expect(result).toEqual({})
   })

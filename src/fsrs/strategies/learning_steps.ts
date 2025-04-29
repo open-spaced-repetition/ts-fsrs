@@ -88,17 +88,31 @@ export const DefaultLearningStepsStrategy: TLearningStepsStrategy = (
 
   const result: ReturnType<TLearningStepsStrategy> = {}
   const step_info = getStepInfo(Math.max(0, cur_step))
+  if (state === State.Review) {
+    if (typeof step_info === 'string') {
+      result[Rating.Again] = {
+        scheduled_minutes: toMinutes(step_info),
+        next_step: 0,
+      }
+    } else {
+      const step = getExtraStepInfo(step_info)[Rating.Again]
+      result[Rating.Again] = {
+        scheduled_minutes: step ?? 0,
+        next_step: 0,
+      }
+    }
+    return result
+  }
 
   if (typeof step_info === 'string') {
     result[Rating.Again] = {
       scheduled_minutes: getAgainInterval(),
       next_step: 0,
     }
-    if (state !== State.Review) {
-      result[Rating.Hard] = {
-        scheduled_minutes: getHardInterval(),
-        next_step: cur_step,
-      }
+
+    result[Rating.Hard] = {
+      scheduled_minutes: getHardInterval(),
+      next_step: cur_step,
     }
 
     if (cur_step + 1 < steps_length) {
@@ -123,17 +137,5 @@ export const DefaultLearningStepsStrategy: TLearningStepsStrategy = (
       }
     }
   }
-
-  if (state === State.Review && typeof step_info !== 'string') {
-    if (step_info['Again']) {
-      return {
-        [Rating.Again]: {
-          scheduled_minutes: toMinutes(step_info['Again']),
-          next_step: 0,
-        },
-      }
-    }
-  }
-
   return result
 }
