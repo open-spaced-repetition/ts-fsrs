@@ -31,6 +31,7 @@ import {
   type TStrategyHandler,
   TLearningStepsStrategy,
 } from './strategies/types'
+import { DefaultLearningStepsStrategy } from './strategies/learning_steps'
 
 export class FSRS extends FSRSAlgorithm {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
@@ -103,9 +104,10 @@ export class FSRS extends FSRSAlgorithm {
 
     const Scheduler = schedulerStrategy || this.Scheduler
     const Seed = seedStrategy || DefaultInitSeedStrategy
+    const LearningSteps = learningStepsStrategy || DefaultLearningStepsStrategy
     const instance = new Scheduler(card, now, this, {
       seed: Seed,
-      learningSteps: learningStepsStrategy,
+      learningSteps: LearningSteps,
     })
 
     return instance

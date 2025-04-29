@@ -12,6 +12,20 @@ import {
 import type { int } from '../types'
 
 export default class BasicScheduler extends AbstractScheduler {
+  private getLearningMinutes(card: Card, grade: Grade) {
+    const parameters = this.algorithm.parameters
+    const steps_strategy = this.learningStepsStrategy?.(
+      parameters,
+      card.state,
+      card.learning_steps
+    )
+    const scheduled_minutes = Math.max(
+      0,
+      steps_strategy?.[grade]?.scheduled_minutes ?? 0
+    )
+    return scheduled_minutes
+  }
+
   protected override newState(grade: Grade): RecordLogItem {
     const exist = this.next.get(grade)
     if (exist) {
@@ -21,35 +35,34 @@ export default class BasicScheduler extends AbstractScheduler {
     next.difficulty = this.algorithm.init_difficulty(grade)
     next.stability = this.algorithm.init_stability(grade)
 
-    switch (grade) {
-      case Rating.Again:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(1 as int)
-        next.state = State.Learning
-        break
-      case Rating.Hard:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(5 as int)
-        next.state = State.Learning
-        break
-      case Rating.Good:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(10 as int)
-        next.state = State.Learning
-        break
-      case Rating.Easy: {
-        const easy_interval = this.algorithm.next_interval(
+    const scheduled_minutes = this.getLearningMinutes(this.current, grade)
+    if (scheduled_minutes > 0 && scheduled_minutes < 1440 /** 1d */) {
+      next.learning_steps = this.current.learning_steps + 1
+      next.scheduled_days = 0
+      next.state = State.Learning
+      next.due = this.review_time.scheduler(
+        Math.round(scheduled_minutes) as int,
+        next.learning_steps === 0 /** true:days false: minute */
+      )
+    } else {
+      next.learning_steps = 0
+      next.state = State.Review
+      if (scheduled_minutes >= 1440) {
+        next.due = this.review_time.scheduler(
+          Math.round(scheduled_minutes) as int,
+          false /** true:days false: minute */
+        )
+        next.scheduled_days = Math.floor(scheduled_minutes / 1440)
+      } else {
+        const interval = this.algorithm.next_interval(
           next.stability,
           this.current.elapsed_days
         )
-        next.scheduled_days = easy_interval
-        next.due = this.review_time.scheduler(easy_interval as int, true)
-        next.state = State.Review
-        break
+        next.scheduled_days = interval
+        next.due = this.review_time.scheduler(interval as int, true)
       }
-      default:
-        throw new Error('Invalid grade')
     }
+
     const item = {
       card: next,
       log: this.buildLog(grade),
@@ -68,51 +81,34 @@ export default class BasicScheduler extends AbstractScheduler {
     const interval = this.current.elapsed_days
     next.difficulty = this.algorithm.next_difficulty(difficulty, grade)
     next.stability = this.algorithm.next_short_term_stability(stability, grade)
+    const scheduled_minutes = this.getLearningMinutes(this.current, grade)
 
-    switch (grade) {
-      case Rating.Again: {
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(5 as int, false)
-        next.state = state
-        break
-      }
-      case Rating.Hard: {
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(10 as int)
-        next.state = state
-        break
-      }
-      case Rating.Good: {
-        const good_interval = this.algorithm.next_interval(
+    if (scheduled_minutes > 0 && scheduled_minutes < 1440 /** 1d */) {
+      next.learning_steps = this.current.learning_steps + 1
+      next.scheduled_days = 0
+      next.state = state // learning or relearning
+      next.due = this.review_time.scheduler(
+        Math.round(scheduled_minutes) as int,
+        false /** true:days false: minute */
+      )
+    } else {
+      if (scheduled_minutes >= 1440) {
+        next.due = this.review_time.scheduler(
+          Math.round(scheduled_minutes) as int,
+          true /** true:days false: minute */
+        )
+        next.scheduled_days = Math.floor(scheduled_minutes / 1440)
+      } else {
+        const next_interval = this.algorithm.next_interval(
           next.stability,
           interval
         )
-        next.scheduled_days = good_interval
-        next.due = this.review_time.scheduler(good_interval as int, true)
-        next.state = State.Review
-        break
+        next.scheduled_days = next_interval
+        next.due = this.review_time.scheduler(next_interval as int, true)
       }
-      case Rating.Easy: {
-        const good_stability = this.algorithm.next_short_term_stability(
-          stability,
-          Rating.Good
-        )
-        const good_interval = this.algorithm.next_interval(
-          good_stability,
-          interval
-        )
-        const easy_interval = Math.max(
-          this.algorithm.next_interval(next.stability, interval),
-          good_interval + 1
-        ) as int
-        next.scheduled_days = easy_interval
-        next.due = this.review_time.scheduler(easy_interval as int, true)
-        next.state = State.Review
-        break
-      }
-      default:
-        throw new Error('Invalid grade')
+      next.state = State.Review
     }
+
     const item = {
       card: next,
       log: this.buildLog(grade),
@@ -251,8 +247,33 @@ export default class BasicScheduler extends AbstractScheduler {
       this.algorithm.next_interval(next_easy.stability, interval),
       good_interval + 1
     ) as int
-    next_again.scheduled_days = 0
-    next_again.due = this.review_time.scheduler(5 as int)
+
+    const scheduled_minutes = this.getLearningMinutes(
+      this.current,
+      Rating.Again
+    )
+    if (scheduled_minutes > 0 && scheduled_minutes < 1440 /** 1d */) {
+      next_again.scheduled_days = 0
+      next_again.due = this.review_time.scheduler(
+        scheduled_minutes as int,
+        false
+      )
+    } else {
+      if (scheduled_minutes >= 1440) {
+        next_again.due = this.review_time.scheduler(
+          Math.round(scheduled_minutes) as int,
+          true /** true:days false: minute */
+        )
+        next_again.scheduled_days = Math.floor(scheduled_minutes / 1440)
+      } else {
+        const next_interval = this.algorithm.next_interval(
+          next_again.stability,
+          interval
+        )
+        next_again.scheduled_days = next_interval
+        next_again.due = this.review_time.scheduler(next_interval as int, true)
+      }
+    }
 
     next_hard.scheduled_days = hard_interval
     next_hard.due = this.review_time.scheduler(hard_interval, true)
@@ -272,13 +293,21 @@ export default class BasicScheduler extends AbstractScheduler {
     next_good: Card,
     next_easy: Card
   ) {
-    next_again.state = State.Relearning
+    if (next_again.scheduled_days > 0) {
+      next_again.state = State.Review
+    } else {
+      next_again.state = State.Relearning
+    }
     // next_again.lapses += 1
+    next_again.learning_steps = 0
 
     next_hard.state = State.Review
+    next_hard.learning_steps = 0
 
     next_good.state = State.Review
+    next_good.learning_steps = 0
 
     next_easy.state = State.Review
+    next_easy.learning_steps = 0
   }
 }
