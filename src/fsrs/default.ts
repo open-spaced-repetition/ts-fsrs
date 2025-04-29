@@ -6,8 +6,8 @@ import {
   default_enable_fuzz,
   default_enable_short_term,
   default_maximum_interval,
-  default_num_learning_steps,
-  default_num_relearning_steps,
+  default_learning_steps,
+  default_relearning_steps,
   default_request_retention,
   default_w,
   FSRS5_DEFAULT_DECAY,
@@ -68,21 +68,21 @@ export const migrateParameters = (
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  const num_learning_steps = Number.isFinite(props?.num_learning_steps)
-    ? Math.max(0, props!.num_learning_steps!)
-    : default_num_learning_steps
-  const num_relearning_steps = Number.isFinite(props?.num_relearning_steps)
-    ? Math.max(0, props!.num_relearning_steps!)
-    : default_num_relearning_steps
-  const w = clipParameters(migrateParameters(props?.w), num_relearning_steps)
+  const learning_steps = Array.isArray(props?.learning_steps)
+    ? props!.learning_steps
+    : default_learning_steps
+  const relearning_steps = Array.isArray(props?.relearning_steps)
+    ? props!.relearning_steps
+    : default_relearning_steps
+  const w = clipParameters(migrateParameters(props?.w), relearning_steps.length)
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
     enable_short_term: props?.enable_short_term ?? default_enable_short_term,
-    num_learning_steps: num_learning_steps,
-    num_relearning_steps: num_relearning_steps,
+    learning_steps: learning_steps,
+    relearning_steps: relearning_steps,
   } satisfies FSRSParameters
 }
 
@@ -128,6 +128,7 @@ export function createEmptyCard<R = Card>(
     scheduled_days: 0,
     reps: 0,
     lapses: 0,
+    learning_steps: 0,
     state: State.New,
     last_review: undefined,
   }

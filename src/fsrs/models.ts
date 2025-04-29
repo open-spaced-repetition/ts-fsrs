@@ -19,6 +19,7 @@ export enum Rating {
 
 type ExcludeManual<T> = Exclude<T, Rating.Manual>
 
+export type GradeType = Exclude<RatingType, 'Manual'>
 export type Grade = ExcludeManual<Rating>
 
 export interface ReviewLog {
@@ -30,6 +31,7 @@ export interface ReviewLog {
   elapsed_days: number // Number of days elapsed since the last review
   last_elapsed_days: number // Number of days between the last two reviews
   scheduled_days: number // Number of days until the next review
+  learning_steps: number // Keep track of the current step during the (re)learning stage
   review: Date // Date of the review
 }
 
@@ -49,6 +51,7 @@ export interface Card {
   scheduled_days: number // Number of days scheduled
   reps: number // Repetition count
   lapses: number // Number of lapses or mistakes
+  learning_steps: number // Keep track of the current step during the (re)learning stage
   state: State // Card's state (New, Learning, Review, Relearning)
   last_review?: Date // Date of the last review (optional)
 }
@@ -60,6 +63,29 @@ export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
 }
 
 export type DateInput = Date | number | string
+export type timeUnit = 'm' | 'h' | 'd'
+export type StepUnit = `${number}${timeUnit}`
+/**
+ * (re)Learning steps:
+ * [1m, 10m]
+ * step1:again=1m hard=6m good=10m
+ * step2(good): again=1m hard=10m
+ *
+ * [5m]
+ * step1:again=5m hard=8m
+ * step2(good): again=5m
+ * step2(hard): again=5m hard=10m
+ *
+ * []
+ * step: Managed by FSRS
+ *
+ * [{'Again':'5m'}]
+ * step1: again=5m
+ * step2(good): Managed by FSRS
+ */
+export type Steps =
+  | (StepUnit | { [K in GradeType]?: StepUnit })[]
+  | readonly (StepUnit | { [K in GradeType]?: StepUnit })[]
 
 export interface ReviewLogInput
   extends Omit<ReviewLog, 'rating' | 'state' | 'due' | 'review'> {
@@ -75,9 +101,8 @@ export interface FSRSParameters {
   w: number[] | readonly number[]
   enable_fuzz: boolean
   enable_short_term: boolean
-  // @TODO
-  num_learning_steps: number
-  num_relearning_steps: number
+  learning_steps: Steps
+  relearning_steps: Steps
 }
 
 export interface FSRSReview {

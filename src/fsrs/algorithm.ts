@@ -109,7 +109,7 @@ export class FSRSAlgorithm {
         } else if (prop === 'w') {
           value = clipParameters(
             migrateParameters(value as FSRSParameters['w']),
-            target.num_relearning_steps
+            target.relearning_steps.length
           )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
           _this.intervalModifier = _this.calculate_interval_modifier(

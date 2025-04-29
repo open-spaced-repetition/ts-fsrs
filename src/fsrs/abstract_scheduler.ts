@@ -12,7 +12,7 @@ import {
   type DateInput,
 } from './models'
 import { DefaultInitSeedStrategy } from './strategies'
-import type { TSeedStrategy } from './strategies/types'
+import type { TLearningStepsStrategy, TSeedStrategy } from './strategies/types'
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
@@ -22,6 +22,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected next: Map<Grade, RecordLogItem> = new Map()
   protected algorithm: FSRSAlgorithm
   private initSeedStrategy: TSeedStrategy
+  protected learningStepsStrategy?: TLearningStepsStrategy
 
   constructor(
     card: CardInput | Card,
@@ -29,17 +30,24 @@ export abstract class AbstractScheduler implements IScheduler {
     algorithm: FSRSAlgorithm,
     strategies: {
       seed: TSeedStrategy
+      learningSteps?: TLearningStepsStrategy
     } = {
       seed: DefaultInitSeedStrategy,
     }
   ) {
     this.algorithm = algorithm
     this.initSeedStrategy = strategies.seed.bind(this)
-
+    this.learningStepsStrategy = strategies.learningSteps
     this.last = TypeConvert.card(card)
     this.current = TypeConvert.card(card)
     this.review_time = TypeConvert.time(now)
     this.init()
+  }
+
+  protected checkGrade(grade: Grade): void {
+    if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
+      throw new Error(`Invalid grade "${grade}"`)
+    }
   }
 
   private init() {
@@ -73,6 +81,7 @@ export abstract class AbstractScheduler implements IScheduler {
   public review(grade: Grade): RecordLogItem {
     const { state } = this.last
     let item: RecordLogItem | undefined
+    this.checkGrade(grade)
     switch (state) {
       case State.New:
         item = this.newState(grade)
@@ -109,6 +118,7 @@ export abstract class AbstractScheduler implements IScheduler {
       elapsed_days: this.current.elapsed_days,
       last_elapsed_days: elapsed_days,
       scheduled_days: this.current.scheduled_days,
+      learning_steps: this.current.learning_steps,
       review: this.review_time,
     } satisfies ReviewLog
   }

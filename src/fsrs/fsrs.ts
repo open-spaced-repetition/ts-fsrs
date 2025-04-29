@@ -29,6 +29,7 @@ import {
   type TSeedStrategy,
   type TSchedulerStrategy,
   type TStrategyHandler,
+  TLearningStepsStrategy,
 } from './strategies/types'
 
 export class FSRS extends FSRSAlgorithm {
@@ -57,7 +58,7 @@ export class FSRS extends FSRSAlgorithm {
         } else if (prop === 'w') {
           value = clipParameters(
             migrateParameters(value as FSRSParameters['w']),
-            target.num_relearning_steps
+            target.relearning_steps.length
           )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
           _this.intervalModifier = _this.calculate_interval_modifier(
@@ -91,6 +92,9 @@ export class FSRS extends FSRSAlgorithm {
     const seedStrategy = this.strategyHandler.get(StrategyMode.SEED) as
       | TSeedStrategy
       | undefined
+    const learningStepsStrategy = this.strategyHandler.get(
+      StrategyMode.LEARNING_STEPS
+    ) as TLearningStepsStrategy | undefined
 
     // Strategy scheduler
     const schedulerStrategy = this.strategyHandler.get(
@@ -101,6 +105,7 @@ export class FSRS extends FSRSAlgorithm {
     const Seed = seedStrategy || DefaultInitSeedStrategy
     const instance = new Scheduler(card, now, this, {
       seed: Seed,
+      learningSteps: learningStepsStrategy,
     })
 
     return instance
@@ -343,6 +348,7 @@ export class FSRS extends FSRSAlgorithm {
       scheduled_days: processedLog.scheduled_days,
       reps: Math.max(0, processedCard.reps - 1),
       lapses: Math.max(0, last_lapses),
+      learning_steps: processedLog.learning_steps,
       state: processedLog.state,
       last_review: last_review,
     }
@@ -424,6 +430,7 @@ export class FSRS extends FSRSAlgorithm {
       difficulty: processedCard.difficulty,
       elapsed_days: 0,
       last_elapsed_days: processedCard.elapsed_days,
+      learning_steps: processedCard.learning_steps,
       scheduled_days: scheduled_days,
       review: now,
     }
@@ -436,6 +443,7 @@ export class FSRS extends FSRSAlgorithm {
       scheduled_days: 0,
       reps: reset_count ? 0 : processedCard.reps,
       lapses: reset_count ? 0 : processedCard.lapses,
+      learning_steps: 0,
       state: State.New,
       last_review: processedCard.last_review,
     }
