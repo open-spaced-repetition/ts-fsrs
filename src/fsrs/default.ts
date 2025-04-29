@@ -66,7 +66,7 @@ export const migrateParameters = (
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  const w = clipParameters(migrateParameters(props?.w), 0/** @TODO */)
+  const w = clipParameters(migrateParameters(props?.w), 0 /** @TODO */)
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
