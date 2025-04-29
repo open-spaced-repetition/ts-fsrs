@@ -65,7 +65,7 @@ export const DefaultLearningStepsStrategy: TLearningStepsStrategy = (
       const nextMin =
         typeof next === 'string'
           ? toMinutes(next)
-          : getExtraStepInfo(next)[Rating.Hard]
+          : getExtraStepInfo(next)[Rating.Good]
       return nextMin
         ? Math.round((toMinutes(firstStep) + nextMin) / 2)
         : Math.round(toMinutes(firstStep) * 1.5)
