@@ -25,6 +25,7 @@ type reviewState = {
   lapses: number
   elapsed_days: number
   scheduled_days: number
+  learning_steps: number
 }
 
 const MOCK_NOW = new Date(1723338000000 /**2024, 7, 11, 1, 0, 0 UTC**/)
@@ -64,6 +65,7 @@ function experiment(
                 : 0,
             reps: state[index - 1].reps,
             lapses: state[index - 1].lapses,
+            learning_steps: state[index - 1].learning_steps,
             state: state[index - 1].state,
             last_review: state[index - 1].review,
           }
@@ -88,6 +90,7 @@ function experiment(
                 elapsed_days: state[index - 1].elapsed_days,
                 last_elapsed_days: state[index - 1].elapsed_days,
                 scheduled_days: state[index - 1].scheduled_days,
+                learning_steps: state[index - 1].learning_steps,
                 review: review.review,
               }
             : {
@@ -99,6 +102,7 @@ function experiment(
                 elapsed_days: 0,
                 last_elapsed_days: 0,
                 scheduled_days: 0,
+                learning_steps: 0,
                 review: review.review,
               }
           card = createEmptyCard(review.review)
@@ -117,6 +121,7 @@ function experiment(
             lapses: card.lapses,
             elapsed_days: card.elapsed_days,
             scheduled_days: card.scheduled_days,
+            learning_steps: card.learning_steps,
           } satisfies reviewState,
         ]
       }
@@ -280,6 +285,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
+        learning_steps: 0,
         state: 2,
         last_review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
       },
@@ -292,6 +298,7 @@ describe('FSRS reschedule', () => {
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 20,
+        learning_steps: 0,
         review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
       },
     }
@@ -305,6 +312,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 25,
         reps: 4,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
       },
@@ -317,6 +325,7 @@ describe('FSRS reschedule', () => {
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 21,
+        learning_steps: 0,
         review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
       },
     }
@@ -355,6 +364,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
       },
@@ -367,6 +377,7 @@ describe('FSRS reschedule', () => {
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 20,
+        learning_steps: 0,
         review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
       },
     }
@@ -379,6 +390,7 @@ describe('FSRS reschedule', () => {
       scheduled_days: 2,
       reps: 5,
       lapses: 0,
+      learning_steps: 0,
       state: State.Review,
       last_review: new Date(1725584400000 /**'2024-08-15T01:00:00.000Z'*/),
     }
@@ -418,6 +430,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 28,
         reps: 4,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       },
@@ -430,6 +443,7 @@ describe('FSRS reschedule', () => {
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 24,
+        learning_steps: 0,
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
       },
     }
@@ -576,6 +590,7 @@ describe('FSRS reschedule', () => {
       scheduled_days: 11,
       reps: 5,
       lapses: 0,
+      learning_steps: 0,
       state: State.Review,
       last_review: Date.UTC(2024, 9, 27, 0, 0, 0),
     }

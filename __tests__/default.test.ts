@@ -4,7 +4,6 @@ import {
   fsrs,
   FSRS5_DEFAULT_DECAY,
   generatorParameters,
-  W17_W18_Ceiling,
 } from '../src/fsrs'
 
 describe('default params', () => {
@@ -90,7 +89,7 @@ describe('default params', () => {
     w[18] = Number.MAX_VALUE
     const params = generatorParameters({
       w: w,
-      num_relearning_steps: 2,
+      relearning_steps: ['10m', '15m'],
     })
     expect(params.w[17]).toEqual(0.05801436)
     expect(params.w[18]).toEqual(0.05801436)
