@@ -4,8 +4,6 @@ export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
-export const default_num_learning_steps = 2 // New->Learning,Learning->Learning
-export const default_num_relearning_steps = 1 // Relearning->Relearning
 
 export const FSRSVersion: string = `v${version} using FSRS-6.0`
 

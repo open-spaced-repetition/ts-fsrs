@@ -1,4 +1,6 @@
 import {
+  CLAMP_PARAMETERS,
+  clipParameters,
   createEmptyCard,
   default_w,
   fsrs,
@@ -88,12 +90,9 @@ describe('default params', () => {
     const w = [...default_w]
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
-    const params = generatorParameters({
-      w: w,
-      num_relearning_steps: 2,
-    })
-    expect(params.w[17]).toEqual(0.05801436)
-    expect(params.w[18]).toEqual(0.05801436)
+    const params = clipParameters(w, 2)
+    expect(params[17]).toEqual(0.05801436)
+    expect(params[18]).toEqual(0.05801436)
   })
 })
 
