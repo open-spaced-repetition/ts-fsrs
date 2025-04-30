@@ -14,7 +14,7 @@ import { S_MIN } from './constant'
  * $$\text{factor} = e^{\frac{\ln 0.9}{\text{decay}}} - 1$$
  */
 export const computeDecayFactor = (
-  decayOrParams: number | number[] | readonly number[],
+  decayOrParams: number | number[] | readonly number[]
 ) => {
   const decay =
     typeof decayOrParams === 'number' ? -decayOrParams : -decayOrParams[20]
