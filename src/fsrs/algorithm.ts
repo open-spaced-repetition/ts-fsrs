@@ -14,9 +14,10 @@ import { S_MIN } from './constant'
  * $$\text{factor} = e^{\frac{\ln 0.9}{\text{decay}}} - 1$$
  */
 export const computeDecayFactor = (
-  parameters: number[] | readonly number[]
+  decayOrParams: number[] | readonly number[] | number
 ) => {
-  const decay = -parameters[20]
+  const decay =
+    typeof decayOrParams === 'number' ? -decayOrParams : -decayOrParams[20]
   const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1.0
   return { decay, factor: +factor.toFixed(8) }
 }
@@ -29,11 +30,21 @@ export const computeDecayFactor = (
  * @return {number} r Retrievability (probability of recall)
  */
 export function forgetting_curve(
+  decay: number,
+  elapsed_days: number,
+  stability: number
+): number
+export function forgetting_curve(
   parameters: number[] | readonly number[],
   elapsed_days: number,
   stability: number
+): number
+export function forgetting_curve(
+  decayOrParams: number | number[] | readonly number[],
+  elapsed_days: number,
+  stability: number
 ): number {
-  const { decay, factor } = computeDecayFactor(parameters)
+  const { decay, factor } = computeDecayFactor(decayOrParams)
   return +Math.pow(1 + (factor * elapsed_days) / stability, decay).toFixed(8)
 }
 
