@@ -15,6 +15,7 @@ import {
   Grades,
   Rating,
   S_MIN,
+  forgetting_curve as fsrs_forgetting_curve,
 } from '../src/fsrs'
 import Decimal from 'decimal.js'
 const _computeDecayFactor = (decay: number) => {
@@ -38,6 +39,9 @@ describe('FACTOR[DECAY = -0.5]', () => {
     const { decay, factor } = computeDecayFactor(params.w)
     expect(DECAY).toEqual(decay)
     expect(FACTOR).toEqual(factor)
+    expect(computeDecayFactor(params.w)).toEqual(
+      computeDecayFactor(FSRS5_DEFAULT_DECAY)
+    )
   })
   it('FACTOR[FSRS-6]', () => {
     const w = [
@@ -68,6 +72,9 @@ describe('FACTOR[DECAY = -0.5]', () => {
     const { decay, factor } = computeDecayFactor(params.w)
     expect(DECAY).toEqual(decay)
     expect(FACTOR).toEqual(factor)
+    expect(computeDecayFactor(params.w)).toEqual(
+      computeDecayFactor(FSRS6_DEFAULT_DECAY)
+    )
   })
 })
 
@@ -91,13 +98,21 @@ describe('forgetting_curve', () => {
   const s = 1.0
   const collection: number[] = []
   const expected: number[] = []
+  const expected_using_decay: number[] = []
+  const expected_using_params: number[] = []
   it('retrievability', () => {
     for (let i = 0; i < delta_t.length; i++) {
       collection.push(algorithm.forgetting_curve(delta_t[i], s))
       expected.push(forgetting_curve(delta_t[i], s))
+      expected_using_decay.push(
+        fsrs_forgetting_curve(params.w[20], delta_t[i], s)
+      )
+      expected_using_params.push(fsrs_forgetting_curve(params.w, delta_t[i], s))
     }
     expect(collection).toEqual(expected)
     expect(collection).toEqual([1.0, 0.9, 0.84028938, 0.79850017])
+    expect(collection).toEqual(expected_using_decay)
+    expect(collection).toEqual(expected_using_params)
   })
 })
 
