@@ -1,4 +1,5 @@
 export * from './default'
+export * from './constant'
 export * from './help'
 export * from './algorithm'
 export * from './fsrs'

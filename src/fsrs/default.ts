@@ -1,62 +1,72 @@
 import { Card, DateInput, FSRSParameters, State } from './models'
 import { TypeConvert } from './convert'
-import { version } from '../../package.json'
 import { clamp } from './help'
+import {
+  CLAMP_PARAMETERS,
+  default_enable_fuzz,
+  default_enable_short_term,
+  default_maximum_interval,
+  default_request_retention,
+  default_w,
+  FSRS5_DEFAULT_DECAY,
+  W17_W18_Ceiling,
+} from './constant'
 
-export const default_request_retention = 0.9
-export const default_maximum_interval = 36500
-export const default_w = Object.freeze([
-  0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
-  0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
-  0.6621,
-]) satisfies readonly number[]
-export const default_enable_fuzz = false
-export const default_enable_short_term = true
+export const clipParameters = (
+  parameters: number[],
+  numRelearningSteps: number
+) => {
+  let w17_w18_ceiling = W17_W18_Ceiling
+  if (Math.max(0, numRelearningSteps) > 1) {
+    // PLS = w11 * D ^ -w12 * [(S + 1) ^ w13 - 1] * e ^ (w14 * (1 - R))
+    // PLS * e ^ (num_relearning_steps * w17 * w18) should be <= S
+    // Given D = 1, R = 0.7, S = 1, PLS is equal to w11 * (2 ^ w13 - 1) * e ^ (w14 * 0.3)
+    // So num_relearning_steps * w17 * w18 + ln(w11) + ln(2 ^ w13 - 1) + w14 * 0.3 should be <= ln(1)
+    // => num_relearning_steps * w17 * w18 <= - ln(w11) - ln(2 ^ w13 - 1) - w14 * 0.3
+    // => w17 * w18 <= -[ln(w11) + ln(2 ^ w13 - 1) + w14 * 0.3] / num_relearning_steps
+    const value =
+      -(
+        Math.log(parameters[11]) +
+        Math.log(Math.pow(2.0, parameters[13]) - 1.0) +
+        parameters[14] * 0.3
+      ) / numRelearningSteps
 
-export const FSRSVersion: string = `v${version} using FSRS-5.0`
+    w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2.0)
+  }
+  const clip = CLAMP_PARAMETERS(w17_w18_ceiling)
+  return clip.map(([min, max], index) => clamp(parameters[index], min, max))
+}
 
-export const S_MIN = 0.01
-export const INIT_S_MAX = 100.0
-export const CLAMP_PARAMETERS = Object.freeze([
-  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Again) */,
-  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Hard) */,
-  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Good) */,
-  Object.freeze([S_MIN, INIT_S_MAX]) /** initial stability (Easy) */,
-  Object.freeze([1.0, 10.0]) /** initial difficulty (Good) */,
-  Object.freeze([0.001, 4.0]) /** initial difficulty (multiplier) */,
-  Object.freeze([0.001, 4.0]) /** difficulty (multiplier) */,
-  Object.freeze([0.001, 0.75]) /** difficulty (multiplier) */,
-  Object.freeze([0.0, 4.5]) /** stability (exponent) */,
-  Object.freeze([0.0, 0.8]) /** stability (negative power) */,
-  Object.freeze([0.001, 3.5]) /** stability (exponent) */,
-  Object.freeze([0.001, 5.0]) /** fail stability (multiplier) */,
-  Object.freeze([0.001, 0.25]) /** fail stability (negative power) */,
-  Object.freeze([0.001, 0.9]) /** fail stability (power) */,
-  Object.freeze([0.0, 4.0]) /** fail stability (exponent) */,
-  Object.freeze([0.0, 1.0]) /** stability (multiplier for Hard) */,
-  Object.freeze([1.0, 6.0]) /** stability (multiplier for Easy) */,
-  Object.freeze([0.0, 2.0]) /** short-term stability (exponent) */,
-  Object.freeze([0.0, 2.0]) /** short-term stability (exponent) */,
-]) as readonly (readonly [number /** min */, number /** max */])[]
+export const migrateParameters = (
+  parameters?: number[] | readonly number[]
+) => {
+  if (parameters === undefined) {
+    return [...default_w]
+  }
+  switch (parameters.length) {
+    case 21:
+      return [...parameters]
+    case 19:
+      console.debug('[FSRS-6]auto fill w from 19 to 21 length')
+      return [...parameters, 0.0, FSRS5_DEFAULT_DECAY]
+    case 17: {
+      const w = [...parameters]
+      w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
+      w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
+      w[6] = +(w[6] + 0.5).toFixed(8)
+      console.debug('[FSRS-6]auto fill w from 17 to 21 length')
+      return w.concat([0.0, 0.0, 0.0, FSRS5_DEFAULT_DECAY])
+    }
+    default:
+      console.warn('[FSRS]Invalid parameters length, using default parameters')
+      return [...default_w]
+  }
+}
 
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  let w: number[] = [...default_w]
-  if (props?.w) {
-    if (props.w.length === 19) {
-      w = [...props.w]
-    } else if (props.w.length === 17) {
-      w = props?.w.concat([0.0, 0.0])
-      w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
-      w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
-      w[6] = +(w[6] + 0.5).toFixed(8)
-      console.debug('[FSRS V5]auto fill w to 19 length')
-    }
-  }
-  w = w.map((w, index) =>
-    clamp(w, CLAMP_PARAMETERS[index][0], CLAMP_PARAMETERS[index][1])
-  )
+  const w = clipParameters(migrateParameters(props?.w), 0 /** @TODO */)
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
