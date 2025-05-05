@@ -4,17 +4,13 @@
 name: Publish Package
 
 on:
-  workflow_run:
-    workflows: [ci]
-    types:
-      - completed
-    branches: [main, master]
   release:
     types: [published]
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: write
       packages: write # allow GITHUB_TOKEN to publish packages
@@ -63,9 +59,18 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
 
+      - name: Process tag
+        id: tag
+        # ref: https://github.com/Leaflet/Leaflet/blob/c4a1e362bfd7f7709efdaff94f154e100a706129/.github/workflows/main.yml#L192-L214
+        run: |
+          TAG=$(echo $GITHUB_REF_NAME | grep -oP '^v\d+\.\d+\.\d+-?\K(\w+)?')
+          TAG="${TAG:-latest}"  # Default to 'latest' if TAG is empty
+          echo $TAG
+          echo "TAG=$TAG" >> $GITHUB_OUTPUT
+
       - name: Publish Package to NPM
-        uses: JS-DevTools/npm-publish@v2
+        uses: JS-DevTools/npm-publish@v3
         with:
           token: ${{secrets.npm_token}}
           provenance: true
-          tag: latest
+          tag: ${{ steps.tag.outputs.TAG }}
