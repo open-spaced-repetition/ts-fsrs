@@ -218,7 +218,7 @@ describe('integrated to FSRS', () => {
       record = f.repeat(card, now)
       expect(record[Rating.Again].card.learning_steps).toEqual(1)
       expect(record[Rating.Again].card.due.getTime() - now.getTime()).toEqual(
-        1000 * 60 * 5 // 1m
+        1000 * 60 * 5 // 5m
       )
 
       expect(record[Rating.Hard].card.learning_steps).toEqual(1)
