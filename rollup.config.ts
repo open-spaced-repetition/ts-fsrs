@@ -39,7 +39,7 @@ export default defineConfig([
       }),
       resolve({ preferBuiltins: true }),
       esbuild({
-        target: 'node18.0',
+        target: 'node20.0',
         sourceMap: true,
         minify: minify,
       }),
