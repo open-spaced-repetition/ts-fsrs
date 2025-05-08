@@ -212,6 +212,8 @@ describe('integrated into FSRS', () => {
       expect(record[Rating.Good].card.due.getTime() - now.getTime()).toEqual(
         1000 * 60 * 10 // 10m
       )
+      expect(record[Rating.Easy].card.learning_steps).toEqual(0)
+      expect(dateDiffInDays(now, record[Rating.Easy].card.due)).toBe(Math.floor(default_w[3]))
       // learning
       card = record[Rating.Good].card
       now = card.due
