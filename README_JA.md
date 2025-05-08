@@ -12,7 +12,7 @@
 ts-fsrsはTypeScriptに基づいた多機能なパッケージで、[ESモジュール]((https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c))、[CommonJS](https://en.wikipedia.org/wiki/CommonJS)、UMDに対応しています。[自由間隔重複スケジューラ（FSRS）アルゴリズム](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) を実装しており、開発者がFSRSをフラッシュカードアプリケーションに統合することで、ユーザーの学習体験を向上させることができます。
 
 ts-fsrsのワークフローについては、以下のリソースを参照してください。
-> - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
+> - google drive: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
 
 
