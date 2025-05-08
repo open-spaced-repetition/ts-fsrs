@@ -259,7 +259,7 @@ describe('integrated into FSRS', () => {
       ).toBeUndefined()
     })
 
-    it('delay exceeds 1 days', () => {
+    it('delay exceeds 1 day', () => {
       const f = fsrs({}).useStrategy(
         StrategyMode.LEARNING_STEPS,
         learningStepsStrategy
