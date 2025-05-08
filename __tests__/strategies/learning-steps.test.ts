@@ -154,6 +154,11 @@ describe('integrated into FSRS', () => {
     expect(record[Rating.Good].card.due.getTime() - now.getTime()).toEqual(
       1000 * 60 * 10 // 10m
     )
+
+    expect(record[Rating.Easy].card.learning_steps).toEqual(0)
+    expect(dateDiffInDays(now, record[Rating.Easy].card.due)).toEqual(
+      Math.floor(default_w[3])
+    )
   })
 
   describe('Hardcoded learning steps', () => {
@@ -235,6 +240,13 @@ describe('integrated into FSRS', () => {
       expect(record[Rating.Good].card.learning_steps).toEqual(0)
       expect(
         record[Rating.Good].card.due.getTime() - now.getTime()
+      ).toBeGreaterThanOrEqual(
+        1000 * 60 * 1440 // 24h
+      )
+
+      expect(record[Rating.Easy].card.learning_steps).toEqual(0)
+      expect(
+        record[Rating.Easy].card.due.getTime() - now.getTime()
       ).toBeGreaterThanOrEqual(
         1000 * 60 * 1440 // 24h
       )
