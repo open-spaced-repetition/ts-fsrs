@@ -25,6 +25,9 @@ export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
     strategies: Map<StrategyMode, TStrategyHandler>
   ) => IScheduler
 
+/**
+ * When enable_short_term = false, the learning steps strategy will not take effect.
+ */
 export type TLearningStepsStrategy = (
   params: FSRSParameters,
   state: State,

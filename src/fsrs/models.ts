@@ -93,6 +93,9 @@ export interface FSRSParameters {
   maximum_interval: number
   w: number[] | readonly number[]
   enable_fuzz: boolean
+  /**
+   * When enable_short_term = false, the (re)learning steps are not applied.
+   */
   enable_short_term: boolean
   learning_steps: Steps
   relearning_steps: Steps
