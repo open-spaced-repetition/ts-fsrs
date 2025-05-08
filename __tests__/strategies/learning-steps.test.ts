@@ -129,7 +129,7 @@ describe('relearning_steps', () => {
   })
 })
 
-describe('integrated to FSRS', () => {
+describe('integrated into FSRS', () => {
   it('First learning step', () => {
     const f = fsrs({
       learning_steps: ['1m', '10m'],
