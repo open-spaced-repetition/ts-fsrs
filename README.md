@@ -38,7 +38,6 @@ const card = createEmptyCard(new Date('2022-2-1 10:00:00'));// createEmptyCard()
 const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
-// console.log(scheduling_cards);
 for (const item of scheduling_cards) {
     // grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
     const grade = item.log.rating
