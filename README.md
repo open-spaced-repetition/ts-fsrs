@@ -83,7 +83,7 @@ let card: Card = createEmptyCard();
 ```
 
 ## 2. **Parameter Configuration**:
-The library has multiple modifiable "SRS parameters" (settings, distinct from the weights). Use `generatorParameters` to set these parameters for the SRS algorithm. Here's an example setting a maximum interval:
+The library has multiple modifiable "SRS parameters" (settings, distinct from the weights). Use `generatorParameters` to set these parameters for the SRS algorithm. Here's an example for setting a maximum interval:
 
 ```typescript
 import { Card, createEmptyCard, generatorParameters, FSRSParameters } from "ts-fsrs";
