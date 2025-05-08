@@ -151,7 +151,7 @@ type Card = {
 ```
 
 ## 6. **Understanding Log Attributes**:
-Each `ReviewLog` object contains various attributes that represent a review that was done on a card. Used for analysis, undoing the review, and [optimization (WIP)](https://github.com/open-spaced-repetition/fsrs-optimizer).
+Each `ReviewLog` object contains various attributes that represent a review that was done on a card. Used for analysis, undoing the review, and [optimization (WIP)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs).
 
 ```typescript
 type ReviewLog = {
