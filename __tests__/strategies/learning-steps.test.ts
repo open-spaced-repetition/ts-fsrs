@@ -66,6 +66,40 @@ describe('learning_steps', () => {
       [Rating.Hard]: { scheduled_minutes: 6, next_step: 1 },
     })
   })
+
+  it(`learning_steps = ['1m']`, () => {
+    const params = generatorParameters({
+      learning_steps: ['1m'],
+    })
+
+    let result = BasicLearningStepsStrategy(params, State.New, 0)
+
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: {
+        scheduled_minutes: 2 /** Math.round(1*1.5) */,
+        next_step: 0,
+      },
+    })
+
+    result = BasicLearningStepsStrategy(params, State.Learning, 0)
+    expect(result).toEqual({
+      [Rating.Again]: { scheduled_minutes: 1, next_step: 0 },
+      [Rating.Hard]: { scheduled_minutes: 2, next_step: 0 },
+    })
+
+    result = BasicLearningStepsStrategy(params, State.Learning, 1)
+
+    expect(result).toEqual({})
+  })
+
+  it(`learning_steps = ['-1m']`, () => {
+    const params = generatorParameters({
+      learning_steps: ['-1m'],
+    })
+
+    expect(() => BasicLearningStepsStrategy(params, State.New, 0)).toThrow()
+  })
 })
 
 describe('relearning_steps', () => {
@@ -128,6 +162,14 @@ describe('relearning_steps', () => {
 
     result = BasicLearningStepsStrategy(params, State.Relearning, 2)
     expect(result).toEqual({})
+  })
+
+  it(`relearning_steps = ['-1m']`, () => {
+    const params = generatorParameters({
+      relearning_steps: ['-1m'],
+    })
+
+    expect(() => BasicLearningStepsStrategy(params, State.Review, 0)).toThrow()
   })
 })
 
