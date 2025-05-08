@@ -235,7 +235,7 @@ describe('integrated into FSRS', () => {
     })
   })
 
-  describe('If a learning step’s delay exceeds 1 days', () => {
+  describe('If a learning step’s delay exceeds 1 day', () => {
     const learningStepsStrategy: TLearningStepsStrategy = () => {
       return {
         [Rating.Again]: { scheduled_minutes: 5, next_step: 1 },
