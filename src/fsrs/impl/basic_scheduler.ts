@@ -4,14 +4,113 @@ import { S_MIN } from '../constant'
 import { clamp } from '../help'
 import {
   type Card,
+  CardInput,
+  DateInput,
   type Grade,
   Rating,
   type RecordLogItem,
   State,
 } from '../models'
 import type { int } from '../types'
+import {
+  StrategyMode,
+  TLearningStepsStrategy,
+  TStrategyHandler,
+} from '../strategies'
+import { FSRSAlgorithm } from '../algorithm'
+import { BasicLearningStepsStrategy } from '../strategies/learning_steps'
 
 export default class BasicScheduler extends AbstractScheduler {
+  private learningStepsStrategy: TLearningStepsStrategy
+
+  constructor(
+    card: CardInput | Card,
+    now: DateInput,
+    algorithm: FSRSAlgorithm,
+    strategies?: Map<StrategyMode, TStrategyHandler>
+  ) {
+    super(card, now, algorithm, strategies)
+
+    // init learning steps strategy
+    let learningStepStrategy = BasicLearningStepsStrategy
+    if (this.strategies) {
+      const custom_strategy = this.strategies.get(StrategyMode.LEARNING_STEPS)
+      if (custom_strategy) {
+        learningStepStrategy = custom_strategy as TLearningStepsStrategy
+      }
+    }
+    this.learningStepsStrategy = learningStepStrategy
+  }
+
+  private getLearningInfo(card: Card, grade: Grade) {
+    const parameters = this.algorithm.parameters
+    card.learning_steps = card.learning_steps || 0
+    const steps_strategy = this.learningStepsStrategy(
+      parameters,
+      card.state,
+      // In the original learning steps setup (Again = 5m, Hard = 10m, Good = FSRS),
+      // not adding 1 can cause slight variations in the memory state’s ds.
+      this.current.state === State.Learning
+        ? card.learning_steps + 1
+        : card.learning_steps
+    )
+    const scheduled_minutes = Math.max(
+      0,
+      steps_strategy[grade]?.scheduled_minutes ?? 0
+    )
+    const next_steps = Math.max(0, steps_strategy[grade]?.next_step ?? 0)
+    return {
+      scheduled_minutes,
+      next_steps,
+    }
+  }
+  /**
+   * @description This function applies the learning steps based on the current card's state and grade.
+   */
+  private applyLearningSteps(
+    nextCard: Card,
+    grade: Grade,
+    /**
+     * returns the next state for the card (if applicable)
+     */
+    to_state: State
+  ) {
+    const { scheduled_minutes, next_steps } = this.getLearningInfo(
+      this.current,
+      grade
+    )
+    if (
+      scheduled_minutes > 0 &&
+      scheduled_minutes < 1440 /** 1440 minutes = 1 day */
+    ) {
+      nextCard.learning_steps = next_steps
+      nextCard.scheduled_days = 0
+      nextCard.state = to_state
+      nextCard.due = this.review_time.scheduler(
+        Math.round(scheduled_minutes) as int,
+        false /** true:days false: minute */
+      )
+    } else {
+      nextCard.state = State.Review
+      if (scheduled_minutes >= 1440) {
+        nextCard.learning_steps = next_steps
+        nextCard.due = this.review_time.scheduler(
+          Math.round(scheduled_minutes) as int,
+          false /** true:days false: minute */
+        )
+        nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440)
+      } else {
+        nextCard.learning_steps = 0
+        const interval = this.algorithm.next_interval(
+          nextCard.stability,
+          this.current.elapsed_days
+        )
+        nextCard.scheduled_days = interval
+        nextCard.due = this.review_time.scheduler(interval as int, true)
+      }
+    }
+  }
+
   protected override newState(grade: Grade): RecordLogItem {
     const exist = this.next.get(grade)
     if (exist) {
@@ -21,35 +120,7 @@ export default class BasicScheduler extends AbstractScheduler {
     next.difficulty = this.algorithm.init_difficulty(grade)
     next.stability = this.algorithm.init_stability(grade)
 
-    switch (grade) {
-      case Rating.Again:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(1 as int)
-        next.state = State.Learning
-        break
-      case Rating.Hard:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(5 as int)
-        next.state = State.Learning
-        break
-      case Rating.Good:
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(10 as int)
-        next.state = State.Learning
-        break
-      case Rating.Easy: {
-        const easy_interval = this.algorithm.next_interval(
-          next.stability,
-          this.current.elapsed_days
-        )
-        next.scheduled_days = easy_interval
-        next.due = this.review_time.scheduler(easy_interval as int, true)
-        next.state = State.Review
-        break
-      }
-      default:
-        throw new Error('Invalid grade')
-    }
+    this.applyLearningSteps(next, grade, State.Learning)
     const item = {
       card: next,
       log: this.buildLog(grade),
@@ -65,54 +136,9 @@ export default class BasicScheduler extends AbstractScheduler {
     }
     const { state, difficulty, stability } = this.last
     const next = TypeConvert.card(this.current)
-    const interval = this.current.elapsed_days
     next.difficulty = this.algorithm.next_difficulty(difficulty, grade)
     next.stability = this.algorithm.next_short_term_stability(stability, grade)
-
-    switch (grade) {
-      case Rating.Again: {
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(5 as int, false)
-        next.state = state
-        break
-      }
-      case Rating.Hard: {
-        next.scheduled_days = 0
-        next.due = this.review_time.scheduler(10 as int)
-        next.state = state
-        break
-      }
-      case Rating.Good: {
-        const good_interval = this.algorithm.next_interval(
-          next.stability,
-          interval
-        )
-        next.scheduled_days = good_interval
-        next.due = this.review_time.scheduler(good_interval as int, true)
-        next.state = State.Review
-        break
-      }
-      case Rating.Easy: {
-        const good_stability = this.algorithm.next_short_term_stability(
-          stability,
-          Rating.Good
-        )
-        const good_interval = this.algorithm.next_interval(
-          good_stability,
-          interval
-        )
-        const easy_interval = Math.max(
-          this.algorithm.next_interval(next.stability, interval),
-          good_interval + 1
-        ) as int
-        next.scheduled_days = easy_interval
-        next.due = this.review_time.scheduler(easy_interval as int, true)
-        next.state = State.Review
-        break
-      }
-      default:
-        throw new Error('Invalid grade')
-    }
+    this.applyLearningSteps(next, grade, state /** Learning or Relearning */)
     const item = {
       card: next,
       log: this.buildLog(grade),
@@ -144,8 +170,9 @@ export default class BasicScheduler extends AbstractScheduler {
       retrievability
     )
 
-    this.next_interval(next_again, next_hard, next_good, next_easy, interval)
-    this.next_state(next_again, next_hard, next_good, next_easy)
+    this.next_interval(next_hard, next_good, next_easy, interval)
+    this.next_state(next_hard, next_good, next_easy)
+    this.applyLearningSteps(next_again, Rating.Again, State.Relearning)
     next_again.lapses += 1
 
     const item_again = {
@@ -236,7 +263,6 @@ export default class BasicScheduler extends AbstractScheduler {
    * Review next_interval
    */
   private next_interval(
-    next_again: Card,
     next_hard: Card,
     next_good: Card,
     next_easy: Card,
@@ -251,8 +277,6 @@ export default class BasicScheduler extends AbstractScheduler {
       this.algorithm.next_interval(next_easy.stability, interval),
       good_interval + 1
     ) as int
-    next_again.scheduled_days = 0
-    next_again.due = this.review_time.scheduler(5 as int)
 
     next_hard.scheduled_days = hard_interval
     next_hard.due = this.review_time.scheduler(hard_interval, true)
@@ -266,19 +290,14 @@ export default class BasicScheduler extends AbstractScheduler {
   /**
    * Review next_state
    */
-  private next_state(
-    next_again: Card,
-    next_hard: Card,
-    next_good: Card,
-    next_easy: Card
-  ) {
-    next_again.state = State.Relearning
-    // next_again.lapses += 1
-
+  private next_state(next_hard: Card, next_good: Card, next_easy: Card) {
     next_hard.state = State.Review
+    next_hard.learning_steps = 0
 
     next_good.state = State.Review
+    next_good.learning_steps = 0
 
     next_easy.state = State.Review
+    next_easy.learning_steps = 0
   }
 }

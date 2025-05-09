@@ -1,9 +1,18 @@
 import { version } from '../../package.json'
+import type { StepUnit } from './models'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
+export const default_learning_steps: readonly StepUnit[] = Object.freeze([
+  '1m',
+  '10m',
+]) // New->Learning,Learning->Learning
+
+export const default_relearning_steps: readonly StepUnit[] = Object.freeze([
+  '10m',
+]) // Relearning->Relearning
 
 export const FSRSVersion: string = `v${version} using FSRS-6.0`
 

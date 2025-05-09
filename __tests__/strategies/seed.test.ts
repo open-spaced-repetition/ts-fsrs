@@ -25,9 +25,13 @@ describe('seed strategy', () => {
     })
 
     const record = f.repeat(card, now)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed', seed)
@@ -57,9 +61,14 @@ describe('seed strategy with card ID', () => {
     })
 
     f.repeat(card, now)
-    let scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+
+    let scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed_with_card_id = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=555', seed_with_card_id)
@@ -67,9 +76,13 @@ describe('seed strategy with card ID', () => {
     f.clearStrategy(StrategyMode.SEED)
 
     f.repeat(card, now)
-    scheduler = new f['Scheduler'](card, now, f, {
-      seed: DefaultInitSeedStrategy,
-    }) as AbstractScheduler
+
+    scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      new Map([[StrategyMode.SEED, DefaultInitSeedStrategy]])
+    ) as AbstractScheduler
     const basic_seed = DefaultInitSeedStrategy.bind(scheduler)()
     console.debug('basic_seed with card_id=555', basic_seed)
 
@@ -89,9 +102,13 @@ describe('seed strategy with card ID', () => {
     })
 
     const record = f.repeat(card, now)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=555', seed)
@@ -107,9 +124,13 @@ describe('seed strategy with card ID', () => {
     const card = createEmptyCard<ICard>(now)
 
     const record = f.repeat(card, now)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=undefined(default)', seed)
@@ -128,9 +149,13 @@ describe('seed strategy with card ID', () => {
     })
 
     const record = f.repeat(card, now)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('with card_id=-1', seed)
@@ -150,9 +175,13 @@ describe('seed strategy with card ID', () => {
     })
 
     const item = f.next(card, now, Rating.Good)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=undefined', seed)
@@ -172,9 +201,13 @@ describe('seed strategy with card ID', () => {
     })
 
     const item = f.next(card, now, Rating.Good)
-    const scheduler = new f['Scheduler'](card, now, f, {
-      seed: seedStrategy,
-    }) as AbstractScheduler
+    const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    const scheduler = new f['Scheduler'](
+      card,
+      now,
+      f,
+      strategies
+    ) as AbstractScheduler
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=null', seed)

@@ -74,6 +74,7 @@ export class Reschedule {
         elapsed_days: elapsed_days,
         last_elapsed_days: card.elapsed_days,
         scheduled_days: card.scheduled_days,
+        learning_steps: card.learning_steps,
         review: <Date>reviewed,
       } satisfies ReviewLog
       next_card = createEmptyCard<Card>(reviewed)
@@ -92,6 +93,7 @@ export class Reschedule {
         elapsed_days: elapsed_days,
         last_elapsed_days: card.elapsed_days,
         scheduled_days: card.scheduled_days,
+        learning_steps: card.learning_steps,
         review: <Date>reviewed,
       } satisfies ReviewLog
       next_card = {

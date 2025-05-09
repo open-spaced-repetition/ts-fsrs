@@ -12,7 +12,11 @@ import {
   type DateInput,
 } from './models'
 import { DefaultInitSeedStrategy } from './strategies'
-import type { TSeedStrategy } from './strategies/types'
+import {
+  StrategyMode,
+  TSeedStrategy,
+  TStrategyHandler,
+} from './strategies/types'
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
@@ -21,25 +25,26 @@ export abstract class AbstractScheduler implements IScheduler {
   protected review_time: Date
   protected next: Map<Grade, RecordLogItem> = new Map()
   protected algorithm: FSRSAlgorithm
-  private initSeedStrategy: TSeedStrategy
+  protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
 
   constructor(
     card: CardInput | Card,
     now: DateInput,
     algorithm: FSRSAlgorithm,
-    strategies: {
-      seed: TSeedStrategy
-    } = {
-      seed: DefaultInitSeedStrategy,
-    }
+    strategies?: Map<StrategyMode, TStrategyHandler>
   ) {
     this.algorithm = algorithm
-    this.initSeedStrategy = strategies.seed.bind(this)
-
     this.last = TypeConvert.card(card)
     this.current = TypeConvert.card(card)
     this.review_time = TypeConvert.time(now)
+    this.strategies = strategies
     this.init()
+  }
+
+  protected checkGrade(grade: Grade): void {
+    if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
+      throw new Error(`Invalid grade "${grade}",expected 1-4`)
+    }
   }
 
   private init() {
@@ -51,7 +56,16 @@ export abstract class AbstractScheduler implements IScheduler {
     this.current.last_review = this.review_time
     this.current.elapsed_days = interval
     this.current.reps += 1
-    this.algorithm.seed = this.initSeedStrategy()
+
+    // init seed strategy
+    let seed_strategy = DefaultInitSeedStrategy
+    if (this.strategies) {
+      const custom_strategy = this.strategies.get(StrategyMode.SEED)
+      if (custom_strategy) {
+        seed_strategy = custom_strategy as TSeedStrategy
+      }
+    }
+    this.algorithm.seed = (<TSeedStrategy>seed_strategy).call(this)
   }
 
   public preview(): IPreview {
@@ -73,6 +87,7 @@ export abstract class AbstractScheduler implements IScheduler {
   public review(grade: Grade): RecordLogItem {
     const { state } = this.last
     let item: RecordLogItem | undefined
+    this.checkGrade(grade)
     switch (state) {
       case State.New:
         item = this.newState(grade)
@@ -85,10 +100,7 @@ export abstract class AbstractScheduler implements IScheduler {
         item = this.reviewState(grade)
         break
     }
-    if (item) {
-      return item
-    }
-    throw new Error('Invalid grade')
+    return item
   }
 
   protected abstract newState(grade: Grade): RecordLogItem
@@ -109,6 +121,7 @@ export abstract class AbstractScheduler implements IScheduler {
       elapsed_days: this.current.elapsed_days,
       last_elapsed_days: elapsed_days,
       scheduled_days: this.current.scheduled_days,
+      learning_steps: this.current.learning_steps,
       review: this.review_time,
     } satisfies ReviewLog
   }

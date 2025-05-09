@@ -307,6 +307,7 @@ describe('Long-term  scheduler', () => {
       scheduled_days: 1,
       reps: 1,
       lapses: 0,
+      learning_steps: 0,
       state: 'Review',
       last_review: '2024-08-03T18:15:34.500Z',
       nid: 82,
