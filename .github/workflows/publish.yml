@@ -75,3 +75,16 @@ jobs:
           token: ${{secrets.npm_token}}
           provenance: true
           tag: ${{ steps.tag.outputs.TAG }}
+
+  publish-jsr:
+    runs-on: ubuntu-latest
+    environment: production
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish package
+        run: npx jsr publish
