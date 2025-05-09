@@ -166,7 +166,7 @@ type Card = {
 ## 6. **レビュー履歴属性の理解**:
 
 それぞれの`ReviewLog`
-オブジェクトは、そのカードに関連するレビュー記録情報を決定するさまざまな属性を含んでいます。分析、今回のレビューをやり直す、[最適化(作成中)](https://github.com/open-spaced-repetition/fsrs-optimizer)：
+オブジェクトは、そのカードに関連するレビュー記録情報を決定するさまざまな属性を含んでいます。分析、今回のレビューをやり直す、[最適化(作成中)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs)：
 
 ```typescript
 type ReviewLog = {

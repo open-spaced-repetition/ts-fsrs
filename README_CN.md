@@ -161,7 +161,7 @@ type Card = {
 ## 6. **理解复习记录属性**:
 
 每个`ReviewLog`
-对象都包含各种属性，这些属性决定了与之关联的卡片的复习记录信息，用于分析，回退本次复习，[优化(编写中)](https://github.com/open-spaced-repetition/fsrs-optimizer)：
+对象都包含各种属性，这些属性决定了与之关联的卡片的复习记录信息，用于分析，回退本次复习，[优化(编写中)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs)：
 
 ```typescript
 type ReviewLog = {
