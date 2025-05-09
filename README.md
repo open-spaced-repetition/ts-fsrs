@@ -22,7 +22,7 @@ From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module sys
 
 ```
 npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
-yard add ts-fsrs
+yarn add ts-fsrs
 pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
 bun add ts-fsrs
 ```
