@@ -71,7 +71,7 @@ More resources:
 # Basic Use 
 
 ## 1. **Initialization**:
-To begin, create an empty card instance and set the current date (default: current time from system):
+To begin, create an empty card instance and set the current date (default: current time from the system):
 
 ```typescript
 import { Card, createEmptyCard } from "ts-fsrs";
