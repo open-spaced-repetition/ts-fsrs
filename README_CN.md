@@ -19,10 +19,10 @@ ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.
 从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
 ```
-npm install ts-fsrs
-yarn install ts-fsrs
-pnpm install ts-fsrs
-bun install ts-fsrs
+npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+yard add ts-fsrs
+pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+bun add ts-fsrs
 ```
 
 # 例子

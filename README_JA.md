@@ -22,10 +22,10 @@ ts-fsrsのワークフローについては、以下のリソースを参照し�
 `ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
 ```
-npm install ts-fsrs
-yarn install ts-fsrs
-pnpm install ts-fsrs
-bun install ts-fsrs
+npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+yard add ts-fsrs
+pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+bun add ts-fsrs
 ```
 
 # 例
