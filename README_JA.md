@@ -179,6 +179,7 @@ type ReviewLog = {
     elapsed_days: number; // 前回のレビューからの日数
     last_elapsed_days: number; // 前回のレビューの間隔日数
     scheduled_days: number; // 次のレビューの間隔日数
+    learning_steps: number;// 現在の(再)習得ステップ
     review: Date; // レビュー日
 }
 ```

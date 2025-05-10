@@ -174,6 +174,7 @@ type ReviewLog = {
     elapsed_days: number; // 自上次复习以来的天数
     last_elapsed_days: number; // 上次复习的间隔天数
     scheduled_days: number; // 下次复习的间隔天数
+    learning_steps: number;// TODO (hi ishiko(2))
     review: Date; // 复习的日期
 }
 ```
