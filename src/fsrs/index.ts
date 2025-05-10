@@ -23,7 +23,7 @@ export type {
   FSRSState,
   TimeUnit as timeUnit,
   StepUnit,
-  Steps
+  Steps,
 } from './models'
 export { State, Rating } from './models'
 
