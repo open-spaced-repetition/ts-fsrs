@@ -89,6 +89,8 @@ describe('default params', () => {
 
   it('checkParameters', () => {
 
+    // Generator generatorParameters does not call this function
+    // ref: https://github.com/open-spaced-repetition/ts-fsrs/pull/174#discussion_r2070436201
     expect(() => generatorParameters({
       w: [0.40255]
     })).not.toThrow()

@@ -41,6 +41,14 @@ export const clipParameters = (
 
 /**
  * @returns The input if the parameters are valid, throws if they are invalid
+ * @example
+ * try {
+ *   generatorParameters({
+ *     w: checkParameters([0.40255])
+ *   });
+ * } catch (e: any) {
+ *   alert(e);
+ * }
  */
 export const checkParameters = (parameters: number[] | readonly number[]) => {
   const invalid = parameters.find((param) => !isFinite(param) && !isNaN(param))
