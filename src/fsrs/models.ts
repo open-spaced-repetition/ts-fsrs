@@ -61,8 +61,8 @@ export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
 }
 
 export type DateInput = Date | number | string
-export type timeUnit = 'm' | 'h' | 'd'
-export type StepUnit = `${number}${timeUnit}`
+export type TimeUnit = 'm' | 'h' | 'd'
+export type StepUnit = `${number}${TimeUnit}`
 /**
  * (re)Learning steps:
  * [1m, 10m]

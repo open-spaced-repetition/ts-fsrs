@@ -1,8 +1,8 @@
-import { FSRSParameters, Rating, State, StepUnit, timeUnit } from '../models'
+import { FSRSParameters, Rating, State, StepUnit, TimeUnit } from '../models'
 import { TLearningStepsStrategy } from './types'
 
 export const ConvertStepUnitToMinutes = (step: StepUnit): number => {
-  const unit = step.slice(-1) as timeUnit
+  const unit = step.slice(-1) as TimeUnit
   const value = parseInt(step.slice(0, -1), 10)
   if (isNaN(value) || !Number.isFinite(value) || value < 0) {
     throw new Error(`Invalid step value: ${step}`)
