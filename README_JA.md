@@ -156,7 +156,7 @@ type Card = {
     difficulty: number;    // カードの難易度
     elapsed_days: number;  // 前回のレビューからの日数
     scheduled_days: number;// 次のレビューの間隔日数
-    learning_steps: number // 現在の(再)習得ステップ
+    learning_steps: number;// 現在の(再)習得ステップ
     reps: number;          // カードのレビュー回数
     lapses: number;        // カードが忘れられたか、間違って覚えられた回数
     state: State;          // カードの現在の状態（新しいカード、学習中、レビュー中、再学習中）

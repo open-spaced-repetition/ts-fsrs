@@ -150,7 +150,8 @@ type Card = {
     stability: number;     // 记忆稳定性
     difficulty: number;    // 卡片难度
     elapsed_days: number;  // 自上次复习以来的天数
-    scheduled_days: number; // 下次复习的间隔天数
+    scheduled_days: number;// 下次复习的间隔天数
+    learning_steps: number;// TODO (hi ishiko)
     reps: number;          // 卡片被复习的总次数
     lapses: number;        // 卡片被遗忘或错误记忆的次数
     state: State;          // 卡片的当前状态（新卡片、学习中、复习中、重新学习中）
