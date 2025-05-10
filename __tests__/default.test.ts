@@ -103,7 +103,7 @@ describe('default params', () => {
     expect(() => checkParameters([0.40255])).toThrow(/^Invalid parameter length/)
     expect(() => checkParameters(w.slice(0, 16))).toThrow(/^Invalid parameter length/)
     w[5] = Infinity
-    expect(() => checkParameters(w)).toThrow(/^Non finite/)
+    expect(() => checkParameters(w)).toThrow(/^Non-finite/)
 
   })
 

@@ -53,10 +53,10 @@ export const clipParameters = (
 export const checkParameters = (parameters: number[] | readonly number[]) => {
   const invalid = parameters.find((param) => !isFinite(param) && !isNaN(param))
   if (invalid !== undefined) {
-    throw Error(`Non finite value in parameters ${parameters}`)
+    throw Error(`Non-finite value in parameters ${parameters}`)
   } else if (![17, 19, 21].includes(parameters.length)) {
     throw Error(
-      `Invalid parameter length ${parameters.length}, Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively`
+      `Invalid parameter length ${parameters.length}. Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively.`
     )
   }
   return parameters
