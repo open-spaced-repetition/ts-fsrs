@@ -1,6 +1,6 @@
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
-import { S_MIN } from '../default'
+import { S_MIN } from '../constant'
 import { clamp } from '../help'
 import {
   type Card,
@@ -204,12 +204,16 @@ export default class LongTermScheduler extends AbstractScheduler {
   ) {
     next_again.state = State.Review
     // next_again.lapses += 1
+    next_again.learning_steps = 0
 
     next_hard.state = State.Review
+    next_hard.learning_steps = 0
 
     next_good.state = State.Review
+    next_good.learning_steps = 0
 
     next_easy.state = State.Review
+    next_easy.learning_steps = 0
   }
 
   private update_next(

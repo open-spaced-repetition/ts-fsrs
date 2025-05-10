@@ -17,16 +17,14 @@ import {
   type RescheduleOptions,
   type IScheduler,
 } from './types'
-import { FSRSAlgorithm } from './algorithm'
+import { forgetting_curve, FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
-import { createEmptyCard } from './default'
+import { clipParameters, createEmptyCard, migrateParameters } from './default'
 import { Reschedule } from './reschedule'
-import { DefaultInitSeedStrategy } from './strategies/seed'
 import {
   StrategyMode,
-  type TSeedStrategy,
   type TSchedulerStrategy,
   type TStrategyHandler,
 } from './strategies/types'
@@ -54,6 +52,15 @@ export class FSRS extends FSRSAlgorithm {
           )
         } else if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
+        } else if (prop === 'w') {
+          value = clipParameters(
+            migrateParameters(value as FSRSParameters['w']),
+            target.relearning_steps.length
+          )
+          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          _this.intervalModifier = _this.calculate_interval_modifier(
+            Number(target.request_retention)
+          )
         }
         Reflect.set(target, prop, value)
         return true
@@ -79,20 +86,13 @@ export class FSRS extends FSRSAlgorithm {
   }
 
   private getScheduler(card: CardInput | Card, now: DateInput): IScheduler {
-    const seedStrategy = this.strategyHandler.get(StrategyMode.SEED) as
-      | TSeedStrategy
-      | undefined
-
     // Strategy scheduler
     const schedulerStrategy = this.strategyHandler.get(
       StrategyMode.SCHEDULER
     ) as TSchedulerStrategy | undefined
 
     const Scheduler = schedulerStrategy || this.Scheduler
-    const Seed = seedStrategy || DefaultInitSeedStrategy
-    const instance = new Scheduler(card, now, this, {
-      seed: Seed,
-    })
+    const instance = new Scheduler(card, now, this, this.strategyHandler)
 
     return instance
   }
@@ -334,6 +334,7 @@ export class FSRS extends FSRSAlgorithm {
       scheduled_days: processedLog.scheduled_days,
       reps: Math.max(0, processedCard.reps - 1),
       lapses: Math.max(0, last_lapses),
+      learning_steps: processedLog.learning_steps,
       state: processedLog.state,
       last_review: last_review,
     }
@@ -416,6 +417,7 @@ export class FSRS extends FSRSAlgorithm {
       elapsed_days: 0,
       last_elapsed_days: processedCard.elapsed_days,
       scheduled_days: scheduled_days,
+      learning_steps: processedCard.learning_steps,
       review: now,
     }
     const forget_card: Card = {
@@ -427,6 +429,7 @@ export class FSRS extends FSRSAlgorithm {
       scheduled_days: 0,
       reps: reset_count ? 0 : processedCard.reps,
       lapses: reset_count ? 0 : processedCard.lapses,
+      learning_steps: 0,
       state: State.New,
       last_review: processedCard.last_review,
     }

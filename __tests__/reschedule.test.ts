@@ -12,7 +12,7 @@ import {
   State,
   TypeConvert,
 } from '../src/fsrs'
-import { Card, DateInput, FSRSHistory } from '../src/fsrs/models'
+import { Card, FSRSHistory } from '../src/fsrs/models'
 
 type reviewState = {
   difficulty: number
@@ -25,6 +25,7 @@ type reviewState = {
   lapses: number
   elapsed_days: number
   scheduled_days: number
+  learning_steps: number
 }
 
 const MOCK_NOW = new Date(1723338000000 /**2024, 7, 11, 1, 0, 0 UTC**/)
@@ -64,6 +65,7 @@ function experiment(
                 : 0,
             reps: state[index - 1].reps,
             lapses: state[index - 1].lapses,
+            learning_steps: state[index - 1].learning_steps,
             state: state[index - 1].state,
             last_review: state[index - 1].review,
           }
@@ -88,6 +90,7 @@ function experiment(
                 elapsed_days: state[index - 1].elapsed_days,
                 last_elapsed_days: state[index - 1].elapsed_days,
                 scheduled_days: state[index - 1].scheduled_days,
+                learning_steps: state[index - 1].learning_steps,
                 review: review.review,
               }
             : {
@@ -99,6 +102,7 @@ function experiment(
                 elapsed_days: 0,
                 last_elapsed_days: 0,
                 scheduled_days: 0,
+                learning_steps: 0,
                 review: review.review,
               }
           card = createEmptyCard(review.review)
@@ -117,6 +121,7 @@ function experiment(
             lapses: card.lapses,
             elapsed_days: card.elapsed_days,
             scheduled_days: card.scheduled_days,
+            learning_steps: card.learning_steps,
           } satisfies reviewState,
         ]
       }
@@ -280,34 +285,37 @@ describe('FSRS reschedule', () => {
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
+        learning_steps: 0,
         state: 2,
         last_review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
-      },
+      } satisfies Card,
       log: {
         rating: 0,
         state: 2,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 18.80877052,
-        difficulty: 3.22450159,
+        stability: 20.11699337,
+        difficulty: 2.48243852,
         elapsed_days: 1,
         last_elapsed_days: 1,
-        scheduled_days: 19,
+        scheduled_days: 20,
+        learning_steps: 0,
         review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
-      },
+      } satisfies ReviewLog,
     }
 
     const nextItemExpected = {
       card: {
         due: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
-        stability: 24.7796143,
-        difficulty: 3.28258807,
+        stability: 25.29170501,
+        difficulty: 3.27733362,
         elapsed_days: 1,
         scheduled_days: 25,
         reps: 4,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
-      },
+      } satisfies Card,
       log: {
         rating: Rating.Good,
         state: State.Review,
@@ -317,8 +325,9 @@ describe('FSRS reschedule', () => {
         elapsed_days: 1,
         last_elapsed_days: 1,
         scheduled_days: 21,
+        learning_steps: 0,
         review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
-      },
+      } satisfies ReviewLog,
     }
 
     const { collections: control } = scheduler.reschedule(
@@ -326,6 +335,7 @@ describe('FSRS reschedule', () => {
       reviews,
       {
         skipManual: false,
+        now: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
       }
     )
     expect(control[2]).toEqual(expected)
@@ -348,38 +358,41 @@ describe('FSRS reschedule', () => {
     const expected = {
       card: {
         due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
-        stability: 18.80877052,
-        difficulty: 3.22450159,
+        stability: 20.11699337,
+        difficulty: 2.48243852,
         elapsed_days: 1,
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
-      },
+      } satisfies Card,
       log: {
         rating: Rating.Manual,
         state: State.Review,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 18.80877052,
-        difficulty: 3.22450159,
+        stability: 20.11699337,
+        difficulty: 2.48243852,
         elapsed_days: 1,
         last_elapsed_days: 1,
-        scheduled_days: 19,
+        scheduled_days: 20,
+        learning_steps: 0,
         review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
-      },
+      } satisfies ReviewLog,
     }
 
     const current_card = {
-      due: new Date(1725584400000 /**'2024-09-06T01:00:00.000Z'*/),
+      due: new Date(1725757200000 /**2024-09-08T01:00:00.000Z'*/),
       stability: 21.79806877,
       difficulty: 3.2828565,
       elapsed_days: 1,
-      scheduled_days: 22,
-      reps: 4,
+      scheduled_days: 2,
+      reps: 5,
       lapses: 0,
+      learning_steps: 0,
       state: State.Review,
-      last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
+      last_review: new Date(1725584400000 /**'2024-08-15T01:00:00.000Z'*/),
     }
 
     const { collections: control, reschedule_item } = scheduler.reschedule(
@@ -387,6 +400,7 @@ describe('FSRS reschedule', () => {
       reviews,
       {
         skipManual: false,
+        now: new Date(1725584400000 /**'2024-09-06T01:00:00.000Z'*/),
       }
     )
     expect(control[2]).toEqual(expected)
@@ -409,27 +423,29 @@ describe('FSRS reschedule', () => {
 
     const expected = {
       card: {
-        due: new Date(1725843600000 /**'2024-09-09T01:00:00.000Z'*/),
-        stability: 24.86663381,
-        difficulty: 3.22450159,
+        due: new Date(1726102800000 /**2024-09-12T01:00:00.000Z*/),
+        stability: 27.82281984,
+        difficulty: 2.48243852,
         elapsed_days: 1,
-        scheduled_days: 25,
+        scheduled_days: 28,
         reps: 4,
         lapses: 0,
+        learning_steps: 0,
         state: State.Review,
         last_review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
-      },
+      } satisfies Card,
       log: {
         rating: Rating.Good,
         state: State.Review,
         due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
-        stability: 21.86357285,
-        difficulty: 3.22450159,
+        stability: 24.002786,
+        difficulty: 2.48243852,
         elapsed_days: 1,
         last_elapsed_days: 1,
-        scheduled_days: 22,
+        scheduled_days: 24,
+        learning_steps: 0,
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
-      },
+      } satisfies ReviewLog,
     }
     let cur_card = createEmptyCard(MOCK_NOW)
     let index = 0
@@ -454,7 +470,8 @@ describe('FSRS reschedule', () => {
           ...expected.card,
           last_review: review_at,
           reps: cur_card.reps + 1,
-        },
+          learning_steps: 0,
+        } satisfies Card,
         log: {
           ...expected.log,
           rating: Rating.Manual,
@@ -464,8 +481,9 @@ describe('FSRS reschedule', () => {
           scheduled_days: scheduled_days,
           stability: cur_card.stability,
           difficulty: cur_card.difficulty,
+          learning_steps: 0,
           review: review_at,
-        },
+        } satisfies ReviewLog,
       } satisfies RecordLogItem)
       cur_card = control[index++].card
       // index++
@@ -519,12 +537,12 @@ describe('FSRS reschedule', () => {
 
     expect(results_short.reschedule_item).not.toBeNull()
     expect(results_short.collections.length).toEqual(4)
-    expect(ivl_history_short).toEqual([0, 4, 14, 38])
+    expect(ivl_history_short).toEqual([0, 4, 14, 40])
     expect(s_history_short).toEqual([
-      3.173, 4.46685806, 14.21728391, 37.90805078,
+      3.2602, 3.53624366, 13.73213699, 39.76746245,
     ])
     expect(d_history_short).toEqual([
-      5.28243442, 5.27296793, 5.26354498, 5.25416538,
+      4.88463163, 4.8680565, 4.85159574, 4.83524856,
     ])
 
     // switch long-term scheduler
@@ -543,10 +561,10 @@ describe('FSRS reschedule', () => {
     )
     expect(results.reschedule_item).not.toBeNull()
     expect(results.collections.length).toEqual(4)
-    expect(ivl_history_long).toEqual([3, 4, 13, 37])
-    expect(s_history_long).toEqual([3.173, 3.173, 12.96611898, 36.73449305])
+    expect(ivl_history_long).toEqual([3, 4, 13, 39])
+    expect(s_history_long).toEqual([3.2602, 3.2602, 13.34257153, 39.31572277])
     expect(d_history_long).toEqual([
-      5.28243442, 5.27296793, 5.26354498, 5.25416538,
+      4.88463163, 4.8680565, 4.85159574, 4.83524856,
     ])
   })
 
@@ -567,13 +585,14 @@ describe('FSRS reschedule', () => {
       })
     }
     const current_card = {
-      due: new Date(1730764800000 /** 2024-11-05T00:00:00.000Z */),
-      stability: 37.90805078,
-      difficulty: 5.25416538,
+      due: new Date(1730937600000 /** 2024-11-07T00:00:00.000Z */),
+      stability: 39.76746245,
+      difficulty: 4.83524856,
       elapsed_days: 11,
-      scheduled_days: 9,
+      scheduled_days: 11,
       reps: 5,
       lapses: 0,
+      learning_steps: 0,
       state: State.Review,
       last_review: Date.UTC(2024, 9, 27, 0, 0, 0),
     }

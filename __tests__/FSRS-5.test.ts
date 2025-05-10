@@ -8,7 +8,7 @@ import {
   Grades,
 } from '../src/fsrs'
 
-describe('FSRS V5 ', () => {
+describe('FSRS-5', () => {
   const w = [
     0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
     0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
@@ -133,8 +133,8 @@ describe('get retrievability', () => {
   test('return retrievability percentage for review cards', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '89.83%']
-    const r_number = [1, 1, 1, 0.89832125]
+    const r = ['100.00%', '100.00%', '100.00%', '90.07%']
+    const r_number = [1, 1, 1, 0.90068938]
     Grades.forEach((grade, index) => {
       expect(fsrs.get_retrievability(sc[grade].card, sc[grade].card.due)).toBe(
         r[index]
@@ -148,8 +148,8 @@ describe('get retrievability', () => {
   test('fake the current system time', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '89.83%']
-    const r_number = [1, 1, 1, 0.89832125]
+    const r = ['100.00%', '100.00%', '100.00%', '90.07%']
+    const r_number = [1, 1, 1, 0.90068938]
     jest.useFakeTimers()
     Grades.forEach((grade, index) => {
       jest.setSystemTime(sc[grade].card.due)
