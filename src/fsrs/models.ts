@@ -17,9 +17,8 @@ export enum Rating {
   Easy = 4,
 }
 
-type ExcludeManual<T> = Exclude<T, Rating.Manual>
-
-export type Grade = ExcludeManual<Rating>
+export type GradeType = Exclude<RatingType, 'Manual'>
+export type Grade = Exclude<Rating, Rating.Manual>
 
 export interface ReviewLog {
   rating: Rating // Rating of the review (Again, Hard, Good, Easy)
@@ -30,6 +29,7 @@ export interface ReviewLog {
   elapsed_days: number // Number of days elapsed since the last review
   last_elapsed_days: number // Number of days between the last two reviews
   scheduled_days: number // Number of days until the next review
+  learning_steps: number // Keep track of the current step during the (re)learning stage
   review: Date // Date of the review
 }
 
@@ -47,6 +47,7 @@ export interface Card {
   difficulty: number // Difficulty level
   elapsed_days: number // Number of days elapsed
   scheduled_days: number // Number of days scheduled
+  learning_steps: number // Keep track of the current step during the (re)learning stage
   reps: number // Repetition count
   lapses: number // Number of lapses or mistakes
   state: State // Card's state (New, Learning, Review, Relearning)
@@ -60,6 +61,24 @@ export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
 }
 
 export type DateInput = Date | number | string
+export type timeUnit = 'm' | 'h' | 'd'
+export type StepUnit = `${number}${timeUnit}`
+/**
+ * (re)Learning steps:
+ * [1m, 10m]
+ * step1:again=1m hard=6m good=10m
+ * step2(good): again=1m hard=10m
+ *
+ * [5m]
+ * step1:again=5m hard=8m
+ * step2(good): again=5m
+ * step2(hard): again=5m hard=7.5m
+ *
+ * []
+ * step: Managed by FSRS
+ *
+ */
+export type Steps = StepUnit[] | readonly StepUnit[]
 
 export interface ReviewLogInput
   extends Omit<ReviewLog, 'rating' | 'state' | 'due' | 'review'> {
@@ -74,7 +93,12 @@ export interface FSRSParameters {
   maximum_interval: number
   w: number[] | readonly number[]
   enable_fuzz: boolean
+  /**
+   * When enable_short_term = false, the (re)learning steps are not applied.
+   */
   enable_short_term: boolean
+  learning_steps: Steps
+  relearning_steps: Steps
 }
 
 export interface FSRSReview {
