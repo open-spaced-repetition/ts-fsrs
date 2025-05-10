@@ -13,6 +13,7 @@ export type {
   RecordLogItem,
   StateType,
   RatingType,
+  GradeType,
   Grade,
   CardInput,
   ReviewLogInput,
@@ -20,6 +21,9 @@ export type {
   FSRSReview,
   FSRSHistory,
   FSRSState,
+  TimeUnit as timeUnit,
+  StepUnit,
+  Steps
 } from './models'
 export { State, Rating } from './models'
 
