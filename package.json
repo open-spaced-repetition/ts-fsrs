@@ -2,10 +2,16 @@
   "name": "ts-fsrs",
   "version": "5.0.0",
   "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
-  "main": "dist/index.cjs",
-  "umd": "dist/index.umd.js",
-  "module": "dist/index.mjs",
-  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "umd": "./dist/index.umd.js",
+      "default": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "type": "module",
   "scripts": {
     "lint": "eslint src/",
     "lint::fix": "eslint --fix src/ && prettier --write src/",
@@ -17,7 +23,7 @@
     "prepare": "rollup -c rollup.config.ts --configPlugin esbuild",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
     "predocs": "rimraf ./docs",
-    "docs": "typedoc"
+    "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.26.0",
@@ -37,10 +43,9 @@
     "rollup-plugin-esbuild": "^6.2.1",
     "ts-jest": "^29.3.2",
     "tslib": "^2.8.1",
+    "typedoc": "0.28.3",
+    "typedoc-plugin-extras": "4.0.0",
     "tsx": "^4.19.4",
-    "typedoc": "^0.26.4",
-    "typedoc-plugin-extras": "^3.1.0",
-    "typedoc-plugin-katex": "^0.1.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.31.1"
   },
