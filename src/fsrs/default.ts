@@ -53,10 +53,10 @@ export const clipParameters = (
 export const checkParameters = (parameters: number[] | readonly number[]) => {
   const invalid = parameters.find((param) => !isFinite(param) && !isNaN(param))
   if (invalid !== undefined) {
-    throw Error(`Non-finite value in parameters ${parameters}`)
+    throw Error(`Non-finite or NaN value in parameters ${parameters}`)
   } else if (![17, 19, 21].includes(parameters.length)) {
     throw Error(
-      `Invalid parameter length ${parameters.length}. Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively.`
+      `Invalid parameter length: ${parameters.length}. Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively.`
     )
   }
   return parameters
@@ -83,6 +83,8 @@ export const migrateParameters = (
       return w.concat([0.0, 0.0, 0.0, FSRS5_DEFAULT_DECAY])
     }
     default:
+      // To throw use "checkParameters"
+      // ref: https://github.com/open-spaced-repetition/ts-fsrs/pull/174#discussion_r2070436201
       console.warn('[FSRS]Invalid parameters length, using default parameters')
       return [...default_w]
   }
