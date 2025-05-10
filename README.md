@@ -138,12 +138,12 @@ Each `Card` object consists of various attributes that determine its status, sch
 
 ```typescript
 type Card = {
-  due: Date;           // Date when the card is next due for review
-  stability: number;   // A measure of how well the information is retained
-  difficulty: number;  // Reflects the inherent difficulty of the card content
-  elapsed_days: number; // Days since the card was last reviewed
-  scheduled_days: number; // The interval of time in days between this review and the next one
-  learning_steps: number // Keeps track of the current step during the (re)learning stages
+  due: Date;             // Date when the card is next due for review
+  stability: number;     // A measure of how well the information is retained
+  difficulty: number;    // Reflects the inherent difficulty of the card content
+  elapsed_days: number;  // Days since the card was last reviewed
+  scheduled_days: number;// The interval of time in days between this review and the next one
+  learning_steps: number;// Keeps track of the current step during the (re)learning stages
   reps: number;          // Total number of times the card has been reviewed
   lapses: number;        // Times the card was forgotten or remembered incorrectly
   state: State;          // The current state of the card (New, Learning, Review, Relearning)
