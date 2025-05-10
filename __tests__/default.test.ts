@@ -98,6 +98,7 @@ describe('default params', () => {
     const w = [...default_w]
 
     expect(checkParameters(w)).toBe(w)
+    expect(checkParameters(w)).toMatchObject(default_w)
     expect(() => checkParameters(w.slice(0, 19))).not.toThrow()
     expect(() => checkParameters(w.slice(0, 17))).not.toThrow()
     expect(() => checkParameters([0.40255])).toThrow(/^Invalid parameter length/)
