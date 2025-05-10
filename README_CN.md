@@ -19,10 +19,10 @@ ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.
 从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
 ```
-npm install ts-fsrs
-yarn install ts-fsrs
-pnpm install ts-fsrs
-bun install ts-fsrs
+npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+yarn add ts-fsrs
+pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+bun add ts-fsrs
 ```
 
 # 例子
@@ -150,7 +150,8 @@ type Card = {
     stability: number;     // 记忆稳定性
     difficulty: number;    // 卡片难度
     elapsed_days: number;  // 自上次复习以来的天数
-    scheduled_days: number; // 下次复习的间隔天数
+    scheduled_days: number;// 下次复习的间隔天数
+    learning_steps: number;// TODO (hi ishiko)
     reps: number;          // 卡片被复习的总次数
     lapses: number;        // 卡片被遗忘或错误记忆的次数
     state: State;          // 卡片的当前状态（新卡片、学习中、复习中、重新学习中）
@@ -161,7 +162,7 @@ type Card = {
 ## 6. **理解复习记录属性**:
 
 每个`ReviewLog`
-对象都包含各种属性，这些属性决定了与之关联的卡片的复习记录信息，用于分析，回退本次复习，[优化(编写中)](https://github.com/open-spaced-repetition/fsrs-optimizer)：
+对象都包含各种属性，这些属性决定了与之关联的卡片的复习记录信息，用于分析，回退本次复习，[优化(编写中)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs)：
 
 ```typescript
 type ReviewLog = {
@@ -173,6 +174,7 @@ type ReviewLog = {
     elapsed_days: number; // 自上次复习以来的天数
     last_elapsed_days: number; // 上次复习的间隔天数
     scheduled_days: number; // 下次复习的间隔天数
+    learning_steps: number;// TODO (hi ishiko(2))
     review: Date; // 复习的日期
 }
 ```

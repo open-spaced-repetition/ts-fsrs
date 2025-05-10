@@ -29,7 +29,7 @@ export interface ReviewLog {
   elapsed_days: number // Number of days elapsed since the last review
   last_elapsed_days: number // Number of days between the last two reviews
   scheduled_days: number // Number of days until the next review
-  learning_steps: number // Keep track of the current step during the (re)learning stage
+  learning_steps: number // Keeps track of the current step during the (re)learning stages
   review: Date // Date of the review
 }
 
@@ -47,7 +47,7 @@ export interface Card {
   difficulty: number // Difficulty level
   elapsed_days: number // Number of days elapsed
   scheduled_days: number // Number of days scheduled
-  learning_steps: number // Keep track of the current step during the (re)learning stage
+  learning_steps: number // Keeps track of the current step during the (re)learning stages
   reps: number // Repetition count
   lapses: number // Number of lapses or mistakes
   state: State // Card's state (New, Learning, Review, Relearning)
