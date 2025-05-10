@@ -39,6 +39,21 @@ export const clipParameters = (
   return clip.map(([min, max], index) => clamp(parameters[index], min, max))
 }
 
+/**
+ * @returns The input if the parameters are valid, throws if they are invalid
+ */
+export const checkParameters = (parameters: number[] | readonly number[]) => {
+  const invalid = parameters.find((param) => !isFinite(param) && !isNaN(param))
+  if (invalid !== undefined) {
+    throw Error(`Non finite value in parameters ${parameters}`)
+  } else if (![17, 19, 21].includes(parameters.length)) {
+    throw Error(
+      `Invalid parameter length ${parameters.length}, Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively`
+    )
+  }
+  return parameters
+}
+
 export const migrateParameters = (
   parameters?: number[] | readonly number[]
 ) => {

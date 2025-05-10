@@ -1,4 +1,5 @@
 import {
+  checkParameters,
   CLAMP_PARAMETERS,
   clipParameters,
   createEmptyCard,
@@ -84,6 +85,24 @@ describe('default params', () => {
     const f = fsrs(params)
     f.parameters.w = [0]
     expect(f.parameters.w).toEqual(default_w)
+  })
+
+  it('checkParameters', () => {
+
+    expect(() => generatorParameters({
+      w: [0.40255]
+    })).not.toThrow()
+
+    const w = [...default_w]
+
+    expect(() => checkParameters(w)).not.toThrow()
+    expect(() => checkParameters(w.slice(0, 19))).not.toThrow()
+    expect(() => checkParameters(w.slice(0, 17))).not.toThrow()
+    expect(() => checkParameters([0.40255])).toThrow(/^Invalid parameter length/)
+    expect(() => checkParameters(w.slice(0, 16))).toThrow(/^Invalid parameter length/)
+    w[5] = Infinity
+    expect(() => checkParameters(w)).toThrow(/^Non finite/)
+
   })
 
   it('if num relearning steps > 1', () => {
