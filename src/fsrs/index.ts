@@ -21,7 +21,7 @@ export type {
   FSRSReview,
   FSRSHistory,
   FSRSState,
-  TimeUnit as timeUnit,
+  TimeUnit,
   StepUnit,
   Steps,
 } from './models'
