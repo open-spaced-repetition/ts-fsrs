@@ -67,7 +67,7 @@ for (const item of scheduling_cards) {
 
 - [参考資料- Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [参考スケジューラ - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
-- [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (CDNを使用して ts-fsrs ESM
+- [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (CDNを使用して ts-fsrs ESM
   パッケージにアクセスする)
 - [実際のケース - Next.js+Prismaを利用する](https://github.com/ishiko732/ts-fsrs-demo)
 - [モダンなフラッシュカード - Next.jsやtRPCなど技術を利用している](https://github.com/zsh-eng/spaced)
