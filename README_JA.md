@@ -69,7 +69,7 @@ for (const item of scheduling_cards) {
 - [参考スケジューラ - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
 - [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (CDNを使用して ts-fsrs ESM
   パッケージにアクセスする)
-- [実際のケース - Next.js+Prismaを利用する](https://github.com/ishiko732/ts-fsrs-demo)
+- [実際のケース - Next.jsやHono.js、kyselyを利用する](https://github.com/ishiko732/ts-fsrs-demo)
 - [モダンなフラッシュカード - Next.jsやtRPCなど技術を利用している](https://github.com/zsh-eng/spaced)
 
 # 基本的な使い方
@@ -156,7 +156,7 @@ type Card = {
     difficulty: number;    // カードの難易度
     elapsed_days: number;  // 前回のレビューからの日数
     scheduled_days: number;// 次のレビューの間隔日数
-    learning_steps: number;// 現在の(再)習得ステップ
+    learning_steps: number;// 現在の(再)学習ステップ
     reps: number;          // カードのレビュー回数
     lapses: number;        // カードが忘れられたか、間違って覚えられた回数
     state: State;          // カードの現在の状態（新しいカード、学習中、レビュー中、再学習中）
@@ -179,7 +179,7 @@ type ReviewLog = {
     elapsed_days: number; // 前回のレビューからの日数
     last_elapsed_days: number; // 前回のレビューの間隔日数
     scheduled_days: number; // 次のレビューの間隔日数
-    learning_steps: number;// 現在の(再)習得ステップ
+    learning_steps: number;//  前回の(再)学習ステップ
     review: Date; // レビュー日
 }
 ```
