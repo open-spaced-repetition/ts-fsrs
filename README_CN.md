@@ -151,7 +151,7 @@ type Card = {
     difficulty: number;    // 卡片难度
     elapsed_days: number;  // 自上次复习以来的天数
     scheduled_days: number;// 下次复习的间隔天数
-    learning_steps: number;// TODO (hi ishiko)
+    learning_steps: number;// 当前的(重新)学习步骤
     reps: number;          // 卡片被复习的总次数
     lapses: number;        // 卡片被遗忘或错误记忆的次数
     state: State;          // 卡片的当前状态（新卡片、学习中、复习中、重新学习中）
@@ -174,7 +174,7 @@ type ReviewLog = {
     elapsed_days: number; // 自上次复习以来的天数
     last_elapsed_days: number; // 上次复习的间隔天数
     scheduled_days: number; // 下次复习的间隔天数
-    learning_steps: number;// TODO (hi ishiko(2))
+    learning_steps: number;// 复习前的(重新)学习步骤
     review: Date; // 复习的日期
 }
 ```
