@@ -65,7 +65,7 @@ for (const item of scheduling_cards) {
 - [参考文档- Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [参考调度 - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
 - [浏览器使用](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (使用CDN来访问ts-fsrs ESM包)
-- [案例应用 - 基于Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
+- [案例应用 - 基于Next.js+Hono.js+kysely](https://github.com/ishiko732/ts-fsrs-demo)
 - [现代化抽成卡 - Next.js+Drizzle+tRPC](https://github.com/zsh-eng/spaced)
 
 # 基本使用方法
