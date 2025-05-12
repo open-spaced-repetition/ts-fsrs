@@ -12,7 +12,7 @@
 ts-fsrsはTypeScriptに基づいた多機能なパッケージで、[ESモジュール]((https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c))、[CommonJS](https://en.wikipedia.org/wiki/CommonJS)、UMDに対応しています。[自由間隔重複スケジューラ（FSRS）アルゴリズム](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler) を実装しており、開発者がFSRSをフラッシュカードアプリケーションに統合することで、ユーザーの学習体験を向上させることができます。
 
 ts-fsrsのワークフローについては、以下のリソースを参照してください。
-> - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
+> - google drive: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
 
 
@@ -22,10 +22,10 @@ ts-fsrsのワークフローについては、以下のリソースを参照し�
 `ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
 ```
-npm install ts-fsrs
-yarn install ts-fsrs
-pnpm install ts-fsrs
-bun install ts-fsrs
+npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+yarn add ts-fsrs
+pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+bun add ts-fsrs
 ```
 
 # 例
@@ -67,9 +67,9 @@ for (const item of scheduling_cards) {
 
 - [参考資料- Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [参考スケジューラ - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
-- [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (CDNを使用して ts-fsrs ESM
+- [ブラウザで使い方](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (CDNを使用して ts-fsrs ESM
   パッケージにアクセスする)
-- [実際のケース - Next.js+Prismaを利用する](https://github.com/ishiko732/ts-fsrs-demo)
+- [実際のケース - Next.jsやHono.js、kyselyを利用する](https://github.com/ishiko732/ts-fsrs-demo)
 - [モダンなフラッシュカード - Next.jsやtRPCなど技術を利用している](https://github.com/zsh-eng/spaced)
 
 # 基本的な使い方
@@ -155,7 +155,8 @@ type Card = {
     stability: number;     //　記憶の安定性
     difficulty: number;    // カードの難易度
     elapsed_days: number;  // 前回のレビューからの日数
-    scheduled_days: number; // 次のレビューの間隔日数
+    scheduled_days: number;// 次のレビューの間隔日数
+    learning_steps: number;// 現在の(再)学習ステップ
     reps: number;          // カードのレビュー回数
     lapses: number;        // カードが忘れられたか、間違って覚えられた回数
     state: State;          // カードの現在の状態（新しいカード、学習中、レビュー中、再学習中）
@@ -166,7 +167,7 @@ type Card = {
 ## 6. **レビュー履歴属性の理解**:
 
 それぞれの`ReviewLog`
-オブジェクトは、そのカードに関連するレビュー記録情報を決定するさまざまな属性を含んでいます。分析、今回のレビューをやり直す、[最適化(作成中)](https://github.com/open-spaced-repetition/fsrs-optimizer)：
+オブジェクトは、そのカードに関連するレビュー記録情報を決定するさまざまな属性を含んでいます。分析、今回のレビューをやり直す、[最適化(作成中)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs)：
 
 ```typescript
 type ReviewLog = {
@@ -178,6 +179,7 @@ type ReviewLog = {
     elapsed_days: number; // 前回のレビューからの日数
     last_elapsed_days: number; // 前回のレビューの間隔日数
     scheduled_days: number; // 次のレビューの間隔日数
+    learning_steps: number;//  前回の(再)学習ステップ
     review: Date; // レビュー日
 }
 ```

@@ -2,29 +2,29 @@
 
 ---
 
-# About The
+# About
 [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
 [![Downloads](https://img.shields.io/npm/dm/ts-fsrs)](https://www.npmjs.com/package/ts-fsrs)
 [![codecov](https://codecov.io/gh/open-spaced-repetition/ts-fsrs/graph/badge.svg?token=E3KLLDL8QH)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Build and Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/npm-publish.yml)
 [![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
-ts-fsrs is a versatile package based on TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
+ts-fsrs is a versatile package written in TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
 
-The workflow for TS-FSRS can be referenced from the following resources:
-> - google driver: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (You may provide commentary)
+You can find the state transition diagram for cards here: 
+> - google drive: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (You're free to leave comments)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
 
 
 # Usage
-The `ts-fsrs@3.x` package requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.
+`ts-fsrs@3.x` requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.
 From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
 ```
-npm install ts-fsrs
-yarn install ts-fsrs
-pnpm install ts-fsrs
-bun install ts-fsrs
+npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+yarn add ts-fsrs
+pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+bun add ts-fsrs
 ```
 
 # Example
@@ -38,7 +38,6 @@ const card = createEmptyCard(new Date('2022-2-1 10:00:00'));// createEmptyCard()
 const now = new Date('2022-2-2 10:00:00');// new Date();
 const scheduling_cards = f.repeat(card, now);
 
-// console.log(scheduling_cards);
 for (const item of scheduling_cards) {
     // grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]
     const grade = item.log.rating
@@ -62,17 +61,17 @@ for (const item of scheduling_cards) {
 }
 ```
 
-More refer:
+More resources:
 - [Docs - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [Example.html - Github Pages](https://open-spaced-repetition.github.io/ts-fsrs/example)
-- [Browser](https://github.com/open-spaced-repetition/ts-fsrs/blob/master/example/example.html) (ts-fsrs package using CDN)
-- [ts-fsrs-demo - Next.js+Prisma](https://github.com/ishiko732/ts-fsrs-demo)
+- [Browser](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (ts-fsrs package using CDN)
+- [ts-fsrs-demo - Next.js+Hono.js+kysely](https://github.com/ishiko732/ts-fsrs-demo)
 - [spaced - Next.js+Drizzle+tRPC](https://github.com/zsh-eng/spaced)
 
 # Basic Use 
 
 ## 1. **Initialization**:
-To begin, create an empty card instance and set the current date(default: current time from system):
+To begin, create an empty card instance and set the current date (default: current time from the system):
 
 ```typescript
 import { Card, createEmptyCard } from "ts-fsrs";
@@ -83,7 +82,7 @@ let card: Card = createEmptyCard();
 ```
 
 ## 2. **Parameter Configuration**:
-The library allows for customization of SRS parameters. Use `generatorParameters` to produce the final set of parameters for the SRS algorithm. Here's an example setting a maximum interval:
+The library has multiple modifiable "SRS parameters" (settings, besides the weight/parameter values). Use `generatorParameters` to set these parameters for the SRS algorithm. Here's an example for setting a maximum interval:
 
 ```typescript
 import { Card, createEmptyCard, generatorParameters, FSRSParameters } from "ts-fsrs";
@@ -92,7 +91,7 @@ const params: FSRSParameters = generatorParameters({ maximum_interval: 1000 });
 ```
 
 ## 3. **Scheduling with FSRS**:
-The core functionality lies in the `fsrs` function. When invoked, it returns a collection of cards scheduled based on different potential user ratings:
+The core functionality lies in the `repeat` function of the `fsrs` class. When invoked, it returns a set of cards scheduled based on different potential user ratings:
 
 ```typescript
 import {
@@ -139,11 +138,12 @@ Each `Card` object consists of various attributes that determine its status, sch
 
 ```typescript
 type Card = {
-  due: Date;           // Date when the card is next due for review
-  stability: number;   // A measure of how well the information is retained
-  difficulty: number;  // Reflects the inherent difficulty of the card content
-  elapsed_days: number; // Days since the card was last reviewed
-  scheduled_days: number; // The interval at which the card is next scheduled
+  due: Date;             // Date when the card is next due for review
+  stability: number;     // A measure of how well the information is retained
+  difficulty: number;    // Reflects the inherent difficulty of the card content
+  elapsed_days: number;  // Days since the card was last reviewed
+  scheduled_days: number;// The interval of time in days between this review and the next one
+  learning_steps: number;// Keeps track of the current step during the (re)learning stages
   reps: number;          // Total number of times the card has been reviewed
   lapses: number;        // Times the card was forgotten or remembered incorrectly
   state: State;          // The current state of the card (New, Learning, Review, Relearning)
@@ -152,7 +152,7 @@ type Card = {
 ```
 
 ## 6. **Understanding Log Attributes**:
-Each `ReviewLog` object contains various attributes that determine the review record information associated with the card, used for analysis, undoing the review, and [optimization (WIP)](https://github.com/open-spaced-repetition/fsrs-optimizer).
+Each `ReviewLog` object contains various attributes that represent a review that was done on a card. Used for analysis, undoing the review, and [optimization (WIP)](https://github.com/open-spaced-repetition/fsrs-rs-nodejs).
 
 ```typescript
 type ReviewLog = {
@@ -164,6 +164,7 @@ type ReviewLog = {
     elapsed_days: number; // Number of days elapsed since the last review
     last_elapsed_days: number; // Number of days between the last two reviews
     scheduled_days: number; // Number of days until the next review
+    learning_steps: number; // Keeps track of the current step during the (re)learning stages
     review: Date; // Date of the review
 }
 ```
