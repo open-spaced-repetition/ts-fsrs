@@ -1,9 +1,9 @@
 {
     "$schema": "https://jsr.io/schema/config-file.v1.json",
     "exports": {
-        ".": "./src/index.ts",
-        "./algorithm": "./src/algorithm.ts",
-        "./constants": "./src/constants.ts"
+        ".": "./src/fsrs/index.ts",
+        "./algorithm": "./src/fsrs/algorithm.ts",
+        "./constants": "./src/fsrs/constants.ts"
     },
     "name": "@fsrs/ts-fsrs",
     "version": "5.0.0",
