@@ -6,6 +6,7 @@ import {
   State,
   Grade,
   Grades,
+  FSRSState,
 } from '../src/fsrs'
 
 describe('FSRS-6 ', () => {
@@ -60,10 +61,7 @@ describe('FSRS-6 ', () => {
     ])
   })
 
-  it('memory state', () => {
-    let card = createEmptyCard()
-    let now = new Date(2022, 11, 29, 12, 30, 0, 0)
-    let scheduling_cards = f.repeat(card, now)
+  describe('memory state', () => {
     const ratings: Grade[] = [
       Rating.Again,
       Rating.Good,
@@ -73,15 +71,58 @@ describe('FSRS-6 ', () => {
       Rating.Good,
     ]
     const intervals: number[] = [0, 0, 1, 3, 8, 21]
-    for (const [index, rating] of ratings.entries()) {
-      card = scheduling_cards[rating].card
-      now = new Date(now.getTime() + intervals[index] * 24 * 60 * 60 * 1000)
-      scheduling_cards = f.repeat(card, now)
-    }
+    function assertMemoryState(
+      f: FSRS,
+      text: string,
+      expect_stability: number,
+      expect_difficulty: number
+    ) {
+      let card = createEmptyCard()
+      let now = new Date(2022, 11, 29, 12, 30, 0, 0)
 
-    const { stability, difficulty } = scheduling_cards[Rating.Good].card
-    expect(stability).toBeCloseTo(49.8637, 4)
-    expect(difficulty).toBeCloseTo(6.8271, 4)
+      for (const [index, rating] of ratings.entries()) {
+        now = new Date(+now + intervals[index] * 24 * 60 * 60 * 1000)
+        card = f.next(card, now, rating).card
+        console.debug(text, index + 1, card.stability, card.difficulty)
+      }
+
+      const { stability, difficulty } = card
+      expect(stability).toBeCloseTo(expect_stability, 4)
+      expect(difficulty).toBeCloseTo(expect_difficulty, 4)
+    }
+    it('memory state[short-term]', () => {
+      const f: FSRS = fsrs({ w, enable_short_term: true })
+      assertMemoryState(f, 'short-term', 49.4472, 6.8573)
+    })
+
+    it('memory state[long-term]', () => {
+      const f: FSRS = fsrs({ w, enable_short_term: false })
+      assertMemoryState(f, 'long-term', 48.6015, 6.8573)
+    })
+
+    it('memory state using next_state[short-term]', () => {
+      const f: FSRS = fsrs({ w, enable_short_term: true })
+      let state: FSRSState | null = null
+      for (const [index, rating] of ratings.entries()) {
+        state = f.next_state(state, intervals[index], rating)
+      }
+
+      const { stability, difficulty } = state!
+      expect(stability).toBeCloseTo(49.4472, 4)
+      expect(difficulty).toBeCloseTo(6.8573, 4)
+    })
+
+    it('memory state using next_state[long-term]', () => {
+      const f: FSRS = fsrs({ w, enable_short_term: false })
+      let state: FSRSState | null = null
+      for (const [index, rating] of ratings.entries()) {
+        state = f.next_state(state, intervals[index], rating)
+      }
+
+      const { stability, difficulty } = state!
+      expect(stability).toBeCloseTo(48.6015, 4)
+      expect(difficulty).toBeCloseTo(6.8573, 4)
+    })
   })
 
   it('first repeat', () => {
