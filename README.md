@@ -3,11 +3,15 @@
 ---
 
 # About
-[![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg)](https://www.npmjs.com/package/ts-fsrs)
-[![Downloads](https://img.shields.io/npm/dm/ts-fsrs)](https://www.npmjs.com/package/ts-fsrs)
-[![codecov](https://codecov.io/gh/open-spaced-repetition/ts-fsrs/graph/badge.svg?token=E3KLLDL8QH)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
-[![Publish](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml)
-[![Deploy](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml/badge.svg)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
+[![fsrs version](https://img.shields.io/badge/FSRS-v6-blue?style=flat-square)](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-6)
+[![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs)
+[![Downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
+[![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov
+)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
+[![Publish](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/publish.yml?style=flat-square&logo=githubactions&label=Publish
+)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
+)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 ts-fsrs is a versatile package written in TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
 
