@@ -6,7 +6,7 @@
         "./constants": "./src/fsrs/constants.ts"
     },
     "name": "@fsrs/ts-fsrs",
-    "version": "5.0.0",
+    "version": "5.0.1",
     "license": "MIT",
     "publish": {
         "include": [
