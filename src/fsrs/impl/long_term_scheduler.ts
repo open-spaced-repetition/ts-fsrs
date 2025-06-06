@@ -19,6 +19,7 @@ export default class LongTermScheduler extends AbstractScheduler {
     }
 
     this.current.scheduled_days = 0
+    // pending removal in v6.0.0
     this.current.elapsed_days = 0
 
     const next_again = TypeConvert.card(this.current)
@@ -72,7 +73,7 @@ export default class LongTermScheduler extends AbstractScheduler {
     if (exist) {
       return exist
     }
-    const interval = this.current.elapsed_days
+    const interval = this.elapsed_days
     const { difficulty, stability } = this.last
     const retrievability = this.algorithm.forgetting_curve(interval, stability)
     const next_again = TypeConvert.card(this.current)

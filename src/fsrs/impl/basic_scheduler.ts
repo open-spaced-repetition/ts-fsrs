@@ -105,7 +105,7 @@ export default class BasicScheduler extends AbstractScheduler {
         nextCard.learning_steps = 0
         const interval = this.algorithm.next_interval(
           nextCard.stability,
-          this.current.elapsed_days
+          this.elapsed_days
         )
         nextCard.scheduled_days = interval
         nextCard.due = date_scheduler(this.review_time, interval as int, true)
@@ -154,7 +154,7 @@ export default class BasicScheduler extends AbstractScheduler {
     if (exist) {
       return exist
     }
-    const interval = this.current.elapsed_days
+    const interval = this.elapsed_days
     const { difficulty, stability } = this.last
     const retrievability = this.algorithm.forgetting_curve(interval, stability)
     const next_again = TypeConvert.card(this.current)
