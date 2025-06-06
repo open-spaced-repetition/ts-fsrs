@@ -5,12 +5,25 @@ import { TypeConvert } from './convert'
 
 declare global {
   export interface Date {
+    /**
+     * @deprecated This method will be removed in version 6.0.0.
+     *
+     */
     scheduler(t: int, isDay?: boolean): Date
-
+    /**
+     * @deprecated This method will be removed in version 6.0.0.
+     *
+     */
     diff(pre: Date, unit: unit): int
-
+    /**
+     * @deprecated This method will be removed in version 6.0.0.
+     *
+     */
     format(): string
-
+    /**
+     * @deprecated This method will be removed in version 6.0.0.
+     *
+     */
     dueFormat(last_review: Date, unit?: boolean, timeUnit?: string[]): string
   }
 }
