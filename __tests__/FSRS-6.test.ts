@@ -7,6 +7,7 @@ import {
   Grade,
   Grades,
   FSRSState,
+  date_diff,
 } from '../src/fsrs'
 
 describe('FSRS-6 ', () => {
@@ -44,7 +45,9 @@ describe('FSRS-6 ', () => {
         )
         expect(rollbackCard).toEqual(card)
         expect(scheduling_cards[check].log.elapsed_days).toEqual(
-          card.last_review ? now.diff(card.last_review as Date, 'days') : 0
+          card.last_review
+            ? date_diff(now, card.last_review as Date, 'days')
+            : 0
         )
         const _f = fsrs({ w })
         const next = _f.next(card, now, check)

@@ -26,6 +26,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected next: Map<Grade, RecordLogItem> = new Map()
   protected algorithm: FSRSAlgorithm
   protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
+  protected elapsed_days: number = 0 // init
 
   constructor(
     card: CardInput | Card,
@@ -54,6 +55,8 @@ export abstract class AbstractScheduler implements IScheduler {
       interval = dateDiffInDays(last_review, this.review_time)
     }
     this.current.last_review = this.review_time
+    this.elapsed_days = interval
+    // pending removal in v6.0.0
     this.current.elapsed_days = interval
     this.current.reps += 1
 
@@ -118,7 +121,7 @@ export abstract class AbstractScheduler implements IScheduler {
       due: last_review || due,
       stability: this.current.stability,
       difficulty: this.current.difficulty,
-      elapsed_days: this.current.elapsed_days,
+      elapsed_days: this.elapsed_days,
       last_elapsed_days: elapsed_days,
       scheduled_days: this.current.scheduled_days,
       learning_steps: this.current.learning_steps,

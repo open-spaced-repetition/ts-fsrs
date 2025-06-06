@@ -28,6 +28,7 @@ import {
   type TSchedulerStrategy,
   type TStrategyHandler,
 } from './strategies/types'
+import { date_diff } from './help'
 
 export class FSRS extends FSRSAlgorithm {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
@@ -258,7 +259,7 @@ export class FSRS extends FSRSAlgorithm {
     now = now ? TypeConvert.time(now) : new Date()
     const t =
       processedCard.state !== State.New
-        ? Math.max(now.diff(processedCard.last_review as Date, 'days'), 0)
+        ? Math.max(date_diff(now, processedCard.last_review as Date, 'days'), 0)
         : 0
     const r =
       processedCard.state !== State.New
@@ -407,7 +408,7 @@ export class FSRS extends FSRSAlgorithm {
     const scheduled_days =
       processedCard.state === State.New
         ? 0
-        : now.diff(processedCard.last_review as Date, 'days')
+        : date_diff(now, processedCard.due as Date, 'days')
     const forget_log: ReviewLog = {
       rating: Rating.Manual,
       state: processedCard.state,

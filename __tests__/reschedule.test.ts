@@ -460,7 +460,8 @@ describe('FSRS reschedule', () => {
           now: review_at,
         }
       )
-      const scheduled_days = reschedule_item!.card.due.diff(
+      const scheduled_days = date_diff(
+        reschedule_item!.card.due,
         cur_card.due,
         'days'
       )

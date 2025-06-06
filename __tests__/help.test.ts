@@ -1,9 +1,7 @@
 import {
   date_diff,
   date_scheduler,
-  fixDate,
-  fixRating,
-  fixState,
+  TypeConvert,
   formatDate,
   Grades,
   Rating,
@@ -21,15 +19,9 @@ test('FSRS-Grades', () => {
 
 test('Date.prototype.format', () => {
   const now = new Date(2022, 11, 30, 12, 30, 0, 0)
-  const last_review = new Date(2022, 11, 29, 12, 30, 0, 0)
-  expect(now.format()).toEqual('2022-12-30 12:30:00')
   expect(formatDate(now)).toEqual('2022-12-30 12:30:00')
   expect(formatDate(now.getTime())).toEqual('2022-12-30 12:30:00')
   expect(formatDate(now.toUTCString())).toEqual('2022-12-30 12:30:00')
-  const TIMEUNITFORMAT_TEST = ['秒', '分', '时', '天', '月', '年']
-  expect(now.dueFormat(last_review)).toEqual('1')
-  expect(now.dueFormat(last_review, true)).toEqual('1day')
-  expect(now.dueFormat(last_review, true, TIMEUNITFORMAT_TEST)).toEqual('1天')
 })
 
 describe('date_scheduler', () => {
@@ -79,18 +71,18 @@ describe('date_diff', () => {
     const now = new Date(2022, 11, 30, 12, 30, 0, 0)
     const last_review = new Date(2022, 11, 29, 12, 30, 0, 0)
 
-    expect(() => date_diff(now, null as unknown as Date, 'days')).toThrowError(
+    expect(() => date_diff(now, null as unknown as Date, 'days')).toThrow(
+      'Invalid date'
+    )
+    expect(() => date_diff(now, null as unknown as Date, 'minutes')).toThrow(
       'Invalid date'
     )
     expect(() =>
-      date_diff(now, null as unknown as Date, 'minutes')
-    ).toThrowError('Invalid date')
-    expect(() =>
       date_diff(null as unknown as Date, last_review, 'days')
-    ).toThrowError('Invalid date')
+    ).toThrow('Invalid date')
     expect(() =>
       date_diff(null as unknown as Date, last_review, 'minutes')
-    ).toThrowError('Invalid date')
+    ).toThrow('Invalid date')
   })
 
   test('calculate difference in minutes', () => {
@@ -118,81 +110,85 @@ describe('date_diff', () => {
   })
 })
 
-describe('fixDate', () => {
+describe('TypeConvert.time', () => {
   test('throw error for invalid date value', () => {
     const input = 'invalid-date'
-    expect(() => fixDate(input)).toThrowError('Invalid date:[invalid-date]')
+    expect(() => TypeConvert.time(input)).toThrow('Invalid date:[invalid-date]')
   })
 
   test('throw error for unsupported value type', () => {
     const input = true
-    expect(() => fixDate(input)).toThrowError('Invalid date:[true]')
+    expect(() => TypeConvert.time(input)).toThrow('Invalid date:[true]')
   })
 
   test('throw error for undefined value', () => {
     const input = undefined
-    expect(() => fixDate(input)).toThrowError('Invalid date:[undefined]')
+    expect(() => TypeConvert.time(input)).toThrow('Invalid date:[undefined]')
   })
 
   test('throw error for null value', () => {
     const input = null
-    expect(() => fixDate(input)).toThrowError('Invalid date:[null]')
+    expect(() => TypeConvert.time(input)).toThrow('Invalid date:[null]')
   })
 })
 
-describe('fixState', () => {
+describe('TypeConvert.state', () => {
   test('fix state value', () => {
     const newState = 'New'
-    expect(fixState('new')).toEqual(State.New)
-    expect(fixState(newState)).toEqual(State.New)
+    expect(TypeConvert.state('new')).toEqual(State.New)
+    expect(TypeConvert.state(newState)).toEqual(State.New)
 
     const learning = 'Learning'
-    expect(fixState('learning')).toEqual(State.Learning)
-    expect(fixState(learning)).toEqual(State.Learning)
+    expect(TypeConvert.state('learning')).toEqual(State.Learning)
+    expect(TypeConvert.state(learning)).toEqual(State.Learning)
 
     const relearning = 'Relearning'
-    expect(fixState('relearning')).toEqual(State.Relearning)
-    expect(fixState(relearning)).toEqual(State.Relearning)
+    expect(TypeConvert.state('relearning')).toEqual(State.Relearning)
+    expect(TypeConvert.state(relearning)).toEqual(State.Relearning)
 
     const review = 'Review'
-    expect(fixState('review')).toEqual(State.Review)
-    expect(fixState(review)).toEqual(State.Review)
+    expect(TypeConvert.state('review')).toEqual(State.Review)
+    expect(TypeConvert.state(review)).toEqual(State.Review)
   })
 
   test('throw error for invalid state value', () => {
     const input = 'invalid-state'
-    expect(() => fixState(input)).toThrowError('Invalid state:[invalid-state]')
-    expect(() => fixState(null)).toThrowError('Invalid state:[null]')
-    expect(() => fixState(undefined)).toThrowError('Invalid state:[undefined]')
+    expect(() => TypeConvert.state(input)).toThrow(
+      'Invalid state:[invalid-state]'
+    )
+    expect(() => TypeConvert.state(null)).toThrow('Invalid state:[null]')
+    expect(() => TypeConvert.state(undefined)).toThrow(
+      'Invalid state:[undefined]'
+    )
   })
 })
 
-describe('fixRating', () => {
+describe('TypeConvert.rating', () => {
   test('fix Rating value', () => {
     const again = 'Again'
-    expect(fixRating('again')).toEqual(Rating.Again)
-    expect(fixRating(again)).toEqual(Rating.Again)
+    expect(TypeConvert.rating('again')).toEqual(Rating.Again)
+    expect(TypeConvert.rating(again)).toEqual(Rating.Again)
 
     const hard = 'Hard'
-    expect(fixRating('hard')).toEqual(Rating.Hard)
-    expect(fixRating(hard)).toEqual(Rating.Hard)
+    expect(TypeConvert.rating('hard')).toEqual(Rating.Hard)
+    expect(TypeConvert.rating(hard)).toEqual(Rating.Hard)
 
     const good = 'Good'
-    expect(fixRating('good')).toEqual(Rating.Good)
-    expect(fixRating(good)).toEqual(Rating.Good)
+    expect(TypeConvert.rating('good')).toEqual(Rating.Good)
+    expect(TypeConvert.rating(good)).toEqual(Rating.Good)
 
     const easy = 'Easy'
-    expect(fixRating('easy')).toEqual(Rating.Easy)
-    expect(fixRating(easy)).toEqual(Rating.Easy)
+    expect(TypeConvert.rating('easy')).toEqual(Rating.Easy)
+    expect(TypeConvert.rating(easy)).toEqual(Rating.Easy)
   })
 
   test('throw error for invalid rating value', () => {
     const input = 'invalid-rating'
-    expect(() => fixRating(input)).toThrowError(
+    expect(() => TypeConvert.rating(input)).toThrowError(
       'Invalid rating:[invalid-rating]'
     )
-    expect(() => fixRating(null)).toThrowError('Invalid rating:[null]')
-    expect(() => fixRating(undefined)).toThrowError(
+    expect(() => TypeConvert.rating(null)).toThrowError('Invalid rating:[null]')
+    expect(() => TypeConvert.rating(undefined)).toThrowError(
       'Invalid rating:[undefined]'
     )
   })

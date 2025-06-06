@@ -2,7 +2,7 @@ import {
   Card,
   createEmptyCard,
   date_scheduler,
-  fixState,
+  TypeConvert,
   fsrs,
   FSRS,
   Grades,
@@ -147,7 +147,9 @@ describe('afterHandler', () => {
   it('createEmptyCard[afterHandler]', () => {
     const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler)
     expect(emptyCardFormAfterHandler.state).toEqual('New')
-    expect(fixState(emptyCardFormAfterHandler.state)).toEqual(State.New)
+    expect(TypeConvert.state(emptyCardFormAfterHandler.state)).toEqual(
+      State.New
+    )
     expect(emptyCardFormAfterHandler.last_review).toEqual(null)
     expect(emptyCardFormAfterHandler.cid).toEqual('test001')
 
@@ -156,7 +158,9 @@ describe('afterHandler', () => {
       cardAfterHandler
     )
     expect(emptyCardFormAfterHandler2.state).toEqual('New')
-    expect(fixState(emptyCardFormAfterHandler2.state)).toEqual(State.New)
+    expect(TypeConvert.state(emptyCardFormAfterHandler2.state)).toEqual(
+      State.New
+    )
     expect(emptyCardFormAfterHandler2.last_review).toEqual(null)
     expect(emptyCardFormAfterHandler2.cid).toEqual('test001')
   })
