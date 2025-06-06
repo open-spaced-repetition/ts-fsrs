@@ -1,7 +1,7 @@
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { S_MIN } from '../constant'
-import { clamp } from '../help'
+import { clamp, date_scheduler } from '../help'
 import {
   type Card,
   type Grade,
@@ -181,16 +181,16 @@ export default class LongTermScheduler extends AbstractScheduler {
     easy_interval = Math.max(easy_interval, good_interval + 1) as int
 
     next_again.scheduled_days = again_interval
-    next_again.due = this.review_time.scheduler(again_interval, true)
+    next_again.due = date_scheduler(this.review_time, again_interval, true)
 
     next_hard.scheduled_days = hard_interval
-    next_hard.due = this.review_time.scheduler(hard_interval, true)
+    next_hard.due = date_scheduler(this.review_time, hard_interval, true)
 
     next_good.scheduled_days = good_interval
-    next_good.due = this.review_time.scheduler(good_interval, true)
+    next_good.due = date_scheduler(this.review_time, good_interval, true)
 
     next_easy.scheduled_days = easy_interval
-    next_easy.due = this.review_time.scheduler(easy_interval, true)
+    next_easy.due = date_scheduler(this.review_time, easy_interval, true)
   }
 
   /**
