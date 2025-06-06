@@ -137,6 +137,7 @@ export function show_diff_message(
 /**
  *
  * @deprecated Use TypeConvert.time instead
+ * @deprecated This function will be removed in version 6.0.0.
  */
 export function fixDate(value: unknown) {
   return TypeConvert.time(value)
@@ -144,6 +145,7 @@ export function fixDate(value: unknown) {
 
 /**
  * @deprecated Use TypeConvert.state instead
+ * @deprecated This function will be removed in version 6.0.0.
  */
 export function fixState(value: unknown): State {
   return TypeConvert.state(value)
@@ -151,6 +153,7 @@ export function fixState(value: unknown): State {
 
 /**
  * @deprecated Use TypeConvert.rating instead
+ * @deprecated This function will be removed in version 6.0.0.
  */
 export function fixRating(value: unknown): Rating {
   return TypeConvert.rating(value)
