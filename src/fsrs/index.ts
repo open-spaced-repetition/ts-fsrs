@@ -25,7 +25,7 @@ export type {
   StepUnit,
   Steps,
 } from './models'
-export { State, Rating } from './models'
+export { State, Rating, Preset } from './models'
 
 export * from './convert'
 
@@ -33,3 +33,8 @@ export * from './strategies'
 export * from './abstract_scheduler'
 export * from './impl/basic_scheduler'
 export * from './impl/long_term_scheduler'
+
+export * from './io'
+export type { JsonCard } from './io'
+
+export * from './analytics'

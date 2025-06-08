@@ -1,4 +1,4 @@
-import { Card, DateInput, FSRSParameters, State } from './models'
+import { Card, DateInput, FSRSParameters, Preset, State } from './models'
 import { TypeConvert } from './convert'
 import { clamp } from './help'
 import {
@@ -90,22 +90,62 @@ export const migrateParameters = (
   }
 }
 
+export const getPresetParameters = (
+  preset: Preset
+): Partial<FSRSParameters> => {
+  switch (preset) {
+    case Preset.LanguageLearner:
+      return {
+        learning_steps: ['1m', '10m', '1h'],
+        relearning_steps: ['5m', '30m'],
+      }
+    case Preset.ExamPreparation:
+      return {
+        request_retention: 0.92,
+        learning_steps: ['1m', '8m', '45m', '3h'],
+        relearning_steps: ['5m', '25m'],
+      }
+    case Preset.CasualLearner:
+      return {
+        request_retention: 0.85,
+        learning_steps: ['5m', '30m'],
+        enable_short_term: false,
+      }
+    case Preset.Default:
+    default:
+      return {}
+  }
+}
+
 export const generatorParameters = (
-  props?: Partial<FSRSParameters>
+  props?: Partial<FSRSParameters> & { preset?: Preset } // Add preset to props type
 ): FSRSParameters => {
-  const learning_steps = Array.isArray(props?.learning_steps)
-    ? props!.learning_steps
+  let presetParams: Partial<FSRSParameters> = {}
+  if (props?.preset) {
+    presetParams = getPresetParameters(props.preset)
+  }
+
+  const combinedProps = { ...presetParams, ...props } // Specific props override preset props
+
+  const learning_steps = Array.isArray(combinedProps?.learning_steps)
+    ? combinedProps!.learning_steps
     : default_learning_steps
-  const relearning_steps = Array.isArray(props?.relearning_steps)
-    ? props!.relearning_steps
+  const relearning_steps = Array.isArray(combinedProps?.relearning_steps)
+    ? combinedProps!.relearning_steps
     : default_relearning_steps
-  const w = clipParameters(migrateParameters(props?.w), relearning_steps.length)
+  const w = clipParameters(
+    migrateParameters(combinedProps?.w),
+    relearning_steps.length
+  )
   return {
-    request_retention: props?.request_retention || default_request_retention,
-    maximum_interval: props?.maximum_interval || default_maximum_interval,
+    request_retention:
+      combinedProps?.request_retention ?? default_request_retention,
+    maximum_interval:
+      combinedProps?.maximum_interval ?? default_maximum_interval,
     w: w,
-    enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term: props?.enable_short_term ?? default_enable_short_term,
+    enable_fuzz: combinedProps?.enable_fuzz ?? default_enable_fuzz,
+    enable_short_term:
+      combinedProps?.enable_short_term ?? default_enable_short_term,
     learning_steps: learning_steps,
     relearning_steps: relearning_steps,
   } satisfies FSRSParameters

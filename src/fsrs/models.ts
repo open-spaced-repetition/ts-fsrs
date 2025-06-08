@@ -144,3 +144,10 @@ export interface FSRSState {
   stability: number
   difficulty: number
 }
+
+export enum Preset {
+  LanguageLearner = "LanguageLearner",
+  ExamPreparation = "ExamPreparation",
+  CasualLearner = "CasualLearner",
+  Default = "Default",
+}
