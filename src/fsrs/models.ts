@@ -26,7 +26,13 @@ export interface ReviewLog {
   due: Date // Date of the last scheduling
   stability: number // Memory stability during the review
   difficulty: number // Difficulty of the card during the review
+  /**
+   * @deprecated This field will be removed in version 6.0.0
+   */
   elapsed_days: number // Number of days elapsed since the last review
+  /**
+   * @deprecated This field will be removed in version 6.0.0
+   */
   last_elapsed_days: number // Number of days between the last two reviews
   scheduled_days: number // Number of days until the next review
   learning_steps: number // Keeps track of the current step during the (re)learning stages
@@ -45,6 +51,9 @@ export interface Card {
   due: Date // Due date
   stability: number // Stability
   difficulty: number // Difficulty level
+  /**
+   * @deprecated This field will be removed in version 6.0.0
+   */
   elapsed_days: number // Number of days elapsed
   scheduled_days: number // Number of days scheduled
   learning_steps: number // Keeps track of the current step during the (re)learning stages

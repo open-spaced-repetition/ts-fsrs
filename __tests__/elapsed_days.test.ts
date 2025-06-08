@@ -7,6 +7,7 @@ import {
   Rating,
   Grade,
   ReviewLog,
+  date_diff,
 } from '../src/fsrs'
 
 describe('elapsed_days', () => {
@@ -37,7 +38,7 @@ describe('elapsed_days', () => {
 
     currentLog = sc[grades[index]].log
     expect(currentLog.elapsed_days).toEqual(
-      secondDue.diff(card.last_review as Date, 'days')
+      date_diff(secondDue, card.last_review as Date, 'days')
     ) // 3
     expect(currentLog.elapsed_days).toEqual(3) // 0
     card = sc[grades[index]].card
@@ -54,7 +55,7 @@ describe('elapsed_days', () => {
 
     currentLog = sc[grades[index]].log
     expect(currentLog.elapsed_days).toEqual(
-      secondDue.diff(card.last_review as Date, 'days')
+      date_diff(secondDue, card.last_review as Date, 'days')
     ) // 0
     expect(currentLog.elapsed_days).toEqual(0) // 0
     // console.log(currentLog);
@@ -71,7 +72,7 @@ describe('elapsed_days', () => {
 
     currentLog = sc[grades[index]].log
     expect(currentLog.elapsed_days).toEqual(
-      secondDue.diff(card.last_review as Date, 'days')
+      date_diff(secondDue, card.last_review as Date, 'days')
     ) // 0
     expect(currentLog.elapsed_days).toEqual(0) // 0
     // console.log(currentLog);

@@ -1,6 +1,7 @@
 import { TypeConvert } from './convert'
 import { createEmptyCard } from './default'
 import type { FSRS } from './fsrs'
+import { date_diff } from './help'
 import {
   type Card,
   type CardInput,
@@ -83,7 +84,7 @@ export class Reschedule {
       if (typeof due === 'undefined') {
         throw new Error('reschedule: due is required for manual rating')
       }
-      const scheduled_days = due.diff(reviewed as Date, 'days')
+      const scheduled_days = date_diff(due, reviewed, 'days')
       log = {
         rating: Rating.Manual,
         state: <State>card.state,
@@ -129,7 +130,7 @@ export class Reschedule {
         // ref: abstract_scheduler.ts#init
         let interval = 0
         if (cur_card.state !== State.New && cur_card.last_review) {
-          interval = review.review.diff(cur_card.last_review as Date, 'days')
+          interval = date_diff(review.review, cur_card.last_review, 'days')
         }
         item = this.handleManualRating(
           cur_card,
@@ -164,8 +165,9 @@ export class Reschedule {
     if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
       return null
     }
-    cur_card.scheduled_days = reschedule_card.due.diff(
-      cur_card.due as Date,
+    cur_card.scheduled_days = date_diff(
+      reschedule_card.due,
+      cur_card.due,
       'days'
     )
     return this.handleManualRating(

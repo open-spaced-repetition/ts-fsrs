@@ -1,7 +1,7 @@
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { S_MIN } from '../constant'
-import { clamp } from '../help'
+import { clamp, date_scheduler } from '../help'
 import {
   type Card,
   CardInput,
@@ -86,7 +86,8 @@ export default class BasicScheduler extends AbstractScheduler {
       nextCard.learning_steps = next_steps
       nextCard.scheduled_days = 0
       nextCard.state = to_state
-      nextCard.due = this.review_time.scheduler(
+      nextCard.due = date_scheduler(
+        this.review_time,
         Math.round(scheduled_minutes) as int,
         false /** true:days false: minute */
       )
@@ -94,7 +95,8 @@ export default class BasicScheduler extends AbstractScheduler {
       nextCard.state = State.Review
       if (scheduled_minutes >= 1440) {
         nextCard.learning_steps = next_steps
-        nextCard.due = this.review_time.scheduler(
+        nextCard.due = date_scheduler(
+          this.review_time,
           Math.round(scheduled_minutes) as int,
           false /** true:days false: minute */
         )
@@ -103,10 +105,10 @@ export default class BasicScheduler extends AbstractScheduler {
         nextCard.learning_steps = 0
         const interval = this.algorithm.next_interval(
           nextCard.stability,
-          this.current.elapsed_days
+          this.elapsed_days
         )
         nextCard.scheduled_days = interval
-        nextCard.due = this.review_time.scheduler(interval as int, true)
+        nextCard.due = date_scheduler(this.review_time, interval as int, true)
       }
     }
   }
@@ -152,7 +154,7 @@ export default class BasicScheduler extends AbstractScheduler {
     if (exist) {
       return exist
     }
-    const interval = this.current.elapsed_days
+    const interval = this.elapsed_days
     const { difficulty, stability } = this.last
     const retrievability = this.algorithm.forgetting_curve(interval, stability)
     const next_again = TypeConvert.card(this.current)
@@ -279,12 +281,12 @@ export default class BasicScheduler extends AbstractScheduler {
     ) as int
 
     next_hard.scheduled_days = hard_interval
-    next_hard.due = this.review_time.scheduler(hard_interval, true)
+    next_hard.due = date_scheduler(this.review_time, hard_interval, true)
     next_good.scheduled_days = good_interval
-    next_good.due = this.review_time.scheduler(good_interval, true)
+    next_good.due = date_scheduler(this.review_time, good_interval, true)
 
     next_easy.scheduled_days = easy_interval
-    next_easy.due = this.review_time.scheduler(easy_interval, true)
+    next_easy.due = date_scheduler(this.review_time, easy_interval, true)
   }
 
   /**
