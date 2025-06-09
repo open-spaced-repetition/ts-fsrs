@@ -30,6 +30,9 @@ import {
 } from './strategies/types'
 import { date_diff } from './help'
 
+// A utility type to require only K properties of A
+type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<Omit<A, K>>;
+
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
     mode: T,
@@ -86,8 +89,7 @@ export interface IFSRS {
   reschedule<T = RecordLogItem>(
     current_card: CardInput | Card,
     reviews?: FSRSHistory[],
-    options?: RescheduleOptions<T>['recordLogHandler'] &
-      Partial<Omit<RescheduleOptions<T>, 'recordLogHandler'>>
+    options?: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
   ): IReschedule<T>
   reschedule(
     current_card: CardInput | Card,
@@ -548,9 +550,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
 
   reschedule<T = RecordLogItem>(
     current_card: CardInput | Card,
-    reviews?: FSRSHistory[],
-    options?: RescheduleOptions<T>['recordLogHandler'] &
-      Partial<Omit<RescheduleOptions<T>, 'recordLogHandler'>>
+    reviews: FSRSHistory[] | undefined,
+    options: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
   ): IReschedule<T>
   reschedule(
     current_card: CardInput | Card,
