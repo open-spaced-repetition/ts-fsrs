@@ -30,7 +30,73 @@ import {
 } from './strategies/types'
 import { date_diff } from './help'
 
-export class FSRS extends FSRSAlgorithm {
+export interface IFSRS {
+  useStrategy<T extends StrategyMode>(
+    mode: T,
+    handler: TStrategyHandler<T>
+  ): this
+
+  clearStrategy(mode?: StrategyMode): this
+
+  repeat(card: CardInput | Card, now: DateInput): IPreview
+  repeat<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    afterHandler: (recordLog: IPreview) => R
+  ): R
+
+  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
+  next<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    afterHandler: (recordLog: RecordLogItem) => R
+  ): R
+
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: true
+  ): string
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: false
+  ): number
+
+  rollback(card: CardInput | Card, log: ReviewLogInput): Card
+  rollback<R>(
+    card: CardInput | Card,
+    log: ReviewLogInput,
+    afterHandler: (prevCard: Card) => R
+  ): R
+
+  forget(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count?: boolean
+  ): RecordLogItem
+  forget<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count: boolean | undefined,
+    afterHandler: (recordLogItem: RecordLogItem) => R
+  ): R
+
+  reschedule<T = RecordLogItem>(
+    current_card: CardInput | Card,
+    reviews?: FSRSHistory[],
+    options?: RescheduleOptions<T>['recordLogHandler'] &
+      Partial<Omit<RescheduleOptions<T>, 'recordLogHandler'>>
+  ): IReschedule<T>
+  reschedule(
+    current_card: CardInput | Card,
+    reviews?: FSRSHistory[],
+    options?: Partial<RescheduleOptions<RecordLogItem>>
+  ): IReschedule<RecordLogItem>
+}
+
+export class FSRS extends FSRSAlgorithm implements IFSRS {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
   private Scheduler: TSchedulerStrategy
   constructor(param: Partial<FSRSParameters>) {
@@ -103,7 +169,7 @@ export class FSRS extends FSRSAlgorithm {
     card: CardInput | Card,
     now: DateInput,
     afterHandler: (recordLog: IPreview) => R
-  ): R
+  ): R 
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
