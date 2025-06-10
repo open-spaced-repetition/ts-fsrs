@@ -30,7 +30,77 @@ import {
 } from './strategies/types'
 import { date_diff } from './help'
 
-export class FSRS extends FSRSAlgorithm {
+// A utility type to require only K properties of A
+type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
+  Omit<A, K>
+>
+
+export interface IFSRS {
+  useStrategy<T extends StrategyMode>(
+    mode: T,
+    handler: TStrategyHandler<T>
+  ): this
+
+  clearStrategy(mode?: StrategyMode): this
+
+  repeat(card: CardInput | Card, now: DateInput): IPreview
+  repeat<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    afterHandler: (recordLog: IPreview) => R
+  ): R
+
+  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
+  next<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    afterHandler: (recordLog: RecordLogItem) => R
+  ): R
+
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: true
+  ): string
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: false
+  ): number
+
+  rollback(card: CardInput | Card, log: ReviewLogInput): Card
+  rollback<R>(
+    card: CardInput | Card,
+    log: ReviewLogInput,
+    afterHandler: (prevCard: Card) => R
+  ): R
+
+  forget(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count?: boolean
+  ): RecordLogItem
+  forget<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count: boolean | undefined,
+    afterHandler: (recordLogItem: RecordLogItem) => R
+  ): R
+
+  reschedule<T = RecordLogItem>(
+    current_card: CardInput | Card,
+    reviews?: FSRSHistory[],
+    options?: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
+  ): IReschedule<T>
+  reschedule(
+    current_card: CardInput | Card,
+    reviews?: FSRSHistory[],
+    options?: Partial<RescheduleOptions<RecordLogItem>>
+  ): IReschedule<RecordLogItem>
+}
+
+export class FSRS extends FSRSAlgorithm implements IFSRS {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
   private Scheduler: TSchedulerStrategy
   constructor(param: Partial<FSRSParameters>) {
@@ -98,6 +168,12 @@ export class FSRS extends FSRSAlgorithm {
     return instance
   }
 
+  repeat(card: CardInput | Card, now: DateInput): IPreview
+  repeat<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    afterHandler: (recordLog: IPreview) => R
+  ): R
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
@@ -170,6 +246,13 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
+  next<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    afterHandler: (recordLog: RecordLogItem) => R
+  ): R
   /**
    * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
    * @param card Card to be processed
@@ -243,6 +326,16 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: true
+  ): string
+  get_retrievability(
+    card: CardInput | Card,
+    now?: DateInput,
+    format?: false
+  ): number
   /**
    * Get the retrievability of the card
    * @param card  Card to be processed
@@ -250,11 +343,11 @@ export class FSRS extends FSRSAlgorithm {
    * @param format  default:true , Convert the result to another type. (Optional)
    * @returns  The retrievability of the card,if format is true, the result is a string, otherwise it is a number
    */
-  get_retrievability<T extends boolean>(
+  get_retrievability(
     card: CardInput | Card,
     now?: DateInput,
-    format: T = true as T
-  ): T extends true ? string : number {
+    format: boolean = true
+  ): string | number {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
     const t =
@@ -265,11 +358,15 @@ export class FSRS extends FSRSAlgorithm {
       processedCard.state !== State.New
         ? this.forgetting_curve(t, +processedCard.stability.toFixed(8))
         : 0
-    return (format ? `${(r * 100).toFixed(2)}%` : r) as T extends true
-      ? string
-      : number
+    return format ? `${(r * 100).toFixed(2)}%` : r
   }
 
+  rollback(card: CardInput | Card, log: ReviewLogInput): Card
+  rollback<R>(
+    card: CardInput | Card,
+    log: ReviewLogInput,
+    afterHandler: (prevCard: Card) => R
+  ): R
   /**
    *
    * @param card Card to be processed
@@ -346,6 +443,17 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  forget(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count?: boolean
+  ): RecordLogItem
+  forget<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count: boolean | undefined,
+    afterHandler: (recordLogItem: RecordLogItem) => R
+  ): R
   /**
    *
    * @param card Card to be processed
@@ -442,6 +550,16 @@ export class FSRS extends FSRSAlgorithm {
     }
   }
 
+  reschedule<T = RecordLogItem>(
+    current_card: CardInput | Card,
+    reviews: FSRSHistory[] | undefined,
+    options: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
+  ): IReschedule<T>
+  reschedule(
+    current_card: CardInput | Card,
+    reviews?: FSRSHistory[],
+    options?: Partial<RescheduleOptions<RecordLogItem>>
+  ): IReschedule<RecordLogItem>
   /**
    * Reschedules the current card and returns the rescheduled collections and reschedule item.
    *
