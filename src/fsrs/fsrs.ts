@@ -31,7 +31,9 @@ import {
 import { date_diff } from './help'
 
 // A utility type to require only K properties of A
-type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<Omit<A, K>>;
+type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
+  Omit<A, K>
+>
 
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
@@ -171,7 +173,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     card: CardInput | Card,
     now: DateInput,
     afterHandler: (recordLog: IPreview) => R
-  ): R 
+  ): R
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
