@@ -139,10 +139,12 @@ describe('init_ds', () => {
       const d = algorithm.init_difficulty(grade)
       collection.push(d)
       expected.push(
-        +new Decimal(params.w[4])
-          .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
-          .add(1)
-          .toFixed(8)
+        clamp(
+          +new Decimal(params.w[4])
+            .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
+            .add(1)
+            .toFixed(8),
+        1, 10)
       )
     })
     expect(collection).toEqual(expected)
@@ -170,10 +172,12 @@ describe('next_ds', () => {
       }
 
       function init_difficulty(g: number) {
-        return +new Decimal(params.w[4])
-          .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
-          .add(1)
-          .toFixed(8)
+        return clamp(
+            +new Decimal(params.w[4])
+              .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
+              .add(1)
+              .toFixed(8),
+          1, 10);
       }
 
       function linear_damping(delta_d: number, old_d: number): number {
@@ -199,7 +203,7 @@ describe('next_ds', () => {
     })
     expect(collection).toEqual(expected)
     expect(collection).toEqual([
-      7.296_110_45, 6.139_369_64, 4.982_628_83, 3.825_888_01,
+      8.347_534, 6.671_767, 4.996, 3.320_233,
     ])
   })
 
@@ -308,16 +312,16 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      25.578_480_55, 13.550_500_9, 59.868_790_8, 207.703_826_33,
+      25.602_521_18, 28.226_570_96, 58.655_991_07, 127.226_692_5,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.746_929_11, 2.031_279_47, 2.440_167_48, 2.970_743_62,
+      1.052_539_61, 1.189_432_95, 1.368_083_87, 1.584_988_96,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
 
     expect(s_short_collection).toEqual([
-      1.129_823_25, 2.400_461_97, 5.100_105_39, 10.835_862_17,
+      1.596_818, 2.747_009_59, 5, 8.129_609_56,
     ])
     expect(s_short_collection).toEqual(expected_s_short)
 
