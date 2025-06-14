@@ -12,9 +12,9 @@ import {
 
 describe('FSRS-6 ', () => {
   const w = [
-    0.2172, 1.1771, 3.2602, 16.1507, 7.0114, 0.57, 2.0966, 0.0069, 1.5261,
-    0.112, 1.0178, 1.849, 0.1133, 0.3127, 2.2934, 0.2191, 3.0004, 0.7536,
-    0.3332, 0.1437, 0.2,
+    0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722,
+    0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014,  1.8729, 0.5425,
+    0.0912, 0.0658, 0.1542,
   ]
   const f: FSRS = fsrs({ w })
   it('ivl_history', () => {
@@ -60,7 +60,7 @@ describe('FSRS-6 ', () => {
       scheduling_cards = f.repeat(card, now)
     }
     expect(ivl_history).toEqual([
-      0, 4, 14, 45, 135, 372, 0, 0, 2, 5, 10, 20, 40,
+      0, 2, 11, 46, 163, 498, 0, 0, 2, 4, 7, 12, 21,
     ])
   })
 
@@ -93,14 +93,16 @@ describe('FSRS-6 ', () => {
       expect(stability).toBeCloseTo(expect_stability, 4)
       expect(difficulty).toBeCloseTo(expect_difficulty, 4)
     }
+
+    // https://github.com/open-spaced-repetition/fsrs-rs/blob/037345fd57472ea392a6086f217b1c73a9fa171a/src/inference.rs#L836-L841
     it('memory state[short-term]', () => {
       const f: FSRS = fsrs({ w, enable_short_term: true })
-      assertMemoryState(f, 'short-term', 49.4472, 6.8573)
+      assertMemoryState(f, 'short-term', 53.62691, 6.3574867)
     })
 
     it('memory state[long-term]', () => {
       const f: FSRS = fsrs({ w, enable_short_term: false })
-      assertMemoryState(f, 'long-term', 48.6015, 6.8573)
+      assertMemoryState(f, 'long-term', 53.335106, 6.3574867)
     })
 
     it('memory state using next_state[short-term]', () => {
@@ -111,8 +113,8 @@ describe('FSRS-6 ', () => {
       }
 
       const { stability, difficulty } = state!
-      expect(stability).toBeCloseTo(49.4472, 4)
-      expect(difficulty).toBeCloseTo(6.8573, 4)
+      expect(stability).toBeCloseTo(53.62691, 4)
+      expect(difficulty).toBeCloseTo(6.3574867, 4)
     })
 
     it('memory state using next_state[long-term]', () => {
@@ -123,8 +125,8 @@ describe('FSRS-6 ', () => {
       }
 
       const { stability, difficulty } = state!
-      expect(stability).toBeCloseTo(48.6015, 4)
-      expect(difficulty).toBeCloseTo(6.8573, 4)
+      expect(stability).toBeCloseTo(53.335106, 4)
+      expect(difficulty).toBeCloseTo(6.3574867, 4)
     })
   })
 
@@ -150,12 +152,12 @@ describe('FSRS-6 ', () => {
       scheduled_days.push(first_card.scheduled_days)
       states.push(first_card.state)
     }
-    expect(stability).toEqual([0.2172, 1.1771, 3.2602, 16.1507])
-    expect(difficulty).toEqual([7.0114, 6.24313295, 4.88463163, 2.48243852])
+    expect(stability).toEqual([0.212, 1.2931, 2.3065, 8.2956])
+    expect(difficulty).toEqual([6.4133, 5.11217071, 2.11810397, 1])
     expect(reps).toEqual([1, 1, 1, 1])
     expect(lapses).toEqual([0, 0, 0, 0])
     expect(elapsed_days).toEqual([0, 0, 0, 0])
-    expect(scheduled_days).toEqual([0, 0, 0, 16])
+    expect(scheduled_days).toEqual([0, 0, 0, 8])
     expect(states).toEqual([
       State.Learning,
       State.Learning,
@@ -177,8 +179,8 @@ describe('get retrievability', () => {
   test('return retrievability percentage for review cards', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '90.26%']
-    const r_number = [1, 1, 1, 0.90264984]
+    const r = ['100.00%', '100.00%', '100.00%', '90.25%']
+    const r_number = [1, 1, 1, 0.9024733]
     Grades.forEach((grade, index) => {
       expect(fsrs.get_retrievability(sc[grade].card, sc[grade].card.due)).toBe(
         r[index]
@@ -192,8 +194,8 @@ describe('get retrievability', () => {
   test('fake the current system time', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '90.26%']
-    const r_number = [1, 1, 1, 0.90264984]
+    const r = ['100.00%', '100.00%', '100.00%', '90.25%']
+    const r_number = [1, 1, 1, 0.9024733]
     jest.useFakeTimers()
     Grades.forEach((grade, index) => {
       jest.setSystemTime(sc[grade].card.due)

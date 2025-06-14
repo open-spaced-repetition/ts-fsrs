@@ -20,7 +20,7 @@ export const S_MIN = 0.001
 export const S_MAX = 36500.0
 export const INIT_S_MAX = 100.0
 export const FSRS5_DEFAULT_DECAY = 0.5
-export const FSRS6_DEFAULT_DECAY = 0.2
+export const FSRS6_DEFAULT_DECAY = 0.1542
 export const default_w = Object.freeze([
   0.212,
   1.2931,

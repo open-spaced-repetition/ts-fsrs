@@ -293,7 +293,7 @@ describe('FSRS reschedule', () => {
         rating: 0,
         state: 2,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 13.13424811,
+        stability: 13.48506225,
         difficulty: 1,
         elapsed_days: 1,
         last_elapsed_days: 1,
@@ -306,8 +306,8 @@ describe('FSRS reschedule', () => {
     const nextItemExpected = {
       card: {
         due: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
-        stability: 25.0598811,
-        difficulty: 3.28057364,
+        stability: 25.33029347,
+        difficulty: 3.27480201,
         elapsed_days: 1,
         scheduled_days: 25,
         reps: 4,
@@ -358,7 +358,7 @@ describe('FSRS reschedule', () => {
     const expected = {
       card: {
         due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
-        stability: 13.13424811,
+        stability: 13.48506225,
         difficulty: 1,
         elapsed_days: 1,
         scheduled_days: 21,
@@ -372,7 +372,7 @@ describe('FSRS reschedule', () => {
         rating: Rating.Manual,
         state: State.Review,
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
-        stability: 13.13424811,
+        stability: 13.48506225,
         difficulty: 1,
         elapsed_days: 1,
         last_elapsed_days: 1,
@@ -423,11 +423,11 @@ describe('FSRS reschedule', () => {
 
     const expected = {
       card: {
-        due: new Date(1725584400000 /**2024-09-06T01:00:00.000Z*/),
-        stability: 22.04508866,
+        due: new Date(1725670800000 /**2024-09-07T01:00:00.000Z*/),
+        stability: 23.06595495,
         difficulty: 1,
         elapsed_days: 1,
-        scheduled_days: 22,
+        scheduled_days: 23,
         reps: 4,
         lapses: 0,
         learning_steps: 0,
@@ -438,7 +438,7 @@ describe('FSRS reschedule', () => {
         rating: Rating.Good,
         state: State.Review,
         due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
-        stability: 17.68488023,
+        stability: 18.37626562,
         difficulty: 1,
         elapsed_days: 1,
         last_elapsed_days: 1,
@@ -538,12 +538,12 @@ describe('FSRS reschedule', () => {
 
     expect(results_short.reschedule_item).not.toBeNull()
     expect(results_short.collections.length).toEqual(4)
-    expect(ivl_history_short).toEqual([0, 2, 17, 52])
+    expect(ivl_history_short).toEqual([0, 2, 16, 53])
     expect(s_history_short).toEqual([
-      2.3065, 2.3065, 16.60143234, 52.44876819,
+      2.3065, 2.3065, 16.18802274, 52.76325584,
     ])
     expect(d_history_short).toEqual([
-      2.11810397, 2.11698587, 2.11586888, 2.11475301,
+      2.11810397, 2.11121424, 2.1043314, 2.09745544,
     ])
 
     // switch long-term scheduler
@@ -562,10 +562,10 @@ describe('FSRS reschedule', () => {
     )
     expect(results.reschedule_item).not.toBeNull()
     expect(results.collections.length).toEqual(4)
-    expect(ivl_history_long).toEqual([3, 3, 17, 52])
-    expect(s_history_long).toEqual([2.3065, 2.3065, 16.60143234, 52.44876819])
+    expect(ivl_history_long).toEqual([3, 3, 16, 53])
+    expect(s_history_long).toEqual([2.3065, 2.3065, 16.18802274, 52.76325584])
     expect(d_history_long).toEqual([
-      2.11810397, 2.11698587, 2.11586888, 2.11475301,
+      2.11810397, 2.11121424, 2.1043314, 2.09745544,
     ])
   })
 
@@ -586,7 +586,7 @@ describe('FSRS reschedule', () => {
       })
     }
     const current_card = {
-      due: new Date(1731974400000 /** 2024-11-19T00:00:00.000Z */),
+      due: new Date(1732060800000 /** 2024-11-20T00:00:00.000Z */),
       stability: 52.44876819,
       difficulty: 2.11475301,
       elapsed_days: 11,
