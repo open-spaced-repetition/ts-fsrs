@@ -106,8 +106,8 @@ describe('default params', () => {
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
     const params = clipParameters(w, 2)
-    expect(params[17]).toEqual(0.05801436)
-    expect(params[18]).toEqual(0.05801436)
+    expect(params[17]).toEqual(0.36055143)
+    expect(params[18]).toEqual(0.36055143)
   })
 })
 

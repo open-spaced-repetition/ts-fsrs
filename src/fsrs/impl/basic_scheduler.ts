@@ -119,7 +119,7 @@ export default class BasicScheduler extends AbstractScheduler {
       return exist
     }
     const next = TypeConvert.card(this.current)
-    next.difficulty = this.algorithm.init_difficulty(grade)
+    next.difficulty = clamp(this.algorithm.init_difficulty(grade), 1, 10)
     next.stability = this.algorithm.init_stability(grade)
 
     this.applyLearningSteps(next, grade, State.Learning)
