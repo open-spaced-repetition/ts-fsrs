@@ -45,26 +45,26 @@ describe('FACTOR[DECAY = -0.5]', () => {
   })
   it('FACTOR[FSRS-6]', () => {
     const w = [
-      0.2172,
-      1.1771,
-      3.2602,
-      16.1507,
-      7.0114,
-      0.57,
-      2.0966,
-      0.0069,
-      1.5261,
-      0.112,
-      1.0178,
-      1.849,
-      0.1133,
-      0.3127,
-      2.2934,
-      0.2191,
-      3.0004,
-      0.7536,
-      0.3332,
-      0.1437,
+      0.212,
+      1.2931,
+      2.3065,
+      8.2956,
+      6.4133,
+      0.8334,
+      3.0194,
+      0.001,
+      1.8722,
+      0.1666,
+      0.796,
+      1.4835,
+      0.0614,
+      0.2629,
+      1.6483,
+      0.6014,
+      1.8729,
+      0.5425,
+      0.0912,
+      0.0658,
       FSRS6_DEFAULT_DECAY,
     ]
     const params = generatorParameters({ w })
@@ -110,7 +110,7 @@ describe('forgetting_curve', () => {
       expected_using_params.push(fsrs_forgetting_curve(params.w, delta_t[i], s))
     }
     expect(collection).toEqual(expected)
-    expect(collection).toEqual([1.0, 0.9, 0.84028938, 0.79850017])
+    expect(collection).toEqual([1.0, 0.9, 0.84588465, 0.8093881])
     expect(collection).toEqual(expected_using_decay)
     expect(collection).toEqual(expected_using_params)
   })
@@ -139,10 +139,10 @@ describe('init_ds', () => {
       const d = algorithm.init_difficulty(grade)
       collection.push(d)
       expected.push(
-        +new Decimal(params.w[4])
-          .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
-          .add(1)
-          .toFixed(8)
+          +new Decimal(params.w[4])
+            .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
+            .add(1)
+            .toFixed(8)
       )
     })
     expect(collection).toEqual(expected)
@@ -171,9 +171,9 @@ describe('next_ds', () => {
 
       function init_difficulty(g: number) {
         return +new Decimal(params.w[4])
-          .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
-          .add(1)
-          .toFixed(8)
+              .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
+              .add(1)
+              .toFixed(8);
       }
 
       function linear_damping(delta_d: number, old_d: number): number {
@@ -199,7 +199,7 @@ describe('next_ds', () => {
     })
     expect(collection).toEqual(expected)
     expect(collection).toEqual([
-      7.296_110_45, 6.139_369_64, 4.982_628_83, 3.825_888_01,
+      8.341_762_37, 6.665_995_36, 4.990_228_37, 3.314_461_37,
     ])
   })
 
@@ -308,16 +308,16 @@ describe('next_ds', () => {
       expected_next_s.push(next_s(d[index], s[index], r[index], grade))
     })
     expect(s_recall_collection).toEqual([
-      25.578_480_55, 13.550_500_9, 59.868_790_8, 207.703_826_33,
+      25.602_521_18, 28.226_570_96, 58.655_991_07, 127.226_692_5,
     ])
     expect(s_recall_collection).toEqual(expected_s_recall)
     expect(s_fail_collection).toEqual([
-      1.746_929_11, 2.031_279_47, 2.440_167_48, 2.970_743_62,
+      1.052_539_61, 1.189_432_95, 1.368_083_87, 1.584_988_96,
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
 
     expect(s_short_collection).toEqual([
-      1.129_823_25, 2.400_461_97, 5.100_105_39, 10.835_862_17,
+      1.596_818, 2.747_009_59, 5, 8.129_609_56,
     ])
     expect(s_short_collection).toEqual(expected_s_short)
 
@@ -343,8 +343,9 @@ describe('next_interval', () => {
         maximum_interval: Number.MAX_VALUE,
       }).next_interval(1.0, 0)
     )
-    // https://github.com/open-spaced-repetition/fsrs-rs/blob/3e2f0b423fed194d238cdcb55c1baccd0eca63f0/src/inference.rs#L548-L557
-    expect(intervals).toEqual([144193, 4505, 592, 139, 45, 17, 7, 3, 1, 1])
+    // https://github.com/open-spaced-repetition/fsrs-rs/blob/78c36e6b21182c5a13f8649eafe2eb62c1dbdabe/src/inference.rs#L852
+    // Result differs by +3 days compared to the reference test due to differing numeric precision: fsrs-rs uses f32, while ts-fsrs uses f64
+    expect(intervals).toEqual([3116766+3, 34793, 2508, 387, 90, 27, 9, 3, 1, 1])
   })
 
   // https://github.com/open-spaced-repetition/ts-fsrs/pull/74
@@ -428,7 +429,7 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.2,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.1542,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,
@@ -473,7 +474,7 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.2,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.1542,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,

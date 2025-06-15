@@ -49,16 +49,32 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_good: Card,
     next_easy: Card
   ): void {
-    next_again.difficulty = this.algorithm.init_difficulty(Rating.Again)
+    next_again.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Again),
+      1,
+      10
+    )
     next_again.stability = this.algorithm.init_stability(Rating.Again)
 
-    next_hard.difficulty = this.algorithm.init_difficulty(Rating.Hard)
+    next_hard.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Hard),
+      1,
+      10
+    )
     next_hard.stability = this.algorithm.init_stability(Rating.Hard)
 
-    next_good.difficulty = this.algorithm.init_difficulty(Rating.Good)
+    next_good.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Good),
+      1,
+      10
+    )
     next_good.stability = this.algorithm.init_stability(Rating.Good)
 
-    next_easy.difficulty = this.algorithm.init_difficulty(Rating.Easy)
+    next_easy.difficulty = clamp(
+      this.algorithm.init_difficulty(Rating.Easy),
+      1,
+      10
+    )
     next_easy.stability = this.algorithm.init_stability(Rating.Easy)
   }
 

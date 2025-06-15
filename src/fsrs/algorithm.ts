@@ -166,7 +166,7 @@ export class FSRSAlgorithm {
    */
   init_difficulty(g: Grade): number {
     const d = this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1
-    return clamp(+d.toFixed(8), 1, 10)
+    return +d.toFixed(8)
   }
 
   /**
@@ -330,7 +330,7 @@ export class FSRSAlgorithm {
     }
     if (d === 0 && s === 0) {
       return {
-        difficulty: this.init_difficulty(g),
+        difficulty: clamp(this.init_difficulty(g), 1, 10),
         stability: this.init_stability(g),
       }
     }
