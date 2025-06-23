@@ -184,11 +184,11 @@ describe('TypeConvert.rating', () => {
 
   test('throw error for invalid rating value', () => {
     const input = 'invalid-rating'
-    expect(() => TypeConvert.rating(input)).toThrowError(
+    expect(() => TypeConvert.rating(input)).toThrow(
       'Invalid rating:[invalid-rating]'
     )
-    expect(() => TypeConvert.rating(null)).toThrowError('Invalid rating:[null]')
-    expect(() => TypeConvert.rating(undefined)).toThrowError(
+    expect(() => TypeConvert.rating(null)).toThrow('Invalid rating:[null]')
+    expect(() => TypeConvert.rating(undefined)).toThrow(
       'Invalid rating:[undefined]'
     )
   })
