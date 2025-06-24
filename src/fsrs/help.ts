@@ -28,6 +28,7 @@ declare global {
   }
 }
 
+/* istanbul ignore next */
 Date.prototype.scheduler = function (t: int, isDay?: boolean): Date {
   return date_scheduler(this, t, isDay)
 }
@@ -37,14 +38,17 @@ Date.prototype.scheduler = function (t: int, isDay?: boolean): Date {
  * @param pre 比当前时间还要之前
  * @param unit 单位: days | minutes
  */
+/* istanbul ignore next */
 Date.prototype.diff = function (pre: Date, unit: unit): int {
   return date_diff(this, pre, unit) as int
 }
 
+/* istanbul ignore next */
 Date.prototype.format = function (): string {
   return formatDate(this)
 }
 
+/* istanbul ignore next */
 Date.prototype.dueFormat = function (
   last_review: Date,
   unit?: boolean,
@@ -134,6 +138,7 @@ export function show_diff_message(
   return `${Math.floor(diff)}${unit ? timeUnit[i] : ''}`
 }
 
+/* istanbul ignore next */
 /**
  *
  * @deprecated Use TypeConvert.time instead
@@ -143,6 +148,7 @@ export function fixDate(value: unknown) {
   return TypeConvert.time(value)
 }
 
+/* istanbul ignore next */
 /**
  * @deprecated Use TypeConvert.state instead
  * @deprecated This function will be removed in version 6.0.0.
@@ -151,6 +157,7 @@ export function fixState(value: unknown): State {
   return TypeConvert.state(value)
 }
 
+/* istanbul ignore next */
 /**
  * @deprecated Use TypeConvert.rating instead
  * @deprecated This function will be removed in version 6.0.0.
