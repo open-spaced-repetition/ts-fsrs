@@ -6,6 +6,7 @@ import {
   Grades,
   Rating,
   State,
+  get_fuzz_range,
 } from '../src/fsrs'
 
 test('FSRS-Grades', () => {
@@ -184,11 +185,11 @@ describe('TypeConvert.rating', () => {
 
   test('throw error for invalid rating value', () => {
     const input = 'invalid-rating'
-    expect(() => TypeConvert.rating(input)).toThrowError(
+    expect(() => TypeConvert.rating(input)).toThrow(
       'Invalid rating:[invalid-rating]'
     )
-    expect(() => TypeConvert.rating(null)).toThrowError('Invalid rating:[null]')
-    expect(() => TypeConvert.rating(undefined)).toThrowError(
+    expect(() => TypeConvert.rating(null)).toThrow('Invalid rating:[null]')
+    expect(() => TypeConvert.rating(undefined)).toThrow(
       'Invalid rating:[undefined]'
     )
   })
@@ -202,4 +203,10 @@ describe('default values can not be overwritten', () => {
     }).toThrow()
     expect(Grades.length).toEqual(4)
   })
+})
+
+
+it('get_fuzz_range should skip interval > elapsed_days branch when interval <= elapsed_days', () => {
+  const result = get_fuzz_range(5, 5, 100)
+  expect(result.min_ivl).toBeLessThanOrEqual(result.max_ivl)
 })

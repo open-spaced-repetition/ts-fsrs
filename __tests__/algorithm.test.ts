@@ -139,10 +139,10 @@ describe('init_ds', () => {
       const d = algorithm.init_difficulty(grade)
       collection.push(d)
       expected.push(
-          +new Decimal(params.w[4])
-            .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
-            .add(1)
-            .toFixed(8)
+        +new Decimal(params.w[4])
+          .sub(new Decimal(params.w[5]).mul(new Decimal(grade).sub(1)).exp())
+          .add(1)
+          .toFixed(8)
       )
     })
     expect(collection).toEqual(expected)
@@ -171,9 +171,9 @@ describe('next_ds', () => {
 
       function init_difficulty(g: number) {
         return +new Decimal(params.w[4])
-              .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
-              .add(1)
-              .toFixed(8);
+          .sub(new Decimal(params.w[5]).mul(new Decimal(g).sub(1)).exp())
+          .add(1)
+          .toFixed(8)
       }
 
       function linear_damping(delta_d: number, old_d: number): number {
@@ -589,4 +589,12 @@ describe('next_state', () => {
 
     expect(newState.stability).toBeGreaterThanOrEqual(S_MIN)
   })
+
+  it('next_state with enable_short_term = false, g=Again', () => {
+    const f = fsrs({ enable_short_term: false })
+    const state = { difficulty: 4.0, stability: 10.0 }
+    const new_state = f.next_state(state, 1 /**days*/, Rating.Again)
+    expect(new_state.stability).toBeLessThan(state.stability)
+  })
+  
 })

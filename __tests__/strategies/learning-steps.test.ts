@@ -39,6 +39,14 @@ describe('ConvertStepUnitToMinutes', () => {
 })
 
 describe('learning_steps', () => {
+  it('should not create Rating.Good if next step is invalid', () => {
+    const params = generatorParameters({
+      learning_steps: ['1m', '0m'], // nextMin = null
+    })
+    const result = BasicLearningStepsStrategy(params, State.Learning, 0)
+    expect(result[Rating.Good]).toBeUndefined()
+  })
+  
   it(`learning_steps = ['1m', '10m']`, () => {
     const params = generatorParameters({
       learning_steps: ['1m', '10m'],

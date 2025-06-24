@@ -136,10 +136,9 @@ export class FSRSAlgorithm {
   private update_parameters(params: Partial<FSRSParameters>): void {
     const _params = generatorParameters(params)
     for (const key in _params) {
-      if (key in this.param) {
-        const paramKey = key as keyof FSRSParameters
-        this.param[paramKey] = _params[paramKey] as never
-      }
+      // All keys in _params are guaranteed to exist in this.param due to generatorParameters()
+      const paramKey = key as keyof FSRSParameters
+      this.param[paramKey] = _params[paramKey] as never
     }
   }
 
