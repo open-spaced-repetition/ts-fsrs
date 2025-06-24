@@ -124,6 +124,7 @@ describe('Alea PRNG Tests', () => {
   it('seed Seedp5fxh9kf4r0', () => {
     const seed = 'Seedp5fxh9kf4r0' // constructor s1 = -0.3221628828905523 +1
     const generator = alea(seed)
+    expect(generator.state().s1).toBeGreaterThan(0)
     const results = generator()
     const state = generator.state()
     expect(results).toEqual(0.14867847645655274)
@@ -147,5 +148,12 @@ describe('Alea PRNG Tests', () => {
       s1: 0.9213257452938706,
       s2: 0.830770346801728,
     })
+  })
+
+  it('seed where s1 === 0 to complete false branch', () => {
+    const seed = 'seed-19140'
+    const state = alea(seed).state()
+    expect(state.s1).toBeGreaterThanOrEqual(0)
+    expect(state.s1).toBeLessThan(0.05)
   })
 })
