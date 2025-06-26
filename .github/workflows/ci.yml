@@ -77,11 +77,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
-      
-      - name: Format
-        run: pnpm prettier -c src/ --end-of-line auto
+      - name: Check
+        run: pnpm exec biome check ./src
 
       - name: Run tests and collect coverage
         run: pnpm run test::coverage

@@ -43,7 +43,7 @@ class Alea {
     this.s0 = mash(' ')
     this.s1 = mash(' ')
     this.s2 = mash(' ')
-    if (seed == null) seed = +new Date()
+    if (seed == null) seed = Date.now()
     this.s0 -= mash(seed)
     if (this.s0 < 0) this.s0 += 1
     this.s1 -= mash(seed)
@@ -56,7 +56,8 @@ class Alea {
     const t = 2091639 * this.s0 + this.c * 2.3283064365386963e-10 // 2^-32
     this.s0 = this.s1
     this.s1 = this.s2
-    this.s2 = t - (this.c = t | 0)
+    this.c = t | 0
+    this.s2 = t - this.c
     return this.s2
   }
 

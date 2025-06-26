@@ -1,6 +1,6 @@
 import { AbstractScheduler } from '../abstract_scheduler'
-import { TypeConvert } from '../convert'
 import { S_MIN } from '../constant'
+import { TypeConvert } from '../convert'
 import { clamp, date_scheduler } from '../help'
 import {
   type Card,

@@ -1,21 +1,15 @@
 {
-    "$schema": "https://jsr.io/schema/config-file.v1.json",
-    "exports": {
-        ".": "./src/fsrs/index.ts",
-        "./algorithm": "./src/fsrs/algorithm.ts",
-        "./constants": "./src/fsrs/constants.ts"
-    },
-    "name": "@fsrs/ts-fsrs",
-    "version": "5.0.1",
-    "license": "MIT",
-    "publish": {
-        "include": [
-            "LICENSE",
-            "README.md",
-            "src/**/*.ts"
-        ],
-        "exclude": [
-            "__tests__"
-        ]
-    }
+  "$schema": "https://jsr.io/schema/config-file.v1.json",
+  "exports": {
+    ".": "./src/fsrs/index.ts",
+    "./algorithm": "./src/fsrs/algorithm.ts",
+    "./constants": "./src/fsrs/constants.ts"
+  },
+  "name": "@fsrs/ts-fsrs",
+  "version": "5.0.1",
+  "license": "MIT",
+  "publish": {
+    "include": ["LICENSE", "README.md", "src/**/*.ts"],
+    "exclude": ["__tests__"]
+  }
 }

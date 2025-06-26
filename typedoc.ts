@@ -1,4 +1,5 @@
 import { Application, JSX } from 'typedoc'
+
 const generator = async () => {
   // Application.bootstrap also exists, which will not load plugins
   // Also accepts an array of option readers if you want to disable

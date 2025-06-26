@@ -1,21 +1,21 @@
-import { FSRSAlgorithm } from './algorithm'
+import type { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import { dateDiffInDays, Grades } from './help'
 import {
   type Card,
-  type Grade,
-  type RecordLogItem,
-  State,
-  Rating,
-  type ReviewLog,
   type CardInput,
   type DateInput,
+  type Grade,
+  Rating,
+  type RecordLogItem,
+  type ReviewLog,
+  State,
 } from './models'
 import { DefaultInitSeedStrategy } from './strategies'
 import {
   StrategyMode,
-  TSeedStrategy,
-  TStrategyHandler,
+  type TSeedStrategy,
+  type TStrategyHandler,
 } from './strategies/types'
 import type { IPreview, IScheduler } from './types'
 
