@@ -49,6 +49,13 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Configure Git line endings on Windows
+        if: runner.os == 'Windows'
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+        
+
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
