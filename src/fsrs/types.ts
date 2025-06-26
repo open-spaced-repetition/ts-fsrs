@@ -8,8 +8,8 @@ import type {
 } from './models'
 
 export type unit = 'days' | 'minutes'
-export type int = number & { __int__: void }
-export type double = number & { __double__: void }
+export type int = number & { __int__: undefined }
+export type double = number & { __double__: undefined }
 
 export interface IPreview extends RecordLog {
   [Symbol.iterator](): IterableIterator<RecordLogItem>

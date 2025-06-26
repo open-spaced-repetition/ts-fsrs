@@ -17,7 +17,7 @@
       "restart": true,
       "console": "integratedTerminal",
       "cwd": "${workspaceFolder}",
-      "args": ["watch","${workspaceFolder}/debug/index.ts"]
+      "args": ["watch", "${workspaceFolder}/debug/index.ts"]
     },
     {
       "type": "node",

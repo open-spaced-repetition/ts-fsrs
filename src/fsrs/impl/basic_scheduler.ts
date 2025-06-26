@@ -1,24 +1,24 @@
 import { AbstractScheduler } from '../abstract_scheduler'
-import { TypeConvert } from '../convert'
+import type { FSRSAlgorithm } from '../algorithm'
 import { S_MIN } from '../constant'
+import { TypeConvert } from '../convert'
 import { clamp, date_scheduler } from '../help'
 import {
   type Card,
-  CardInput,
-  DateInput,
+  type CardInput,
+  type DateInput,
   type Grade,
   Rating,
   type RecordLogItem,
   State,
 } from '../models'
-import type { int } from '../types'
 import {
   StrategyMode,
-  TLearningStepsStrategy,
-  TStrategyHandler,
+  type TLearningStepsStrategy,
+  type TStrategyHandler,
 } from '../strategies'
-import { FSRSAlgorithm } from '../algorithm'
 import { BasicLearningStepsStrategy } from '../strategies/learning_steps'
+import type { int } from '../types'
 
 export default class BasicScheduler extends AbstractScheduler {
   private learningStepsStrategy: TLearningStepsStrategy

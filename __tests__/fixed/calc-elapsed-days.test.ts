@@ -1,12 +1,10 @@
 import {
   createEmptyCard,
   dateDiffInDays,
+  type FSRSState,
   fsrs,
-  FSRSHistory,
-  Grade,
+  type Grade,
   Rating,
-  State,
-  FSRSState,
 } from '../../src/fsrs'
 
 /**
@@ -33,7 +31,6 @@ test('TS-FSRS-Simulator', () => {
     expect(card.stability).toBeCloseTo(expected[i], 4)
   }
 })
-
 
 test('SSE use next_state', () => {
   const f = fsrs({
@@ -151,7 +148,7 @@ test.skip('SSE 71.77', () => {
 
   for (let i = 0; i < rids.length; i++) {
     const rating = ratings[i]
-    if (rating == 0) {
+    if (rating === 0) {
       continue
     }
 

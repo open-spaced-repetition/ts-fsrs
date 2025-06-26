@@ -1,13 +1,18 @@
+import { alea } from './alea'
+import { S_MIN } from './constant'
 import {
   clipParameters,
   generatorParameters,
   migrateParameters,
 } from './default'
-import { FSRSParameters, FSRSState, Grade, Rating } from './models'
-import type { int } from './types'
 import { clamp, get_fuzz_range } from './help'
-import { alea } from './alea'
-import { S_MIN } from './constant'
+import {
+  type FSRSParameters,
+  type FSRSState,
+  type Grade,
+  Rating,
+} from './models'
+import type { int } from './types'
 /**
  * $$\text{decay} = -w_{20}$$
  *

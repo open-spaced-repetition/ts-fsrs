@@ -1,9 +1,9 @@
 import {
-  Card,
-  CardInput,
+  type Card,
+  type CardInput,
   Rating,
-  ReviewLog,
-  ReviewLogInput,
+  type ReviewLog,
+  type ReviewLogInput,
   State,
 } from './models'
 
@@ -51,7 +51,7 @@ export class TypeConvert {
       return value
     } else if (typeof value === 'string') {
       const timestamp = Date.parse(value)
-      if (!isNaN(timestamp)) {
+      if (!Number.isNaN(timestamp)) {
         return new Date(timestamp)
       } else {
         throw new Error(`Invalid date:[${value}]`)

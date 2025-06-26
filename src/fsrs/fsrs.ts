@@ -1,34 +1,34 @@
-import {
-  Card,
-  CardInput,
-  DateInput,
-  FSRSHistory,
-  FSRSParameters,
-  Grade,
-  Rating,
-  RecordLogItem,
-  ReviewLog,
-  ReviewLogInput,
-  State,
-} from './models'
-import {
-  type IPreview,
-  type IReschedule,
-  type RescheduleOptions,
-  type IScheduler,
-} from './types'
-import { forgetting_curve, FSRSAlgorithm } from './algorithm'
+import { FSRSAlgorithm, forgetting_curve } from './algorithm'
 import { TypeConvert } from './convert'
+import { clipParameters, createEmptyCard, migrateParameters } from './default'
+import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
-import { clipParameters, createEmptyCard, migrateParameters } from './default'
+import {
+  type Card,
+  type CardInput,
+  type DateInput,
+  type FSRSHistory,
+  type FSRSParameters,
+  type Grade,
+  Rating,
+  type RecordLogItem,
+  type ReviewLog,
+  type ReviewLogInput,
+  State,
+} from './models'
 import { Reschedule } from './reschedule'
 import {
   StrategyMode,
   type TSchedulerStrategy,
   type TStrategyHandler,
 } from './strategies/types'
-import { date_diff } from './help'
+import type {
+  IPreview,
+  IReschedule,
+  IScheduler,
+  RescheduleOptions,
+} from './types'
 
 // A utility type to require only K properties of A
 type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
@@ -402,7 +402,9 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     if (processedLog.rating === Rating.Manual) {
       throw new Error('Cannot rollback a manual rating')
     }
-    let last_due, last_review, last_lapses
+    let last_due: Date
+    let last_review: Date | undefined
+    let last_lapses: number
     switch (processedLog.state) {
       case State.New:
         last_due = processedLog.due
@@ -606,8 +608,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     const {
       recordLogHandler,
       reviewsOrderBy,
-      skipManual: skipManual = true,
-      now: now = new Date(),
+      skipManual = true,
+      now = new Date(),
       update_memory_state: updateMemoryState = false,
     } = options
     if (reviewsOrderBy && typeof reviewsOrderBy === 'function') {

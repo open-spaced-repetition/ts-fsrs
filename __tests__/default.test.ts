@@ -1,13 +1,11 @@
 import {
   checkParameters,
-  CLAMP_PARAMETERS,
   clipParameters,
   createEmptyCard,
   default_w,
-  fsrs,
   FSRS5_DEFAULT_DECAY,
+  fsrs,
   generatorParameters,
-  W17_W18_Ceiling,
 } from '../src/fsrs'
 
 describe('default params', () => {
@@ -94,11 +92,14 @@ describe('default params', () => {
     expect(checkParameters(w)).toMatchObject(default_w)
     expect(() => checkParameters(w.slice(0, 19))).not.toThrow()
     expect(() => checkParameters(w.slice(0, 17))).not.toThrow()
-    expect(() => checkParameters([0.40255])).toThrow(/^Invalid parameter length/)
-    expect(() => checkParameters(w.slice(0, 16))).toThrow(/^Invalid parameter length/)
+    expect(() => checkParameters([0.40255])).toThrow(
+      /^Invalid parameter length/
+    )
+    expect(() => checkParameters(w.slice(0, 16))).toThrow(
+      /^Invalid parameter length/
+    )
     w[5] = Infinity
     expect(() => checkParameters(w)).toThrow(/^Non-finite/)
-
   })
 
   it('if num relearning steps > 1', () => {

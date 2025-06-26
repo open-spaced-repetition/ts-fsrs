@@ -1,9 +1,9 @@
 import {
-  CardInput,
+  type CardInput,
   createEmptyCard,
   fsrs,
+  type Grade,
   generatorParameters,
-  Grade,
   Rating,
   State,
 } from '../../src/fsrs'

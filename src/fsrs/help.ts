@@ -1,7 +1,7 @@
-import type { int, unit } from './types'
-import type { DateInput, Grade } from './models'
-import { Rating, State } from './models'
 import { TypeConvert } from './convert'
+import type { DateInput, Grade } from './models'
+import { Rating, type State } from './models'
+import type { int, unit } from './types'
 
 declare global {
   export interface Date {
@@ -126,7 +126,7 @@ export function show_diff_message(
     timeUnit = TIMEUNITFORMAT
   }
   let diff = due.getTime() - last_review.getTime()
-  let i
+  let i = 0
   diff /= 1000
   for (i = 0; i < TIMEUNIT.length; i++) {
     if (diff < TIMEUNIT[i]) {

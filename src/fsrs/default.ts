@@ -1,6 +1,3 @@
-import { Card, DateInput, FSRSParameters, State } from './models'
-import { TypeConvert } from './convert'
-import { clamp } from './help'
 import {
   CLAMP_PARAMETERS,
   default_enable_fuzz,
@@ -13,6 +10,9 @@ import {
   FSRS5_DEFAULT_DECAY,
   W17_W18_Ceiling,
 } from './constant'
+import { TypeConvert } from './convert'
+import { clamp } from './help'
+import { type Card, type DateInput, type FSRSParameters, State } from './models'
 
 export const clipParameters = (
   parameters: number[],
@@ -51,7 +51,9 @@ export const clipParameters = (
  * }
  */
 export const checkParameters = (parameters: number[] | readonly number[]) => {
-  const invalid = parameters.find((param) => !isFinite(param) && !isNaN(param))
+  const invalid = parameters.find(
+    (param) => !Number.isFinite(param) && !Number.isNaN(param)
+  )
   if (invalid !== undefined) {
     throw Error(`Non-finite or NaN value in parameters ${parameters}`)
   } else if (![17, 19, 21].includes(parameters.length)) {

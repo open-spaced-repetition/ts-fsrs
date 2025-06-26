@@ -5,7 +5,7 @@ import { date_diff } from './help'
 import {
   type Card,
   type CardInput,
-  DateInput,
+  type DateInput,
   type FSRSHistory,
   type Grade,
   Rating,

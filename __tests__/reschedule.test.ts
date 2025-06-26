@@ -1,18 +1,18 @@
 import {
   createEmptyCard,
   date_diff,
-  FSRS,
+  type FSRS,
   fsrs,
-  Grade,
+  type Grade,
   Grades,
   Rating,
-  RecordLogItem,
-  RescheduleOptions,
-  ReviewLog,
+  type RecordLogItem,
+  type RescheduleOptions,
+  type ReviewLog,
   State,
   TypeConvert,
 } from '../src/fsrs'
-import { Card, FSRSHistory } from '../src/fsrs/models'
+import type { Card, FSRSHistory } from '../src/fsrs/models'
 
 type reviewState = {
   difficulty: number
@@ -109,6 +109,7 @@ function experiment(
         }
 
         return [
+          // biome-ignore lint/performance/noAccumulatingSpread: test
           ...state,
           {
             difficulty: card.difficulty,
@@ -539,9 +540,7 @@ describe('FSRS reschedule', () => {
     expect(results_short.reschedule_item).not.toBeNull()
     expect(results_short.collections.length).toEqual(4)
     expect(ivl_history_short).toEqual([0, 2, 16, 53])
-    expect(s_history_short).toEqual([
-      2.3065, 2.3065, 16.18802274, 52.76325584,
-    ])
+    expect(s_history_short).toEqual([2.3065, 2.3065, 16.18802274, 52.76325584])
     expect(d_history_short).toEqual([
       2.11810397, 2.11121424, 2.1043314, 2.09745544,
     ])

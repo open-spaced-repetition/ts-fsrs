@@ -1,19 +1,19 @@
 import {
-  fsrs,
-  Rating,
-  FSRS,
   createEmptyCard,
-  State,
-  Grade,
-  Grades,
-  FSRSState,
   date_diff,
+  FSRS,
+  type FSRSState,
+  fsrs,
+  type Grade,
+  Grades,
+  Rating,
+  State,
 } from '../src/fsrs'
 
 describe('FSRS-6 ', () => {
   const w = [
     0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722,
-    0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014,  1.8729, 0.5425,
+    0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425,
     0.0912, 0.0658, 0.1542,
   ]
   const f: FSRS = fsrs({ w })
@@ -59,9 +59,7 @@ describe('FSRS-6 ', () => {
       now = card.due
       scheduling_cards = f.repeat(card, now)
     }
-    expect(ivl_history).toEqual([
-      0, 2, 11, 46, 163, 498, 0, 0, 2, 4, 7, 12, 21,
-    ])
+    expect(ivl_history).toEqual([0, 2, 11, 46, 163, 498, 0, 0, 2, 4, 7, 12, 21])
   })
 
   describe('memory state', () => {

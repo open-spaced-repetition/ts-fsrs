@@ -1,18 +1,18 @@
 import {
-  Card,
+  type Card,
   createEmptyCard,
   date_scheduler,
-  TypeConvert,
+  type FSRS,
   fsrs,
-  FSRS,
   Grades,
   Rating,
-  RatingType,
-  RecordLog,
-  RecordLogItem,
-  ReviewLog,
+  type RatingType,
+  type RecordLog,
+  type RecordLogItem,
+  type ReviewLog,
   State,
-  StateType,
+  type StateType,
+  TypeConvert,
 } from '../src/fsrs'
 
 interface CardPrismaUnChecked

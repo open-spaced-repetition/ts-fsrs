@@ -1,12 +1,12 @@
 import {
-  fsrs,
-  Rating,
-  FSRS,
   createEmptyCard,
-  State,
-  Grade,
-  Grades,
   date_diff,
+  FSRS,
+  fsrs,
+  type Grade,
+  Grades,
+  Rating,
+  State,
 } from '../src/fsrs'
 
 describe('FSRS-5', () => {

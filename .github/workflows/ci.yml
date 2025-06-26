@@ -46,8 +46,15 @@ jobs:
     runs-on: ${{matrix.platform}}
 
     steps:
+      - name: Configure Git line endings on Windows
+        if: runner.os == 'Windows'
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
       - name: Checkout
         uses: actions/checkout@v4
+        
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -77,11 +84,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
-      
-      - name: Format
-        run: pnpm prettier -c src/ --end-of-line auto
+      - name: Check
+        run: pnpm run check
 
       - name: Run tests and collect coverage
         run: pnpm run test::coverage

@@ -1,8 +1,24 @@
 {
-    "typescript.preferences.importModuleSpecifier": "non-relative",
-    "typescript.preferences.quoteStyle": "single",
-    "typescript.preferGoToSourceDefinition": true,
-    "typescript.tsdk": "./node_modules/typescript/lib",
-    "jest.useJest30": true,
-    "jest.runMode": "deferred"
+  "typescript.preferences.importModuleSpecifier": "non-relative",
+  "typescript.preferences.quoteStyle": "single",
+  "typescript.preferGoToSourceDefinition": true,
+  "typescript.tsdk": "./node_modules/typescript/lib",
+  "jest.useJest30": true,
+  "jest.runMode": "deferred",
+  "editor.defaultFormatter": "biomejs.biome",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.biome": "explicit",
+    "source.organizeImports.biome": "explicit",
+    "source.sortImports": "never",
+    "source.removeUnusedImports": "explicit"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "biomejs.biome"
+  }
 }

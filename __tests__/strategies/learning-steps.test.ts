@@ -4,13 +4,13 @@ import {
   createEmptyCard,
   dateDiffInDays,
   default_w,
+  type FSRSParameters,
   fsrs,
-  FSRSParameters,
   generatorParameters,
   Rating,
   State,
   StrategyMode,
-  TLearningStepsStrategy,
+  type TLearningStepsStrategy,
 } from '../../src/fsrs'
 
 describe('ConvertStepUnitToMinutes', () => {
@@ -46,7 +46,7 @@ describe('learning_steps', () => {
     const result = BasicLearningStepsStrategy(params, State.Learning, 0)
     expect(result[Rating.Good]).toBeUndefined()
   })
-  
+
   it(`learning_steps = ['1m', '10m']`, () => {
     const params = generatorParameters({
       learning_steps: ['1m', '10m'],
@@ -213,8 +213,8 @@ describe('integrated into FSRS', () => {
 
   describe('Hardcoded learning steps', () => {
     const learningStepsStrategy: TLearningStepsStrategy = (
-      params: FSRSParameters,
-      state: State,
+      _params: FSRSParameters,
+      _state: State,
       cur_step: number
     ) => {
       if (cur_step >= 1) {
@@ -235,13 +235,14 @@ describe('integrated into FSRS', () => {
         StrategyMode.LEARNING_STEPS,
         learningStepsStrategy
       )
-
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
       expect(f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)).toBe(
         learningStepsStrategy
       )
 
       f.clearStrategy()
       expect(
+        // biome-ignore lint/complexity/useLiteralKeys: access private variables
         f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
       ).toBeUndefined()
     })
@@ -316,13 +317,14 @@ describe('integrated into FSRS', () => {
         StrategyMode.LEARNING_STEPS,
         learningStepsStrategy
       )
-
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
       expect(f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)).toBe(
         learningStepsStrategy
       )
 
       f.clearStrategy()
       expect(
+        // biome-ignore lint/complexity/useLiteralKeys: access private variables
         f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
       ).toBeUndefined()
     })

@@ -1,12 +1,12 @@
-import { defineConfig } from 'rollup'
+import commonjs from '@rollup/plugin-commonjs'
 import json from '@rollup/plugin-json'
 import resolve from '@rollup/plugin-node-resolve'
-import esbuild from 'rollup-plugin-esbuild'
-import commonjs from '@rollup/plugin-commonjs'
+import { defineConfig } from 'rollup'
 import dts from 'rollup-plugin-dts'
+import esbuild from 'rollup-plugin-esbuild'
 
 const isDev = process.env.NODE_ENV === 'development'
-const minify = isDev ? false : true
+const minify = isDev
 
 export default defineConfig([
   {

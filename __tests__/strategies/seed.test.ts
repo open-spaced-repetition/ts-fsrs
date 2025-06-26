@@ -1,6 +1,6 @@
 import {
-  AbstractScheduler,
-  Card,
+  type AbstractScheduler,
+  type Card,
   createEmptyCard,
   DefaultInitSeedStrategy,
   fsrs,
@@ -24,8 +24,9 @@ describe('seed strategy', () => {
       return card as ICard
     })
 
-    const record = f.repeat(card, now)
+    const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -35,7 +36,7 @@ describe('seed strategy', () => {
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed', seed)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
   })
 })
@@ -44,10 +45,11 @@ describe('seed strategy with card ID', () => {
   it('use seedStrategy', () => {
     const seedStrategy = GenSeedStrategyWithCardId('card_id')
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['strategyHandler'].get(StrategyMode.SEED)).toBe(seedStrategy)
 
     f.clearStrategy()
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['strategyHandler'].get(StrategyMode.SEED)).toBeUndefined()
   })
   it('clear seedStrategy', () => {
@@ -62,7 +64,7 @@ describe('seed strategy with card ID', () => {
 
     f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     let scheduler = new f['Scheduler'](
       card,
       now,
@@ -76,7 +78,7 @@ describe('seed strategy with card ID', () => {
     f.clearStrategy(StrategyMode.SEED)
 
     f.repeat(card, now)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     scheduler = new f['Scheduler'](
       card,
       now,
@@ -85,7 +87,7 @@ describe('seed strategy with card ID', () => {
     ) as AbstractScheduler
     const basic_seed = DefaultInitSeedStrategy.bind(scheduler)()
     console.debug('basic_seed with card_id=555', basic_seed)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(basic_seed)
 
     expect(seed_with_card_id).not.toBe(basic_seed)
@@ -101,8 +103,9 @@ describe('seed strategy with card ID', () => {
       return card as ICard
     })
 
-    const record = f.repeat(card, now)
+    const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -112,7 +115,7 @@ describe('seed strategy with card ID', () => {
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=555', seed)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
   })
 
@@ -123,8 +126,9 @@ describe('seed strategy with card ID', () => {
 
     const card = createEmptyCard<ICard>(now)
 
-    const record = f.repeat(card, now)
+    const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -134,7 +138,7 @@ describe('seed strategy with card ID', () => {
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=undefined(default)', seed)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
   })
 
@@ -148,8 +152,9 @@ describe('seed strategy with card ID', () => {
       return card as ICard
     })
 
-    const record = f.repeat(card, now)
+    const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -159,8 +164,9 @@ describe('seed strategy with card ID', () => {
 
     const seed = seedStrategy.bind(scheduler)()
     console.debug('with card_id=-1', seed)
-
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe('0')
   })
 
@@ -176,6 +182,7 @@ describe('seed strategy with card ID', () => {
 
     const item = f.next(card, now, Rating.Good)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -186,7 +193,9 @@ describe('seed strategy with card ID', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=undefined', seed)
 
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(`${item.card.reps}`)
   })
 
@@ -202,6 +211,8 @@ describe('seed strategy with card ID', () => {
 
     const item = f.next(card, now, Rating.Good)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
+
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     const scheduler = new f['Scheduler'](
       card,
       now,
@@ -212,7 +223,9 @@ describe('seed strategy with card ID', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=null', seed)
 
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(seed)
+    // biome-ignore lint/complexity/useLiteralKeys: access private variables
     expect(f['_seed']).toBe(`${item.card.reps}`)
   })
 })
