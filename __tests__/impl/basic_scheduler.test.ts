@@ -1,8 +1,8 @@
 import {
   createEmptyCard,
   FSRSAlgorithm,
+  type Grade,
   generatorParameters,
-  Grade,
   Rating,
 } from '../../src/fsrs'
 import BasicScheduler from '../../src/fsrs/impl/basic_scheduler'
@@ -25,6 +25,7 @@ describe('basic scheduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
       [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
     for (const item of preview) {
@@ -62,6 +63,7 @@ describe('basic scheduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
       [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
     for (const item of preview) {
@@ -96,6 +98,7 @@ describe('basic scheduler', () => {
       [Rating.Hard]: hard,
       [Rating.Good]: good,
       [Rating.Easy]: easy,
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
       [Symbol.iterator]: basicScheduler[`previewIterator`].bind(basicScheduler),
     })
     for (const item of preview) {

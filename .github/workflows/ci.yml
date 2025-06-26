@@ -78,7 +78,7 @@ jobs:
         run: pnpm install --no-frozen-lockfile
 
       - name: Check
-        run: pnpm exec biome check ./src
+        run: pnpm run check
 
       - name: Run tests and collect coverage
         run: pnpm run test::coverage

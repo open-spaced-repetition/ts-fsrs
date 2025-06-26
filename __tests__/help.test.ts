@@ -1,12 +1,12 @@
 import {
   date_diff,
   date_scheduler,
-  TypeConvert,
   formatDate,
   Grades,
+  get_fuzz_range,
   Rating,
   State,
-  get_fuzz_range,
+  TypeConvert,
 } from '../src/fsrs'
 
 test('FSRS-Grades', () => {
@@ -204,7 +204,6 @@ describe('default values can not be overwritten', () => {
     expect(Grades.length).toEqual(4)
   })
 })
-
 
 it('get_fuzz_range should skip interval > elapsed_days branch when interval <= elapsed_days', () => {
   const result = get_fuzz_range(5, 5, 100)

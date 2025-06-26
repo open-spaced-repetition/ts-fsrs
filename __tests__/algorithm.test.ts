@@ -1,3 +1,4 @@
+import Decimal from 'decimal.js'
 import {
   clamp,
   computeDecayFactor,
@@ -5,19 +6,19 @@ import {
   default_maximum_interval,
   default_request_retention,
   default_w,
-  fsrs,
   FSRS,
   FSRS5_DEFAULT_DECAY,
   FSRS6_DEFAULT_DECAY,
   FSRSAlgorithm,
+  fsrs,
+  forgetting_curve as fsrs_forgetting_curve,
+  Grades,
   generatorParameters,
   get_fuzz_range,
-  Grades,
   Rating,
   S_MIN,
-  forgetting_curve as fsrs_forgetting_curve,
 } from '../src/fsrs'
-import Decimal from 'decimal.js'
+
 const _computeDecayFactor = (decay: number) => {
   const DECAY = -decay
   const FACTOR = +new Decimal(0.9)
@@ -345,7 +346,18 @@ describe('next_interval', () => {
     )
     // https://github.com/open-spaced-repetition/fsrs-rs/blob/78c36e6b21182c5a13f8649eafe2eb62c1dbdabe/src/inference.rs#L852
     // Result differs by +3 days compared to the reference test due to differing numeric precision: fsrs-rs uses f32, while ts-fsrs uses f64
-    expect(intervals).toEqual([3116766+3, 34793, 2508, 387, 90, 27, 9, 3, 1, 1])
+    expect(intervals).toEqual([
+      3116766 + 3,
+      34793,
+      2508,
+      387,
+      90,
+      27,
+      9,
+      3,
+      1,
+      1,
+    ])
   })
 
   // https://github.com/open-spaced-repetition/ts-fsrs/pull/74
@@ -429,7 +441,8 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.1542,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0,
+      0.1542,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,
@@ -474,7 +487,8 @@ describe('change Params', () => {
     const request_retention = 0.8
     const update_w = [
       1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0, 0.1542,
+      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0,
+      0.1542,
     ]
     f.parameters = generatorParameters({
       request_retention: request_retention,
@@ -596,5 +610,4 @@ describe('next_state', () => {
     const new_state = f.next_state(state, 1 /**days*/, Rating.Again)
     expect(new_state.stability).toBeLessThan(state.stability)
   })
-  
 })

@@ -1,13 +1,13 @@
 // Ref:https://github.com/ishiko732/ts-fsrs/issues/44
 
 import {
-  fsrs,
-  FSRS,
   createEmptyCard,
-  Rating,
-  Grade,
-  ReviewLog,
   date_diff,
+  type FSRS,
+  fsrs,
+  type Grade,
+  Rating,
+  type ReviewLog,
 } from '../src/fsrs'
 
 describe('elapsed_days', () => {

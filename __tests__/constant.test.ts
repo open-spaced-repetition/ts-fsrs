@@ -57,6 +57,7 @@ describe('default params', () => {
   })
 
   it('CLAMP_PARAMETERS can not be overwritten', () => {
+    // biome-ignore lint/suspicious/noAssignInExpressions: test modify
     const clamp_parameters1 = (CLAMP_PARAMETERS(FSRS6_DEFAULT_DECAY)[4] = [
       0.5, 0.5,
     ])

@@ -16,8 +16,8 @@
   },
   "type": "module",
   "scripts": {
-    "check": "biome check ./src",
-    "check::fix": "biome check --write ./src",
+    "check": "biome check ./src ./__tests__",
+    "check::fix": "biome check --write ./src ./__tests__",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "test": "jest --config=jest.config.js --passWithNoTests",
     "test::coverage": "jest --config=jest.config.js --coverage",
