@@ -24,7 +24,7 @@ You can find the state transition diagram for cards here:
 `ts-fsrs@3.x` requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.
 From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
-```
+```bash
 npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
 yarn add ts-fsrs
 pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs

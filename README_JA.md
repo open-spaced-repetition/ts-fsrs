@@ -26,7 +26,7 @@ ts-fsrsのワークフローについては、以下のリソースを参照し�
 `ts-fsrs@3.x`はNode.js（>=16.0.0）で動作する必要があります。`ts-fsrs@4.x`からは、最小必要なNode.jsバージョンは18.0.0です。
 `ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
-```
+```bash
 npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
 yarn add ts-fsrs
 pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
