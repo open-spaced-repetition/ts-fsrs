@@ -23,7 +23,7 @@ ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.
 `ts-fsrs@3.x`需要运行在 Node.js (>=16.0.0)上，`ts-fsrs@4.x`需要运行在 Node.js (>=18.0.0)上。
 从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
-```
+```bash
 npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
 yarn add ts-fsrs
 pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
