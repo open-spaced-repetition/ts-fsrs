@@ -30,6 +30,7 @@ export const computeDecayFactor = (
 /**
  * The formula used is :
  * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
+ * @param {number} decay - The decay factor, decay should be greater than or equal to 0.1 and less than or equal to 0.8.
  * @param {number} elapsed_days t days since the last review
  * @param {number} stability Stability (interval when R=90%)
  * @return {number} r Retrievability (probability of recall)
