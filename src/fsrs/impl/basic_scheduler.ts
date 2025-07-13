@@ -50,9 +50,9 @@ export default class BasicScheduler extends AbstractScheduler {
       card.state,
       // In the original learning steps setup (Again = 5m, Hard = 10m, Good = FSRS),
       // not adding 1 can cause slight variations in the memory state’s ds.
-      this.current.state === State.Learning
-        ? card.learning_steps + 1
-        : card.learning_steps
+      (this.current.state === State.Learning && grade !== Rating.Again && grade !== Rating.Hard)
+      ? card.learning_steps + 1
+      : card.learning_steps
     )
     const scheduled_minutes = Math.max(
       0,
