@@ -7,6 +7,7 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
 
 jobs:
   publish-npm:
@@ -48,8 +49,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Lint
-        run: pnpm run lint
+      - name: Check
+        run: pnpm run check
 
       - name: Run tests and collect coverage
         run: pnpm run test::coverage
@@ -79,6 +80,7 @@ jobs:
   publish-jsr:
     runs-on: ubuntu-latest
     environment: production
+    if: startsWith(github.ref, 'refs/tags/v')
     permissions:
       contents: read
       id-token: write
