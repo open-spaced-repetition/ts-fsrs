@@ -130,33 +130,38 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   }
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
-    const _this = this satisfies FSRS
+    const _this = this satisfies FSRS;
     return {
       set: function (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) {
+        // Set the property on the target object first.
+        Reflect.set(target, prop, value);
+
+        // Now, handle the side effects based on which property was changed.
         if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
-          )
+          );
         } else if (prop === 'enable_short_term') {
-          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         } else if (prop === 'w') {
-          value = clipParameters(
+          const new_w = clipParameters(
             migrateParameters(value as FSRSParameters['w']),
             target.relearning_steps.length
-          )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          );
+          // Mutate the 'w' property on the target itself.
+          target.w = new_w;
+          _this.forgetting_curve = forgetting_curve.bind(_this, new_w);
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
-          )
+          );
         }
-        Reflect.set(target, prop, value)
-        return true
+        return true;
       },
-    }
+    };
   }
 
   useStrategy<T extends StrategyMode>(

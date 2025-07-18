@@ -207,9 +207,21 @@ export class FSRSAlgorithm {
     return +raw_d.toFixed(8); // Return the raw, rounded value
   }
 
+  private linear_damping(delta_d: number, old_d: number): number {
+    return +((delta_d * (10 - old_d)) / 9).toFixed(8);
+  }
+
+  private mean_reversion(init: number, current: number): number {
+    return +(this.parameters.w[7] * init + (1 - this.parameters.w[7]) * current).toFixed(
+      8
+    );
+  }
+
   public next_difficulty(d: number, g: Grade): number {
-    const result = this.genericAlgorithm.next_difficulty(d, g);
-    return +result.toFixed(8);
+    const delta_d = -this.parameters.w[6] * (g - 3);
+    const next_d = d + this.linear_damping(delta_d, d);
+    const reverted_d = this.mean_reversion(this.init_difficulty(Rating.Easy), next_d);
+    return clamp(reverted_d, 1, 10);
   }
 
   public next_recall_stability(d: number, s: number, r: number, g: Grade): number {
