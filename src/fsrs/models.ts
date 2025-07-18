@@ -140,7 +140,11 @@ export type FSRSHistory = Partial<
       }
   )
 
-export interface FSRSState {
-  stability: number
-  difficulty: number
+/**
+ * Represents the memory state of a card. Can be generic to support
+ * both standard numbers and tensors for optimization.
+ */
+export interface FSRSState<T = number> {
+  stability: T
+  difficulty: T
 }
