@@ -75,14 +75,26 @@ export class FSRSAlgorithm<T> {
   }
 
   /**
+   * Linear damping calculation for difficulty.
+   */
+  private linear_damping(delta_d: T, old_d: T): T {
+    const nine_tensor = this.math.toTensor(9);
+    const ten_tensor = this.math.toTensor(10);
+    const factor = this.math.div(this.math.sub(ten_tensor, old_d), nine_tensor);
+    return this.math.mul(delta_d, factor);
+  }
+
+  /**
    * Next difficulty calculation.
    * D' = D - w_6 * (G - 3)
+   * D' = D + linear_damping(D' - D, D)
    * D' = w_7 * D_0(4) + (1 - w_7) * D'
    */
   next_difficulty(d: T, g: Grade): T {
-    const next_d = this.math.sub(d, this.math.mul(this.w[6], g - 3));
+    const delta_d = this.math.mul(this.w[6], g - 3);
+    const damped_d = this.math.sub(d, this.linear_damping(delta_d, d));
     const init_easy = this.init_difficulty(Rating.Easy);
-    const result = this.mean_reversion(init_easy, next_d);
+    const result = this.mean_reversion(init_easy, damped_d);
     return this.math.clip(result, 1, 10);
   }
 

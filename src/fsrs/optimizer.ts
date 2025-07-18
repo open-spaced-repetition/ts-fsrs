@@ -2,7 +2,7 @@ import type * as tf from '@tensorflow/tfjs';
 import { FSRSAlgorithm as GenericFSRSAlgorithm } from './algorithm_generic';
 import { TfMath } from './math';
 import { TypeConvert } from './convert';
-import { CLAMP_PARAMETERS, default_w } from './constant';
+import { CLAMP_PARAMETERS, default_w, DEFAULT_PARAMS_STDDEV_TENSOR } from './constant';
 import { clipParameters, createEmptyCard, generatorParameters, migrateParameters } from './default';
 import { FSRS } from './fsrs';
 import {
@@ -30,6 +30,7 @@ export interface OptimizerOptions {
   epochs?: number;
   batchSize?: number;
   maxSequenceLength?: number;
+  regularization?: number; // gamma in python code
 }
 
 /**
@@ -112,6 +113,7 @@ export class Optimizer {
       epochs = 5,
       batchSize = 512,
       maxSequenceLength = 64,
+      regularization: gamma = 1.0,
     } = options;
 
     const cardSequences = this.preprocessReviewLogs(review_logs, maxSequenceLength);
@@ -129,11 +131,20 @@ export class Optimizer {
 
     const fsrsParams = generatorParameters(schedulerParams);
     const baseW = initial_w || fsrsParams.w;
-    const w = clipParameters(migrateParameters(baseW), fsrsParams.relearning_steps.length);
+    let w = clipParameters(migrateParameters(baseW), fsrsParams.relearning_steps.length);
+
+    const pretrainedW = await this.pretrain(cardSequences, w);
+    w = pretrainedW;
+
     const params = this.tfjs.variable(this.tfjs.tensor1d(w));
+    const initialW = this.tfjs.tensor1d(w);
+    const stdDev = this.tfjs.tensor1d([...DEFAULT_PARAMS_STDDEV_TENSOR]);
 
     const adam = this.tfjs.train.adam(learningRate);
     const lossHistory: number[] = [];
+
+    const totalBatches = Math.ceil(Object.keys(cardSequences).length / batchSize) * epochs;
+    let currentBatch = 0;
 
     for (let epoch = 0; epoch < epochs; epoch++) {
       const cardIds = Object.keys(cardSequences);
@@ -146,9 +157,14 @@ export class Optimizer {
       for (let batchStart = 0; batchStart < cardIds.length; batchStart += batchSize) {
         const batchIds = cardIds.slice(batchStart, batchStart + batchSize);
         
+        const newLr = learningRate * (1 + Math.cos(Math.PI * currentBatch / totalBatches)) / 2;
+        (adam as any).learningRate = newLr;
+        currentBatch++;
+
         const lossTensor = adam.minimize(() => {
           fsrsParams.w = Array.from(params.dataSync());
-          return this.computeBatchLoss(batchIds, cardSequences, fsrsParams, tfMath) as tf.Scalar;
+          const loss = this.computeBatchLoss(batchIds, cardSequences, fsrsParams, tfMath, params, initialW, stdDev, gamma, numReviews) as tf.Scalar;
+          return loss;
         }, true, [params]);
 
         if (lossTensor) {
@@ -265,11 +281,68 @@ export class Optimizer {
     return retentionLevels[minCostIndex];
   }
 
+  private static remove_outliers(
+    group: Array<{ review: Date; rating: Grade; recall: number; deltaT: number }>,
+    firstRating: number
+  ): Array<{ review: Date; rating: Grade; recall: number; deltaT: number }> {
+    const grouped_by_delta_t: Record<number, { recall: number; count: number }> = {};
+    for (const item of group) {
+      if (!grouped_by_delta_t[item.deltaT]) {
+        grouped_by_delta_t[item.deltaT] = { recall: 0, count: 0 };
+      }
+      grouped_by_delta_t[item.deltaT].recall += item.recall;
+      grouped_by_delta_t[item.deltaT].count++;
+    }
+
+    const sorted_group = Object.entries(grouped_by_delta_t).sort(([dtA, dataA], [dtB, dataB]) => {
+      if (dataA.count !== dataB.count) {
+        return dataA.count - dataB.count;
+      }
+      return Number(dtB) - Number(dtA);
+    });
+
+    const total_count = group.length;
+    let removed_count = 0;
+    const delta_t_to_remove = new Set<number>();
+
+    for (const [delta_t_str, data] of sorted_group) {
+      const delta_t = Number(delta_t_str);
+      if (removed_count + data.count >= Math.max(total_count * 0.05, 20)) {
+        if (data.count < 6 || delta_t > (firstRating !== 4 ? 100 : 365)) {
+          delta_t_to_remove.add(delta_t);
+          removed_count += data.count;
+        }
+      } else {
+        delta_t_to_remove.add(delta_t);
+        removed_count += data.count;
+      }
+    }
+
+    return group.filter(item => !delta_t_to_remove.has(item.deltaT));
+  }
+
+  private static remove_non_continuous_rows(
+    sequence: Array<{ review: Date; rating: Grade; recall: number; deltaT?: number }>
+  ): Array<{ review: Date; rating: Grade; recall: number; deltaT?: number }> {
+    if (sequence.length <= 1) {
+      return sequence;
+    }
+    for (let i = 1; i < sequence.length; i++) {
+      // In FSRS, the first interval is handled differently.
+      // A non-positive deltaT for the second review is expected.
+      // For subsequent reviews, a positive deltaT is expected.
+      if (i > 1 && (sequence[i].deltaT === undefined || sequence[i].deltaT! <= 0)) {
+        return sequence.slice(0, i);
+      }
+    }
+    return sequence;
+  }
+
   private static preprocessReviewLogs(
     review_logs: ReviewLogWithCardId[],
     maxSequenceLength: number
   ): Record<string, Array<{ review: Date; rating: Grade; recall: number }>> {
-    const sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number }>> = {};
+    const sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number; deltaT?: number }>> = {};
 
     for (const log of review_logs) {
       if (log.rating === Rating.Manual) continue;
@@ -284,6 +357,41 @@ export class Optimizer {
 
     for (const cardId in sequences) {
       sequences[cardId].sort((a, b) => a.review.getTime() - b.review.getTime());
+      
+      for (let i = 0; i < sequences[cardId].length; i++) {
+        if (i > 0) {
+          const prevReview = sequences[cardId][i - 1].review;
+          const currReview = sequences[cardId][i].review;
+          sequences[cardId][i].deltaT = Math.floor((currReview.getTime() - prevReview.getTime()) / (1000 * 60 * 60 * 24));
+        } else {
+          sequences[cardId][i].deltaT = 0;
+        }
+      }
+    }
+
+    const second_reviews_by_rating: Record<number, Array<{ review: Date; rating: Grade; recall: number; deltaT: number }>> = { 1: [], 2: [], 3: [], 4: [] };
+    for (const cardId in sequences) {
+      if (sequences[cardId].length > 1) {
+        const firstRating = sequences[cardId][0].rating;
+        second_reviews_by_rating[firstRating].push(sequences[cardId][1] as any);
+      }
+    }
+
+    for (let rating = 1; rating <= 4; rating++) {
+      const cleaned_reviews = this.remove_outliers(second_reviews_by_rating[rating], rating);
+      const cleaned_deltaTs = new Set(cleaned_reviews.map(r => r.deltaT));
+      
+      for (const cardId in sequences) {
+        if (sequences[cardId].length > 1 && sequences[cardId][0].rating === rating) {
+          if (!cleaned_deltaTs.has(sequences[cardId][1].deltaT as number)) {
+            delete sequences[cardId];
+          }
+        }
+      }
+    }
+
+    for (const cardId in sequences) {
+      sequences[cardId] = this.remove_non_continuous_rows(sequences[cardId]);
       if (sequences[cardId].length > maxSequenceLength) {
         sequences[cardId] = sequences[cardId].slice(0, maxSequenceLength);
       }
@@ -309,7 +417,12 @@ export class Optimizer {
     cardIds: string[],
     sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number }>>,
     fsrsParams: FSRSParameters,
-    tfMath: TfMath
+    tfMath: TfMath,
+    w: tf.Variable,
+    initialW: tf.Tensor,
+    stdDev: tf.Tensor,
+    gamma: number,
+    numReviews: number
   ): tf.Tensor {
     return this.tfjs.tidy(() => {
       const losses: tf.Tensor[] = [];
@@ -343,7 +456,16 @@ export class Optimizer {
       }
 
       if (losses.length === 0) return this.tfjs.scalar(0);
-      return this.tfjs.mean(this.tfjs.stack(losses));
+
+      const meanLoss = this.tfjs.mean(this.tfjs.stack(losses));
+      const penalty = this.tfjs.sum(
+        this.tfjs.div(
+          this.tfjs.square(this.tfjs.sub(w, initialW)),
+          this.tfjs.square(stdDev)
+        )
+      ).mul(gamma / numReviews);
+      
+      return this.tfjs.add(meanLoss, penalty);
     });
   }
 
@@ -358,6 +480,73 @@ export class Optimizer {
 
       const clipped = this.tfjs.minimum(this.tfjs.maximum(params, lowerTensor), upperTensor);
     });
+  }
+
+  private static async pretrain(
+    sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number }>>,
+    initial_w: number[]
+  ): Promise<number[]> {
+    console.log("Running pretraining...");
+    const s0_dataset_group: Record<number, Record<number, { recall: number; count: number }>> = { 1: {}, 2: {}, 3: {}, 4: {} };
+    
+    for (const cardId in sequences) {
+      const sequence = sequences[cardId];
+      if (sequence.length > 1) {
+        const firstRating = sequence[0].rating;
+        const deltaT = Math.floor((sequence[1].review.getTime() - sequence[0].review.getTime()) / (1000 * 60 * 60 * 24));
+        if (deltaT > 0) {
+          if (!s0_dataset_group[firstRating][deltaT]) {
+            s0_dataset_group[firstRating][deltaT] = { recall: 0, count: 0 };
+          }
+          s0_dataset_group[firstRating][deltaT].recall += sequence[1].recall;
+          s0_dataset_group[firstRating][deltaT].count++;
+        }
+      }
+    }
+
+    const pretrained_s0: number[] = [...initial_w.slice(0, 4)];
+    for (let rating = 1; rating <= 4; rating++) {
+      const group = s0_dataset_group[rating];
+      if (Object.keys(group).length < 1) {
+        console.warn(`Not enough data for first rating ${rating}. Skipping pretraining for this rating.`);
+        continue;
+      }
+
+      const deltaTs = Object.keys(group).map(Number);
+      const recalls = deltaTs.map(dt => group[dt].recall / group[dt].count);
+      const counts = deltaTs.map(dt => group[dt].count);
+      
+      const initial_s0 = initial_w[rating - 1];
+
+      const stability = this.tfjs.variable(this.tfjs.scalar(initial_s0));
+      const optimizer = this.tfjs.train.adam(0.01);
+
+      for (let i = 0; i < 100; i++) {
+        optimizer.minimize(() => {
+          const predictions = this.tfjs.tidy(() => {
+            const decay = -initial_w[20];
+            const factor = Math.pow(0.9, 1 / decay) - 1.0;
+            const T = this.tfjs.tensor1d(deltaTs);
+            const S = stability;
+            const R = this.tfjs.pow(this.tfjs.add(1, this.tfjs.div(this.tfjs.mul(factor, T), S)), decay);
+            return R;
+          });
+          const actuals = this.tfjs.tensor1d(recalls);
+          const sample_weights = this.tfjs.tensor1d(counts);
+          const loss = this.tfjs.losses.logLoss(actuals, predictions, 1e-7, sample_weights as any).asScalar();
+          const l1 = this.tfjs.abs(this.tfjs.sub(stability, initial_s0)).div(16).asScalar();
+          return this.tfjs.add(loss, l1);
+        });
+      }
+      pretrained_s0[rating - 1] = stability.dataSync()[0];
+      console.log(`Pretrained S0 for rating ${rating}: ${pretrained_s0[rating - 1].toFixed(4)}`);
+      stability.dispose();
+      optimizer.dispose();
+    }
+    
+    const new_w = [...initial_w];
+    new_w.splice(0, 4, ...pretrained_s0);
+    return new_w;
   }
 
   private static simulateReviewCost(
