@@ -41,12 +41,26 @@
     "rollup": "^4.44.1",
     "rollup-plugin-dts": "^6.2.1",
     "rollup-plugin-esbuild": "^6.2.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-node": "^4.22.0",
     "ts-jest": "^29.4.0",
     "tslib": "^2.8.1",
     "tsx": "^4.20.3",
-    "typedoc": "0.28.3",
+    "typedoc": "0.27.9",
     "typedoc-plugin-extras": "4.0.0",
     "typescript": "^5.8.3"
+  },
+  "peerDependencies": {
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-node": "^4.22.0"
+  },
+  "peerDependenciesMeta": {
+    "@tensorflow/tfjs": {
+      "optional": true
+    },
+    "@tensorflow/tfjs-node": {
+      "optional": true
+    }
   },
   "author": "ishiko",
   "license": "MIT",
