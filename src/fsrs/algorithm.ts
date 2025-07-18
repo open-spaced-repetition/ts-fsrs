@@ -21,11 +21,12 @@ import { FSRSAlgorithm as GenericAlgorithm } from './algorithm_generic';
  * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{S})^{\text{DECAY}}$$
  */
 export function forgetting_curve(
-  parameters: number[] | readonly number[],
+  parameters: number[] | readonly number[] | number,
   elapsed_days: number,
   stability: number
 ): number {
-  const decay = -parameters[20];
+  const decayValue = Array.isArray(parameters) ? parameters[20] : parameters;
+  const decay = -decayValue;
   const factor = Math.pow(0.9, 1 / decay) - 1;
   return +Math.pow(1 + (factor * elapsed_days) / stability, decay).toFixed(8);
 }
@@ -103,7 +104,7 @@ export class FSRSAlgorithm {
     }
   }
 
-  protected calculate_interval_modifier(request_retention: number): number {
+  public calculate_interval_modifier(request_retention: number): number {
     if (request_retention <= 0 || request_retention > 1) {
       throw new Error('Requested retention rate should be in the range (0,1]');
     }
@@ -112,7 +113,7 @@ export class FSRSAlgorithm {
     return +((Math.pow(request_retention, 1 / decay) - 1) / factor).toFixed(8);
   }
 
-  private apply_fuzz(ivl: number, elapsed_days: number): int {
+  public apply_fuzz(ivl: number, elapsed_days: number): int {
     if (!this.param.enable_fuzz || ivl < 2.5) return Math.round(ivl) as int;
     const generator = alea(this._seed);
     const fuzz_factor = generator();
@@ -134,7 +135,11 @@ export class FSRSAlgorithm {
    * This method now acts as a simple wrapper, handling initial state checks and
    * delegating the core logic to the generic algorithm.
    */
-  public next_state(memory_state: FSRSState | null, elapsed_days: number, g: Grade): FSRSState {
+  public next_state(memory_state: FSRSState | null, elapsed_days: number, g: number): FSRSState {
+    if (g < 1 || g > 4) {
+      throw new Error('Invalid grade');
+    }
+    const grade = g as Grade;
     const { difficulty: d, stability: s } = memory_state ?? {
       difficulty: 0,
       stability: 0,
@@ -142,12 +147,36 @@ export class FSRSAlgorithm {
 
     if (d === 0 && s === 0) {
       return {
-        difficulty: this.genericAlgorithm.init_difficulty(g),
-        stability: this.genericAlgorithm.init_stability(g),
+        difficulty: this.genericAlgorithm.init_difficulty(grade),
+        stability: this.genericAlgorithm.init_stability(grade),
       };
     }
 
-    return this.genericAlgorithm.next_state(s, d, g, elapsed_days);
+    return this.genericAlgorithm.next_state(s, d, grade, elapsed_days);
+  }
+
+  public init_stability(g: Grade): number {
+    return this.genericAlgorithm.init_stability(g);
+  }
+
+  public init_difficulty(g: Grade): number {
+    return this.genericAlgorithm.init_difficulty(g);
+  }
+
+  public next_difficulty(d: number, g: Grade): number {
+    return this.genericAlgorithm.next_difficulty(d, g);
+  }
+
+  public next_recall_stability(d: number, s: number, r: number, g: Grade): number {
+    return this.genericAlgorithm.next_recall_stability(d, s, r, g);
+  }
+
+  public next_forget_stability(d: number, s: number, r: number): number {
+    return this.genericAlgorithm.next_forget_stability(d, s, r);
+  }
+
+  public next_short_term_stability(s: number, g: Grade): number {
+    return this.genericAlgorithm.next_short_term_stability(s, g);
   }
 
   /**

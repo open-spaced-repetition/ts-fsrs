@@ -230,3 +230,10 @@ export function dateDiffInDays(last: Date, cur: Date) {
 
   return Math.floor((utc2 - utc1) / 86400000 /** 1000 * 60 * 60 * 24*/)
 }
+
+export function computeDecayFactor(w: number[] | readonly number[] | number) {
+  const decayValue = Array.isArray(w) ? w[20] : w;
+  const decay = -decayValue;
+  const factor = Math.pow(0.9, 1 / decay) - 1;
+  return { decay, factor };
+}
