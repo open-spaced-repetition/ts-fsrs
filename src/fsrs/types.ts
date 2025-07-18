@@ -17,7 +17,7 @@ export interface IPreview extends RecordLog {
 
 export interface IScheduler {
   preview(): IPreview
-  review(state: Grade): RecordLogItem
+  review(grade: Grade, review_duration?: number): RecordLogItem
 }
 
 /**

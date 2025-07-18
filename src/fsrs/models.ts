@@ -37,6 +37,7 @@ export interface ReviewLog {
   scheduled_days: number // Number of days until the next review
   learning_steps: number // Keeps track of the current step during the (re)learning stages
   review: Date // Date of the review
+  review_duration?: number
 }
 
 export type RecordLogItem = {
@@ -95,6 +96,7 @@ export interface ReviewLogInput
   state: StateType | State // Card's state (New, Learning, Review, Relearning)
   due: DateInput // Due date
   review: DateInput // Date of the last review
+  review_duration?: number
 }
 
 export interface FSRSParameters {
