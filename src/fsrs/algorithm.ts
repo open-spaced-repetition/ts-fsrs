@@ -136,6 +136,9 @@ export class FSRSAlgorithm {
    * delegating the core logic to the generic algorithm.
    */
   public next_state(memory_state: FSRSState | null, elapsed_days: number, g: number): FSRSState {
+    if (elapsed_days < 0) {
+      throw new Error(`Invalid delta_t "${elapsed_days}"`);
+    }
     // Fix 1: Allow grade 0 (Manual) and handle it by returning the state unchanged.
     if (g < 0 || g > 4) {
       throw new Error(`Invalid grade "${g}"`);
@@ -178,8 +181,7 @@ export class FSRSAlgorithm {
 
   public init_difficulty(g: Grade): number {
     const raw_d = this.genericAlgorithm.init_difficulty(g);
-    const clipped_d = Math.min(Math.max(raw_d, 1), 10); // APPLY CLIP HERE
-    return +clipped_d.toFixed(8);
+    return +raw_d.toFixed(8); // Return the raw, rounded value
   }
 
   public next_difficulty(d: number, g: Grade): number {
