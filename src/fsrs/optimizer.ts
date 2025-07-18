@@ -1,23 +1,30 @@
 import type * as tf from '@tensorflow/tfjs';
-import { FSRSAlgorithm } from './algorithm_generic';
+import { FSRSAlgorithm as GenericFSRSAlgorithm } from './algorithm_generic';
 import { TfMath } from './math';
 import { TypeConvert } from './convert';
 import { CLAMP_PARAMETERS, default_w } from './constant';
-import { clipParameters, createEmptyCard, migrateParameters } from './default';
+import { clipParameters, createEmptyCard, generatorParameters, migrateParameters } from './default';
 import { FSRS } from './fsrs';
 import {
   type FSRSHistory,
   type FSRSParameters,
   Rating,
+  type Grade,
 } from './models';
 
 // Define an internal type for clarity and type safety during processing
 type ReviewLogWithCardId = FSRSHistory & { card_id?: string | number };
 
+/**
+ * Options for configuring the TensorFlow.js backend.
+ */
 export type OptimizerFactoryOptions = {
   backend?: 'cpu' | 'webgl' | 'wasm' | 'node';
 };
 
+/**
+ * Hyperparameters for the parameter optimization process.
+ */
 export interface OptimizerOptions {
   learningRate?: number;
   epochs?: number;
@@ -25,6 +32,9 @@ export interface OptimizerOptions {
   maxSequenceLength?: number;
 }
 
+/**
+ * Statistical patterns of user behavior extracted from review logs.
+ */
 export interface ReviewStatistics {
   firstReviewProbs: [number, number, number, number]; // Again, Hard, Good, Easy
   recallProbs: [number, number, number]; // Hard, Good, Easy on recall
@@ -32,6 +42,9 @@ export interface ReviewStatistics {
   recallAvgDurations: [number, number, number, number]; // Includes Again
 }
 
+/**
+ * Configuration options for the optimal retention simulation.
+ */
 export interface RetentionOptions {
   simulationDays?: number;
   numCards?: number;
@@ -81,12 +94,14 @@ export class Optimizer {
    * @param review_logs - An array of the user's review history.
    * @param initial_w - (Optional) Initial weights to start optimization from. Defaults to FSRS defaults.
    * @param options - (Optional) Hyperparameters for the optimization process.
+   * @param schedulerParams - (Optional) The user's scheduler parameters (e.g., relearning steps) to ensure accurate parameter clamping.
    * @returns A promise that resolves to an array of 21 optimized FSRS parameters.
    */
   public static async computeOptimalParameters(
     review_logs: ReviewLogWithCardId[],
     initial_w?: number[],
-    options: OptimizerOptions = {}
+    options: OptimizerOptions = {},
+    schedulerParams: Partial<FSRSParameters> = {}
   ): Promise<number[]> {
     if (!this.tfjs) {
       throw new Error('Optimizer not initialized. Call Optimizer.create() first.');
@@ -112,22 +127,13 @@ export class Optimizer {
       return initial_w || [...default_w];
     }
 
-    const baseW = initial_w || [...default_w];
-    const w = clipParameters(migrateParameters(baseW), []);
+    const fsrsParams = generatorParameters(schedulerParams);
+    const baseW = initial_w || fsrsParams.w;
+    const w = clipParameters(migrateParameters(baseW), fsrsParams.relearning_steps.length);
     const params = this.tfjs.variable(this.tfjs.tensor1d(w));
 
     const adam = this.tfjs.train.adam(learningRate);
     const lossHistory: number[] = [];
-
-    const fsrsParams: FSRSParameters = {
-      w: [], // Will be updated from tensor
-      request_retention: 0.9,
-      maximum_interval: 36500,
-      enable_fuzz: false,
-      enable_short_term: true,
-      learning_steps: [],
-      relearning_steps: [],
-    };
 
     for (let epoch = 0; epoch < epochs; epoch++) {
       const cardIds = Object.keys(cardSequences);
@@ -139,10 +145,10 @@ export class Optimizer {
 
       for (let batchStart = 0; batchStart < cardIds.length; batchStart += batchSize) {
         const batchIds = cardIds.slice(batchStart, batchStart + batchSize);
-        fsrsParams.w = Array.from(params.dataSync());
-
+        
         const lossTensor = adam.minimize(() => {
-          return this.computeBatchLoss(batchIds, cardSequences, params, tfMath, fsrsParams);
+          fsrsParams.w = Array.from(params.dataSync());
+          return this.computeBatchLoss(batchIds, cardSequences, fsrsParams, tfMath) as tf.Scalar;
         }, true, [params]);
 
         if (lossTensor) {
@@ -150,7 +156,7 @@ export class Optimizer {
           lossTensor.dispose();
         }
 
-        this.clampParameters(params);
+        this.clampParameters(params, fsrsParams);
         batchCount++;
       }
 
@@ -202,7 +208,9 @@ export class Optimizer {
     for (const review of firstReviews) {
       const ratingIndex = review.rating - 1;
       firstReviewCounts[ratingIndex]++;
-      if (review.review_duration !== undefined) firstReviewDurations[ratingIndex].push(review.review_duration);
+      if (review.review_duration !== undefined && review.review_duration !== null) {
+        firstReviewDurations[ratingIndex].push(review.review_duration);
+      }
     }
 
     const recallReviews = Array.from(cardGroups.values()).flatMap(reviews => reviews.slice(1));
@@ -213,15 +221,19 @@ export class Optimizer {
       if (review.rating !== Rating.Again) {
         recallCounts[review.rating - 2]++;
       }
-      if (review.review_duration !== undefined) recallDurations[review.rating - 1].push(review.review_duration);
+      if (review.review_duration !== undefined && review.review_duration !== null) {
+        recallDurations[review.rating - 1].push(review.review_duration);
+      }
     }
 
     const totalFirst = firstReviewCounts.reduce((sum, count) => sum + count, 0);
     const totalRecall = recallCounts.reduce((sum, count) => sum + count, 0);
 
+    if (totalFirst === 0) throw new Error("Cannot compute statistics: no first reviews found.");
+
     return {
-      firstReviewProbs: totalFirst > 0 ? firstReviewCounts.map(c => c / totalFirst) as [number, number, number, number] : [0.25, 0.25, 0.25, 0.25],
-      recallProbs: totalRecall > 0 ? recallCounts.map(c => c / totalRecall) as [number, number, number] : [0.33, 0.34, 0.33],
+      firstReviewProbs: firstReviewCounts.map(c => c / totalFirst) as [number, number, number, number],
+      recallProbs: totalRecall > 0 ? recallCounts.map(c => c / totalRecall) as [number, number, number] : [1/3, 1/3, 1/3],
       firstReviewAvgDurations: firstReviewDurations.map(this.average) as [number, number, number, number],
       recallAvgDurations: recallDurations.map(this.average) as [number, number, number, number],
     };
@@ -256,8 +268,8 @@ export class Optimizer {
   private static preprocessReviewLogs(
     review_logs: ReviewLogWithCardId[],
     maxSequenceLength: number
-  ): Record<string, Array<{ review: Date; rating: number; recall: number }>> {
-    const sequences: Record<string, Array<{ review: Date; rating: number; recall: number }>> = {};
+  ): Record<string, Array<{ review: Date; rating: Grade; recall: number }>> {
+    const sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number }>> = {};
 
     for (const log of review_logs) {
       if (log.rating === Rating.Manual) continue;
@@ -295,14 +307,13 @@ export class Optimizer {
 
   private static computeBatchLoss(
     cardIds: string[],
-    sequences: Record<string, Array<{ review: Date; rating: number; recall: number }>>,
-    params: tf.Variable,
-    tfMath: TfMath,
-    fsrsParams: FSRSParameters
+    sequences: Record<string, Array<{ review: Date; rating: Grade; recall: number }>>,
+    fsrsParams: FSRSParameters,
+    tfMath: TfMath
   ): tf.Tensor {
     return this.tfjs.tidy(() => {
       const losses: tf.Tensor[] = [];
-      const algorithm = new FSRSAlgorithm(fsrsParams, tfMath);
+      const algorithm = new GenericFSRSAlgorithm(fsrsParams, tfMath);
 
       for (const cardId of cardIds) {
         const sequence = sequences[cardId];
@@ -319,7 +330,7 @@ export class Optimizer {
           if (elapsedDays > 0) {
             const r = algorithm.forgetting_curve(elapsedDays, s);
             const target = tfMath.toTensor(review.recall);
-            const loss = this.tfjs.losses.binaryCrossentropy(target, r);
+            const loss = this.tfjs.losses.sigmoidCrossEntropy(target, r);
             losses.push(loss);
           }
 
@@ -336,17 +347,16 @@ export class Optimizer {
     });
   }
 
-  private static clampParameters(params: tf.Variable): void {
+  private static clampParameters(params: tf.Variable, fsrsParams: FSRSParameters): void {
     this.tfjs.tidy(() => {
-      const w17_w18_ceiling = 2.0; // Default ceiling
-      const clipRanges = CLAMP_PARAMETERS(w17_w18_ceiling);
+      const clipRanges = CLAMP_PARAMETERS(fsrsParams.relearning_steps.length > 1 ? 2.0 : 0); // Simplified logic, can be enhanced
       const lowerBounds = clipRanges.map(r => r[0]);
       const upperBounds = clipRanges.map(r => r[1]);
 
       const lowerTensor = this.tfjs.tensor1d(lowerBounds);
       const upperTensor = this.tfjs.tensor1d(upperBounds);
 
-      params.assign(this.tfjs.clipByValue(params, lowerTensor, upperTensor));
+      const clipped = this.tfjs.minimum(this.tfjs.maximum(params, lowerTensor), upperTensor);
     });
   }
 
@@ -372,19 +382,24 @@ export class Optimizer {
 
       while (currentDate < endDate) {
         const isFirstReview = card.reps === 0;
-        let rating: Rating;
+        let rating: Grade;
+        let duration: number;
 
         if (isFirstReview) {
-          rating = this.sampleRating(stats.firstReviewProbs, [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]);
+          const sampledRating = this.sampleRating(stats.firstReviewProbs, [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy]);
+          duration = this.getAverageDuration(stats, sampledRating, true);
+          rating = sampledRating;
         } else {
           const isRecall = Math.random() < retention;
-          rating = isRecall
-            ? this.sampleRating(stats.recallProbs, [Rating.Hard, Rating.Good, Rating.Easy])
-            : Rating.Again;
+          if (isRecall) {
+            rating = this.sampleRating(stats.recallProbs, [Rating.Hard, Rating.Good, Rating.Easy]);
+          } else {
+            rating = Rating.Again;
+          }
+          duration = this.getAverageDuration(stats, rating, false);
         }
-
-        const avgDuration = this.getAverageDuration(stats, rating, isFirstReview);
-        totalCost += avgDuration;
+        
+        totalCost += duration;
 
         const result = fsrs.next(card, currentDate, rating);
         card = result.card;
@@ -396,7 +411,7 @@ export class Optimizer {
     return totalKnowledge > 0 ? totalCost / totalKnowledge : Infinity;
   }
 
-  private static sampleRating(probs: number[], ratings: Rating[]): Rating {
+  private static sampleRating<R extends Rating>(probs: number[], ratings: R[]): R {
     const rand = Math.random();
     let cumProb = 0;
 
@@ -408,7 +423,7 @@ export class Optimizer {
     return ratings[ratings.length - 1];
   }
 
-  private static getAverageDuration(stats: ReviewStatistics, rating: number, isFirst: boolean): number {
+  private static getAverageDuration(stats: ReviewStatistics, rating: Rating, isFirst: boolean): number {
     const durations = isFirst ? stats.firstReviewAvgDurations : stats.recallAvgDurations;
     return durations[rating - 1] || 0;
   }

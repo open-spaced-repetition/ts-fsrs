@@ -82,28 +82,14 @@ export class FSRSAlgorithm {
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) {
-        const oldValue = Reflect.get(target, prop);
         Reflect.set(target, prop, value);
-
-        if (oldValue !== value) {
-          // After setting the value on the proxy's target, update the main class's
-          // param object to ensure consistency before re-instantiating the generic algorithm.
-          _this.param = target;
-
-          if (prop === 'request_retention' && Number.isFinite(value)) {
-            _this.intervalModifier = _this.calculate_interval_modifier(Number(value));
-          } else if (prop === 'w') {
-            const newW = clipParameters(
-              migrateParameters(value as FSRSParameters['w']),
-              target.relearning_steps.length
-            );
-            _this.param.w = newW;
-          }
-          // Re-instantiate the generic algorithm with the updated parameters.
-          // This handles all other cases, including `enable_short_term`, implicitly
-          // and robustly, ensuring the algorithm core is always in sync.
-          _this.genericAlgorithm = new GenericAlgorithm(_this.param, new NumberMath());
-        }
+        
+        // After any change, regenerate the full parameter object to handle clipping and migrations,
+        // then re-instantiate all dependent properties to ensure complete consistency.
+        _this.param = generatorParameters(target);
+        _this.genericAlgorithm = new GenericAlgorithm(_this.param, new NumberMath());
+        _this.intervalModifier = _this.calculate_interval_modifier(_this.param.request_retention);
+        
         return true;
       },
     };
@@ -117,7 +103,7 @@ export class FSRSAlgorithm {
     }
   }
 
-  private calculate_interval_modifier(request_retention: number): number {
+  protected calculate_interval_modifier(request_retention: number): number {
     if (request_retention <= 0 || request_retention > 1) {
       throw new Error('Requested retention rate should be in the range (0,1]');
     }
@@ -154,7 +140,6 @@ export class FSRSAlgorithm {
       stability: 0,
     };
 
-    if (g === Rating.Manual) return { difficulty: d, stability: s };
     if (d === 0 && s === 0) {
       return {
         difficulty: this.genericAlgorithm.init_difficulty(g),
