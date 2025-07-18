@@ -41,7 +41,7 @@ export class FSRSAlgorithm<T> {
     const g_minus_1 = this.math.toTensor(g - 1);
     const term = this.math.mul(this.w[5], g_minus_1);
     const difficulty = this.math.add(this.math.sub(this.w[4], this.math.exp(term)), this.math.toTensor(1));
-    return this.math.clip(difficulty, 1, 10);
+    return difficulty;
   }
 
   /**

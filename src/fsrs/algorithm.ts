@@ -136,9 +136,14 @@ export class FSRSAlgorithm {
    * delegating the core logic to the generic algorithm.
    */
   public next_state(memory_state: FSRSState | null, elapsed_days: number, g: number): FSRSState {
-    if (g < 1 || g > 4) {
-      throw new Error('Invalid grade');
+    // Fix 1: Allow grade 0 (Manual) and handle it by returning the state unchanged.
+    if (g < 0 || g > 4) {
+      throw new Error(`Invalid grade "${g}"`);
     }
+    if (g === 0) {
+      return memory_state ?? { difficulty: 0, stability: 0 };
+    }
+
     const grade = g as Grade;
     const { difficulty: d, stability: s } = memory_state ?? {
       difficulty: 0,
@@ -152,7 +157,19 @@ export class FSRSAlgorithm {
       };
     }
 
-    return this.genericAlgorithm.next_state(s, d, grade, elapsed_days);
+    // Fix 2: Restore validation for existing memory states.
+    if (d < 1 || s < 0.001) {
+      throw new Error(
+        `Invalid memory state { difficulty: ${d}, stability: ${s} }`
+      );
+    }
+
+    const updatedState = this.genericAlgorithm.next_state(s, d, grade, elapsed_days);
+
+    // Fix 3: Restore final clamping to prevent stability from falling below S_MIN.
+    updatedState.stability = Math.max(0.001, updatedState.stability);
+
+    return updatedState;
   }
 
   public init_stability(g: Grade): number {
@@ -160,23 +177,29 @@ export class FSRSAlgorithm {
   }
 
   public init_difficulty(g: Grade): number {
-    return this.genericAlgorithm.init_difficulty(g);
+    const raw_d = this.genericAlgorithm.init_difficulty(g);
+    const clipped_d = Math.min(Math.max(raw_d, 1), 10); // APPLY CLIP HERE
+    return +clipped_d.toFixed(8);
   }
 
   public next_difficulty(d: number, g: Grade): number {
-    return this.genericAlgorithm.next_difficulty(d, g);
+    const result = this.genericAlgorithm.next_difficulty(d, g);
+    return +result.toFixed(8);
   }
 
   public next_recall_stability(d: number, s: number, r: number, g: Grade): number {
-    return this.genericAlgorithm.next_recall_stability(d, s, r, g);
+    const result = this.genericAlgorithm.next_recall_stability(d, s, r, g);
+    return +result.toFixed(8);
   }
 
   public next_forget_stability(d: number, s: number, r: number): number {
-    return this.genericAlgorithm.next_forget_stability(d, s, r);
+    const result = this.genericAlgorithm.next_forget_stability(d, s, r);
+    return +result.toFixed(8);
   }
 
   public next_short_term_stability(s: number, g: Grade): number {
-    return this.genericAlgorithm.next_short_term_stability(s, g);
+    const result = this.genericAlgorithm.next_short_term_stability(s, g);
+    return +result.toFixed(8);
   }
 
   /**
