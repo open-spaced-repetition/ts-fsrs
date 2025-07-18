@@ -1,10 +1,11 @@
 import { alea } from './alea';
+import { S_MIN } from './constant';
 import {
   clipParameters,
   generatorParameters,
   migrateParameters,
 } from './default';
-import { get_fuzz_range } from './help';
+import { get_fuzz_range, clamp } from './help';
 import {
   type FSRSParameters,
   type FSRSState,
@@ -136,47 +137,69 @@ export class FSRSAlgorithm {
    * delegating the core logic to the generic algorithm.
    */
   public next_state(memory_state: FSRSState | null, elapsed_days: number, g: number): FSRSState {
-    if (elapsed_days < 0) {
-      throw new Error(`Invalid delta_t "${elapsed_days}"`);
-    }
-    // Fix 1: Allow grade 0 (Manual) and handle it by returning the state unchanged.
-    if (g < 0 || g > 4) {
-      throw new Error(`Invalid grade "${g}"`);
-    }
-    if (g === 0) {
-      return memory_state ?? { difficulty: 0, stability: 0 };
-    }
-
-    const grade = g as Grade;
     const { difficulty: d, stability: s } = memory_state ?? {
       difficulty: 0,
       stability: 0,
     };
 
+    if (elapsed_days < 0) {
+      throw new Error(`Invalid delta_t "${elapsed_days}"`);
+    }
+    if (g < 0 || g > 4) {
+      throw new Error(`Invalid grade "${g}"`);
+    }
+
     if (d === 0 && s === 0) {
+      // Use the corrected wrapper methods
+      const initial_d = this.init_difficulty(g as Grade);
+      const clamped_d = clamp(initial_d, 1, 10);
       return {
-        difficulty: this.genericAlgorithm.init_difficulty(grade),
-        stability: this.genericAlgorithm.init_stability(grade),
+        difficulty: clamped_d,
+        stability: this.init_stability(g as Grade),
       };
     }
 
-    // Fix 2: Restore validation for existing memory states.
-    if (d < 1 || s < 0.001) {
+    if (g === Rating.Manual) {
+      return {
+        difficulty: d,
+        stability: s,
+      };
+    }
+
+    if (d < 1 || s < S_MIN) {
       throw new Error(
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       );
     }
 
-    const updatedState = this.genericAlgorithm.next_state(s, d, grade, elapsed_days);
+    const r = this.forgetting_curve(elapsed_days, s);
+    const s_after_success = this.next_recall_stability(d, s, r, g as Grade);
+    const s_after_fail = this.next_forget_stability(d, s, r);
+    const s_after_short_term = this.next_short_term_stability(s, g as Grade);
 
-    // Fix 3: Restore final clamping to prevent stability from falling below S_MIN.
-    updatedState.stability = Math.max(0.001, updatedState.stability);
+    let new_s = s_after_success;
+    if (g === Rating.Again) {
+      let [w_17, w_18] = [0, 0];
+      if (this.param.enable_short_term) {
+        w_17 = this.param.w[17];
+        w_18 = this.param.w[18];
+      }
+      const next_s_min = s / Math.exp(w_17 * w_18);
+      // This line is critical: it replicates the original's specific rounding and clamping for this case.
+      new_s = clamp(+next_s_min.toFixed(8), S_MIN, s_after_fail);
+    }
 
-    return updatedState;
+    if (elapsed_days === 0 && this.param.enable_short_term) {
+      new_s = s_after_short_term;
+    }
+
+    const new_d = this.next_difficulty(d, g as Grade);
+    // The final stability does not need extra clamping here, as the sub-methods already handle it.
+    return { difficulty: new_d, stability: new_s };
   }
 
   public init_stability(g: Grade): number {
-    return this.genericAlgorithm.init_stability(g);
+    return Math.max(this.parameters.w[g - 1], 0.1);
   }
 
   public init_difficulty(g: Grade): number {
