@@ -127,7 +127,7 @@ export interface FSRSReview {
 }
 
 export type FSRSHistory = Partial<
-  Omit<ReviewLog, 'rating' | 'review' | 'elapsed_days'> & { review_duration?: number } // optional review_duration
+  Omit<ReviewLog, 'rating' | 'review' | 'elapsed_days'>
 > &
   (
     | {

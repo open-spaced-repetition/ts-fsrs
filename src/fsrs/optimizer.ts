@@ -11,6 +11,7 @@ import {
   Rating,
   type Grade,
 } from './models';
+import { computeDecayFactor } from './help';
 
 // Define an internal type for clarity and type safety during processing
 type ReviewLogWithCardId = FSRSHistory & { card_id?: string | number };
@@ -162,6 +163,8 @@ export class Optimizer {
         currentBatch++;
 
         const lossTensor = adam.minimize(() => {
+          // Note: fsrsParams.w is not used by the generic algorithm directly,
+          // but we update it for consistency in case any helper functions rely on it.
           fsrsParams.w = Array.from(params.dataSync());
           const loss = this.computeBatchLoss(batchIds, cardSequences, fsrsParams, tfMath, params, initialW, stdDev, gamma, numReviews) as tf.Scalar;
           return loss;
@@ -426,7 +429,16 @@ export class Optimizer {
   ): tf.Tensor {
     return this.tfjs.tidy(() => {
       const losses: tf.Tensor[] = [];
-      const algorithm = new GenericFSRSAlgorithm(fsrsParams, tfMath);
+      
+      // FIX (1): Split the w tensor into an array of scalar tensors for the constructor.
+      const w_tensors = this.tfjs.split(w, w.shape[0]);
+      const algorithm = new GenericFSRSAlgorithm(w_tensors, tfMath);
+
+      // FIX (2 & 3): Get numeric values needed for calculation from the current tensor weights.
+      // This is done once per batch for efficiency.
+      const w_values = Array.from(w.dataSync());
+      const { decay, factor } = computeDecayFactor(w_values);
+      const enable_short_term = fsrsParams.enable_short_term;
 
       for (const cardId of cardIds) {
         const sequence = sequences[cardId];
@@ -441,13 +453,15 @@ export class Optimizer {
           const elapsedDays = Math.max(0, Math.floor((review.review.getTime() - last_review.getTime()) / (1000 * 60 * 60 * 24)));
 
           if (elapsedDays > 0) {
-            const r = algorithm.forgetting_curve(elapsedDays, s);
+            // FIX (2): Pass the required decay and factor arguments.
+            const r = algorithm.forgetting_curve(elapsedDays, s, decay, factor);
             const target = tfMath.toTensor(review.recall);
             const loss = this.tfjs.losses.sigmoidCrossEntropy(target, r);
             losses.push(loss);
           }
 
-          const updatedState = algorithm.next_state(s, d, review.rating, elapsedDays);
+          // FIX (3): Pass the required arguments to next_state.
+          const updatedState = algorithm.next_state(s, d, review.rating, elapsedDays, enable_short_term, decay, factor);
           s = updatedState.stability;
           d = updatedState.difficulty;
 

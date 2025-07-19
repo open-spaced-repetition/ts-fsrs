@@ -49,7 +49,7 @@ export class FSRSAlgorithm {
       generatorParameters(params),
       this.params_handler_proxy()
     );
-    this.genericAlgorithm = new GenericAlgorithm(this.param, new NumberMath());
+    this.genericAlgorithm = new GenericAlgorithm([...this.param.w], new NumberMath());
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
     );
@@ -61,7 +61,6 @@ export class FSRSAlgorithm {
 
   set seed(seed: string) {
     this._seed = seed;
-    this.genericAlgorithm.seed = seed;
   }
 
   get parameters(): FSRSParameters {
@@ -93,7 +92,7 @@ export class FSRSAlgorithm {
                 target.relearning_steps.length
             );
             value = new_w;
-            _this.genericAlgorithm.w = new_w;
+            _this.genericAlgorithm.w = [...new_w];
             _this.intervalModifier = _this.calculate_interval_modifier(target.request_retention);
         }
         Reflect.set(target, prop, value);
@@ -132,7 +131,14 @@ export class FSRSAlgorithm {
 
   public next_interval(s: number, elapsed_days: number): int {
     const raw_interval = this.genericAlgorithm.next_interval(s, this.intervalModifier);
-    return this.apply_fuzz(raw_interval, elapsed_days);
+    
+    // FIX: Re-implement the original logic perfectly by enforcing min and max intervals.
+    const newInterval = Math.min(
+      Math.max(1, raw_interval),
+      this.param.maximum_interval
+    );
+
+    return this.apply_fuzz(newInterval, elapsed_days);
   }
 
   public next_state(
@@ -153,9 +159,8 @@ export class FSRSAlgorithm {
     }
 
     if (d === 0 && s === 0) {
-      const initial_d = this.init_difficulty(g as Grade);
       return {
-        difficulty: clamp(initial_d, 1, 10),
+        difficulty: clamp(this.init_difficulty(g as Grade), 1, 10),
         stability: this.init_stability(g as Grade),
       };
     }
@@ -172,8 +177,9 @@ export class FSRSAlgorithm {
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       );
     }
-
-    const result = this.genericAlgorithm.next_state(s, d, g as Grade, elapsed_days);
+    
+    const { decay, factor } = computeDecayFactor(this.param.w);
+    const result = this.genericAlgorithm.next_state(s, d, g as Grade, elapsed_days, this.param.enable_short_term, decay, factor);
     return {
       difficulty: result.difficulty,
       stability: result.stability,
@@ -186,8 +192,7 @@ export class FSRSAlgorithm {
   }
 
   public init_difficulty(g: Grade): number {
-    const raw_d = this.genericAlgorithm.init_difficulty(g);
-    return +raw_d.toFixed(8);
+    return this.genericAlgorithm.init_difficulty(g);
   }
 
   public next_difficulty(d: number, g: Grade): number {
@@ -207,6 +212,7 @@ export class FSRSAlgorithm {
   }
 
   public forgetting_curve(elapsed_days: number, stability: number): number {
-    return this.genericAlgorithm.forgetting_curve(elapsed_days, stability);
+    const { decay, factor } = computeDecayFactor(this.param.w);
+    return this.genericAlgorithm.forgetting_curve(elapsed_days, stability, decay, factor);
   }
 }

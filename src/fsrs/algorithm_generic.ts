@@ -1,27 +1,19 @@
 import { IMath } from './math';
 import { S_MIN } from './constant';
-import { type FSRSParameters, type FSRSState, type Grade, Rating } from './models';
+import { type FSRSState, type Grade, Rating } from './models';
 
 /**
  * Generic FSRS Algorithm that can work with both numbers and tensors.
  * This class contains the pure, mathematical core of the FSRS algorithm,
- * decoupled from specific data types.
+ * decoupled from specific data types and FSRS parameter structures.
  */
 export class FSRSAlgorithm<T> {
   protected math: IMath<T>;
-  protected _seed?: string;
+  w: T[];
 
-  w: T[]; // Made public to be updatable by the wrapper
-  parameters: FSRSParameters;
-
-  constructor(params: FSRSParameters, math: IMath<T>) {
+  constructor(w: T[], math: IMath<T>) {
     this.math = math;
-    this.parameters = params;
-    this.w = this.math.toTensorArray(this.parameters.w);
-  }
-
-  set seed(seed: string) {
-    this._seed = seed;
+    this.w = w;
   }
 
   /**
@@ -40,7 +32,6 @@ export class FSRSAlgorithm<T> {
     const g_minus_1 = this.math.toTensor(g - 1);
     const term = this.math.mul(this.w[5], g_minus_1);
     const difficulty = this.math.add(this.math.sub(this.w[4], this.math.exp(term)), this.math.toTensor(1));
-    // FIX: Added rounding to match the original algorithm's behavior.
     return this.math.round(difficulty);
   }
 
@@ -48,11 +39,7 @@ export class FSRSAlgorithm<T> {
    * Forgetting curve calculation.
    * R(t,S) = (1 + FACTOR * t/S)^DECAY
    */
-  forgetting_curve(elapsed_days: number, stability: T): T {
-    const decay = -this.parameters.w[20];
-    // FIX: Round the factor to 8 decimal places to match the original implementation's use of computeDecayFactor.
-    const factor = Number((Math.pow(0.9, 1 / decay) - 1.0).toFixed(8));
-
+  forgetting_curve(elapsed_days: number, stability: T, decay: number, factor: number): T {
     const term = this.math.mul(this.math.div(this.math.toTensor(1), stability), factor * elapsed_days);
     const base = this.math.add(this.math.toTensor(1), term);
     const forgetting_curve = this.math.pow(base, decay);
@@ -64,7 +51,7 @@ export class FSRSAlgorithm<T> {
    */
   next_interval(s: T, intervalModifier: number): T {
     const newInterval = this.math.mul(s, intervalModifier);
-    return this.math.clip(newInterval, 1, this.parameters.maximum_interval);
+    return this.math.round(newInterval);
   }
 
   /**
@@ -102,13 +89,14 @@ export class FSRSAlgorithm<T> {
 
   /**
    * Next recall stability calculation.
-   * S'_r(D,S,R,G) = S*(1 + e^{w_8}*(11-D)*S^{-w_9}*(e^{w_10*(1-R)}-1)*hard_penalty*easy_bonus)
+   * S'_r(D,S,R,G) = S*(1 + e^{w_8}*(11-D)*S^{-w_9}*(e^{w_{10}*(1-R)}-1)*hard_penalty*easy_bonus)
    */
   next_recall_stability(d: T, s: T, r: T, g: Grade): T {
     const hard_penalty = g === Rating.Hard ? this.w[15] : this.math.toTensor(1);
     const easy_bonus = g === Rating.Easy ? this.w[16] : this.math.toTensor(1);
 
-    const s_exponent = -this.parameters.w[9];
+    // FIX: Exponents for pow must be numbers. Convert the weight tensor to a number.
+    const s_exponent = -this.math.toNumber(this.w[9]);
 
     const term1 = this.math.exp(this.w[8]);
     const term2 = this.math.sub(this.math.toTensor(11), d);
@@ -128,11 +116,12 @@ export class FSRSAlgorithm<T> {
 
   /**
    * Next forget stability calculation.
-   * S'_f(D,S,R) = w_11*D^{-w_12}*((S+1)^{w_13}-1)*e^{w_14*(1-R)}
+   * S'_f(D,S,R) = w_{11}*D^{-w_{12}}*((S+1)^{w_{13}}-1)*e^{w_{14}*(1-R)}
    */
   next_forget_stability(d: T, s: T, r: T): T {
-    const d_exponent = -this.parameters.w[12];
-    const s_exponent = this.parameters.w[13];
+    // FIX: Exponents for pow must be numbers.
+    const d_exponent = -this.math.toNumber(this.w[12]);
+    const s_exponent = this.math.toNumber(this.w[13]);
 
     const exp_exponent = this.math.mul(this.math.sub(this.math.toTensor(1), r), this.w[14]);
 
@@ -150,7 +139,8 @@ export class FSRSAlgorithm<T> {
    * S'_s(S,G) = S * (S^{-w_19} * e^{w_17 * (G-3+w_18)})
    */
   next_short_term_stability(s: T, g: Grade): T {
-    const s_exponent = -this.parameters.w[19];
+    // FIX: Exponents for pow must be numbers.
+    const s_exponent = -this.math.toNumber(this.w[19]);
 
     const exponent = this.math.mul(this.w[17], this.math.add(this.math.toTensor(g - 3), this.w[18]));
     const sinc = this.math.mul(this.math.pow(s, s_exponent), this.math.exp(exponent));
@@ -165,8 +155,8 @@ export class FSRSAlgorithm<T> {
    * Centralized state transition logic.
    * This method is now the single source of truth for updating a card's memory state.
    */
-  next_state(current_s: T, current_d: T, grade: Grade, elapsed_days: number): FSRSState<T> {
-    const r = this.forgetting_curve(elapsed_days, current_s);
+  next_state(current_s: T, current_d: T, grade: Grade, elapsed_days: number, enable_short_term: boolean, decay: number, factor: number): FSRSState<T> {
+    const r = this.forgetting_curve(elapsed_days, current_s, decay, factor);
     const new_d = this.next_difficulty(current_d, grade);
     let new_s: T;
 
@@ -175,7 +165,7 @@ export class FSRSAlgorithm<T> {
         
         let w17: T | number = this.math.toTensor(0);
         let w18: T | number = this.math.toTensor(0);
-        if (this.parameters.enable_short_term) {
+        if (enable_short_term) {
             w17 = this.w[17];
             w18 = this.w[18];
         }
@@ -190,7 +180,7 @@ export class FSRSAlgorithm<T> {
       new_s = this.next_recall_stability(current_d, current_s, r, grade);
     }
 
-    if (elapsed_days === 0 && this.parameters.enable_short_term) {
+    if (elapsed_days === 0 && enable_short_term) {
       new_s = this.next_short_term_stability(current_s, grade);
     }
 
