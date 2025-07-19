@@ -44,7 +44,7 @@ export class FSRSAlgorithm {
   protected param!: FSRSParameters;
   protected intervalModifier!: number;
   protected _seed?: string;
-  private genericAlgorithm: GenericAlgorithm<number>;
+  protected genericAlgorithm: GenericAlgorithm<number>;
 
   constructor(params: Partial<FSRSParameters>) {
     // The proxy handler MUST be set up before other properties that depend on `param`.
@@ -85,13 +85,6 @@ export class FSRSAlgorithm {
         value: FSRSParameters[keyof FSRSParameters]
       ) {
         Reflect.set(target, prop, value);
-        
-        // After any change, regenerate the full parameter object to handle clipping and migrations,
-        // then re-instantiate all dependent properties to ensure complete consistency.
-        _this.param = generatorParameters(target);
-        _this.genericAlgorithm = new GenericAlgorithm(_this.param, new NumberMath());
-        _this.intervalModifier = _this.calculate_interval_modifier(_this.param.request_retention);
-        
         return true;
       },
     };
@@ -177,8 +170,12 @@ export class FSRSAlgorithm {
 
     const result = this.genericAlgorithm.next_state(s, d, g as Grade, elapsed_days);
     return {
-      difficulty: clamp(+result.difficulty.toFixed(8), 1, 10),
-      stability: clamp(+result.stability.toFixed(8), S_MIN, this.param.maximum_interval),
+      difficulty: clamp(result.difficulty, 1, 10),
+      stability: clamp(
+        result.stability,
+        S_MIN,
+        this.param.maximum_interval
+      ),
     };
   }
 
@@ -210,17 +207,17 @@ export class FSRSAlgorithm {
 
   public next_recall_stability(d: number, s: number, r: number, g: Grade): number {
     const result = this.genericAlgorithm.next_recall_stability(d, s, r, g);
-    return +result.toFixed(8);
+    return result;
   }
 
   public next_forget_stability(d: number, s: number, r: number): number {
     const result = this.genericAlgorithm.next_forget_stability(d, s, r);
-    return +result.toFixed(8);
+    return result;
   }
 
   public next_short_term_stability(s: number, g: Grade): number {
     const result = this.genericAlgorithm.next_short_term_stability(s, g);
-    return +result.toFixed(8);
+    return result;
   }
 
   /**

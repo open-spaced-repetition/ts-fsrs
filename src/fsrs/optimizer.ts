@@ -469,16 +469,34 @@ export class Optimizer {
     });
   }
 
-  private static clampParameters(params: tf.Variable, fsrsParams: FSRSParameters): void {
+  private static clampParameters(
+    params: tf.Variable,
+    fsrsParams: FSRSParameters
+  ): void {
     this.tfjs.tidy(() => {
-      const clipRanges = CLAMP_PARAMETERS(fsrsParams.relearning_steps.length > 1 ? 2.0 : 0); // Simplified logic, can be enhanced
-      const lowerBounds = clipRanges.map(r => r[0]);
-      const upperBounds = clipRanges.map(r => r[1]);
+      const w_values = params.dataSync();
+      const relearning_steps = fsrsParams.relearning_steps.length;
+      const clipped_w = clipParameters(
+        Array.from(w_values),
+        relearning_steps
+      );
+      const clipRanges = CLAMP_PARAMETERS(relearning_steps > 1 ? 2.0 : 0);
+      const lowerBounds = clipRanges.map((r: number[]) => r[0]);
+      const upperBounds = clipRanges.map((r: number[]) => r[1]);
 
       const lowerTensor = this.tfjs.tensor1d(lowerBounds);
       const upperTensor = this.tfjs.tensor1d(upperBounds);
 
-      const clipped = this.tfjs.minimum(this.tfjs.maximum(params, lowerTensor), upperTensor);
+      const clippedTensor = this.tfjs.tensor1d(clipped_w);
+      const clipped = this.tfjs.minimum(
+        this.tfjs.maximum(clippedTensor, lowerTensor),
+        upperTensor
+      );
+      params.assign(clipped);
+      clipped.dispose();
+      clippedTensor.dispose();
+      lowerTensor.dispose();
+      upperTensor.dispose();
     });
   }
 

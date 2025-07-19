@@ -1,8 +1,15 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm'
-import { TypeConvert } from './convert'
-import { clipParameters, createEmptyCard, migrateParameters } from './default'
-import { date_diff } from './help'
-import BasicScheduler from './impl/basic_scheduler'
+import { FSRSAlgorithm, forgetting_curve } from './algorithm';
+import { TypeConvert } from './convert';
+import {
+  clipParameters,
+  createEmptyCard,
+  generatorParameters,
+  migrateParameters,
+} from './default';
+import { date_diff } from './help';
+import { FSRSAlgorithm as GenericAlgorithm } from './algorithm_generic';
+import { NumberMath } from './math';
+import BasicScheduler from './impl/basic_scheduler';
 import LongTermScheduler from './impl/long_term_scheduler'
 import {
   type Card,
@@ -145,8 +152,6 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
           );
-        } else if (prop === 'enable_short_term') {
-          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         } else if (prop === 'w') {
           const new_w = clipParameters(
             migrateParameters(value as FSRSParameters['w']),
@@ -158,6 +163,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           );
+        } else if (prop === 'enable_short_term') {
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         }
         return true;
       },

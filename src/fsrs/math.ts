@@ -17,6 +17,7 @@ export interface IMath<T> {
   max(a: T, b: T | number): T;
   min(a: T, b: T | number): T;
   clip(val: T, min: number, max: number): T;
+  round(n: T): T;
 
   // Conversion methods
   toTensor(n: number): T;
@@ -42,7 +43,9 @@ export class NumberMath implements IMath<number> {
   log = (t: number): number => Math.log(t);
   max = (a: number, b: number): number => Math.max(a, b);
   min = (a: number, b: number): number => Math.min(a, b);
-  clip = (val: number, min: number, max: number): number => Math.min(Math.max(val, min), max);
+  clip = (val: number, min: number, max: number): number =>
+    Math.min(Math.max(val, min), max);
+  round = (n: number): number => +n.toFixed(8);
   toTensor = (n: number): number => n;
   toTensorArray = (arr: number[] | readonly number[]): number[] => [...arr];
   toNumber = (t: number): number => t;
@@ -63,9 +66,16 @@ export class TfMath implements IMath<tf.Tensor> {
   pow = (base: tf.Tensor, exp: number): tf.Tensor => this.tfjs.pow(base, exp);
   exp = (t: tf.Tensor): tf.Tensor => this.tfjs.exp(t);
   log = (t: tf.Tensor): tf.Tensor => this.tfjs.log(t);
-  max = (a: tf.Tensor, b: tf.Tensor | number): tf.Tensor => this.tfjs.maximum(a, b);
-  min = (a: tf.Tensor, b: tf.Tensor | number): tf.Tensor => this.tfjs.minimum(a, b);
-  clip = (val: tf.Tensor, min: number, max: number): tf.Tensor => this.tfjs.clipByValue(val, min, max);
+  max = (a: tf.Tensor, b: tf.Tensor | number): tf.Tensor =>
+    this.tfjs.maximum(a, b);
+  min = (a: tf.Tensor, b: tf.Tensor | number): tf.Tensor =>
+    this.tfjs.minimum(a, b);
+  clip = (val: tf.Tensor, min: number, max: number): tf.Tensor =>
+    this.tfjs.clipByValue(val, min, max);
+  round = (t: tf.Tensor): tf.Tensor => {
+    const factor = this.tfjs.scalar(1e8);
+    return this.tfjs.round(this.tfjs.mul(t, factor)).div(factor);
+  };
   toTensor = (n: number): tf.Tensor => this.tfjs.scalar(n);
   toTensorArray = (arr: number[] | readonly number[]): tf.Tensor[] => arr.map(n => this.tfjs.scalar(n));
   toNumber = (t: tf.Tensor): number => t.dataSync()[0];

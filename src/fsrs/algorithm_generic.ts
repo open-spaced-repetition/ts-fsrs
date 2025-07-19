@@ -121,7 +121,8 @@ export class FSRSAlgorithm<T> {
     );
 
     const result = this.math.mul(s, this.math.add(product, this.math.toTensor(1)));
-    return this.math.clip(result, S_MIN, 36500.0);
+    const clipped = this.math.clip(result, S_MIN, 36500.0);
+    return this.math.round(clipped);
   }
 
   /**
@@ -140,7 +141,8 @@ export class FSRSAlgorithm<T> {
     const term3 = this.math.exp(exp_exponent);
 
     const result = this.math.mul(this.math.mul(term1, term2), term3);
-    return this.math.clip(result, S_MIN, 36500.0);
+    const clipped = this.math.clip(result, S_MIN, 36500.0);
+    return this.math.round(clipped);
   }
 
   /**
@@ -156,7 +158,8 @@ export class FSRSAlgorithm<T> {
 
     const maskedSinc = g >= 3 ? this.math.max(sinc, 1.0) : sinc;
     const result = this.math.mul(s, maskedSinc);
-    return this.math.clip(result, S_MIN, 36500.0);
+    const clipped = this.math.clip(result, S_MIN, 36500.0);
+    return this.math.round(clipped);
   }
 
   /**
@@ -173,7 +176,8 @@ export class FSRSAlgorithm<T> {
       if (this.parameters.enable_short_term) {
         const w17 = this.w[17];
         const w18 = this.w[18];
-        const next_s_min = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
+        const next_s_min_unrounded = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
+        const next_s_min = this.math.round(next_s_min_unrounded);
         new_s = this.math.min(s_after_fail, next_s_min);
       } else {
         new_s = s_after_fail;
