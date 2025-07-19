@@ -9,10 +9,10 @@ import { type FSRSParameters, type FSRSState, type Grade, Rating } from './model
  */
 export class FSRSAlgorithm<T> {
   protected math: IMath<T>;
-  protected w: T[]; // Generic parameters array
   protected _seed?: string;
 
-  readonly parameters: FSRSParameters;
+  w: T[]; // Made public to be updatable by the wrapper
+  parameters: FSRSParameters;
 
   constructor(params: FSRSParameters, math: IMath<T>) {
     this.math = math;
@@ -29,8 +29,7 @@ export class FSRSAlgorithm<T> {
    * S_0(G) = w_{G-1}
    */
   init_stability(g: Grade): T {
-    const stability = this.w[g - 1];
-    return this.math.max(stability, S_MIN);
+    return this.w[g - 1];
   }
 
   /**
@@ -54,7 +53,9 @@ export class FSRSAlgorithm<T> {
 
     const term = this.math.mul(this.math.div(this.math.toTensor(1), stability), factor * elapsed_days);
     const base = this.math.add(this.math.toTensor(1), term);
-    return this.math.pow(base, decay);
+    const forgetting_curve = this.math.pow(base, decay);
+    // FIX: Round the final result to match original precision.
+    return this.math.round(forgetting_curve);
   }
 
   /**
@@ -68,10 +69,11 @@ export class FSRSAlgorithm<T> {
   /**
    * Mean reversion calculation for difficulty.
    */
-  mean_reversion(init: T, current: T): T {
+  private mean_reversion(init: T, current: T): T {
     const term1 = this.math.mul(this.w[7], init);
-    const term2 = this.math.mul(current, 1 - this.parameters.w[7]);
-    return this.math.add(term1, term2);
+    const term2 = this.math.mul(this.math.sub(this.math.toTensor(1), this.w[7]), current);
+    // FIX: Round the intermediate result as in the original algorithm.
+    return this.math.round(this.math.add(term1, term2));
   }
 
   /**
@@ -81,7 +83,8 @@ export class FSRSAlgorithm<T> {
     const nine_tensor = this.math.toTensor(9);
     const ten_tensor = this.math.toTensor(10);
     const factor = this.math.div(this.math.sub(ten_tensor, old_d), nine_tensor);
-    return this.math.mul(delta_d, factor);
+    // FIX: Round the intermediate result as in the original algorithm.
+    return this.math.round(this.math.mul(delta_d, factor));
   }
 
   /**
@@ -106,7 +109,6 @@ export class FSRSAlgorithm<T> {
     const hard_penalty = g === Rating.Hard ? this.w[15] : this.math.toTensor(1);
     const easy_bonus = g === Rating.Easy ? this.w[16] : this.math.toTensor(1);
 
-    // Exponents must be numbers, not tensors, for algorithmic correctness.
     const s_exponent = -this.parameters.w[9];
 
     const term1 = this.math.exp(this.w[8]);
@@ -130,7 +132,6 @@ export class FSRSAlgorithm<T> {
    * S'_f(D,S,R) = w_11*D^{-w_12}*((S+1)^{w_13}-1)*e^{w_14*(1-R)}
    */
   next_forget_stability(d: T, s: T, r: T): T {
-    // Exponents must be numbers, not tensors.
     const d_exponent = -this.parameters.w[12];
     const s_exponent = this.parameters.w[13];
 
@@ -150,10 +151,9 @@ export class FSRSAlgorithm<T> {
    * S'_s(S,G) = S * (S^{-w_19} * e^{w_17 * (G-3+w_18)})
    */
   next_short_term_stability(s: T, g: Grade): T {
-    // Exponent must be a number, not a tensor.
     const s_exponent = -this.parameters.w[19];
 
-    const exponent = this.math.mul(this.w[17], this.math.add(this.math.toTensor(g - 3), this.parameters.w[18]));
+    const exponent = this.math.mul(this.w[17], this.math.add(this.math.toTensor(g - 3), this.w[18]));
     const sinc = this.math.mul(this.math.pow(s, s_exponent), this.math.exp(exponent));
 
     const maskedSinc = g >= 3 ? this.math.max(sinc, 1.0) : sinc;
@@ -172,16 +172,17 @@ export class FSRSAlgorithm<T> {
     let new_s: T;
 
     if (grade === Rating.Again) {
-      const s_after_fail = this.next_forget_stability(current_d, current_s, r);
-      if (this.parameters.enable_short_term) {
-        const w17 = this.w[17];
-        const w18 = this.w[18];
-        const next_s_min_unrounded = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
-        const next_s_min = this.math.round(next_s_min_unrounded);
-        new_s = this.math.min(s_after_fail, next_s_min);
-      } else {
-        new_s = s_after_fail;
-      }
+        const s_after_fail = this.next_forget_stability(current_d, current_s, r);
+        if (this.parameters.enable_short_term) {
+            const w17 = this.w[17];
+            const w18 = this.w[18];
+            const next_s_min_unrounded = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
+            const next_s_min = this.math.round(next_s_min_unrounded);
+            const clamped_s_min = this.math.max(next_s_min, S_MIN);
+            new_s = this.math.min(clamped_s_min, s_after_fail);
+        } else {
+            new_s = s_after_fail;
+        }
     } else {
       new_s = this.next_recall_stability(current_d, current_s, r, grade);
     }

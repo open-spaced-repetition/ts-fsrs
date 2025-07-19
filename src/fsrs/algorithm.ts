@@ -47,12 +47,10 @@ export class FSRSAlgorithm {
   protected genericAlgorithm: GenericAlgorithm<number>;
 
   constructor(params: Partial<FSRSParameters>) {
-    // The proxy handler MUST be set up before other properties that depend on `param`.
     this.param = new Proxy(
       generatorParameters(params),
       this.params_handler_proxy()
     );
-    // Now initialize dependent properties
     this.genericAlgorithm = new GenericAlgorithm(this.param, new NumberMath());
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
@@ -84,6 +82,22 @@ export class FSRSAlgorithm {
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) {
+        if (prop === 'request_retention') {
+            if (typeof value === 'number') {
+                if (value <= 0 || value > 1) {
+                    throw new Error('Requested retention rate should be in the range (0,1]');
+                }
+                _this.intervalModifier = _this.calculate_interval_modifier(value);
+            }
+        } else if (prop === 'w') {
+            const new_w = clipParameters(
+                migrateParameters(value as FSRSParameters['w']),
+                target.relearning_steps.length
+            );
+            value = new_w;
+            _this.genericAlgorithm.w = new_w;
+            _this.intervalModifier = _this.calculate_interval_modifier(target.request_retention);
+        }
         Reflect.set(target, prop, value);
         return true;
       },
@@ -124,11 +138,6 @@ export class FSRSAlgorithm {
     return this.apply_fuzz(raw_interval, elapsed_days);
   }
 
-  /**
-   * Calculates the next memory state (difficulty and stability) of a card.
-   * This method now acts as a simple wrapper, handling initial state checks and
-   * delegating the core logic to the generic algorithm.
-   */
   public next_state(
     memory_state: FSRSState | null,
     elapsed_days: number,
@@ -148,9 +157,8 @@ export class FSRSAlgorithm {
 
     if (d === 0 && s === 0) {
       const initial_d = this.init_difficulty(g as Grade);
-      const clamped_d = clamp(initial_d, 1, 10);
       return {
-        difficulty: clamped_d,
+        difficulty: clamp(initial_d, 1, 10),
         stability: this.init_stability(g as Grade),
       };
     }
@@ -170,61 +178,38 @@ export class FSRSAlgorithm {
 
     const result = this.genericAlgorithm.next_state(s, d, g as Grade, elapsed_days);
     return {
-      difficulty: clamp(result.difficulty, 1, 10),
-      stability: clamp(
-        result.stability,
-        S_MIN,
-        this.param.maximum_interval
-      ),
+      difficulty: result.difficulty,
+      stability: result.stability,
     };
   }
 
   public init_stability(g: Grade): number {
-    return Math.max(this.parameters.w[g - 1], 0.1);
+    const raw_s = this.genericAlgorithm.init_stability(g);
+    return Math.max(raw_s, 0.1);
   }
 
   public init_difficulty(g: Grade): number {
     const raw_d = this.genericAlgorithm.init_difficulty(g);
-    return +raw_d.toFixed(8); // Return the raw, rounded value
-  }
-
-  private linear_damping(delta_d: number, old_d: number): number {
-    return +((delta_d * (10 - old_d)) / 9).toFixed(8);
-  }
-
-  private mean_reversion(init: number, current: number): number {
-    return +(this.parameters.w[7] * init + (1 - this.parameters.w[7]) * current).toFixed(
-      8
-    );
+    return +raw_d.toFixed(8);
   }
 
   public next_difficulty(d: number, g: Grade): number {
-    const delta_d = -this.parameters.w[6] * (g - 3);
-    const next_d = d + this.linear_damping(delta_d, d);
-    const reverted_d = this.mean_reversion(this.init_difficulty(Rating.Easy), next_d);
-    return clamp(reverted_d, 1, 10);
+    return this.genericAlgorithm.next_difficulty(d, g);
   }
 
   public next_recall_stability(d: number, s: number, r: number, g: Grade): number {
-    const result = this.genericAlgorithm.next_recall_stability(d, s, r, g);
-    return result;
+    return this.genericAlgorithm.next_recall_stability(d, s, r, g);
   }
 
   public next_forget_stability(d: number, s: number, r: number): number {
-    const result = this.genericAlgorithm.next_forget_stability(d, s, r);
-    return result;
+    return this.genericAlgorithm.next_forget_stability(d, s, r);
   }
 
   public next_short_term_stability(s: number, g: Grade): number {
-    const result = this.genericAlgorithm.next_short_term_stability(s, g);
-    return result;
+    return this.genericAlgorithm.next_short_term_stability(s, g);
   }
 
-  /**
-   * Provides a forgetting curve calculation method for backward compatibility,
-   * especially for the `FSRS` class that extends this one.
-   */
   public forgetting_curve(elapsed_days: number, stability: number): number {
-    return forgetting_curve(this.param.w, elapsed_days, stability);
+    return this.genericAlgorithm.forgetting_curve(elapsed_days, stability);
   }
 }

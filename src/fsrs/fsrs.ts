@@ -1,16 +1,11 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm';
+import { FSRSAlgorithm } from './algorithm';
 import { TypeConvert } from './convert';
 import {
-  clipParameters,
-  createEmptyCard,
-  generatorParameters,
-  migrateParameters,
+  createEmptyCard
 } from './default';
 import { date_diff } from './help';
-import { FSRSAlgorithm as GenericAlgorithm } from './algorithm_generic';
-import { NumberMath } from './math';
 import BasicScheduler from './impl/basic_scheduler';
-import LongTermScheduler from './impl/long_term_scheduler'
+import LongTermScheduler from './impl/long_term_scheduler';
 import {
   type Card,
   type CardInput,
@@ -23,19 +18,19 @@ import {
   type ReviewLog,
   type ReviewLogInput,
   State,
-} from './models'
-import { Reschedule } from './reschedule'
+} from './models';
+import { Reschedule } from './reschedule';
 import {
   StrategyMode,
   type TSchedulerStrategy,
   type TStrategyHandler,
-} from './strategies/types'
+} from './strategies/types';
 import type {
   IPreview,
   IReschedule,
   IScheduler,
   RescheduleOptions,
-} from './types'
+} from './types';
 
 // A utility type to require only K properties of A
 type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
@@ -138,35 +133,25 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRS;
+    const parentHandler = super.params_handler_proxy();
+
     return {
       set: function (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
-        value: FSRSParameters[keyof FSRSParameters]
+        value: FSRSParameters[keyof FSRSParameters],
+        receiver: any
       ) {
-        // Set the property on the target object first.
-        Reflect.set(target, prop, value);
-
-        // Now, handle the side effects based on which property was changed.
-        if (prop === 'request_retention' && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          );
-        } else if (prop === 'w') {
-          const new_w = clipParameters(
-            migrateParameters(value as FSRSParameters['w']),
-            target.relearning_steps.length
-          );
-          // Mutate the 'w' property on the target itself.
-          target.w = new_w;
-          _this.forgetting_curve = forgetting_curve.bind(_this, new_w);
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          );
-        } else if (prop === 'enable_short_term') {
+        // Handle FSRS-specific logic first
+        if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         }
-        return true;
+        
+        // FIX: Delegate ALL property setting to the parent proxy.
+        // The parent proxy already handles the synchronization of `w` and `request_retention`
+        // with the core genericAlgorithm. This removes the bug where `get_retrievability`
+        // used a stale forgetting curve.
+        return parentHandler.set!(target, prop, value, receiver);
       },
     };
   }
