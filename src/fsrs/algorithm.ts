@@ -97,7 +97,7 @@ export class FSRSAlgorithm {
     };
   }
 
-  private update_parameters(params: Partial<FSRSParameters>): void {
+  protected update_parameters(params: Partial<FSRSParameters>): void {
     const _params = generatorParameters(params);
     for (const key in _params) {
       const paramKey = key as keyof FSRSParameters;
@@ -136,7 +136,11 @@ export class FSRSAlgorithm {
    * This method now acts as a simple wrapper, handling initial state checks and
    * delegating the core logic to the generic algorithm.
    */
-  public next_state(memory_state: FSRSState | null, elapsed_days: number, g: number): FSRSState {
+  public next_state(
+    memory_state: FSRSState | null,
+    elapsed_days: number,
+    g: number
+  ): FSRSState {
     const { difficulty: d, stability: s } = memory_state ?? {
       difficulty: 0,
       stability: 0,
@@ -150,7 +154,6 @@ export class FSRSAlgorithm {
     }
 
     if (d === 0 && s === 0) {
-      // Use the corrected wrapper methods
       const initial_d = this.init_difficulty(g as Grade);
       const clamped_d = clamp(initial_d, 1, 10);
       return {
@@ -172,30 +175,11 @@ export class FSRSAlgorithm {
       );
     }
 
-    const r = this.forgetting_curve(elapsed_days, s);
-    const s_after_success = this.next_recall_stability(d, s, r, g as Grade);
-    const s_after_fail = this.next_forget_stability(d, s, r);
-    const s_after_short_term = this.next_short_term_stability(s, g as Grade);
-
-    let new_s = s_after_success;
-    if (g === Rating.Again) {
-      let [w_17, w_18] = [0, 0];
-      if (this.param.enable_short_term) {
-        w_17 = this.param.w[17];
-        w_18 = this.param.w[18];
-      }
-      const next_s_min = s / Math.exp(w_17 * w_18);
-      // This line is critical: it replicates the original's specific rounding and clamping for this case.
-      new_s = clamp(+next_s_min.toFixed(8), S_MIN, s_after_fail);
-    }
-
-    if (elapsed_days === 0 && this.param.enable_short_term) {
-      new_s = s_after_short_term;
-    }
-
-    const new_d = this.next_difficulty(d, g as Grade);
-    // The final stability does not need extra clamping here, as the sub-methods already handle it.
-    return { difficulty: new_d, stability: new_s };
+    const result = this.genericAlgorithm.next_state(s, d, g as Grade, elapsed_days);
+    return {
+      difficulty: clamp(+result.difficulty.toFixed(8), 1, 10),
+      stability: clamp(+result.stability.toFixed(8), S_MIN, this.param.maximum_interval),
+    };
   }
 
   public init_stability(g: Grade): number {
