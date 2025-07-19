@@ -95,13 +95,6 @@ export const migrateParameters = (
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
-  const request_retention =
-    props?.request_retention || default_request_retention
-  // ADD THIS VALIDATION BLOCK
-  if (request_retention <= 0 || request_retention > 1) {
-    throw new Error('Requested retention rate should be in the range (0,1]')
-  }
-
   const learning_steps = Array.isArray(props?.learning_steps)
     ? props!.learning_steps
     : default_learning_steps
@@ -110,7 +103,7 @@ export const generatorParameters = (
     : default_relearning_steps
   const w = clipParameters(migrateParameters(props?.w), relearning_steps.length)
   return {
-    request_retention: request_retention, // Use the validated variable
+    request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,

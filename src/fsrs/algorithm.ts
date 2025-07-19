@@ -5,7 +5,7 @@ import {
   generatorParameters,
   migrateParameters,
 } from './default';
-import { get_fuzz_range, clamp } from './help';
+import { get_fuzz_range, clamp, computeDecayFactor } from './help';
 import {
   type FSRSParameters,
   type FSRSState,
@@ -26,9 +26,7 @@ export function forgetting_curve(
   elapsed_days: number,
   stability: number
 ): number {
-  const decayValue = Array.isArray(parameters) ? parameters[20] : parameters;
-  const decay = -decayValue;
-  const factor = Math.pow(0.9, 1 / decay) - 1;
+  const { decay, factor } = computeDecayFactor(parameters);
   return +Math.pow(1 + (factor * elapsed_days) / stability, decay).toFixed(8);
 }
 
@@ -116,8 +114,7 @@ export class FSRSAlgorithm {
     if (request_retention <= 0 || request_retention > 1) {
       throw new Error('Requested retention rate should be in the range (0,1]');
     }
-    const decay = -this.param.w[20];
-    const factor = Math.pow(0.9, 1 / decay) - 1;
+    const { decay, factor } = computeDecayFactor(this.param.w);
     return +((Math.pow(request_retention, 1 / decay) - 1) / factor).toFixed(8);
   }
 

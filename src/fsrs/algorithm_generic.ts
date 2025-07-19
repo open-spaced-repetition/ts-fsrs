@@ -40,7 +40,8 @@ export class FSRSAlgorithm<T> {
     const g_minus_1 = this.math.toTensor(g - 1);
     const term = this.math.mul(this.w[5], g_minus_1);
     const difficulty = this.math.add(this.math.sub(this.w[4], this.math.exp(term)), this.math.toTensor(1));
-    return difficulty;
+    // FIX: Added rounding to match the original algorithm's behavior.
+    return this.math.round(difficulty);
   }
 
   /**
@@ -49,12 +50,12 @@ export class FSRSAlgorithm<T> {
    */
   forgetting_curve(elapsed_days: number, stability: T): T {
     const decay = -this.parameters.w[20];
-    const factor = Math.pow(0.9, 1 / decay) - 1.0;
+    // FIX: Round the factor to 8 decimal places to match the original implementation's use of computeDecayFactor.
+    const factor = Number((Math.pow(0.9, 1 / decay) - 1.0).toFixed(8));
 
     const term = this.math.mul(this.math.div(this.math.toTensor(1), stability), factor * elapsed_days);
     const base = this.math.add(this.math.toTensor(1), term);
     const forgetting_curve = this.math.pow(base, decay);
-    // FIX: Round the final result to match original precision.
     return this.math.round(forgetting_curve);
   }
 
@@ -72,7 +73,6 @@ export class FSRSAlgorithm<T> {
   private mean_reversion(init: T, current: T): T {
     const term1 = this.math.mul(this.w[7], init);
     const term2 = this.math.mul(this.math.sub(this.math.toTensor(1), this.w[7]), current);
-    // FIX: Round the intermediate result as in the original algorithm.
     return this.math.round(this.math.add(term1, term2));
   }
 
@@ -83,7 +83,6 @@ export class FSRSAlgorithm<T> {
     const nine_tensor = this.math.toTensor(9);
     const ten_tensor = this.math.toTensor(10);
     const factor = this.math.div(this.math.sub(ten_tensor, old_d), nine_tensor);
-    // FIX: Round the intermediate result as in the original algorithm.
     return this.math.round(this.math.mul(delta_d, factor));
   }
 
@@ -173,16 +172,20 @@ export class FSRSAlgorithm<T> {
 
     if (grade === Rating.Again) {
         const s_after_fail = this.next_forget_stability(current_d, current_s, r);
+        
+        let w17: T | number = this.math.toTensor(0);
+        let w18: T | number = this.math.toTensor(0);
         if (this.parameters.enable_short_term) {
-            const w17 = this.w[17];
-            const w18 = this.w[18];
-            const next_s_min_unrounded = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
-            const next_s_min = this.math.round(next_s_min_unrounded);
-            const clamped_s_min = this.math.max(next_s_min, S_MIN);
-            new_s = this.math.min(clamped_s_min, s_after_fail);
-        } else {
-            new_s = s_after_fail;
+            w17 = this.w[17];
+            w18 = this.w[18];
         }
+        
+        const next_s_min_unrounded = this.math.div(current_s, this.math.exp(this.math.mul(w17, w18)));
+        const next_s_min = this.math.round(next_s_min_unrounded);
+        
+        const clamped_s_min = this.math.max(next_s_min, S_MIN);
+        new_s = this.math.min(clamped_s_min, s_after_fail);
+
     } else {
       new_s = this.next_recall_stability(current_d, current_s, r, grade);
     }

@@ -147,10 +147,9 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         }
         
-        // FIX: Delegate ALL property setting to the parent proxy.
+        // Delegate ALL property setting to the parent proxy.
         // The parent proxy already handles the synchronization of `w` and `request_retention`
-        // with the core genericAlgorithm. This removes the bug where `get_retrievability`
-        // used a stale forgetting curve.
+        // with the core genericAlgorithm. This removes bugs where stale parameters could be used.
         return parentHandler.set!(target, prop, value, receiver);
       },
     };
