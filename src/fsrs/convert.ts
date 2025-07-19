@@ -68,6 +68,7 @@ export class TypeConvert {
       rating: TypeConvert.rating(log.rating),
       state: TypeConvert.state(log.state),
       review: TypeConvert.time(log.review),
+      review_duration: log.review_duration,
     } satisfies ReviewLog
   }
 }

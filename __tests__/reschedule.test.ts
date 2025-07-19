@@ -301,6 +301,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 13,
         learning_steps: 0,
         review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
+        review_duration: undefined,
       } satisfies ReviewLog,
     }
 
@@ -328,6 +329,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 21,
         learning_steps: 0,
         review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
+        review_duration: undefined,
       } satisfies ReviewLog,
     }
 
@@ -380,6 +382,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 13,
         learning_steps: 0,
         review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
+        review_duration: undefined,
       } satisfies ReviewLog,
     }
 
@@ -446,6 +449,7 @@ describe('FSRS reschedule', () => {
         scheduled_days: 18,
         learning_steps: 0,
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
+        review_duration: undefined,
       } satisfies ReviewLog,
     }
     let cur_card = createEmptyCard(MOCK_NOW)
@@ -485,6 +489,7 @@ describe('FSRS reschedule', () => {
           difficulty: cur_card.difficulty,
           learning_steps: 0,
           review: review_at,
+          review_duration: undefined,
         } satisfies ReviewLog,
       } satisfies RecordLogItem)
       cur_card = control[index++].card
