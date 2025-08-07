@@ -28,5 +28,6 @@ export type {
   TimeUnit,
 } from './models'
 export { Rating, State } from './models'
+export * from './optimizer'
 export * from './strategies'
 export type * from './types'

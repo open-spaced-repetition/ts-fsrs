@@ -35,8 +35,13 @@ export class Reschedule {
    * @param rating - The grade given to the card during the review.
    * @returns A `RecordLogItem` containing the updated card and review log.
    */
-  replay(card: Card, reviewed: Date, rating: Grade): RecordLogItem {
-    return this.fsrs.next(card, reviewed, rating)
+  replay(
+    card: Card,
+    reviewed: Date,
+    rating: Grade,
+    review_duration?: number
+  ): RecordLogItem {
+    return this.fsrs.next(card, reviewed, rating, review_duration)
   }
 
   /**
@@ -58,7 +63,8 @@ export class Reschedule {
     elapsed_days: number,
     stability?: number,
     difficulty?: number,
-    due?: Date
+    due?: Date,
+    review_duration?: number
   ): RecordLogItem {
     if (typeof state === 'undefined') {
       throw new Error('reschedule: state is required for manual rating')
@@ -77,6 +83,7 @@ export class Reschedule {
         scheduled_days: card.scheduled_days,
         learning_steps: card.learning_steps,
         review: <Date>reviewed,
+        review_duration,
       } satisfies ReviewLog
       next_card = createEmptyCard<Card>(reviewed)
       next_card.last_review = reviewed
@@ -96,6 +103,7 @@ export class Reschedule {
         scheduled_days: card.scheduled_days,
         learning_steps: card.learning_steps,
         review: <Date>reviewed,
+        review_duration,
       } satisfies ReviewLog
       next_card = {
         ...card,
@@ -139,10 +147,16 @@ export class Reschedule {
           interval,
           review.stability,
           review.difficulty,
-          review.due ? TypeConvert.time(review.due) : undefined
+          review.due ? TypeConvert.time(review.due) : undefined,
+          review.review_duration
         )
       } else {
-        item = this.replay(cur_card, review.review, review.rating)
+        item = this.replay(
+          cur_card,
+          review.review,
+          review.rating,
+          review.review_duration
+        )
       }
       collections.push(item)
       cur_card = item.card

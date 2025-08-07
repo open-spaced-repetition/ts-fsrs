@@ -1,9 +1,11 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm'
-import { TypeConvert } from './convert'
-import { clipParameters, createEmptyCard, migrateParameters } from './default'
-import { date_diff } from './help'
-import BasicScheduler from './impl/basic_scheduler'
-import LongTermScheduler from './impl/long_term_scheduler'
+import { FSRSAlgorithm } from './algorithm';
+import { TypeConvert } from './convert';
+import {
+  createEmptyCard
+} from './default';
+import { date_diff } from './help';
+import BasicScheduler from './impl/basic_scheduler';
+import LongTermScheduler from './impl/long_term_scheduler';
 import {
   type Card,
   type CardInput,
@@ -16,19 +18,19 @@ import {
   type ReviewLog,
   type ReviewLogInput,
   State,
-} from './models'
-import { Reschedule } from './reschedule'
+} from './models';
+import { Reschedule } from './reschedule';
 import {
   StrategyMode,
   type TSchedulerStrategy,
   type TStrategyHandler,
-} from './strategies/types'
+} from './strategies/types';
 import type {
   IPreview,
   IReschedule,
   IScheduler,
   RescheduleOptions,
-} from './types'
+} from './types';
 
 // A utility type to require only K properties of A
 type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
@@ -50,11 +52,23 @@ export interface IFSRS {
     afterHandler: (recordLog: IPreview) => R
   ): R
 
-  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
+  next(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    review_duration?: number
+  ): RecordLogItem
   next<R>(
     card: CardInput | Card,
     now: DateInput,
     grade: Grade,
+    afterHandler: (recordLog: RecordLogItem) => R
+  ): R
+  next<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    review_duration: number,
     afterHandler: (recordLog: RecordLogItem) => R
   ): R
 
@@ -79,12 +93,20 @@ export interface IFSRS {
   forget(
     card: CardInput | Card,
     now: DateInput,
-    reset_count?: boolean
+    reset_count?: boolean,
+    review_duration?: number
   ): RecordLogItem
   forget<R>(
     card: CardInput | Card,
     now: DateInput,
     reset_count: boolean | undefined,
+    afterHandler: (recordLogItem: RecordLogItem) => R
+  ): R
+  forget<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count: boolean | undefined,
+    review_duration: number,
     afterHandler: (recordLogItem: RecordLogItem) => R
   ): R
 
@@ -110,33 +132,27 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   }
 
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
-    const _this = this satisfies FSRS
+    const _this = this satisfies FSRS;
+    const parentHandler = super.params_handler_proxy();
+
     return {
       set: function (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
-        value: FSRSParameters[keyof FSRSParameters]
+        value: FSRSParameters[keyof FSRSParameters],
+        receiver: any
       ) {
-        if (prop === 'request_retention' && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          )
-        } else if (prop === 'enable_short_term') {
-          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
-        } else if (prop === 'w') {
-          value = clipParameters(
-            migrateParameters(value as FSRSParameters['w']),
-            target.relearning_steps.length
-          )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          )
+        // Handle FSRS-specific logic first
+        if (prop === 'enable_short_term') {
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler;
         }
-        Reflect.set(target, prop, value)
-        return true
+        
+        // Delegate ALL property setting to the parent proxy.
+        // The parent proxy already handles the synchronization of `w` and `request_retention`
+        // with the core genericAlgorithm. This removes bugs where stale parameters could be used.
+        return parentHandler.set!(target, prop, value, receiver);
       },
-    }
+    };
   }
 
   useStrategy<T extends StrategyMode>(
@@ -180,13 +196,13 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * @param now Current time or scheduled time
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const card: Card = createEmptyCard(new Date());
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date());
-   * ```
+   * \`\`\`
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * interface RevLogUnchecked
    *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
    *   cid: string;
@@ -230,7 +246,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
-   * ```
+   * \`\`\`
    */
   repeat<R = IPreview>(
     card: CardInput | Card,
@@ -246,11 +262,23 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     }
   }
 
-  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
+  next(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    review_duration?: number
+  ): RecordLogItem
   next<R>(
     card: CardInput | Card,
     now: DateInput,
     grade: Grade,
+    afterHandler: (recordLog: RecordLogItem) => R
+  ): R
+  next<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    grade: Grade,
+    review_duration: number,
     afterHandler: (recordLog: RecordLogItem) => R
   ): R
   /**
@@ -260,13 +288,13 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * @param grade Rating of the review (Again, Hard, Good, Easy)
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const card: Card = createEmptyCard(new Date());
    * const f = fsrs();
    * const recordLogItem = f.next(card, new Date(), Rating.Again);
-   * ```
+   * \`\`\`
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * interface RevLogUnchecked
    *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
    *   cid: string;
@@ -305,22 +333,33 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
    * const f = fsrs();
    * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
-   * ```
+   * \`\`\`
    */
   next<R = RecordLogItem>(
     card: CardInput | Card,
     now: DateInput,
     grade: Grade,
-    afterHandler?: (recordLog: RecordLogItem) => R
+    p4?: number | ((recordLog: RecordLogItem) => R),
+    p5?: (recordLog: RecordLogItem) => R
   ): R {
+    let review_duration: number | undefined
+    let handler: ((recordLog: RecordLogItem) => R) | undefined
+
+    if (typeof p4 === 'number') {
+      review_duration = p4
+      handler = p5
+    } else if (typeof p4 === 'function') {
+      handler = p4
+    }
+
     const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new Error('Cannot review a manual rating')
     }
-    const recordLogItem = instance.review(g)
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
+    const recordLogItem = instance.review(g, review_duration)
+    if (handler && typeof handler === 'function') {
+      return handler(recordLogItem)
     } else {
       return recordLogItem as R
     }
@@ -373,24 +412,24 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * @param log last review log
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCardFormAfterHandler = createEmptyCard(now);
    * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now);
    * const { card, log } = repeatFormAfterHandler[Rating.Hard];
    * const rollbackFromAfterHandler = f.rollback(card, log);
-   * ```
+   * \`\`\`
    *
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
    * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
    * const { card, log } = repeatFormAfterHandler[Rating.Hard];
    * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
-   * ```
+   * \`\`\`
    */
   rollback<R = Card>(
     card: CardInput | Card,
@@ -448,12 +487,20 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   forget(
     card: CardInput | Card,
     now: DateInput,
-    reset_count?: boolean
+    reset_count?: boolean,
+    review_duration?: number
   ): RecordLogItem
   forget<R>(
     card: CardInput | Card,
     now: DateInput,
     reset_count: boolean | undefined,
+    afterHandler: (recordLogItem: RecordLogItem) => R
+  ): R
+  forget<R>(
+    card: CardInput | Card,
+    now: DateInput,
+    reset_count: boolean | undefined,
+    review_duration: number,
     afterHandler: (recordLogItem: RecordLogItem) => R
   ): R
   /**
@@ -463,17 +510,17 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
    * @param afterHandler Convert the result to another type. (Optional)
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const now = new Date();
    * const f = fsrs();
    * const emptyCard = createEmptyCard(now);
    * const scheduling_cards = f.repeat(emptyCard, now);
    * const { card, log } = scheduling_cards[Rating.Hard];
    * const forgetCard = f.forget(card, new Date(), true);
-   * ```
+   * \`\`\`
    *
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * interface RepeatRecordLog {
    *   card: CardUnChecked; //see method: createEmptyCard
    *   log: RevLogUnchecked; //see method: fsrs.repeat()
@@ -505,14 +552,34 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
    * const { card } = repeatFormAfterHandler[Rating.Hard];
    * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
-   * ```
+   * \`\`\`
    */
   forget<R = RecordLogItem>(
     card: CardInput | Card,
     now: DateInput,
-    reset_count: boolean = false,
-    afterHandler?: (recordLogItem: RecordLogItem) => R
+    p3?: boolean | number | ((recordLogItem: RecordLogItem) => R),
+    p4?: number | ((recordLogItem: RecordLogItem) => R),
+    p5?: (recordLogItem: RecordLogItem) => R
   ): R {
+    let reset_count = false
+    let review_duration: number | undefined
+    let handler: ((recordLogItem: RecordLogItem) => R) | undefined
+
+    if (typeof p3 === 'boolean') {
+      reset_count = p3
+      if (typeof p4 === 'number') {
+        review_duration = p4
+        handler = p5
+      } else if (typeof p4 === 'function') {
+        handler = p4
+      }
+    } else if (typeof p3 === 'number') {
+      review_duration = p3
+      handler = p4 as ((recordLogItem: RecordLogItem) => R) | undefined
+    } else if (typeof p3 === 'function') {
+      handler = p3
+    }
+
     const processedCard = TypeConvert.card(card)
     now = TypeConvert.time(now)
     const scheduled_days =
@@ -530,6 +597,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       scheduled_days: scheduled_days,
       learning_steps: processedCard.learning_steps,
       review: now,
+      review_duration,
     }
     const forget_card: Card = {
       ...processedCard,
@@ -545,8 +613,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       last_review: processedCard.last_review,
     }
     const recordLogItem: RecordLogItem = { card: forget_card, log: forget_log }
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
+    if (handler && typeof handler === 'function') {
+      return handler(recordLogItem)
     } else {
       return recordLogItem as R
     }
@@ -572,7 +640,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
    *
    * @example
-   * ```typescript
+   * \`\`\`typescript
    * const f = fsrs()
    * const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
    * const reviews_at = [
@@ -598,7 +666,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    *   }
    * )
    * console.log(results_short)
-   * ```
+   * \`\`\`
    */
   reschedule<T = RecordLogItem>(
     current_card: CardInput | Card,
@@ -650,18 +718,18 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
  * Create a new instance of TS-FSRS
  * @param params FSRSParameters
  * @example
- * ```typescript
+ * \`\`\`typescript
  * const f = fsrs();
- * ```
+ * \`\`\`
  * @example
- * ```typescript
+ * \`\`\`typescript
  * const params: FSRSParameters = generatorParameters({ maximum_interval: 1000 });
  * const f = fsrs(params);
- * ```
+ * \`\`\`
  * @example
- * ```typescript
+ * \`\`\`typescript
  * const f = fsrs({ maximum_interval: 1000 });
- * ```
+ * \`\`\`
  */
 export const fsrs = (params?: Partial<FSRSParameters>) => {
   return new FSRS(params || {})

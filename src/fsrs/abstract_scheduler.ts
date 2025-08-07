@@ -27,6 +27,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected algorithm: FSRSAlgorithm
   protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
   protected elapsed_days: number = 0 // init
+  protected review_duration?: number
 
   constructor(
     card: CardInput | Card,
@@ -87,10 +88,11 @@ export abstract class AbstractScheduler implements IScheduler {
     }
   }
 
-  public review(grade: Grade): RecordLogItem {
+  public review(grade: Grade, review_duration?: number): RecordLogItem {
     const { state } = this.last
     let item: RecordLogItem | undefined
     this.checkGrade(grade)
+    this.review_duration = review_duration
     switch (state) {
       case State.New:
         item = this.newState(grade)
@@ -126,6 +128,7 @@ export abstract class AbstractScheduler implements IScheduler {
       scheduled_days: this.current.scheduled_days,
       learning_steps: this.current.learning_steps,
       review: this.review_time,
+      review_duration: this.review_duration,
     } satisfies ReviewLog
   }
 }
