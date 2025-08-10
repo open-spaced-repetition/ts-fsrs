@@ -102,13 +102,19 @@ export const generatorParameters = (
   const relearning_steps = Array.isArray(props?.relearning_steps)
     ? props!.relearning_steps
     : default_relearning_steps
-  const w = clipParameters(migrateParameters(props?.w), relearning_steps.length)
+  const enable_short_term =
+    props?.enable_short_term ?? default_enable_short_term
+  const w = clipParameters(
+    migrateParameters(props?.w),
+    relearning_steps.length,
+    enable_short_term
+  )
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term: props?.enable_short_term ?? default_enable_short_term,
+    enable_short_term: enable_short_term,
     learning_steps: learning_steps,
     relearning_steps: relearning_steps,
   } satisfies FSRSParameters
