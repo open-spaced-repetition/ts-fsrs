@@ -59,7 +59,7 @@ describe('FSRS-5', () => {
       scheduling_cards = f.repeat(card, now)
     }
     expect(ivl_history).toEqual([
-      0, 4, 14, 44, 125, 328, 0, 0, 7, 16, 34, 71, 142,
+      0, 4, 14, 44, 125, 328, 0, 0, 6, 14, 31, 65, 130,
     ])
   })
 
@@ -83,7 +83,7 @@ describe('FSRS-5', () => {
     }
 
     const { stability, difficulty } = scheduling_cards[Rating.Good].card
-    expect(stability).toBeCloseTo(48.4848, 4)
+    expect(stability).toBeCloseTo(48.4905, 4)
     expect(difficulty).toBeCloseTo(7.0866, 4)
   })
 

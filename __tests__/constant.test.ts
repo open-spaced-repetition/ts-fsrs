@@ -64,4 +64,15 @@ describe('default params', () => {
     const clamp_parameters2 = CLAMP_PARAMETERS(FSRS6_DEFAULT_DECAY)
     expect(clamp_parameters1[4]).not.toEqual(clamp_parameters2)
   })
+
+  it('uses 0.01 for short-term last-stability lower bound when enable_short_term=true', () => {
+    const clamp = CLAMP_PARAMETERS(W17_W18_Ceiling, true)
+    // index 19 corresponds to: [ enable_short_term ? 0.01 : 0.0, 0.8 ]
+    expect(clamp[19][0]).toBe(0.01)
+  })
+
+  it('uses 0.0 for short-term last-stability lower bound when enable_short_term=false', () => {
+    const clamp = CLAMP_PARAMETERS(W17_W18_Ceiling, false)
+    expect(clamp[19][0]).toBe(0.0)
+  })
 })

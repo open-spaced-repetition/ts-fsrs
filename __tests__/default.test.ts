@@ -36,7 +36,7 @@ describe('default params', () => {
       2.61,
       0.0,
       0.0,
-      0.0,
+      params.enable_short_term ? 0.01 : 0.0,
       FSRS5_DEFAULT_DECAY,
     ])
   })
@@ -69,7 +69,7 @@ describe('default params', () => {
       2.9898,
       0.51655,
       0.6621,
-      0.0,
+      params.enable_short_term ? 0.01 : 0.0,
       FSRS5_DEFAULT_DECAY,
     ])
   })
