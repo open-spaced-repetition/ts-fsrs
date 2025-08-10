@@ -16,7 +16,8 @@ import { type Card, type DateInput, type FSRSParameters, State } from './models'
 
 export const clipParameters = (
   parameters: number[],
-  numRelearningSteps: number
+  numRelearningSteps: number,
+  enable_short_term: boolean = default_enable_short_term
 ) => {
   let w17_w18_ceiling = W17_W18_Ceiling
   if (Math.max(0, numRelearningSteps) > 1) {
@@ -35,7 +36,7 @@ export const clipParameters = (
 
     w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2.0)
   }
-  const clip = CLAMP_PARAMETERS(w17_w18_ceiling)
+  const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enable_short_term)
   return clip.map(([min, max], index) => clamp(parameters[index], min, max))
 }
 
