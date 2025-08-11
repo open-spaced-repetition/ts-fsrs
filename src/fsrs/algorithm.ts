@@ -1,10 +1,6 @@
 import { alea } from './alea'
 import { S_MIN } from './constant'
-import {
-  clipParameters,
-  generatorParameters,
-  migrateParameters,
-} from './default'
+import { generatorParameters, migrateParameters } from './default'
 import { clamp, get_fuzz_range } from './help'
 import {
   type FSRSParameters,
@@ -124,9 +120,10 @@ export class FSRSAlgorithm {
             Number(value)
           )
         } else if (prop === 'w') {
-          value = clipParameters(
-            migrateParameters(value as FSRSParameters['w']),
-            target.relearning_steps.length
+          value = migrateParameters(
+            value as FSRSParameters['w'],
+            target.relearning_steps.length,
+            target.enable_short_term
           )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
           _this.intervalModifier = _this.calculate_interval_modifier(

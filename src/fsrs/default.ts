@@ -16,7 +16,8 @@ import { type Card, type DateInput, type FSRSParameters, State } from './models'
 
 export const clipParameters = (
   parameters: number[],
-  numRelearningSteps: number
+  numRelearningSteps: number,
+  enableShortTerm: boolean = default_enable_short_term
 ) => {
   let w17_w18_ceiling = W17_W18_Ceiling
   if (Math.max(0, numRelearningSteps) > 1) {
@@ -35,8 +36,13 @@ export const clipParameters = (
 
     w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2.0)
   }
-  const clip = CLAMP_PARAMETERS(w17_w18_ceiling)
-  return clip.map(([min, max], index) => clamp(parameters[index], min, max))
+  const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enableShortTerm).slice(
+    0,
+    parameters.length
+  )
+  return clip.map(([min, max], index) =>
+    clamp(parameters[index] || 0, min, max)
+  )
 }
 
 /**
@@ -65,19 +71,33 @@ export const checkParameters = (parameters: number[] | readonly number[]) => {
 }
 
 export const migrateParameters = (
-  parameters?: number[] | readonly number[]
+  parameters?: number[] | readonly number[],
+  numRelearningSteps: number = 0,
+  enableShortTerm: boolean = default_enable_short_term
 ) => {
   if (parameters === undefined) {
     return [...default_w]
   }
   switch (parameters.length) {
     case 21:
-      return [...parameters]
+      return clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      )
     case 19:
       console.debug('[FSRS-6]auto fill w from 19 to 21 length')
-      return [...parameters, 0.0, FSRS5_DEFAULT_DECAY]
+      return clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      ).concat([0.0, FSRS5_DEFAULT_DECAY])
     case 17: {
-      const w = [...parameters]
+      const w = clipParameters(
+        Array.from(parameters),
+        numRelearningSteps,
+        enableShortTerm
+      )
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
       w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
       w[6] = +(w[6] + 0.5).toFixed(8)
@@ -101,13 +121,20 @@ export const generatorParameters = (
   const relearning_steps = Array.isArray(props?.relearning_steps)
     ? props!.relearning_steps
     : default_relearning_steps
-  const w = clipParameters(migrateParameters(props?.w), relearning_steps.length)
+  const enable_short_term =
+    props?.enable_short_term ?? default_enable_short_term
+  const w = migrateParameters(
+    props?.w,
+    relearning_steps.length,
+    enable_short_term
+  )
+
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
     w: w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term: props?.enable_short_term ?? default_enable_short_term,
+    enable_short_term: enable_short_term,
     learning_steps: learning_steps,
     relearning_steps: relearning_steps,
   } satisfies FSRSParameters

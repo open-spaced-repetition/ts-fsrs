@@ -46,7 +46,10 @@ export const default_w = Object.freeze([
 ]) satisfies readonly number[]
 
 export const W17_W18_Ceiling = 2.0
-export const CLAMP_PARAMETERS = (w17_w18_ceiling: number) => [
+export const CLAMP_PARAMETERS = (
+  w17_w18_ceiling: number,
+  enable_short_term: boolean = default_enable_short_term
+) => [
   [S_MIN, INIT_S_MAX] /** initial stability (Again) */,
   [S_MIN, INIT_S_MAX] /** initial stability (Hard) */,
   [S_MIN, INIT_S_MAX] /** initial stability (Good) */,
@@ -66,6 +69,9 @@ export const CLAMP_PARAMETERS = (w17_w18_ceiling: number) => [
   [1.0, 6.0] /** stability (multiplier for Easy) */,
   [0.0, w17_w18_ceiling] /** short-term stability (exponent) */,
   [0.0, w17_w18_ceiling] /** short-term stability (exponent) */,
-  [0.0, 0.8] /** short-term last-stability (exponent) */,
+  [
+    enable_short_term ? 0.01 : 0.0,
+    0.8,
+  ] /** short-term last-stability (exponent) */,
   [0.1, 0.8] /** decay */,
 ]
