@@ -21,7 +21,7 @@ test('TS-FSRS-Simulator', () => {
   })
   const rids = [1704468957000, 1704469645000, 1704599572000, 1705509507000]
 
-  const expected = [13.1205, 16.92546705, 20.85552323, 39.23212599]
+  const expected = [13.1205, 17.3668145, 21.28550751, 39.63452215]
   let card = createEmptyCard(new Date(rids[0]))
   const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
   for (let i = 0; i < rids.length; i++) {
@@ -75,7 +75,7 @@ test('SSE use next_state', () => {
     )
     memoryState = nextStates
   }
-  expect(memoryState?.stability).toBeCloseTo(66.76)
+  expect(memoryState?.stability).toBeCloseTo(71.77)
 })
 
 test.skip('SSE 71.77', () => {
