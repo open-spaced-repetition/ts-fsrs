@@ -439,9 +439,28 @@ describe('change Params', () => {
     expect(f.parameters).toEqual(generatorParameters())
 
     const request_retention = 0.8
+    const w_19_floor = f.parameters.enable_short_term ? 0.01 : 0
     const update_w = [
-      1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0,
+      1.14,
+      1.01,
+      5.44,
+      14.67,
+      5.3024,
+      1.5662,
+      1.2503,
+      0.0028,
+      1.5489,
+      0.1763,
+      0.9953,
+      2.7473,
+      0.0179,
+      0.3105,
+      0.3976,
+      0.0,
+      2.0902,
+      0.48,
+      0.64,
+      w_19_floor,
       0.1542,
     ]
     f.parameters = generatorParameters({
@@ -485,9 +504,28 @@ describe('change Params', () => {
     expect(f.parameters).toEqual(generatorParameters())
 
     const request_retention = 0.8
+    const w_19_floor = params.enable_short_term ? 0.01 : 0
     const update_w = [
-      1.14, 1.01, 5.44, 14.67, 5.3024, 1.5662, 1.2503, 0.0028, 1.5489, 0.1763,
-      0.9953, 2.7473, 0.0179, 0.3105, 0.3976, 0.0, 2.0902, 0.48, 0.64, 0,
+      1.14,
+      1.01,
+      5.44,
+      14.67,
+      5.3024,
+      1.5662,
+      1.2503,
+      0.0028,
+      1.5489,
+      0.1763,
+      0.9953,
+      2.7473,
+      0.0179,
+      0.3105,
+      0.3976,
+      0.0,
+      2.0902,
+      0.48,
+      0.64,
+      w_19_floor,
       0.1542,
     ]
     f.parameters = generatorParameters({
