@@ -29,12 +29,12 @@
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.1.3",
+    "@biomejs/biome": "2.1.4",
     "@rollup/plugin-commonjs": "^28.0.6",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/jest": "^30.0.0",
-    "@types/node": "^24.0.7",
+    "@types/node": "^24.2.1",
     "decimal.js": "^10.5.0",
     "jest": "^30.0.3",
     "rimraf": "^6.0.1",
