@@ -17,8 +17,7 @@ import { type Card, type DateInput, type FSRSParameters, State } from './models'
 export const clipParameters = (
   parameters: number[],
   numRelearningSteps: number,
-  enableShortTerm: boolean = default_enable_short_term,
-  parametersLength: number = parameters.length
+  enableShortTerm: boolean = default_enable_short_term
 ) => {
   let w17_w18_ceiling = W17_W18_Ceiling
   if (Math.max(0, numRelearningSteps) > 1) {
@@ -39,7 +38,7 @@ export const clipParameters = (
   }
   const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enableShortTerm).slice(
     0,
-    parametersLength
+    parameters.length
   )
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)
@@ -91,15 +90,13 @@ export const migrateParameters = (
       return clipParameters(
         Array.from(parameters),
         numRelearningSteps,
-        enableShortTerm,
-        19
+        enableShortTerm
       ).concat([0.0, FSRS5_DEFAULT_DECAY])
     case 17: {
       const w = clipParameters(
         Array.from(parameters),
         numRelearningSteps,
-        enableShortTerm,
-        17
+        enableShortTerm
       )
       w[4] = +(w[5] * 2.0 + w[4]).toFixed(8)
       w[5] = +(Math.log(w[5] * 3.0 + 1.0) / 3.0).toFixed(8)
