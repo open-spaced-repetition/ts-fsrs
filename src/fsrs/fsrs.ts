@@ -1,6 +1,6 @@
 import { FSRSAlgorithm, forgetting_curve } from './algorithm'
 import { TypeConvert } from './convert'
-import { clipParameters, createEmptyCard, migrateParameters } from './default'
+import { createEmptyCard, migrateParameters } from './default'
 import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
@@ -124,8 +124,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
         } else if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         } else if (prop === 'w') {
-          value = clipParameters(
-            migrateParameters(value as FSRSParameters['w']),
+          value = migrateParameters(
+            value as FSRSParameters['w'],
             target.relearning_steps.length,
             target.enable_short_term
           )
