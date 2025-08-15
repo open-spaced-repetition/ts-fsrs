@@ -131,6 +131,29 @@ describe('TypeConvert.time', () => {
     const input = null
     expect(() => TypeConvert.time(input)).toThrow('Invalid date:[null]')
   })
+
+  test('accepts mock date objects', () => {
+    const input = { toString: () => '2025-08-12T00:00:00Z' }
+    const expected = new Date('2025-08-12T00:00:00Z')
+    expect(TypeConvert.time(input)).toEqual(expected)
+  })
+
+  test('accepts string objects', () => {
+    const input = new String('2025-08-12T00:00:00Z')
+    const expected = new Date('2025-08-12T00:00:00Z')
+    expect(TypeConvert.time(input)).toEqual(expected)
+  })
+
+  test('accepts number objects', () => {
+    const input = new Number(1.755e12)
+    const expected = new Date(1.755e12)
+    expect(TypeConvert.time(input)).toEqual(expected)
+  })
+
+  test('throws error for invalid mock date objects', () => {
+    const input = {}
+    expect(() => TypeConvert.time(input)).toThrow('[object Object]')
+  })
 })
 
 describe('TypeConvert.state', () => {

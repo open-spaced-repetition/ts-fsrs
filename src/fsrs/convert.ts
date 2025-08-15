@@ -47,8 +47,13 @@ export class TypeConvert {
     throw new Error(`Invalid state:[${value}]`)
   }
   static time(value: unknown): Date {
-    if (typeof value === 'object' && value instanceof Date) {
-      return value
+    const date = new Date(value as string)
+    if (
+      typeof value === 'object' &&
+      value !== null &&
+      !Number.isNaN(Date.parse(value as unknown as string) || +date)
+    ) {
+      return date
     } else if (typeof value === 'string') {
       const timestamp = Date.parse(value)
       if (!Number.isNaN(timestamp)) {
