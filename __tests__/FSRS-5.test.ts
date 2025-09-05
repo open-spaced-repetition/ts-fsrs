@@ -63,10 +63,7 @@ describe('FSRS-5', () => {
     ])
   })
 
-  it('memory state', () => {
-    let card = createEmptyCard()
-    let now = new Date(2022, 11, 29, 12, 30, 0, 0)
-    let scheduling_cards = f.repeat(card, now)
+  describe('memory state', () => {
     const ratings: Grade[] = [
       Rating.Again,
       Rating.Good,
@@ -76,15 +73,35 @@ describe('FSRS-5', () => {
       Rating.Good,
     ]
     const intervals: number[] = [0, 0, 1, 3, 8, 21]
-    for (const [index, rating] of ratings.entries()) {
-      card = scheduling_cards[rating].card
-      now = new Date(now.getTime() + intervals[index] * 24 * 60 * 60 * 1000)
-      scheduling_cards = f.repeat(card, now)
-    }
+    function assertMemoryState(
+      f: FSRS,
+      text: string,
+      expect_stability: number,
+      expect_difficulty: number
+    ) {
+      let card = createEmptyCard()
+      let now = new Date(2022, 11, 29, 12, 30, 0, 0)
 
-    const { stability, difficulty } = scheduling_cards[Rating.Good].card
-    expect(stability).toBeCloseTo(48.717, 4)
-    expect(difficulty).toBeCloseTo(7.0866, 4)
+      for (const [index, rating] of ratings.entries()) {
+        now = new Date(+now + intervals[index] * 24 * 60 * 60 * 1000)
+        card = f.next(card, now, rating).card
+        console.debug(text, index + 1, card.stability, card.difficulty)
+      }
+
+      const { stability, difficulty } = card
+      expect(stability).toBeCloseTo(expect_stability, 4)
+      expect(difficulty).toBeCloseTo(expect_difficulty, 4)
+    }
+    it('memory state[short-term]', () => {
+      const f = fsrs({ w, enable_short_term: true })
+      console.debug('memory state[short-term] weight', f.parameters.w)
+      assertMemoryState(f, 'short-term', 48.26549438, 7.10441712)
+    })
+    it('memory state[long-term]', () => {
+      const f = fsrs({ w, enable_short_term: false })
+      console.debug('memory state[long-term] weight', f.parameters.w)
+      assertMemoryState(f, 'long-term', 48.065163, 7.10441712)
+    })
   })
 
   it('first repeat', () => {
