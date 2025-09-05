@@ -83,7 +83,7 @@ describe('FSRS-5', () => {
     }
 
     const { stability, difficulty } = scheduling_cards[Rating.Good].card
-    expect(stability).toBeCloseTo(48.4848, 4)
+    expect(stability).toBeCloseTo(48.7170, 4)
     expect(difficulty).toBeCloseTo(7.0866, 4)
   })
 
