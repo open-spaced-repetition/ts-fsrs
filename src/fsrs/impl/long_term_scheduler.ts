@@ -1,7 +1,6 @@
 import { AbstractScheduler } from '../abstract_scheduler'
-import { S_MIN } from '../constant'
 import { TypeConvert } from '../convert'
-import { clamp, date_scheduler } from '../help'
+import { date_scheduler } from '../help'
 import {
   type Card,
   type Grade,
@@ -22,13 +21,11 @@ export default class LongTermScheduler extends AbstractScheduler {
     // pending removal in v6.0.0
     this.current.elapsed_days = 0
 
-    const next_again = TypeConvert.card(this.current)
-    const next_hard = TypeConvert.card(this.current)
-    const next_good = TypeConvert.card(this.current)
-    const next_easy = TypeConvert.card(this.current)
-
-    this.init_ds(next_again, next_hard, next_good, next_easy)
     const first_interval = 0
+    const next_again = this.next_ds(first_interval, Rating.Again)
+    const next_hard = this.next_ds(first_interval, Rating.Hard)
+    const next_good = this.next_ds(first_interval, Rating.Good)
+    const next_easy = this.next_ds(first_interval, Rating.Easy)
 
     this.next_interval(
       next_again,
@@ -43,39 +40,22 @@ export default class LongTermScheduler extends AbstractScheduler {
     return this.next.get(grade)!
   }
 
-  private init_ds(
-    next_again: Card,
-    next_hard: Card,
-    next_good: Card,
-    next_easy: Card
-  ): void {
-    next_again.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Again),
-      1,
-      10
+  private next_ds(t: number, g: Grade, r?: number): Card {
+    const next_state = this.algorithm.next_state(
+      {
+        difficulty: this.current.difficulty,
+        stability: this.current.stability,
+      },
+      t,
+      g,
+      r
     )
-    next_again.stability = this.algorithm.init_stability(Rating.Again)
 
-    next_hard.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Hard),
-      1,
-      10
-    )
-    next_hard.stability = this.algorithm.init_stability(Rating.Hard)
+    const card = TypeConvert.card(this.current)
+    card.difficulty = next_state.difficulty
+    card.stability = next_state.stability
 
-    next_good.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Good),
-      1,
-      10
-    )
-    next_good.stability = this.algorithm.init_stability(Rating.Good)
-
-    next_easy.difficulty = clamp(
-      this.algorithm.init_difficulty(Rating.Easy),
-      1,
-      10
-    )
-    next_easy.stability = this.algorithm.init_stability(Rating.Easy)
+    return card
   }
 
   /**
@@ -90,22 +70,14 @@ export default class LongTermScheduler extends AbstractScheduler {
       return exist
     }
     const interval = this.elapsed_days
-    const { difficulty, stability } = this.last
-    const retrievability = this.algorithm.forgetting_curve(interval, stability)
-    const next_again = TypeConvert.card(this.current)
-    const next_hard = TypeConvert.card(this.current)
-    const next_good = TypeConvert.card(this.current)
-    const next_easy = TypeConvert.card(this.current)
-
-    this.next_ds(
-      next_again,
-      next_hard,
-      next_good,
-      next_easy,
-      difficulty,
-      stability,
-      retrievability
+    const retrievability = this.algorithm.forgetting_curve(
+      interval,
+      this.current.stability
     )
+    const next_again = this.next_ds(interval, Rating.Again, retrievability)
+    const next_hard = this.next_ds(interval, Rating.Hard, retrievability)
+    const next_good = this.next_ds(interval, Rating.Good, retrievability)
+    const next_easy = this.next_ds(interval, Rating.Easy, retrievability)
 
     this.next_interval(next_again, next_hard, next_good, next_easy, interval)
     this.next_state(next_again, next_hard, next_good, next_easy)
@@ -113,61 +85,6 @@ export default class LongTermScheduler extends AbstractScheduler {
 
     this.update_next(next_again, next_hard, next_good, next_easy)
     return this.next.get(grade)!
-  }
-
-  /**
-   * Review next_ds
-   */
-  private next_ds(
-    next_again: Card,
-    next_hard: Card,
-    next_good: Card,
-    next_easy: Card,
-    difficulty: number,
-    stability: number,
-    retrievability: number
-  ): void {
-    next_again.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Again
-    )
-    const s_after_fail = this.algorithm.next_forget_stability(
-      difficulty,
-      stability,
-      retrievability
-    )
-    next_again.stability = clamp(stability, S_MIN, s_after_fail)
-
-    next_hard.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Hard
-    )
-    next_hard.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Hard
-    )
-    next_good.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Good
-    )
-    next_good.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Good
-    )
-    next_easy.difficulty = this.algorithm.next_difficulty(
-      difficulty,
-      Rating.Easy
-    )
-    next_easy.stability = this.algorithm.next_recall_stability(
-      difficulty,
-      stability,
-      retrievability,
-      Rating.Easy
-    )
   }
 
   /**

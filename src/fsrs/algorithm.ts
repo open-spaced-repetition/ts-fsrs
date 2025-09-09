@@ -317,9 +317,15 @@ export class FSRSAlgorithm {
    * @param memory_state - The current state of memory, which can be null.
    * @param t - The time elapsed since the last review.
    * @param {Rating} g Grade (Rating[0.Manual,1.Again,2.Hard,3.Good,4.Easy])
+   * @param r - Optional retrievability value. If not provided, it will be calculated.
    * @returns The next state of memory with updated difficulty and stability.
    */
-  next_state(memory_state: FSRSState | null, t: number, g: number): FSRSState {
+  next_state(
+    memory_state: FSRSState | null,
+    t: number,
+    g: number,
+    r?: number
+  ): FSRSState {
     const { difficulty: d, stability: s } = memory_state ?? {
       difficulty: 0,
       stability: 0,
@@ -347,7 +353,7 @@ export class FSRSAlgorithm {
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       )
     }
-    const r = this.forgetting_curve(t, s)
+    r = typeof r === 'number' ? r : this.forgetting_curve(t, s)
     const s_after_success = this.next_recall_stability(d, s, r, g)
     const s_after_fail = this.next_forget_stability(d, s, r)
     const s_after_short_term = this.next_short_term_stability(s, g)
