@@ -1,66 +1,34 @@
 {
-  "name": "ts-fsrs",
+  "name": "ts-fsrs-monorepo",
   "version": "5.2.3",
   "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
-  "types": "dist/index.d.ts",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
-  "exports": {
-    ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs",
-      "umd": "./dist/index.umd.js",
-      "default": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
-    }
-  },
+  "private": true,
   "type": "module",
   "scripts": {
-    "check": "biome check ./src ./__tests__",
-    "check::fix": "biome check --write ./src ./__tests__",
-    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
-    "test": "jest --config=jest.config.ts --passWithNoTests",
+    "check": "pnpm -r run check",
+    "check::fix": "pnpm -r run check::fix",
+    "dev": "pnpm -r run dev",
+    "test": "jest --passWithNoTests",
     "test::coverage": "jest --config=jest.config.ts --coverage",
-    "test::publish": "yalc publish",
-    "prebuild": "rimraf ./dist",
-    "prepare": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "build:types": "tsc --project ./tsconfig.json --declaration true",
-    "predocs": "rimraf ./docs",
-    "docs": "tsx ./typedoc.ts"
+    "build": "pnpm -r run build",
+    "docs": "pnpm -F ts-fsrs docs"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
-    "@rollup/plugin-commonjs": "^28.0.6",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
-    "decimal.js": "^10.5.0",
     "jest": "^30.1.2",
-    "rimraf": "^6.0.1",
-    "rollup": "^4.50.0",
-    "rollup-plugin-dts": "^6.2.3",
-    "rollup-plugin-esbuild": "^6.2.1",
     "ts-jest": "^29.4.0",
-    "ts-node": "^10.9.2",
-    "tslib": "^2.8.1",
+    "typescript": "^5.8.3",
     "tsx": "^4.20.5",
-    "typedoc": "0.28.3",
-    "typedoc-plugin-extras": "4.0.0",
-    "typescript": "^5.8.3"
+    "ts-node": "10.9.2",
+    "rimraf": "^6.0.1"
   },
+  "workspaces": [
+    "packages/*"
+  ],
   "author": "ishiko",
   "license": "MIT",
-  "keywords": [
-    "SuperMemo",
-    "Anki",
-    "FSRS"
-  ],
-  "files": [
-    "dist",
-    "README.md",
-    "LICENSE"
-  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git"

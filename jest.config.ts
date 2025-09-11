@@ -3,7 +3,7 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type { Config } from 'jest';
+import type { Config } from 'jest'
 
 const config: Config = {
   // All imported modules in your tests should be mocked automatically
@@ -18,14 +18,8 @@ const config: Config = {
   // Automatically clear mock calls, instances, contexts and results before every test
   // clearMocks: true,
 
-  // Indicates whether the coverage information should be collected while executing the test
-  collectCoverage: true,
-
-  // An array of glob patterns indicating a set of files for which coverage information should be collected
-  // collectCoverageFrom: undefined,
-
   // The directory where Jest should output its coverage files
-  // coverageDirectory: "coverage",
+  coverageDirectory: 'coverage',
 
   // An array of regexp pattern strings used to skip coverage collection
   // coveragePathIgnorePatterns: [
@@ -36,7 +30,7 @@ const config: Config = {
   // coverageProvider: "v8",
 
   // A list of reporter names that Jest uses when writing coverage reports
-  coverageReporters: ['text', 'cobertura'],
+  coverageReporters: ['text', 'cobertura', 'html'],
 
   // An object that configures minimum threshold enforcement for coverage results
   coverageThreshold: {
@@ -91,7 +85,7 @@ const config: Config = {
   // ],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
-  // moduleNameMapper: {},
+  // moduleNameMapper: moved to projects configuration
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
   // modulePathIgnorePatterns: [],
@@ -127,9 +121,7 @@ const config: Config = {
   // rootDir: undefined,
 
   // A list of paths to directories that Jest should use to search for files in
-  // roots: [
-  //   "<rootDir>"
-  // ],
+  roots: ['<rootDir>'],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
@@ -156,10 +148,10 @@ const config: Config = {
   // testLocationInResults: false,
 
   // The glob patterns Jest uses to detect test files
-  testMatch: [
-    '**/__tests__/*.ts?(x)',
-    '**/__tests__/**/*.ts?(x)'
-  ],
+  // testMatch: moved to projects configuration
+
+  // Verbose output to show individual test names
+  verbose: true,
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
   // testPathIgnorePatterns: [
@@ -176,10 +168,13 @@ const config: Config = {
   // testRunner: "jest-circus/runner",
 
   // A map from regular expressions to paths to transformers
-  // transform: undefined,
+  // transform: moved to projects configuration
 
   // An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-  transformIgnorePatterns: ['/node_modules/(?!(module-to-transform)/)'],
+  transformIgnorePatterns: [
+    '/node_modules/(?!(module-to-transform)/)',
+    '/dist/',
+  ],
 
   // An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
   // unmockedModulePathPatterns: undefined,
@@ -192,6 +187,34 @@ const config: Config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
-};
+  projects: [
+    {
+      displayName: { name: 'ts-fsrs', color: 'blue' },
+      testMatch: [
+        '<rootDir>/packages/fsrs/__tests__/*.ts?(x)',
+        '<rootDir>/packages/fsrs/__tests__/**/*.ts?(x)',
+      ],
+      collectCoverageFrom: [
+        '<rootDir>/packages/fsrs/src/**/*.ts',
+        '!<rootDir>/packages/fsrs/src/**/*.d.ts',
+        '!<rootDir>/packages/fsrs/src/**/__tests__/**',
+      ],
+      moduleNameMapper: {
+        '^ts-fsrs/(.*).js$': '<rootDir>/packages/fsrs/src/$1.ts',
+        '^ts-fsrs$': '<rootDir>/packages/fsrs/src/index.ts',
+      },
+      transform: {
+        '^.+\\.ts$': [
+          'ts-jest',
+          {
+            tsconfig: 'packages/fsrs/__tests__/tsconfig.json',
+          },
+        ],
+      },
+      preset: 'ts-jest',
+      testEnvironment: 'node',
+    },
+  ],
+}
 
-export default config;
+export default config

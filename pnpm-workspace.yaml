@@ -1,0 +1,8 @@
+packages:
+  - packages/*
+  - examples/*
+
+supportedArchitectures:
+  cpu:
+    - current
+    - wasm32
