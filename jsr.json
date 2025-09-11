@@ -1,6 +1,6 @@
 {
   "$schema": "https://jsr.io/schema/config-file.v1.json",
-  "workspaces": [
+  "workspace": [
     "packages/*"
   ]
 }
