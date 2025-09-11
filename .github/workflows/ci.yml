@@ -9,7 +9,7 @@ on:
   pull_request:
     branches:
       - main
-      - master
+      - preview
       - dev
     paths-ignore:
       - ".devcontainer/**"
@@ -30,7 +30,7 @@ on:
       - "README.md"
     branches:
       - main
-      - master
+      - preview
       - dev
 
 permissions:
@@ -40,7 +40,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [18]
+        node: [20]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     name: "${{matrix.platform}} / Node.js ${{ matrix.node }}"
     runs-on: ${{matrix.platform}}
