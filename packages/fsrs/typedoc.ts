@@ -7,9 +7,9 @@ const generator = async () => {
   const app = await Application.bootstrapWithPlugins({
     name: 'TS-FSRS',
     titleLink: 'https://open-spaced-repetition.github.io/ts-fsrs/',
-    entryPoints: ['./src/fsrs'],
+    entryPoints: ['./src/index.ts'],
     plugin: ['typedoc-plugin-extras'],
-    out: './docs',
+    out: '../../docs',
     navigationLinks: {
       Docs: 'https://open-spaced-repetition.github.io/ts-fsrs/',
       GitHub: 'https://github.com/open-spaced-repetition/ts-fsrs',
@@ -58,7 +58,7 @@ const generator = async () => {
   })
 
   if (project) {
-    const outputDir = 'docs'
+    const outputDir = '../../docs'
     // Generate HTML rendered docs
     await app.generateDocs(project, outputDir)
   }
