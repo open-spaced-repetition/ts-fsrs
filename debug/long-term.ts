@@ -1,5 +1,5 @@
 import assert from 'assert'
-import { createEmptyCard, fsrs, Grade, Rating } from '../src/fsrs'
+import { createEmptyCard, fsrs, Grade, Rating } from 'ts-fsrs'
 
 const f = fsrs({ enable_short_term: false })
 
