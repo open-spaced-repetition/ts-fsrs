@@ -13,7 +13,7 @@ import {
   State,
   type StateType,
   TypeConvert,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 interface CardPrismaUnChecked
   extends Omit<Card, 'due' | 'last_review' | 'state'> {

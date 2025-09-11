@@ -4,7 +4,7 @@ import {
   type Grade,
   type IPreview,
   Rating,
-} from '../../src/fsrs'
+} from 'ts-fsrs'
 
 describe('basic scheduler', () => {
   const now = new Date()

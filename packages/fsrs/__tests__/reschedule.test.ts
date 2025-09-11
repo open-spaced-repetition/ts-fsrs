@@ -11,8 +11,9 @@ import {
   type ReviewLog,
   State,
   TypeConvert,
-} from '../src/fsrs'
-import type { Card, FSRSHistory } from '../src/fsrs/models'
+  type Card,
+  type FSRSHistory,
+} from 'ts-fsrs'
 
 type reviewState = {
   difficulty: number

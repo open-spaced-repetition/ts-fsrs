@@ -1,5 +1,5 @@
 // Import the Alea generator and additional required elements
-import { alea } from '../src/fsrs/alea' // Adjust the import path according to your project structure
+import { alea } from 'ts-fsrs/alea.js';
 
 describe('Alea PRNG Tests', () => {
   it('make sure two seeded values are the same', () => {

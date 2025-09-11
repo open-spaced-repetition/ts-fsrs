@@ -8,7 +8,7 @@ import {
   type Grade,
   Rating,
   type ReviewLog,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 describe('elapsed_days', () => {
   const f: FSRS = fsrs()

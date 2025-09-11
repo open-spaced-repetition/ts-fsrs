@@ -8,7 +8,7 @@ import {
   Grades,
   Rating,
   State,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 describe('FSRS-6 ', () => {
   const w = [

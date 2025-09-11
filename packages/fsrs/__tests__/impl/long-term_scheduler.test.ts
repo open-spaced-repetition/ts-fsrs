@@ -6,7 +6,7 @@ import {
   generatorParameters,
   Rating,
   State,
-} from '../../src/fsrs'
+} from 'ts-fsrs'
 
 describe('Long-term  scheduler', () => {
   const w = [

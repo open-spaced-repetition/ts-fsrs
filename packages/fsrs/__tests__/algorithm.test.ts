@@ -17,7 +17,7 @@ import {
   get_fuzz_range,
   Rating,
   S_MIN,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 const _computeDecayFactor = (decay: number) => {
   const DECAY = -decay

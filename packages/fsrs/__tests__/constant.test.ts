@@ -7,7 +7,7 @@ import {
   FSRS6_DEFAULT_DECAY,
   generatorParameters,
   W17_W18_Ceiling,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 describe('default params', () => {
   const expected_w = [

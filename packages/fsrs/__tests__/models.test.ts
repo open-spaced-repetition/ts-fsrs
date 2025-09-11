@@ -1,4 +1,4 @@
-import { Rating, type RatingType, State, type StateType } from '../src/fsrs'
+import { Rating, type RatingType, State, type StateType } from 'ts-fsrs'
 
 describe('State', () => {
   it('use State.New', () => {

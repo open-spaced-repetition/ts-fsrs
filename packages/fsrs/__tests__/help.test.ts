@@ -7,7 +7,7 @@ import {
   Rating,
   State,
   TypeConvert,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 test('FSRS-Grades', () => {
   expect(Grades).toStrictEqual([

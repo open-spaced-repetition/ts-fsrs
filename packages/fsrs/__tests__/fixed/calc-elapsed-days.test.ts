@@ -5,7 +5,7 @@ import {
   fsrs,
   type Grade,
   Rating,
-} from '../../src/fsrs'
+} from 'ts-fsrs'
 
 /**
  * @see https://forums.ankiweb.net/t/feature-request-estimated-total-knowledge-over-time/53036/58?u=l.m.sherlock

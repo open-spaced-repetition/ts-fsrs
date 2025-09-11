@@ -7,7 +7,7 @@ import {
   GenSeedStrategyWithCardId,
   Rating,
   StrategyMode,
-} from '../../src/fsrs'
+} from 'ts-fsrs'
 
 interface ICard extends Card {
   card_id: number

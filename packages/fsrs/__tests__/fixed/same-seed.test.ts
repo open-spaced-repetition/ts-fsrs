@@ -1,4 +1,4 @@
-import { createEmptyCard, fsrs, Rating } from '../../src/fsrs'
+import { createEmptyCard, fsrs, Rating } from 'ts-fsrs'
 
 describe('fuzz same seed', () => {
   const MOCK_NOW = new Date(2024, 7, 15)

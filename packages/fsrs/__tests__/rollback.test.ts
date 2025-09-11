@@ -4,7 +4,7 @@ import {
   fsrs,
   type Grade,
   Rating,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 describe('FSRS rollback', () => {
   const f: FSRS = fsrs({

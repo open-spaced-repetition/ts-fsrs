@@ -1,11 +1,12 @@
 import {
+
   createEmptyCard,
   FSRSAlgorithm,
   type Grade,
   generatorParameters,
   Rating,
-} from '../../src/fsrs'
-import BasicScheduler from '../../src/fsrs/impl/basic_scheduler'
+} from 'ts-fsrs'
+import BasicScheduler from 'ts-fsrs/impl/basic_scheduler.js'
 
 describe('basic scheduler', () => {
   const params = generatorParameters()

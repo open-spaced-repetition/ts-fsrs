@@ -7,7 +7,7 @@ import {
   fsrs,
   generatorParameters,
   migrateParameters,
-} from '../src/fsrs'
+} from 'ts-fsrs'
 
 describe('default params', () => {
   it('convert FSRS-4.5 to FSRS-6', () => {

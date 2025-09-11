@@ -11,7 +11,7 @@ import {
   State,
   StrategyMode,
   type TLearningStepsStrategy,
-} from '../../src/fsrs'
+} from 'ts-fsrs'
 
 describe('ConvertStepUnitToMinutes', () => {
   it('1m', () => {

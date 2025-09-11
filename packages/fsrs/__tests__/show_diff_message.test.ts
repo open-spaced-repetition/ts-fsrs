@@ -1,4 +1,4 @@
-import { show_diff_message } from '../src/fsrs'
+import { show_diff_message } from 'ts-fsrs'
 
 test('show_diff_message_bad_type', () => {
   const TIMEUNITFORMAT_TEST = ['秒', '分', '时', '天', '月', '年']
