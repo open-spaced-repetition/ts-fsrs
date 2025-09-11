@@ -11,7 +11,7 @@ const minify = isDev
 export default defineConfig([
   {
     input: {
-      index: 'src/fsrs/index.ts',
+      index: 'src/index.ts',
     },
     output: [
       {
@@ -48,7 +48,7 @@ export default defineConfig([
     external: [],
   },
   {
-    input: 'src/fsrs/index.ts',
+    input: 'src/index.ts',
     output: {
       file: 'dist/index.umd.js',
       format: 'umd',
@@ -71,7 +71,7 @@ export default defineConfig([
     external: [],
   },
   {
-    input: 'src/fsrs/index.ts',
+    input: 'src/index.ts',
     output: {
       file: 'dist/index.d.ts',
       format: 'esm',

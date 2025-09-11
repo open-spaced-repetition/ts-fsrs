@@ -1,4 +1,4 @@
-import { version } from '../../package.json'
+import { version } from '../../../package.json'
 import type { StepUnit } from './models'
 
 export const default_request_retention = 0.9
