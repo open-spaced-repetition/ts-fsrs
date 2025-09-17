@@ -1,5 +1,5 @@
 import { FSRSVersion } from 'ts-fsrs'
-import { version } from '../../../package.json'
+import { version } from '../package.json'
 
 test('TS-FSRS-Version', () => {
   // v3.5.7 using FSRS V5.0
