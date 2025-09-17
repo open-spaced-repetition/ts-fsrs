@@ -1,6 +1,6 @@
 {
   "name": "ts-fsrs-monorepo",
-  "version": "5.2.3",
+  "version": "0.0.0",
   "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
   "private": true,
   "type": "module",
@@ -11,18 +11,21 @@
     "test": "jest --passWithNoTests",
     "test::coverage": "jest --config=jest.config.ts --coverage",
     "build": "pnpm -r run build",
-    "docs": "pnpm -F ts-fsrs docs"
+    "docs": "pnpm -F ts-fsrs docs",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
+    "@changesets/cli": "^2.29.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
     "jest": "^30.1.2",
+    "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
-    "typescript": "^5.8.3",
-    "tsx": "^4.20.5",
     "ts-node": "10.9.2",
-    "rimraf": "^6.0.1"
+    "tsx": "^4.20.5",
+    "typescript": "^5.8.3"
   },
   "workspaces": [
     "packages/*"
@@ -44,5 +47,6 @@
     "overrides": {
       "is-core-module": "npm:@nolyfill/is-core-module@^1"
     }
-  }
+  },
+  "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }
