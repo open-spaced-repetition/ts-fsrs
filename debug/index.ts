@@ -1,4 +1,4 @@
-import { FSRSVersion } from '../src/fsrs'
+import { FSRSVersion } from 'ts-fsrs'
 import { runLongTerm } from './long-term'
 import { runShortTerm } from './short-term'
 

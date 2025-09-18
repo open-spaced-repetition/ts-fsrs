@@ -1,0 +1,69 @@
+{
+  "name": "ts-fsrs",
+  "private": false,
+  "version": "5.2.3",
+  "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
+  "types": "dist/index.d.ts",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "umd": "./dist/index.umd.js",
+      "default": "./dist/index.mjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "type": "module",
+  "scripts": {
+    "check": "biome check ./src",
+    "check::fix": "biome check --write ./src",
+    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
+    "test": "jest --config=jest.config.ts --passWithNoTests",
+    "test::coverage": "jest --config=jest.config.ts --coverage",
+    "test::publish": "yalc publish",
+    "prebuild": "rimraf ./dist",
+    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
+    "prepare": "npm run build",
+    "build:types": "tsc --project ./tsconfig.json --declaration true",
+    "predocs": "rimraf ../../docs",
+    "docs": "tsx ./typedoc.ts"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-node-resolve": "^16.0.1",
+    "decimal.js": "^10.5.0",
+    "rollup": "^4.50.0",
+    "rollup-plugin-dts": "^6.2.3",
+    "rollup-plugin-esbuild": "^6.2.1",
+    "tslib": "^2.8.1",
+    "typedoc": "0.28.12",
+    "typedoc-plugin-extras": "4.0.0"
+  },
+  "author": "ishiko",
+  "license": "MIT",
+  "keywords": [
+    "SuperMemo",
+    "Anki",
+    "FSRS"
+  ],
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/fsrs"
+  },
+  "bugs": {
+    "url": "https://github.com/open-spaced-repetition/ts-fsrs/issues"
+  },
+  "homepage": "https://github.com/open-spaced-repetition/ts-fsrs#readme",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
