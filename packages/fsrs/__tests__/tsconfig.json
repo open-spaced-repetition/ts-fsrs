@@ -1,0 +1,11 @@
+{
+  "extends": "../../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "ts-fsrs": ["../src/index.ts"],
+      "ts-fsrs/*": ["../src/*"]
+    }
+  },
+  "include": ["."],
+  "exclude": []
+}

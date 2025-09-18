@@ -1,7 +1,8 @@
 {
   "typescript.preferences.importModuleSpecifier": "non-relative",
   "typescript.preferences.quoteStyle": "single",
-  "typescript.preferGoToSourceDefinition": true,
+  "typescript.preferences.importModuleSpecifierEnding": "js",
+  // "typescript.preferGoToSourceDefinition": true,
   "typescript.tsdk": "./node_modules/typescript/lib",
   "jest.useJest30": true,
   "jest.runMode": "deferred",

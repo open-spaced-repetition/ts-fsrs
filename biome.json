@@ -37,7 +37,7 @@
         "noStaticOnlyClass": "off"
       }
     },
-    "includes": ["**", "!dist/*"]
+    "includes": ["**", "!packages/**/dist/*"]
   },
   "javascript": {
     "formatter": {
