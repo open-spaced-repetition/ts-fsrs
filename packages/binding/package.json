@@ -1,0 +1,84 @@
+{
+  "name": "@open-spaced-repetition/binding",
+  "version": "0.0.1",
+  "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "browser": "browser.js",
+  "exports": {
+    ".": {
+      "browser": "./browser.js",
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    },
+    "./wasm": {
+      "browser": "./browser.js",
+      "types": "./index.d.ts",
+      "default": "./wasm.js"
+    }
+  },
+  "license": "MIT",
+  "scripts": {
+    "artifacts": "napi artifacts -d ../../artifacts",
+    "build": "napi build --platform --release --esm",
+    "build:wasm": "napi build --platform --release --esm --target wasm32-wasip1-threads",
+    "build:debug": "napi build --platform",
+    "check": "run-p check:biome check:rs check:toml",
+    "check:biome": "biome format",
+    "check:toml": "taplo format",
+    "check:rs": "cargo fmt",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --config=jest.config.ts --passWithNoTests"
+  },
+  "devDependencies": {
+    "@emnapi/core": "^1.4.5",
+    "@emnapi/runtime": "^1.4.5",
+    "@napi-rs/cli": "^3.0.3",
+    "@napi-rs/wasm-runtime": "^1.0.1",
+    "@taplo/cli": "^0.7.0",
+    "@tybys/wasm-util": "^0.10.0",
+    "chalk": "^5.4.1",
+    "emnapi": "^1.4.5",
+    "npm-run-all2": "^8.0.4",
+    "tinybench": "^5.0.0"
+  },
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "files": [
+    "index.d.ts",
+    "index.js",
+    "wasm.js",
+    "browser.js"
+  ],
+  "napi": {
+    "binaryName": "fsrs-binding",
+    "targets": [
+      "i686-pc-windows-msvc",
+      "aarch64-unknown-linux-gnu",
+      "aarch64-apple-darwin",
+      "x86_64-unknown-linux-musl",
+      "aarch64-unknown-linux-musl",
+      "aarch64-linux-android",
+      "aarch64-pc-windows-msvc",
+      "wasm32-wasip1-threads"
+    ]
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/binding"
+  }
+}

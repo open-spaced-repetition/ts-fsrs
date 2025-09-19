@@ -1,0 +1,16 @@
+[workspace]
+members = ["packages/binding"]
+resolver = "2"
+
+[patch.crates-io.burn-train]
+git = "https://github.com/ishiko732/burn"
+branch = "ts-fsrs-wasm32"
+
+[patch.crates-io.burn]
+git = "https://github.com/ishiko732/burn"
+branch = "ts-fsrs-wasm32"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"
