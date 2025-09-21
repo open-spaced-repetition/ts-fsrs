@@ -1,14 +1,17 @@
 {
   "compilerOptions": {
     "target": "ESNext",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
     "moduleResolution": "node",
     "module": "esnext",
+    "declaration": false,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "noEmitHelpers": true
   },
   "include": ["."],
-  "exclude": ["node_modules", "benchmark", "__test__"]
+  "exclude": ["node_modules", "benchmark", "__test__", ".cargo"]
 }
