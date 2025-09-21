@@ -1,0 +1,241 @@
+From de6fb66d17b1b92a0a182b0bc36de7818a33140d Mon Sep 17 00:00:00 2001
+From: ishiko <ishiko732@gmail.com>
+Date: Fri, 19 Sep 2025 23:36:59 +0800
+Subject: [PATCH 1/2] (ts-fsrs) refactor: sys-metrics feature configuration
+
+---
+ crates/burn-train/Cargo.toml                  | 24 +++++++-------
+ crates/burn-train/src/metric/cpu_temp.rs      |  1 +
+ crates/burn-train/src/metric/cpu_use.rs       |  1 +
+ crates/burn-train/src/metric/cuda.rs          |  1 +
+ crates/burn-train/src/metric/memory_use.rs    |  1 +
+ crates/burn-train/src/metric/mod.rs           | 16 ++++-----
+ .../src/metric/processor/async_wrapper.rs     |  1 +
+ crates/burn-train/src/metric/processor/mod.rs | 33 ++++++++++++++++++-
+ 8 files changed, 57 insertions(+), 21 deletions(-)
+
+diff --git a/crates/burn-train/Cargo.toml b/crates/burn-train/Cargo.toml
+index 8db09e33..2625de30 100644
+--- a/crates/burn-train/Cargo.toml
++++ b/crates/burn-train/Cargo.toml
+@@ -12,10 +12,10 @@ documentation = "https://docs.rs/burn-train"
+ version.workspace = true
+ 
+ [features]
+-default = ["sys-metrics", "tui"]
+-doc = ["default"]
+-sys-metrics = ["nvml-wrapper", "sysinfo", "systemstat"]
+-tui = ["ratatui"]
++default = []
++doc = []
++sys-metrics = ["dep:nvml-wrapper", "dep:sysinfo", "dep:systemstat"]
++tui = ["dep:ratatui"]
+ 
+ [dependencies]
+ burn-core = { path = "../burn-core", version = "0.17.1", features = [
+@@ -27,21 +27,21 @@ log = { workspace = true }
+ tracing-subscriber = { workspace = true }
+ tracing-appender = { workspace = true }
+ tracing-core = { workspace = true }
++# Utilities
++derive-new = { workspace = true }
++serde = { workspace = true, features = ["std", "derive"] }
++async-channel = { workspace = true }
++burn-ndarray = { path = "../burn-ndarray", version = "0.17.1" }
++rstest.workspace = true
+ 
+ # System Metrics
++[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+ nvml-wrapper = { workspace = true, optional = true }
+ sysinfo = { workspace = true, optional = true }
+ systemstat = { workspace = true, optional = true }
+-
+-# Text UI
+ ratatui = { workspace = true, optional = true, features = ["all-widgets", "crossterm"] }
+ 
+-# Utilities
+-derive-new = { workspace = true }
+-serde = { workspace = true, features = ["std", "derive"] }
+-async-channel = { workspace = true }
+-burn-ndarray = { path = "../burn-ndarray", version = "0.17.1" }
+-rstest.workspace = true
++
+ 
+ [dev-dependencies]
+ burn-ndarray = { path = "../burn-ndarray", version = "0.17.1" }
+diff --git a/crates/burn-train/src/metric/cpu_temp.rs b/crates/burn-train/src/metric/cpu_temp.rs
+index e390b2e4..fa895dc3 100644
+--- a/crates/burn-train/src/metric/cpu_temp.rs
++++ b/crates/burn-train/src/metric/cpu_temp.rs
+@@ -1,3 +1,4 @@
++#![cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ /// CPU Temperature metric
+ use super::{MetricMetadata, Numeric};
+ use crate::metric::{Metric, MetricEntry};
+diff --git a/crates/burn-train/src/metric/cpu_use.rs b/crates/burn-train/src/metric/cpu_use.rs
+index 088143fd..e0012e33 100644
+--- a/crates/burn-train/src/metric/cpu_use.rs
++++ b/crates/burn-train/src/metric/cpu_use.rs
+@@ -1,3 +1,4 @@
++#![cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ use super::{MetricMetadata, Numeric};
+ use crate::metric::{Metric, MetricEntry};
+ use std::time::{Duration, Instant};
+diff --git a/crates/burn-train/src/metric/cuda.rs b/crates/burn-train/src/metric/cuda.rs
+index f9b0e703..196a2642 100644
+--- a/crates/burn-train/src/metric/cuda.rs
++++ b/crates/burn-train/src/metric/cuda.rs
+@@ -1,3 +1,4 @@
++#![cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ use super::{Adaptor, MetricMetadata};
+ use crate::metric::{Metric, MetricEntry};
+ use nvml_wrapper::Nvml;
+diff --git a/crates/burn-train/src/metric/memory_use.rs b/crates/burn-train/src/metric/memory_use.rs
+index 217e69c2..d438cdef 100644
+--- a/crates/burn-train/src/metric/memory_use.rs
++++ b/crates/burn-train/src/metric/memory_use.rs
+@@ -1,3 +1,4 @@
++#![cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ /// RAM use metric
+ use super::{MetricMetadata, Numeric};
+ use crate::metric::{Metric, MetricEntry};
+diff --git a/crates/burn-train/src/metric/mod.rs b/crates/burn-train/src/metric/mod.rs
+index ac8211e8..05cd227a 100644
+--- a/crates/burn-train/src/metric/mod.rs
++++ b/crates/burn-train/src/metric/mod.rs
+@@ -4,21 +4,21 @@ pub mod state;
+ pub mod store;
+ 
+ // System metrics
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ mod cpu_temp;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ mod cpu_use;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ mod cuda;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ mod memory_use;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use cpu_temp::*;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use cpu_use::*;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use cuda::*;
+-#[cfg(feature = "sys-metrics")]
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use memory_use::*;
+ 
+ // Training metrics
+diff --git a/crates/burn-train/src/metric/processor/async_wrapper.rs b/crates/burn-train/src/metric/processor/async_wrapper.rs
+index 82c358fc..1f011251 100644
+--- a/crates/burn-train/src/metric/processor/async_wrapper.rs
++++ b/crates/burn-train/src/metric/processor/async_wrapper.rs
+@@ -1,3 +1,4 @@
++#![cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ use super::{Event, EventProcessor};
+ use async_channel::{Receiver, Sender};
+ 
+diff --git a/crates/burn-train/src/metric/processor/mod.rs b/crates/burn-train/src/metric/processor/mod.rs
+index c3406e24..9279c374 100644
+--- a/crates/burn-train/src/metric/processor/mod.rs
++++ b/crates/burn-train/src/metric/processor/mod.rs
+@@ -1,3 +1,4 @@
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ mod async_wrapper;
+ mod base;
+ mod full;
+@@ -10,9 +11,39 @@ pub(crate) use metrics::*;
+ 
+ #[cfg(test)]
+ pub(crate) use minimal::*;
+-
++#[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use async_wrapper::AsyncProcessor;
+ 
++
++#[cfg(not(all(feature = "sys-metrics", not(target_arch = "wasm32"))))]
++pub struct AsyncProcessor<P> (pub P);
++
++#[cfg(not(all(feature = "sys-metrics", not(target_arch = "wasm32"))))]
++impl<P> AsyncProcessor<P> {
++    #[inline]
++    pub fn new(inner: P) -> Self {
++        Self(inner)
++    }
++}
++
++#[cfg(not(all(feature = "sys-metrics", not(target_arch = "wasm32"))))]
++impl<P: EventProcessor> EventProcessor for AsyncProcessor<P> {
++    type ItemTrain = P::ItemTrain;
++    type ItemValid = P::ItemValid;
++
++    #[inline]
++    fn process_train(&mut self, event: Event<Self::ItemTrain>) {
++        self.0.process_train(event)
++    }
++
++    #[inline]
++    fn process_valid(&mut self, event: Event<Self::ItemValid>) {
++        self.0.process_valid(event)
++    }
++}
++
++
++
+ #[cfg(test)]
+ pub(crate) mod test_utils {
+     use crate::metric::{
+-- 
+2.51.0
+
+
+From 36ef50d14040b9a44f51ff840b0887848e899a6c Mon Sep 17 00:00:00 2001
+From: ishiko <ishiko732@gmail.com>
+Date: Sun, 21 Sep 2025 11:40:09 +0800
+Subject: [PATCH 2/2] fmt
+
+---
+ crates/burn-train/src/metric/processor/mod.rs | 9 +++------
+ 1 file changed, 3 insertions(+), 6 deletions(-)
+
+diff --git a/crates/burn-train/src/metric/processor/mod.rs b/crates/burn-train/src/metric/processor/mod.rs
+index 9279c374..e9dd3828 100644
+--- a/crates/burn-train/src/metric/processor/mod.rs
++++ b/crates/burn-train/src/metric/processor/mod.rs
+@@ -9,14 +9,13 @@ pub use base::*;
+ pub(crate) use full::*;
+ pub(crate) use metrics::*;
+ 
+-#[cfg(test)]
+-pub(crate) use minimal::*;
+ #[cfg(all(feature = "sys-metrics", not(target_arch = "wasm32")))]
+ pub use async_wrapper::AsyncProcessor;
+-
++#[cfg(test)]
++pub(crate) use minimal::*;
+ 
+ #[cfg(not(all(feature = "sys-metrics", not(target_arch = "wasm32"))))]
+-pub struct AsyncProcessor<P> (pub P);
++pub struct AsyncProcessor<P>(pub P);
+ 
+ #[cfg(not(all(feature = "sys-metrics", not(target_arch = "wasm32"))))]
+ impl<P> AsyncProcessor<P> {
+@@ -42,8 +41,6 @@ impl<P: EventProcessor> EventProcessor for AsyncProcessor<P> {
+     }
+ }
+ 
+-
+-
+ #[cfg(test)]
+ pub(crate) mod test_utils {
+     use crate::metric::{
+-- 
+2.51.0
+
