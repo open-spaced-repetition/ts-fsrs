@@ -150,7 +150,7 @@ jobs:
         if: matrix.settings.target != 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: '*.node'
+          path: 'packages/binding/*.node'
           if-no-files-found: error
 
       - name: Upload artifact
@@ -158,7 +158,7 @@ jobs:
         if: matrix.settings.target == 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: '*.wasm'
+          path: 'packages/binding/*.wasm'
           if-no-files-found: error
 
   test-macOS-windows-binding:
