@@ -147,161 +147,154 @@ jobs:
         shell: bash
       - name: Upload artifact
         uses: actions/upload-artifact@v4
-        if: matrix.settings.target != 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: 'packages/binding/*.node'
-          if-no-files-found: error
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        if: matrix.settings.target == 'wasm32-wasip1-threads'
-        with:
-          name: bindings-${{ matrix.settings.target }}
-          path: 'packages/binding/*.wasm'
+          path: |
+            packages/binding/.*.node
+            packages/binding/.*.wasm
           if-no-files-found: error
 
   test-macOS-windows-binding:
-      name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
-      needs:
-        - build
-      strategy:
-        fail-fast: false
-        matrix:
-          settings:
-            - host: windows-latest
-              target: x86_64-pc-windows-msvc
-              architecture: x64
-            - host: macos-latest
-              target: x86_64-apple-darwin
-              architecture: x64
-            - host: macos-latest
-              target: aarch64-apple-darwin
-              architecture: arm64
-          node:
-            - '20'
-            - '22'
-      runs-on: ${{ matrix.settings.host }}
-      steps:
-        - uses: actions/checkout@v5
-        - name: setup pnpm
-          uses: pnpm/action-setup@v4
-        - name: Setup node
-          uses: actions/setup-node@v5
-          with:
-            node-version: ${{ matrix.node }}
-            cache: pnpm
-            architecture: ${{ matrix.settings.architecture }}
-        - name: Install dependencies
-          run: pnpm install
-        - name: Download artifacts
-          uses: actions/download-artifact@v5
-          with:
-            name: bindings-${{ matrix.settings.target }}
-            path: .
-        - name: List packages
-          run: ls -R .
-          shell: bash
-        - name: Test bindings
-          run: pnpm run -F @open-spaced-repetition/binding test
+    name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: windows-latest
+            target: x86_64-pc-windows-msvc
+            architecture: x64
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            architecture: x64
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            architecture: arm64
+        node:
+          - '20'
+          - '22'
+    runs-on: ${{ matrix.settings.host }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+          architecture: ${{ matrix.settings.architecture }}
+      - name: Install dependencies
+        run: pnpm install
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: .
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: pnpm run -F @open-spaced-repetition/binding test
   test-linux-binding:
-      name: Test ${{ matrix.target }} - node@${{ matrix.node }}
-      needs:
-        - build
-      strategy:
-        fail-fast: false
-        matrix:
-          target:
-            - x86_64-unknown-linux-gnu
-            - x86_64-unknown-linux-musl
-            - aarch64-unknown-linux-gnu
-            - aarch64-unknown-linux-musl
-            - armv7-unknown-linux-gnueabihf
-          node:
-            - '20'
-            - '22'
-      runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
-      steps:
-        - uses: actions/checkout@v5
-        - name: setup pnpm
-          uses: pnpm/action-setup@v4
-        - name: Setup node
-          uses: actions/setup-node@v5
-          with:
-            node-version: ${{ matrix.node }}
-            cache: pnpm
-        - name: Output docker params
-          id: docker
-          run: |
-            node -e "
-              if ('${{ matrix.target }}'.startsWith('aarch64')) {
-                console.log('PLATFORM=linux/arm64')
-              } else if ('${{ matrix.target }}'.startsWith('armv7')) {
-                console.log('PLATFORM=linux/arm/v7')
-              } else {
-                console.log('PLATFORM=linux/amd64')
-              }
-            " >> $GITHUB_OUTPUT
-            node -e "
-              if ('${{ matrix.target }}'.endsWith('-musl')) {
-                console.log('IMAGE=node:${{ matrix.node }}-alpine')
-              } else {
-                console.log('IMAGE=node:${{ matrix.node }}-slim')
-              }
-            " >> $GITHUB_OUTPUT
-            echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-        # use --force to download the all platform/arch dependencies
-        - name: Install dependencies
-          run: pnpm install --force
-        - name: Download artifacts
-          uses: actions/download-artifact@v5
-          with:
-            name: bindings-${{ matrix.target }}
-            path: .
-        - name: List packages
-          run: ls -R .
-          shell: bash
-        - name: Set up QEMU
-          uses: docker/setup-qemu-action@v3
-          if: ${{ contains(matrix.target, 'armv7') }}
-          with:
-            platforms: all
-        - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          if: ${{ contains(matrix.target, 'armv7') }}
-        - name: Test bindings
-          uses: addnab/docker-run-action@v3
-          with:
-            image: ${{ steps.docker.outputs.IMAGE }}
-            options: -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
-            run: pnpm run -F @open-spaced-repetition/binding test
-  test-wasi:
-      name: Test WASI target
-      needs:
-        - build
-      runs-on: ubuntu-latest
-      steps:
-        - uses: actions/checkout@v5
-        - name: setup pnpm
-          uses: pnpm/action-setup@v4
-        - name: Setup node
-          uses: actions/setup-node@v5
-          with:
-            node-version: 22
-            cache: pnpm
-        - name: Install dependencies
-          run: pnpm install
-        - name: Download artifacts
-          uses: actions/download-artifact@v5
-          with:
-            name: bindings-wasm32-wasip1-threads
-            path: .
-        - name: List packages
-          run: ls -R .
-          shell: bash
-        - name: Test bindings
+    name: Test ${{ matrix.target }} - node@${{ matrix.node }}
+    needs:
+      - build
+    strategy:
+      fail-fast: false
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - armv7-unknown-linux-gnueabihf
+        node:
+          - '20'
+          - '22'
+    runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+    steps:
+      - uses: actions/checkout@v5
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: ${{ matrix.node }}
+          cache: pnpm
+      - name: Output docker params
+        id: docker
+        run: |
+          node -e "
+            if ('${{ matrix.target }}'.startsWith('aarch64')) {
+              console.log('PLATFORM=linux/arm64')
+            } else if ('${{ matrix.target }}'.startsWith('armv7')) {
+              console.log('PLATFORM=linux/arm/v7')
+            } else {
+              console.log('PLATFORM=linux/amd64')
+            }
+          " >> $GITHUB_OUTPUT
+          node -e "
+            if ('${{ matrix.target }}'.endsWith('-musl')) {
+              console.log('IMAGE=node:${{ matrix.node }}-alpine')
+            } else {
+              console.log('IMAGE=node:${{ matrix.node }}-slim')
+            }
+          " >> $GITHUB_OUTPUT
+          echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+      # use --force to download the all platform/arch dependencies
+      - name: Install dependencies
+        run: pnpm install --force
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: bindings-${{ matrix.target }}
+          path: .
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        if: ${{ contains(matrix.target, 'armv7') }}
+        with:
+          platforms: all
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        if: ${{ contains(matrix.target, 'armv7') }}
+      - name: Test bindings
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.docker.outputs.IMAGE }}
+          options: -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
           run: pnpm run -F @open-spaced-repetition/binding test
-          env:
-            NAPI_RS_FORCE_WASI: 1
+  test-wasi:
+    name: Test WASI target
+    needs:
+      - build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: bindings-wasm32-wasip1-threads
+          path: .
+      - name: List packages
+        run: ls -R .
+        shell: bash
+      - name: Test bindings
+        run: pnpm run -F @open-spaced-repetition/binding test
+        env:
+          NAPI_RS_FORCE_WASI: 1
 
   publish:
     name: Publish
