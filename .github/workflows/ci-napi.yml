@@ -331,6 +331,14 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           path: artifacts
+      - name: List Artifacts
+        run: ls -R ./artifacts
+        shell: bash
+      - name: Sync JS & types into binding
+        run: |
+          mkdir -p packages/binding
+          find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
+        shell: bash
       - name: create npm dirs
         run: |
           pnpm -F @open-spaced-repetition/binding exec napi create-npm-dirs
