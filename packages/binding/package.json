@@ -29,7 +29,7 @@
     "check:fix": " biome format --write",
     "check:toml": "taplo format",
     "check:rs": "cargo fmt && cargo clippy",
-    "test": "NODE_OPTIONS='--experimental-vm-modules' jest --config=jest.config.ts --passWithNoTests"
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config=jest.config.ts --passWithNoTests"
   },
   "devDependencies": {
     "@emnapi/core": "^1.4.5",
@@ -39,6 +39,7 @@
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "chalk": "^5.4.1",
+    "cross-env": "^10.0.0",
     "emnapi": "^1.4.5",
     "npm-run-all2": "^8.0.4",
     "tinybench": "^5.0.0"
