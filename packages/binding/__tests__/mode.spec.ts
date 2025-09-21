@@ -1,8 +1,8 @@
 import {
-    FSRS,
-    FSRSItem,
-    FSRSReview,
-    MemoryState,
+  FSRS,
+  FSRSItem,
+  FSRSReview,
+  MemoryState,
 } from '@open-spaced-repetition/binding'
 
 describe('FSRS model', () => {

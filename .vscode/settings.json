@@ -13,6 +13,8 @@
     "source.sortImports": "never",
     "source.removeUnusedImports": "explicit"
   },
+  "editor.insertSpaces": true,
+  "editor.tabSize": 2,
   "[javascript]": {
     "editor.defaultFormatter": "biomejs.biome"
   },
