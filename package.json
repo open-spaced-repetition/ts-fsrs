@@ -8,7 +8,7 @@
     "check": "pnpm -r run check",
     "check::fix": "pnpm -r run check::fix",
     "dev": "pnpm -r run dev",
-    "test": "jest --passWithNoTests",
+    "test": "pnpm -r run test",
     "test::coverage": "jest --config=jest.config.ts --coverage",
     "build": "pnpm -r run build",
     "docs": "pnpm -F ts-fsrs docs",

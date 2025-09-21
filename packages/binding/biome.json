@@ -1,0 +1,19 @@
+{
+  "$schema": "https://biomejs.dev/schemas/2.2.2/schema.json",
+  "extends": "//",
+  "files": {
+    "ignoreUnknown": false,
+    "includes": [
+      ".",
+      "!fsrs-binding.wasi-browser.js",
+      "!fsrs-binding.wasi.cjs",
+      "!wasi-worker.mjs",
+      "!wasi-worker-browser.mjs",
+      "!index.js",
+      "!index.d.ts",
+      "!__test__",
+      "!coverage",
+      "!npm"
+    ]
+  }
+}
