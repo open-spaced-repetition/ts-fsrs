@@ -40,3 +40,5 @@ pnpm-debug.log*
 
 # Rust
 target/
+npm/
+artifacts/
