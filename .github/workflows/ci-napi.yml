@@ -223,7 +223,6 @@ jobs:
           - x86_64-unknown-linux-musl
           - aarch64-unknown-linux-gnu
           - aarch64-unknown-linux-musl
-          - armv7-unknown-linux-gnueabihf
         node:
           - '20'
           - '22'
@@ -279,8 +278,8 @@ jobs:
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ steps.docker.outputs.IMAGE }}
-          options: -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
-          run: pnpm run -F @open-spaced-repetition/binding test
+          options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
+          run: sh -lc "corepack enable && corepack prepare pnpm@10.15.0 --activate && pnpm run -F @open-spaced-repetition/binding test"
   test-wasi:
     name: Test WASI target
     needs:
