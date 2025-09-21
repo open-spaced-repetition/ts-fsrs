@@ -147,11 +147,22 @@ jobs:
         shell: bash
       - name: Upload artifact
         uses: actions/upload-artifact@v4
+        if: matrix.settings.target != 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
             packages/binding/*.node
+          if-no-files-found: error
+      - name: Upload WASI artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.settings.target == 'wasm32-wasip1-threads'
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: |
             packages/binding/*.wasm
+            packages/binding/*.js
+            packages/binding/*.cjs
+            packages/binding/*.mjs
           if-no-files-found: error
 
   test-macOS-windows-binding:
@@ -191,9 +202,9 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: .
+          path: packages/binding
       - name: List packages
-        run: ls -R .
+        run: ls -R packages/binding
         shell: bash
       - name: Test bindings
         run: pnpm run -F @open-spaced-repetition/binding test
@@ -250,9 +261,9 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.target }}
-          path: .
+          path: packages/binding
       - name: List packages
-        run: ls -R .
+        run: ls -R packages/binding
         shell: bash
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
@@ -287,9 +298,9 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-wasm32-wasip1-threads
-          path: .
+          path: packages/binding
       - name: List packages
-        run: ls -R .
+        run: ls -R packages/binding
         shell: bash
       - name: Test bindings
         run: pnpm run -F @open-spaced-repetition/binding test
