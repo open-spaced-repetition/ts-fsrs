@@ -1,0 +1,354 @@
+name: CI NAPI
+
+concurrency:
+  group: ci-napi-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  DEBUG: napi:*
+  APP_NAME: optimizer
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  CARGO_INCREMENTAL: '1'
+
+on:
+  pull_request:
+    branches:
+      - main
+      - preview
+      - dev
+    paths:
+      - 'packages/binding/**'
+      - '.github/workflows/ci-napi.yml'
+      - 'pnpm-lock.yaml'
+  push:
+    branches:
+      - main
+      - preview
+      - dev
+    paths:
+      - 'packages/binding/**'
+      - '.github/workflows/ci-napi.yml'
+      - 'pnpm-lock.yaml'
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        settings:
+          - host: macos-latest
+            target: x86_64-apple-darwin
+            build: pnpm build --target x86_64-apple-darwin
+          - host: windows-latest
+            build: pnpm build --target x86_64-pc-windows-msvc
+            target: x86_64-pc-windows-msvc
+          - host: windows-latest
+            build: pnpm build --target i686-pc-windows-msvc
+            target: i686-pc-windows-msvc
+          - host: windows-latest
+            build: pnpm build --target aarch64-pc-windows-msvc
+            target: aarch64-pc-windows-msvc
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
+            build: pnpm build --target x86_64-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
+            build: pnpm build --target x86_64-unknown-linux-musl
+          - host: macos-latest
+            target: aarch64-apple-darwin
+            build: pnpm build --target aarch64-apple-darwin
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
+            build: pnpm build --target aarch64-unknown-linux-gnu
+          - host: ubuntu-latest
+            target: aarch64-unknown-linux-musl
+            docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine-aarch64
+            build: pnpm build --target aarch64-unknown-linux-musl
+          - host: ubuntu-latest
+            target: aarch64-linux-android
+            build: pnpm build --target aarch64-linux-android
+          - host: ubuntu-latest
+            target: wasm32-wasip1-threads
+            build: pnpm build --target wasm32-wasip1-threads
+
+    name: stable - ${{ matrix.settings.target }} - node@20
+    runs-on: ${{ matrix.settings.host }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: stable
+          targets: ${{ matrix.settings.target }}
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            .cargo-cache
+            target/
+          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+
+      - uses: mlugg/setup-zig@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        with:
+          version: 0.15.1
+
+      - name: Install cargo-zigbuild
+        uses: taiki-e/install-action@v2
+        if: ${{ contains(matrix.settings.target, 'musl') }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tool: cargo-zigbuild
+
+      - name: Setup toolchain
+        run: ${{ matrix.settings.setup }}
+        if: ${{ matrix.settings.setup }}
+        shell: bash
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Setup node x86
+        uses: actions/setup-node@v4
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        with:
+          node-version: 20
+          cache: 'pnpm'
+          architecture: x86
+
+      - name: Build
+        run: ${{ matrix.settings.build }}
+        shell: bash
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.settings.target != 'wasm32-wasip1-threads'
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: '*.node'
+          if-no-files-found: error
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        if: matrix.settings.target == 'wasm32-wasip1-threads'
+        with:
+          name: bindings-${{ matrix.settings.target }}
+          path: '*.wasm'
+          if-no-files-found: error
+
+  test-macOS-windows-binding:
+      name: Test bindings on ${{ matrix.settings.target }} - node@${{ matrix.node }}
+      needs:
+        - build
+      strategy:
+        fail-fast: false
+        matrix:
+          settings:
+            - host: windows-latest
+              target: x86_64-pc-windows-msvc
+              architecture: x64
+            - host: macos-latest
+              target: x86_64-apple-darwin
+              architecture: x64
+            - host: macos-latest
+              target: aarch64-apple-darwin
+              architecture: arm64
+          node:
+            - '20'
+            - '22'
+      runs-on: ${{ matrix.settings.host }}
+      steps:
+        - uses: actions/checkout@v5
+        - name: setup pnpm
+          uses: pnpm/action-setup@v4
+        - name: Setup node
+          uses: actions/setup-node@v5
+          with:
+            node-version: ${{ matrix.node }}
+            cache: pnpm
+            architecture: ${{ matrix.settings.architecture }}
+        - name: Install dependencies
+          run: pnpm install
+        - name: Download artifacts
+          uses: actions/download-artifact@v5
+          with:
+            name: bindings-${{ matrix.settings.target }}
+            path: .
+        - name: List packages
+          run: ls -R .
+          shell: bash
+        - name: Test bindings
+          run: pnpm run -F @open-spaced-repetition/binding test
+  test-linux-binding:
+      name: Test ${{ matrix.target }} - node@${{ matrix.node }}
+      needs:
+        - build
+      strategy:
+        fail-fast: false
+        matrix:
+          target:
+            - x86_64-unknown-linux-gnu
+            - x86_64-unknown-linux-musl
+            - aarch64-unknown-linux-gnu
+            - aarch64-unknown-linux-musl
+            - armv7-unknown-linux-gnueabihf
+          node:
+            - '20'
+            - '22'
+      runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
+      steps:
+        - uses: actions/checkout@v5
+        - name: setup pnpm
+          uses: pnpm/action-setup@v4
+        - name: Setup node
+          uses: actions/setup-node@v5
+          with:
+            node-version: ${{ matrix.node }}
+            cache: pnpm
+        - name: Output docker params
+          id: docker
+          run: |
+            node -e "
+              if ('${{ matrix.target }}'.startsWith('aarch64')) {
+                console.log('PLATFORM=linux/arm64')
+              } else if ('${{ matrix.target }}'.startsWith('armv7')) {
+                console.log('PLATFORM=linux/arm/v7')
+              } else {
+                console.log('PLATFORM=linux/amd64')
+              }
+            " >> $GITHUB_OUTPUT
+            node -e "
+              if ('${{ matrix.target }}'.endsWith('-musl')) {
+                console.log('IMAGE=node:${{ matrix.node }}-alpine')
+              } else {
+                console.log('IMAGE=node:${{ matrix.node }}-slim')
+              }
+            " >> $GITHUB_OUTPUT
+            echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+        # use --force to download the all platform/arch dependencies
+        - name: Install dependencies
+          run: pnpm install --force
+        - name: Download artifacts
+          uses: actions/download-artifact@v5
+          with:
+            name: bindings-${{ matrix.target }}
+            path: .
+        - name: List packages
+          run: ls -R .
+          shell: bash
+        - name: Set up QEMU
+          uses: docker/setup-qemu-action@v3
+          if: ${{ contains(matrix.target, 'armv7') }}
+          with:
+            platforms: all
+        - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+          if: ${{ contains(matrix.target, 'armv7') }}
+        - name: Test bindings
+          uses: addnab/docker-run-action@v3
+          with:
+            image: ${{ steps.docker.outputs.IMAGE }}
+            options: -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
+            run: pnpm run -F @open-spaced-repetition/binding test
+  test-wasi:
+      name: Test WASI target
+      needs:
+        - build
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v5
+        - name: setup pnpm
+          uses: pnpm/action-setup@v4
+        - name: Setup node
+          uses: actions/setup-node@v5
+          with:
+            node-version: 22
+            cache: pnpm
+        - name: Install dependencies
+          run: pnpm install
+        - name: Download artifacts
+          uses: actions/download-artifact@v5
+          with:
+            name: bindings-wasm32-wasip1-threads
+            path: .
+        - name: List packages
+          run: ls -R .
+          shell: bash
+        - name: Test bindings
+          run: pnpm run -F @open-spaced-repetition/binding test
+          env:
+            NAPI_RS_FORCE_WASI: 1
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs:
+      - test-macOS-windows-binding
+      - test-linux-binding
+      - test-wasi
+    steps:
+      - uses: actions/checkout@v5
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+      - name: Setup node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: pnpm
+      - name: Install dependencies
+        run: pnpm install
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+      - name: create npm dirs
+        run: |
+          pnpm -F @open-spaced-repetition/binding exec napi create-npm-dirs
+      - name: Move artifacts
+        run: pnpm -F @open-spaced-repetition/binding artifacts
+      - name: Move npm
+        run: mv packages/binding/npm ./npm
+      - name: List packages
+        run: ls -R ./npm
+        shell: bash
+      - name: Publish
+        run: |
+          npm config set provenance true
+          if git log -1 --pretty=%B | grep "^v\?[0-9]\+\.[0-9]\+\.[0-9]\+$";
+          then
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            npm publish --access public
+          elif git log -1 --pretty=%B | grep "^v\?[0-9]\+\.[0-9]\+\.[0-9]\+";
+          then
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+            npm publish --tag next --access public
+          else
+            echo "Not a release, skipping publish"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

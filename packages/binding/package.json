@@ -20,7 +20,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "artifacts": "napi artifacts -d ../../artifacts",
+    "artifacts": "napi artifacts -d ../../artifacts --build-output-dir .",
     "build": "napi build --platform --release --esm",
     "build:wasm": "napi build --platform --release --esm --target wasm32-wasip1-threads",
     "build:debug": "napi build --platform",
