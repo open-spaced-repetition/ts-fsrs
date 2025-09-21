@@ -1,7 +1,5 @@
 #![deny(clippy::all)]
 
-use std::sync::{Arc, Mutex};
-
 use napi_derive::napi;
 
 mod model;
@@ -16,7 +14,7 @@ pub fn plus_100(input: u32) -> u32 {
 #[napi(js_name = "FSRS")]
 #[derive(Debug)]
 pub struct FSRS {
-  inner: Arc<Mutex<fsrs::FSRS>>,
+  inner: fsrs::FSRS,
 }
 
 #[napi]
@@ -30,9 +28,7 @@ impl FSRS {
       None => vec![],
     };
     Self {
-      inner: Arc::new(Mutex::new(
-        fsrs::FSRS::new(Some(&params)).expect("Failed to create FSRS"),
-      )),
+      inner: fsrs::FSRS::new(Some(&params)).expect("Failed to create FSRS"),
     }
   }
 
@@ -43,9 +39,9 @@ impl FSRS {
     desired_retention: f64,
     days_elapsed: u32,
   ) -> NextStates {
-    let locked_model = self.inner.lock().unwrap();
     NextStates {
-      inner: locked_model
+      inner: self
+        .inner
         .next_states(
           current_memory_state.map(|x| x.inner),
           desired_retention as f32,
