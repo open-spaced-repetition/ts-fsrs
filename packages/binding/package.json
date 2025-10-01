@@ -26,7 +26,7 @@
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
-    "check:fix": " biome format --write",
+    "check:fix": "biome format --write",
     "check:toml": "taplo format",
     "check:rs": "cargo fmt && cargo clippy",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config=jest.config.ts --passWithNoTests"
