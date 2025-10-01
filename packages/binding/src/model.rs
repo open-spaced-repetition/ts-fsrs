@@ -74,13 +74,8 @@ impl FSRSItem {
   }
 
   #[napi(getter)]
-  pub fn current(&self) -> FSRSReview {
-    self
-      .inner
-      .reviews
-      .last()
-      .map(|&x| FSRSReview { inner: x })
-      .expect("FSRSItem must have at least one review")
+  pub fn current(&self) -> Option<FSRSReview> {
+    self.inner.reviews.last().map(|&x| FSRSReview { inner: x })
   }
 
   #[napi]
