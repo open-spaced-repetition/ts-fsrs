@@ -23,13 +23,14 @@ impl FSRS {
   /// - Parameters may be an empty array to use the default values instead.
   #[napi(constructor)]
   pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Self {
-    let params = match parameters {
-      Some(p) => p.iter().map(|&x| x as f32).collect(),
-      None => vec![],
+    let fsrs = match parameters {
+      Some(p) => {
+        let params: Vec<f32> = p.iter().map(|&x| x as f32).collect();
+        fsrs::FSRS::new(&params).expect("Failed to create FSRS")
+      }
+      None => fsrs::FSRS::default(),
     };
-    Self {
-      inner: fsrs::FSRS::new(Some(&params)).expect("Failed to create FSRS"),
-    }
+    Self { inner: fsrs }
   }
 
   #[napi]

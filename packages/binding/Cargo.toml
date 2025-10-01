@@ -15,11 +15,13 @@ time = { version = "0.3", default-features = false, features = [
   "alloc",
   # "macros",
 ] }
-serde = "1.0.219"
+serde = "1.0.228"
 serde_json = "1.0.143"
 
 [dependencies.fsrs]
-version = "5.2.0"
+git = "https://github.com/open-spaced-repetition/fsrs-rs"
+# https://github.com/open-spaced-repetition/fsrs-rs/pull/367
+rev = "163f031c36c6a52f240635008e61a7667acf4915"
 default-features = false
 
 [build-dependencies]
