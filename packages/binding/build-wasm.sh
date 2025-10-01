@@ -3,8 +3,8 @@
 # mv $HOME/wasi-sdk-27.0-arm64-macos $HOME/.wasi-sdk
 
 export WASI_SDK_PATH="$HOME/.wasi-sdk"
-export EMNAPI_LINK_DIR=node_modules/.pnpm/emnapi@1.4.5/node_modules/emnapi/lib/wasm32-wasi-threads
-export SETJMP_LINK_DIR=node_modules/.pnpm/wasm-sjlj@1.0.6/node_modules/wasm-sjlj/lib
+
+eval "$(node resolve-deps.mjs)"
 export CARGO_TARGET_WASM32_WASI_PREVIEW1_THREADS_LINKER="$WASI_SDK_PATH/bin/wasm-ld"
 export CARGO_TARGET_WASM32_WASIP1_THREADS_LINKER="$WASI_SDK_PATH/bin/wasm-ld"
 export CARGO_TARGET_WASM32_WASIP2_LINKER="$WASI_SDK_PATH/bin/wasm-ld"
