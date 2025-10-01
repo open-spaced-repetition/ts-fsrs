@@ -11,3 +11,6 @@ linker = "aarch64-linux-musl-gcc"
 rustflags = ["-C", "target-feature=-crt-static"]
 [target.wasm32-wasi-preview1-threads]
 rustflags = ["-C", "target-feature=+simd128"]
+
+[target.x86_64-pc-windows-msvc]
+rustflags = ["-C", "target-feature=+avx2"]
