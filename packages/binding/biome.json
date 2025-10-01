@@ -11,7 +11,7 @@
       "!wasi-worker-browser.mjs",
       "!index.js",
       "!index.d.ts",
-      "!__test__",
+      "!__tests__",
       "!coverage",
       "!npm"
     ]
