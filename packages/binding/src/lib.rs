@@ -19,7 +19,6 @@ pub struct FSRS {
 
 #[napi]
 impl FSRS {
-
   // allow users to create FSRS with custom parameters
   #[napi(constructor)]
   pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Result<Self> {
@@ -40,16 +39,15 @@ impl FSRS {
     current_memory_state: Option<&MemoryState>,
     desired_retention: f64,
     days_elapsed: u32,
-  ) -> NextStates {
-    NextStates {
-      inner: self
-        .inner
-        .next_states(
-          current_memory_state.map(|x| x.inner),
-          desired_retention as f32,
-          days_elapsed,
-        )
-        .unwrap(),
-    }
+  ) -> Result<NextStates> {
+    self
+      .inner
+      .next_states(
+        current_memory_state.map(|x| x.inner),
+        desired_retention as f32,
+        days_elapsed,
+      )
+      .map(|inner| NextStates { inner })
+      .map_err(|e| napi::Error::from_reason(format!("Failed to get next states: {}", e)))
   }
 }
