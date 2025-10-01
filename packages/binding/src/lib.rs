@@ -19,8 +19,8 @@ pub struct FSRS {
 
 #[napi]
 impl FSRS {
-  /// - Parameters must be provided before running commands that need them.
-  /// - Parameters may be an empty array to use the default values instead.
+
+  // allow users to create FSRS with custom parameters
   #[napi(constructor)]
   pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Result<Self> {
     let fsrs = match parameters {
