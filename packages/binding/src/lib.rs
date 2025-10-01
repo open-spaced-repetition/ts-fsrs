@@ -3,8 +3,11 @@
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 mod model;
+mod progress;
+mod train;
 
 pub use model::*;
+pub use train::*;
 
 #[napi(js_name = "FSRSBinding")]
 #[derive(Debug)]
