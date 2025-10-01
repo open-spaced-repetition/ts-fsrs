@@ -11,7 +11,7 @@ pub fn plus_100(input: u32) -> u32 {
   input + 100
 }
 
-#[napi(js_name = "FSRS")]
+#[napi(js_name = "FSRSBinding")]
 #[derive(Debug)]
 pub struct FSRS {
   inner: fsrs::FSRS,

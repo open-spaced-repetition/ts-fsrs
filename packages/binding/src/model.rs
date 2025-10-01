@@ -2,7 +2,7 @@ use napi::bindgen_prelude::{FnArgs, Function};
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
 
-#[napi(js_name = "FSRSReview")]
+#[napi(js_name = "FSRSBindingReview")]
 #[derive(Debug)]
 pub struct FSRSReview {
   pub(crate) inner: fsrs::FSRSReview,
@@ -47,7 +47,7 @@ impl FSRSReview {
 ///
 /// When used during review, the last item should include the correct `delta_t`, but
 /// the provided rating is ignored as all four ratings are returned by `.nextStates()`
-#[napi(js_name = "FSRSItem")]
+#[napi(js_name = "FSRSBindingItem")]
 #[derive(Serialize, Deserialize, Debug)]
 pub struct FSRSItem {
   pub(crate) inner: fsrs::FSRSItem,
@@ -96,11 +96,11 @@ impl FSRSItem {
 
   #[napi(js_name = "[Symbol.toStringTag]")]
   pub fn string_tag(&self) -> String {
-    "FSRSItem".to_string()
+    "FSRSBindingItem".to_string()
   }
 }
 
-#[napi(js_name = "MemoryState")]
+#[napi(js_name = "BindingMemoryState")]
 #[derive(Debug)]
 pub struct MemoryState {
   pub(crate) inner: fsrs::MemoryState,
@@ -135,11 +135,11 @@ impl MemoryState {
 
   #[napi(js_name = "[Symbol.toStringTag]")]
   pub fn string_tag(&self) -> String {
-    "MemoryState".to_string()
+    "BindingMemoryState".to_string()
   }
 }
 
-#[napi(js_name = "NextStates")]
+#[napi(js_name = "BindingNextStates")]
 #[derive(Debug)]
 pub struct NextStates {
   pub(crate) inner: fsrs::NextStates,
@@ -193,11 +193,11 @@ impl NextStates {
 
   #[napi(js_name = "[Symbol.toStringTag]")]
   pub fn string_tag(&self) -> String {
-    "NextStates".to_string()
+    "BindingNextStates".to_string()
   }
 }
 
-#[napi(js_name = "ItemState")]
+#[napi(js_name = "BindingItemState")]
 #[derive(Debug)]
 pub struct ItemState {
   pub(crate) inner: fsrs::ItemState,
@@ -229,7 +229,7 @@ impl ItemState {
 
   #[napi(js_name = "[Symbol.toStringTag]")]
   pub fn string_tag(&self) -> String {
-    "ItemState".to_string()
+    "BindingItemState".to_string()
   }
 }
 
