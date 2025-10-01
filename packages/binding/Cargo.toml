@@ -19,9 +19,9 @@ serde = "1.0.228"
 serde_json = "1.0.143"
 
 [dependencies.fsrs]
-git = "https://github.com/ishiko732/fsrs-rs"
-# https://github.com/open-spaced-repetition/fsrs-rs/pull/367
-rev = "22286bb"
+git = "https://github.com/open-spaced-repetition/fsrs-rs"
+# https://github.com/open-spaced-repetition/fsrs-rs/pull/370
+rev = "0187b45608ec9470b74f289aaaf0069b458220df"
 default-features = false
 
 [build-dependencies]
