@@ -1,7 +1,7 @@
 #![deny(clippy::all)]
 
+use napi::bindgen_prelude::Result;
 use napi_derive::napi;
-
 mod model;
 
 pub use model::*;
@@ -22,15 +22,16 @@ impl FSRS {
   /// - Parameters must be provided before running commands that need them.
   /// - Parameters may be an empty array to use the default values instead.
   #[napi(constructor)]
-  pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Self {
+  pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Result<Self> {
     let fsrs = match parameters {
       Some(p) if !p.is_empty() => {
         let params: Vec<f32> = p.iter().map(|&x| x as f32).collect();
-        fsrs::FSRS::new(&params).expect("Failed to create FSRS")
+        fsrs::FSRS::new(&params)
+          .map_err(|e| napi::Error::from_reason(format!("Failed to create FSRS: {}", e)))?
       }
       _ => fsrs::FSRS::default(),
     };
-    Self { inner: fsrs }
+    Ok(Self { inner: fsrs })
   }
 
   #[napi]
