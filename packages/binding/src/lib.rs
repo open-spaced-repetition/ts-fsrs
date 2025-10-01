@@ -24,11 +24,11 @@ impl FSRS {
   #[napi(constructor)]
   pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Self {
     let fsrs = match parameters {
-      Some(p) => {
+      Some(p) if !p.is_empty() => {
         let params: Vec<f32> = p.iter().map(|&x| x as f32).collect();
         fsrs::FSRS::new(&params).expect("Failed to create FSRS")
       }
-      None => fsrs::FSRS::default(),
+      _ => fsrs::FSRS::default(),
     };
     Self { inner: fsrs }
   }
