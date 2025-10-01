@@ -168,22 +168,8 @@ impl NextStates {
 
   #[napi(js_name = "toString")]
   pub fn to_string(&self) -> napi::Result<String> {
-    let item_state_to_json = |item: &fsrs::ItemState| {
-      serde_json::json!({
-          "memory": {
-              "stability": item.memory.stability as f64,
-              "difficulty": item.memory.difficulty as f64,
-          },
-          "interval": item.interval,
-      })
-    };
-    serde_json::to_string(&serde_json::json!({
-      "hard": item_state_to_json(&self.inner.hard),
-      "good": item_state_to_json(&self.inner.good),
-      "easy": item_state_to_json(&self.inner.easy),
-      "again": item_state_to_json(&self.inner.again)
-    }))
-    .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
+    serde_json::to_string(&serde_json::json!(self.inner))
+      .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
   }
 
   #[napi(js_name = "[Symbol.toStringTag]")]
@@ -212,14 +198,8 @@ impl ItemState {
 
   #[napi(js_name = "toString")]
   pub fn to_string(&self) -> napi::Result<String> {
-    serde_json::to_string(&serde_json::json!({
-      "memory": {
-        "stability": self.inner.memory.stability as f64,
-        "difficulty": self.inner.memory.difficulty as f64
-      },
-      "interval": self.inner.interval
-    }))
-    .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
+    serde_json::to_string(&serde_json::json!(self.inner))
+      .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
   }
 
   #[napi(js_name = "[Symbol.toStringTag]")]
