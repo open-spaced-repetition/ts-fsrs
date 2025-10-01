@@ -3,7 +3,7 @@ import {
   FSRSBinding,
   FSRSBindingItem,
   FSRSBindingReview,
-} from '@open-spaced-repetition/binding'
+} from '@open-spaced-repetition/binding/index.js'
 
 describe('FSRS model', () => {
   test('model', () => {

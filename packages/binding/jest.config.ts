@@ -46,7 +46,7 @@ export default {
   testEnvironment: 'node',
 
   // The glob patterns Jest uses to detect test files
-  testMatch: ['**/__tests__/*.ts?(x)', '**/__tests__/**/*.ts?(x)'],
+  testMatch: ['**/__tests__/*.spec.ts?(x)', '**/__tests__/*.test.ts?(x)'],
 
   // A map from regular expressions to paths to transformers
   transform: {
