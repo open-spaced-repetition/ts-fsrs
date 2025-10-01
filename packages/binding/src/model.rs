@@ -240,7 +240,7 @@ pub struct ModelEvaluation {
 }
 
 #[napi(object)]
-pub struct ComputeParametersOption<'env> {
+pub struct ComputeParametersOptions<'env> {
   /// Whether to enable short-term memory parameters
   pub enable_short_term: bool,
   /// Number of relearning steps
