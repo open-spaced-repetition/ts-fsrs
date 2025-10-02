@@ -22,14 +22,21 @@ impl ProgressReporter {
   /// Returns Err if callback fails, allowing caller to abort
   pub fn report(&self, cur: usize, tot: usize) -> Result<(), ()> {
     if let Some(callback) = &self.callback {
+      // Use NonBlocking mode - JS exceptions will be caught by NAPI runtime
       let status = callback.call(
         FnArgs {
           data: (cur as u32, tot as u32),
         },
         ThreadsafeFunctionCallMode::NonBlocking,
       );
-      // Check if callback failed
+
+      // If the callback failed (including JS exceptions), signal abort
       if status != Status::Ok {
+        #[cfg(debug_assertions)]
+        eprintln!(
+          "[progress] Callback failed with status: {:?}, aborting",
+          status
+        );
         return Err(());
       }
     }

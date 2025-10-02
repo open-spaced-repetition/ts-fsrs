@@ -11,6 +11,8 @@ pub struct ComputeParametersTask {
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) timeout_ms: u32,
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
+  #[cfg(target_arch = "wasm32")]
+  pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
 }
 
 impl Task for ComputeParametersTask {
@@ -39,6 +41,12 @@ impl Task for ComputeParametersTask {
     #[cfg(not(target_arch = "wasm32"))]
     let _ = _progress_thread.join().ok();
 
+    // WASM: join the progress thread
+    #[cfg(target_arch = "wasm32")]
+    if let Some(handle) = self.progress_thread.take() {
+      let _ = handle.join().ok();
+    }
+
     Ok(out)
   }
 
@@ -48,7 +56,7 @@ impl Task for ComputeParametersTask {
 }
 
 /// Calculate appropriate parameters for the provided review history.
-#[napi(ts_return_type = "Promise<number[]>")]
+#[napi(ts_return_type = "Promise<number[]>", catch_unwind)]
 pub fn compute_parameters(
   train_set: Vec<&FSRSItem>,
   #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
@@ -68,10 +76,16 @@ pub fn compute_parameters(
 
   // wasm: start polling here and do not pass callback into task
   #[cfg(target_arch = "wasm32")]
-  let _progress_thread = {
+  let progress_thread_handle = {
     use crate::progress::spawn_progress_poller;
-    spawn_progress_poller(Arc::clone(&state), timeout, progress_tsfn)
+    Some(spawn_progress_poller(
+      Arc::clone(&state),
+      timeout,
+      progress_tsfn,
+    ))
   };
+  #[cfg(not(target_arch = "wasm32"))]
+  let progress_thread_handle: Option<std::thread::JoinHandle<()>> = None;
 
   // non-wasm reuses TSFN in task; wasm sets it to None (unused).
   #[cfg(not(target_arch = "wasm32"))]
@@ -96,5 +110,7 @@ pub fn compute_parameters(
     progress_cb: progress_tsfn_for_task,
     enable_short_term,
     num_relearning_steps,
+    #[cfg(target_arch = "wasm32")]
+    progress_thread: progress_thread_handle,
   })
 }
