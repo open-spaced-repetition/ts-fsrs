@@ -201,6 +201,10 @@ jobs:
           architecture: ${{ matrix.settings.architecture }}
       - name: Install dependencies
         run: pnpm install
+      - name: Download test data
+        run: |
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:
@@ -259,6 +263,10 @@ jobs:
       # use --force to download the all platform/arch dependencies
       - name: Install dependencies
         run: pnpm install --force
+      - name: Download test data
+        run: |
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:
@@ -296,6 +304,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install
+      - name: Download test data
+        run: |
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Download artifacts
         uses: actions/download-artifact@v5
         with:
