@@ -1,20 +1,13 @@
-/// <reference path="../index.d.ts" />
 import * as fs from 'node:fs'
-import * as path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import {
   computeParameters,
+  convertCsvToFsrsItems,
   FSRSBindingItem,
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding/index.js'
-import { parseCSVToFSRSItems } from './helpers/csv-parser.js'
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+import { getTimezoneOffset } from './helpers/csv-parser.js'
 
 describe('FSRS compute_parameters', () => {
-  const testDataPath = path.join(__dirname, 'revlog.csv')
-
   function createMinimalTestItem(): FSRSBindingItem {
     return new FSRSBindingItem([
       new FSRSBindingReview(3, 0),
@@ -22,14 +15,17 @@ describe('FSRS compute_parameters', () => {
     ])
   }
 
+  let allItems: FSRSBindingItem[] = []
+  beforeAll(() => {
+    const csvBuffer = fs.readFileSync(
+      new URL('./revlog.csv', import.meta.url).pathname
+    )
+    allItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', (ms, tz) =>
+      getTimezoneOffset(tz, ms)
+    )
+  })
   for (const shortTerm of [true, false]) {
     test(`compute_parameters with test data ${shortTerm ? 'enabled' : 'disabled'}`, async () => {
-      if (!fs.existsSync(testDataPath)) {
-        throw new Error('revlog.csv not found, skipping test')
-      }
-
-      const allItems = parseCSVToFSRSItems(testDataPath)
-
       if (allItems.length === 0) {
         throw new Error('No valid items parsed from CSV, skipping test')
       }
@@ -38,7 +34,7 @@ describe('FSRS compute_parameters', () => {
         const parameters = await computeParameters(allItems, {
           enableShortTerm: shortTerm,
           progress: (current: number, total: number) => {
-            console.log(
+            console.debug(
               `[shortTerm: ${shortTerm}] Progress: ${current}/${total}`
             )
           },
@@ -48,7 +44,10 @@ describe('FSRS compute_parameters', () => {
         expect(parameters).toBeDefined()
         expect(Array.isArray(parameters)).toBe(true)
         expect(parameters.length).toBeGreaterThan(0)
-        console.log('Computed parameters:', parameters)
+        console.log(
+          `Computed parameters[${shortTerm ? 'shortTerm' : 'longTerm'}]:`,
+          parameters
+        )
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : String(error)
         console.log('Error caught:', errorMsg)
@@ -66,5 +65,5 @@ describe('FSRS compute_parameters', () => {
     expect(parameters).toBeDefined()
     expect(Array.isArray(parameters)).toBe(true)
     console.log('Minimal data parameters:', parameters)
-  }, 180_000)
+  })
 })

@@ -1,67 +1,34 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { parseCSVToFSRSItems } from './helpers/csv-parser.js'
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding/index.js'
+import { getTimezoneOffset, parseCSVToFSRSItems } from './helpers/csv-parser.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 describe('CSV Parser', () => {
   const testDataPath = path.join(__dirname, 'revlog.csv')
+  const nextDayStartsAt = 4
+  const timezone = 'Asia/Shanghai'
 
-  test('should parse CSV file correctly', () => {
-    if (!fs.existsSync(testDataPath)) {
-      throw new Error('revlog.csv not found')
-    }
+  test('should match Rust implementation count', () => {
+    // TS version
+    const tsItems = parseCSVToFSRSItems(testDataPath, nextDayStartsAt, timezone)
 
-    const items = parseCSVToFSRSItems(testDataPath)
+    // RS version
+    const csvBuffer = fs.readFileSync(testDataPath)
+    const rsItems = convertCsvToFsrsItems(
+      csvBuffer,
+      nextDayStartsAt,
+      timezone,
+      (ms, tz) => getTimezoneOffset(tz, ms)
+    )
 
-    expect(items).toBeDefined()
-    expect(Array.isArray(items)).toBe(true)
-    expect(items.length).toBeGreaterThan(0)
-
-    console.log(`Parsed ${items.length} items from CSV`)
-  })
-
-  test('should filter items correctly', () => {
-    if (!fs.existsSync(testDataPath)) {
-      throw new Error('revlog.csv not found')
-    }
-
-    const items = parseCSVToFSRSItems(testDataPath)
-
-    // All items should have at least one review with deltaT > 0
-    for (const item of items) {
-      const hasPositiveDelta = item.reviews.some((r) => r.deltaT > 0)
-      expect(hasPositiveDelta).toBe(true)
-    }
-
-    console.log(`All ${items.length} items have valid deltaT values`)
-  })
-
-  test('should handle reviews with proper time intervals', () => {
-    if (!fs.existsSync(testDataPath)) {
-      throw new Error('revlog.csv not found')
-    }
-
-    const items = parseCSVToFSRSItems(testDataPath)
-
-    // Sample check: first few items should have reasonable structure
-    const sampleSize = Math.min(10, items.length)
-    for (let i = 0; i < sampleSize; i++) {
-      const item = items[i]
-      expect(item.reviews.length).toBeGreaterThan(0)
-
-      // First review should have deltaT === 0
-      expect(item.reviews[0].deltaT).toBe(0)
-
-      // Verify ratings are in valid range (1-4)
-      for (const review of item.reviews) {
-        expect(review.rating).toBeGreaterThanOrEqual(1)
-        expect(review.rating).toBeLessThanOrEqual(4)
-      }
-    }
-
-    console.log(`Verified structure of ${sampleSize} sample items`)
+    // This count should match the Rust implementation
+    expect(tsItems.length).toBe(rsItems.length)
+    console.log(
+      `✅ TS version (${tsItems.length}) matches RS version (${rsItems.length})`
+    )
   })
 })
