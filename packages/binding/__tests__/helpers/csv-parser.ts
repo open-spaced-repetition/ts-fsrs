@@ -235,13 +235,12 @@ export function getTimezoneOffset(
   }
 
   const [, sign, hour, minute] = matchData
-  let result = parseInt(hour, 10) * 60
-  if (minute) result += parseInt(minute, 10)
+  let offset = parseInt(hour, 10) * 60;
+  if (minute) {
+    offset += parseInt(minute, 10);
+  }
 
-  // Convert to standard offset: positive offset (east) returns negative minutes
-  // GMT+8 means 8 hours ahead of GMT, which is 480 minutes for JS offset
-  // GMT-5 means 5 hours behind GMT, which is -300 minutes for JS offset
-  if (sign === '+') result *= -1
-
-  return result * -1
+  // The function should return a positive offset for timezones east of UTC (e.g., +480 for GMT+8)
+  // and negative for timezones west of UTC (e.g., -300 for GMT-5).
+  return sign === '+' ? offset : -offset;
 }
