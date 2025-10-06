@@ -5,12 +5,18 @@ import {
   computeParameters,
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding/index.js'
+import { getTimezoneOffset } from '../helpers/csv-parser.js'
 
 // Read revlog.csv
 // Please download from: https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv
 console.time('parsing csv time')
 const csvBuffer = readFileSync(new URL('../revlog.csv', import.meta.url))
-const fsrsItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const fsrsItems = convertCsvToFsrsItems(
+  csvBuffer,
+  4,
+  'Asia/Shanghai',
+  (ms, tz) => getTimezoneOffset(tz, ms)
+)
 console.timeEnd('parsing csv time')
 console.log(`fsrs_items.len() = ${fsrsItems.length}`)
 

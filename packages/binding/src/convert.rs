@@ -23,22 +23,16 @@ fn convert_to_date(
   timestamp: i64,
   next_day_starts_at: i64,
   timezone: &str,
-  offset_provider: Option<&Function<FnArgs<(i64, String)>, i32>>,
+  offset_provider: &Function<FnArgs<(i64, String)>, i32>,
 ) -> Result<Date> {
   let timestamp_secs = timestamp / 1000;
   let dt = OffsetDateTime::from_unix_timestamp(timestamp_secs)
     .map_err(|e| napi::Error::from_reason(format!("Invalid timestamp: {}", e)))?;
 
   // Compute offset minutes via JS callback if provided; fall back to fixed +8h.
-  let offset_minutes: i64 = if let Some(cb) = offset_provider {
-    let minutes: i32 = cb.call(FnArgs {
-      data: (timestamp, timezone.to_string()),
-    })?;
-    minutes as i64
-  } else {
-    // Asia/Shanghai UTC+8
-    8 * 60
-  };
+  let offset_minutes: i64 = offset_provider.call(FnArgs {
+    data: (timestamp, timezone.to_string()),
+  })?.into();
   let adjusted_dt = dt + Duration::minutes(offset_minutes) - Duration::hours(next_day_starts_at);
   Ok(adjusted_dt.date())
 }
@@ -68,7 +62,7 @@ fn convert_to_fsrs_items_internal(
   mut entries: Vec<RevlogEntry>,
   next_day_starts_at: i64,
   timezone: &str,
-  offset_provider: Option<&Function<FnArgs<(i64, String)>, i32>>,
+  offset_provider: &Function<FnArgs<(i64, String)>, i32>,
 ) -> Result<Vec<(String, FSRSBindingItem)>> {
   entries = remove_revlog_before_last_first_learn(entries);
 
@@ -122,8 +116,9 @@ pub fn convert_csv_to_fsrs_items(
   data: &[u8],
   next_day_starts_at: i64,
   timezone: String,
-  #[napi(ts_arg_type = "(ms: number, timezone: string) => number")] offset_provider: Option<
-    Function<FnArgs<(i64, String)>, i32>,
+  #[napi(ts_arg_type = "(ms: number, timezone: string) => number")] offset_provider: Function<
+    FnArgs<(i64, String)>,
+    i32,
   >,
 ) -> Result<Vec<FSRSBindingItem>> {
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
@@ -149,12 +144,7 @@ pub fn convert_csv_to_fsrs_items(
 
   let mut result: Vec<(String, FSRSBindingItem)> = Vec::new();
   for (_cid, entries) in grouped {
-    match convert_to_fsrs_items_internal(
-      entries,
-      next_day_starts_at,
-      &timezone,
-      offset_provider.as_ref(),
-    ) {
+    match convert_to_fsrs_items_internal(entries, next_day_starts_at, &timezone, &offset_provider) {
       Ok(items) => result.extend(items),
       Err(e) => return Err(e),
     }
