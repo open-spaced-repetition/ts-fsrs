@@ -130,8 +130,8 @@ pub fn convert_csv_to_fsrs_items(
 
   let revlogs: Vec<RevlogEntry> = rdr
     .deserialize::<RevlogEntry>()
-    .filter_map(|r| r.ok())
-    .collect();
+    .collect::<std::result::Result<Vec<RevlogEntry>, _>>()
+    .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
 
   let mut grouped = std::collections::HashMap::<String, Vec<RevlogEntry>>::new();
   for entry in revlogs.into_iter() {
