@@ -17,9 +17,7 @@ describe('FSRS compute_parameters', () => {
 
   let allItems: FSRSBindingItem[] = []
   beforeAll(() => {
-    const csvBuffer = fs.readFileSync(
-      new URL('./revlog.csv', import.meta.url).pathname
-    )
+    const csvBuffer = fs.readFileSync(new URL('./revlog.csv', import.meta.url))
     allItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', (ms, tz) =>
       getTimezoneOffset(tz, ms)
     )
