@@ -221,16 +221,26 @@ export function getTimezoneOffset(
     ?.formatToParts(date)
     ?.find((i) => i.type === 'timeZoneName')?.value
   if (!timeZoneName) return 0
-  const offset = timeZoneName.slice(3)
-  if (!offset) return 0
 
-  const matchData = offset.match(/([+-])(\d+)(?::(\d+))?/)
-  if (!matchData) throw new Error(`cannot parse timezone name: ${timeZoneName}`)
+  // Handle special case: "GMT" or "UTC" without offset means +0
+  if (timeZoneName === 'GMT' || timeZoneName === 'UTC') {
+    return 0
+  }
+
+  // Match offset pattern directly in the full timezone name
+  // Handles formats like: "GMT+8", "GMT+08:00", "UTC-5", "GMT-05:30"
+  const matchData = timeZoneName.match(/([+-])(\d+)(?::(\d+))?/)
+  if (!matchData) {
+    throw new Error(`Cannot parse timezone offset from: ${timeZoneName}`)
+  }
 
   const [, sign, hour, minute] = matchData
   let result = parseInt(hour, 10) * 60
-  if (sign === '+') result *= -1
   if (minute) result += parseInt(minute, 10)
 
-  return result * -1
+  // Convert to standard offset: positive offset (east) returns negative minutes
+  // GMT+8 means 8 hours ahead of GMT, which is -480 minutes for JS offset
+  if (sign === '+') result *= -1
+
+  return result
 }
