@@ -239,8 +239,9 @@ export function getTimezoneOffset(
   if (minute) result += parseInt(minute, 10)
 
   // Convert to standard offset: positive offset (east) returns negative minutes
-  // GMT+8 means 8 hours ahead of GMT, which is -480 minutes for JS offset
+  // GMT+8 means 8 hours ahead of GMT, which is 480 minutes for JS offset
+  // GMT-5 means 5 hours behind GMT, which is -300 minutes for JS offset
   if (sign === '+') result *= -1
 
-  return result
+  return result * -1
 }
