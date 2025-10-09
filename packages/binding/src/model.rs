@@ -37,7 +37,7 @@ impl FSRSReview {
 
   #[napi(js_name = "[Symbol.toStringTag]")]
   pub fn string_tag(&self) -> String {
-    "FSRSReview".to_string()
+    "FSRSBindingReview".to_string()
   }
 }
 
