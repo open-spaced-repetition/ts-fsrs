@@ -103,6 +103,6 @@
     "skipLibCheck": false /* Skip type checking all .d.ts files. */
   },
   "include": ["."],
-  "exclude": ["node_modules"],
+  "exclude": ["node_modules", "target", ".cargo", "packages/binding/**"],
   "detectCycles": true
 }

@@ -1,0 +1,15 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "outDir": "lib",
+    "isolatedModules": true,
+    "paths": {
+      "@open-spaced-repetition/binding": ["../index.d.ts"],
+      "@open-spaced-repetition/binding/*": ["../*"]
+    }
+  },
+  "include": ["."],
+  "exclude": ["lib"]
+}

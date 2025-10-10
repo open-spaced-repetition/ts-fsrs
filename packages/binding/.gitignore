@@ -1,0 +1,9 @@
+*.node
+*.wasm
+browser.js
+fsrs-binding.wasi-browser.js
+fsrs-binding.wasi.cjs
+index.js
+index.d.ts
+wasi-worker-browser.mjs
+wasi-worker.mjs
