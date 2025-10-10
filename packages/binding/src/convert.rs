@@ -30,9 +30,11 @@ fn convert_to_date(
     .map_err(|e| napi::Error::from_reason(format!("Invalid timestamp: {}", e)))?;
 
   // Compute offset minutes via JS callback if provided; fall back to fixed +8h.
-  let offset_minutes: i64 = offset_provider.call(FnArgs {
-    data: (timestamp, timezone.to_string()),
-  })?.into();
+  let offset_minutes: i64 = offset_provider
+    .call(FnArgs {
+      data: (timestamp, timezone.to_string()),
+    })?
+    .into();
   let adjusted_dt = dt + Duration::minutes(offset_minutes) - Duration::hours(next_day_starts_at);
   Ok(adjusted_dt.date())
 }

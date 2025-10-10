@@ -228,12 +228,12 @@ export function getTimezoneOffset(
   }
 
   const [, sign, hour, minute] = matchData
-  let offset = parseInt(hour, 10) * 60;
+  let offset = parseInt(hour, 10) * 60
   if (minute) {
-    offset += parseInt(minute, 10);
+    offset += parseInt(minute, 10)
   }
 
   // The function should return a positive offset for timezones east of UTC (e.g., +480 for GMT+8)
   // and negative for timezones west of UTC (e.g., -300 for GMT-5).
-  return sign === '+' ? offset : -offset;
+  return sign === '+' ? offset : -offset
 }
