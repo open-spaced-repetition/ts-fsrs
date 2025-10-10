@@ -106,7 +106,7 @@ fn convert_to_fsrs_items_internal(
           },
         )
       })
-      .filter(|(_, item)| item.include_long_term_reviews())
+      .filter(|(_, item)| item.current().is_some_and(|r| r.inner.delta_t > 0))
       .collect(),
   )
 }

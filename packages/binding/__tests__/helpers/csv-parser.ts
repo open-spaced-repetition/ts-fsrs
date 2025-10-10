@@ -117,24 +117,17 @@ function convertToFsrsItemsInternal(
 
   for (let idx = 1; idx < filteredEntries.length; idx++) {
     const reviews: FSRSBindingReview[] = []
-    let hasLongTermReview = false
 
     // Include all reviews from start to current index (inclusive)
     for (let i = 0; i <= idx; i++) {
       const entry = filteredEntries[i]
       const deltaT = Math.max(0, entry.last_interval)
       reviews.push(new FSRSBindingReview(entry.review_rating, deltaT))
-
-      // Check if we have any long-term review (delta_t > 0)
-      if (deltaT > 0) {
-        hasLongTermReview = true
-      }
     }
 
-    // Filter: only keep items with long_term_review_cnt > 0
-    if (hasLongTermReview) {
-      const item = new FSRSBindingItem(reviews)
-      result.push(item)
+    // Filter: only keep items where current review's delta_t > 0
+    if (reviews.length > 0 && reviews[reviews.length - 1].deltaT > 0) {
+      result.push(new FSRSBindingItem(reviews))
     }
   }
 
