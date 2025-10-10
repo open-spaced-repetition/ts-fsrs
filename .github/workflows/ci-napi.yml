@@ -15,7 +15,7 @@ on:
     branches:
       - main
       - preview
-      - dev
+
     paths:
       - 'packages/binding/**'
       - '.github/workflows/ci-napi.yml'
@@ -24,7 +24,7 @@ on:
     branches:
       - main
       - preview
-      - dev
+
     paths:
       - 'packages/binding/**'
       - '.github/workflows/ci-napi.yml'
@@ -199,6 +199,20 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: pnpm
           architecture: ${{ matrix.settings.architecture }}
+      - name: Cache test data
+        id: cache-revlog
+        uses: actions/cache@v4
+        with:
+          path: packages/binding/__tests__/revlog.csv
+          key: revlog-csv-v1
+          restore-keys: |
+            revlog-csv-
+      - name: Download test data
+        if: steps.cache-revlog.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p packages/binding/__tests__
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts
@@ -236,6 +250,20 @@ jobs:
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+      - name: Cache test data
+        id: cache-revlog
+        uses: actions/cache@v4
+        with:
+          path: packages/binding/__tests__/revlog.csv
+          key: revlog-csv-v1
+          restore-keys: |
+            revlog-csv-
+      - name: Download test data
+        if: steps.cache-revlog.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p packages/binding/__tests__
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Output docker params
         id: docker
         run: |
@@ -294,6 +322,20 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: Cache test data
+        id: cache-revlog
+        uses: actions/cache@v4
+        with:
+          path: packages/binding/__tests__/revlog.csv
+          key: revlog-csv-v1
+          restore-keys: |
+            revlog-csv-
+      - name: Download test data
+        if: steps.cache-revlog.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p packages/binding/__tests__
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+        shell: bash
       - name: Install dependencies
         run: pnpm install
       - name: Download artifacts

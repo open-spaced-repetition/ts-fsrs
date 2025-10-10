@@ -7,3 +7,4 @@ index.js
 index.d.ts
 wasi-worker-browser.mjs
 wasi-worker.mjs
+revlog.csv
