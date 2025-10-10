@@ -10,7 +10,7 @@ on:
     branches:
       - main
       - preview
-      - init-rust
+
     paths-ignore:
       - ".devcontainer/**"
       # - '.github/**'
