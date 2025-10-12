@@ -1,5 +1,5 @@
 # Use official devcontainers Rust image
-FROM mcr.microsoft.com/devcontainers/rust:latest
+FROM mcr.microsoft.com/devcontainers/rust:1-bullseye
 
 # Install additional system dependencies
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -16,9 +16,6 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
 # Add wasm32-wasip1-threads target for WASM builds
 RUN rustup target add wasm32-wasip1-threads
 
-# Install cargo-binstall for faster installation of Rust tools
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | bash
-
 # Install wasi-sdk for WASM builds
 RUN WASI_SDK_VERSION=27.0 && \
     WASI_SDK_ARCH=$(uname -m) && \
@@ -33,8 +30,8 @@ RUN WASI_SDK_VERSION=27.0 && \
     chown -R vscode:vscode /home/vscode/.wasi-sdk
 
 # Fix cargo registry permissions for vscode user
-RUN chmod -R a+rw /usr/local/cargo/registry || true \
-    && chmod -R a+rw /usr/local/cargo/git || true
+RUN mkdir -p /usr/local/cargo/registry /usr/local/cargo/git && \
+    chown -R vscode:vscode /usr/local/cargo/registry /usr/local/cargo/git
 
 # Set working directory
 WORKDIR /workspace
