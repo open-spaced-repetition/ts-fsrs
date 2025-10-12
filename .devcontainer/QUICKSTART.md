@@ -20,6 +20,7 @@ Before you begin, ensure you have the following installed:
 There are two ways to open the project in a Dev Container:
 
 **Option A: From VS Code**
+
 1. Open VS Code
 2. Press `F1` or `Ctrl+Shift+P` (Windows/Linux) / `Cmd+Shift+P` (macOS)
 3. Type and select: `Dev Containers: Open Folder in Container...`
@@ -27,6 +28,7 @@ There are two ways to open the project in a Dev Container:
 5. Wait for the container to build and initialize (this may take several minutes on the first run)
 
 **Option B: From Command Palette**
+
 1. Open the project folder in VS Code
 2. A notification will appear: "Folder contains a Dev Container configuration file"
 3. Click "Reopen in Container"
@@ -34,6 +36,7 @@ There are two ways to open the project in a Dev Container:
 ### 2. Wait for Setup to Complete
 
 The Dev Container will automatically:
+
 - Build the Docker image based on the official Rust image
 - Install Node.js 20 with node-gyp dependencies
 - Set up Rust toolchain with WASM support (`wasm32-wasip1-threads` target)
@@ -45,6 +48,7 @@ The Dev Container will automatically:
 - Install recommended VS Code extensions
 
 You can monitor the progress in the VS Code terminal. The setup is complete when you see:
+
 ```
 ✅ Development environment setup complete!
 ```
@@ -132,25 +136,30 @@ cargo build --target wasm32-wasip1-threads
 The Dev Container automatically installs these extensions:
 
 ### TypeScript & JavaScript
+
 - **Biome**: Code formatter and linter
 - **Pretty TypeScript Errors**: Better error messages
 - **Prettier**: Code formatter
 
 ### Rust
+
 - **rust-analyzer**: Rust language support
 - **Even Better TOML**: TOML file support
 - **CodeLLDB**: Debugger for Rust
 
 ### Git & GitHub
+
 - **GitHub Pull Requests**: Manage PRs from VS Code
 - **Git History**: View git log and history
 
 ### AI Assistants
+
 - **GitHub Copilot**: AI pair programmer
 - **ChatGPT**: OpenAI integration
 - **Claude Code**: Anthropic Claude integration
 
 ### Utilities
+
 - **EditorConfig**: Maintain consistent coding styles
 - **Code Spell Checker**: Catch typos
 
@@ -176,22 +185,15 @@ ts-fsrs/
 ### Container Build Fails
 
 If the container fails to build:
+
 1. Ensure Docker Desktop is running
 2. Check your internet connection
 3. Try rebuilding: `F1` → `Dev Containers: Rebuild Container`
 
-### Permission Issues
-
-If you encounter permission errors:
-```bash
-# Fix cargo registry permissions
-sudo chmod -R a+rw /usr/local/cargo/registry
-sudo chmod -R a+rw /usr/local/cargo/git
-```
-
 ### pnpm Not Found
 
 If `pnpm` command is not found after setup:
+
 ```bash
 # Reload the shell configuration
 source ~/.bashrc
@@ -206,6 +208,7 @@ If you're in China and experiencing slow downloads, you can enable proxy setting
 
 1. Edit `.devcontainer/devcontainer.json`
 2. Uncomment the proxy configuration section:
+
 ```json
 "runArgs": ["--add-host=host.docker.internal:host-gateway"],
 "containerEnv": {
@@ -214,6 +217,7 @@ If you're in China and experiencing slow downloads, you can enable proxy setting
   "NO_PROXY": "localhost,127.0.0.1,::1"
 }
 ```
+
 3. Adjust the port (7890) to match your proxy configuration
 4. Rebuild the container
 
@@ -227,6 +231,7 @@ If you're in China and experiencing slow downloads, you can enable proxy setting
 ## Next Steps
 
 Now that your environment is set up, you can:
+
 - Explore the codebase
 - Run existing tests to understand the functionality
 - Make changes and see them in action
