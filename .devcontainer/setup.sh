@@ -4,6 +4,15 @@ set -e
 
 echo "🚀 Setting up ts-fsrs development environment..."
 
+# Fix SSH permissions if .ssh directory exists
+if [ -d "/home/vscode/.ssh" ]; then
+    echo "🔑 Fixing SSH permissions..."
+    chmod 700 /home/vscode/.ssh
+    chmod 600 /home/vscode/.ssh/* 2>/dev/null || true
+    chmod 644 /home/vscode/.ssh/*.pub 2>/dev/null || true
+    echo "✅ SSH permissions fixed"
+fi
+
 # Enable corepack and install pnpm (version controlled by package.json)
 echo "📦 Enabling corepack and installing pnpm..."
 corepack enable

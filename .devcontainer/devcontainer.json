@@ -22,6 +22,11 @@
   // Use 'forwardPorts' to make a list of ports inside the container available locally.
   // "forwardPorts": [],
 
+  // Mount SSH keys for git operations
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+  ],
+
   // Use 'postCreateCommand' to run commands after the container is created.
   "postCreateCommand": "bash .devcontainer/setup.sh",
 
