@@ -38,6 +38,9 @@
     "editor.defaultFormatter": "tamasfe.even-better-toml",
     "editor.formatOnSave": true
   },
+  "[nix]": {
+    "editor.defaultFormatter": "google.nix-language"
+  },
   "rust-analyzer.check.command": "clippy",
   "rust-analyzer.cargo.features": "all",
   "files.watcherExclude": {
