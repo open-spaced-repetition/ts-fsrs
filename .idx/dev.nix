@@ -2,7 +2,7 @@
 # see: https://developers.google.com/idx/guides/customize-idx-env
 { pkgs, ... }: {
   # Which nixpkgs channel to use.
-  channel = "stable-24.11"; # or "unstable"
+  channel = "stable-25.05"; # or "unstable"
 
   # Use https://search.nixos.org/packages to find packages
   packages = [
@@ -11,19 +11,34 @@
     # pkgs.python311Packages.pip
     # pkgs.nodejs_20
     # pkgs.nodePackages.nodemon
+    pkgs.rustup
+    pkgs.gcc
+    pkgs.cargo
     pkgs.pnpm
-    pkgs.nodejs_18
+    pkgs.nodejs_20
     pkgs.fish
+    pkgs.curl
+    pkgs.cargo-wasi
   ];
 
   # Sets environment variables in the workspace
-  env = {};
+  env = { };
   idx = {
     # Search for the extensions you want on https://open-vsx.org/ and use "publisher.id"
     extensions = [
-      # "vscodevim.vim"
       "biomejs.biome"
       "yoavbls.pretty-ts-errors"
+      "esbenp.prettier-vscode"
+
+      "rust-lang.rust-analyzer"
+      "tamasfe.even-better-toml"
+      "vadimcn.vscode-lldb"
+
+      "github.vscode-pull-request-github"
+      "donjayamanne.githistory"
+
+      "editorconfig.editorconfig"
+      "streetsidesoftware.code-spell-checker"
     ];
 
     # Enable previews
@@ -49,12 +64,16 @@
       onCreate = {
         # Example: install JS dependencies from NPM
         # npm-install = "npm install";
-        "pnpm-install" = "pnpm i";
+        "rustup" = "rustup default stable && rustup target add wasm32-wasip1-threads";
+        "pnpm-install" = "pnpm install";
+        csv = ".devcontainer/csv.sh";
       };
       # Runs when the workspace is (re)started
       onStart = {
         # Example: start a background task to watch and re-build backend code
-        # watch-backend = "npm run watch-backend";
+        "rustup" = "rustup default stable && rustup target add wasm32-wasip1-threads";
+        "pnpm-install" = "pnpm install";
+        csv = ".devcontainer/csv.sh";
       };
     };
   };

@@ -15,10 +15,15 @@
 
 ts-fsrs is a versatile package written in TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
 
-You can find the state transition diagram for cards here: 
+You can find the state transition diagram for cards here:
 > - google drive: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (You're free to leave comments)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
 
+# Development
+
+For contributors and developers who want to work on ts-fsrs itself, we provide a Dev Container setup for a consistent development environment.
+
+📖 **[Development Quickstart Guide](./.devcontainer/QUICKSTART.md)** - Get started with VS Code Dev Containers
 
 # Usage
 `ts-fsrs@3.x` requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.

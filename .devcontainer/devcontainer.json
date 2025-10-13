@@ -1,0 +1,65 @@
+{
+  "name": "ts-fsrs Development",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Features to add to the dev container
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "20",
+      "nodeGypDependencies": true
+    }
+  },
+  // // Proxy (china)
+  // "runArgs": ["--add-host=host.docker.internal:host-gateway"],
+  // "containerEnv": {
+  //   "HTTP_PROXY": "http://host.docker.internal:7890",
+  //   "HTTPS_PROXY": "http://host.docker.internal:7890",
+  //   "NO_PROXY": "localhost,127.0.0.1,::1"
+  // },
+
+  // Use 'forwardPorts' to make a list of ports inside the container available locally.
+  // "forwardPorts": [],
+
+  // Mount SSH keys for git operations
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+  ],
+
+  // Use 'postCreateCommand' to run commands after the container is created.
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+
+  // Configure tool-specific properties.
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // TypeScript & JavaScript
+        "biomejs.biome",
+        "yoavbls.pretty-ts-errors",
+        "esbenp.prettier-vscode",
+
+        // Rust
+        "rust-lang.rust-analyzer",
+        "tamasfe.even-better-toml",
+        "vadimcn.vscode-lldb",
+
+        // Git & GitHub
+        "github.vscode-pull-request-github",
+        "donjayamanne.githistory",
+
+        // AI
+        "GitHub.copilot",
+        "openai.chatgpt",
+        "Anthropic.claude-code",
+
+        // Utilities
+        "editorconfig.editorconfig",
+        "streetsidesoftware.code-spell-checker"
+      ]
+    }
+  }
+
+  // Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+  // "remoteUser": "root"
+}
