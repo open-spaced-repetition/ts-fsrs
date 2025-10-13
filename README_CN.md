@@ -18,6 +18,12 @@ ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.
 
 > 你可以通过[ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)来获取ts-fsrs的工作流信息。
 
+# 开发环境
+
+对于想要参与 ts-fsrs 开发的贡献者和开发人员，我们提供了 Dev Container 配置，以便提供一致的开发环境。
+
+📖 **[开发环境快速入门指南](./.devcontainer/QUICKSTART.md)** - 使用 VS Code Dev Containers 开始开发
+
 # 使用ts-fsrs
 
 `ts-fsrs@3.x`需要运行在 Node.js (>=16.0.0)上，`ts-fsrs@4.x`需要运行在 Node.js (>=18.0.0)上。

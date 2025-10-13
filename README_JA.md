@@ -20,6 +20,11 @@ ts-fsrsのワークフローについては、以下のリソースを参照し�
 > - google drive: [ts-fsrs-workflow.drawio](https://drive.google.com/file/d/1FLKjpt4T3Iis02vjoA10q7vxKCWwClfR/view?usp=sharing) (コメントを提供できます)
 > - github: [ts-fsrs-workflow.drawio](./ts-fsrs-workflow.drawio)
 
+# 開発環境
+
+ts-fsrs の開発に参加したい貢献者や開発者のために、一貫した開発環境を提供する Dev Container 設定を用意しています。
+
+📖 **[開発環境クイックスタートガイド](./.devcontainer/QUICKSTART.md)** - VS Code Dev Containers で開発を始める
 
 # ts-fsrsの使用方法
 
