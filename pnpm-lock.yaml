@@ -62,6 +62,9 @@ importers:
       '@tybys/wasm-util':
         specifier: ^0.10.0
         version: 0.10.0
+      '@types/papaparse':
+        specifier: ^5.3.16
+        version: 5.3.16
       chalk:
         specifier: ^5.4.1
         version: 5.6.2
@@ -74,6 +77,9 @@ importers:
       npm-run-all2:
         specifier: ^8.0.4
         version: 8.0.4
+      papaparse:
+        specifier: ^5.5.3
+        version: 5.5.3
       tinybench:
         specifier: ^5.0.0
         version: 5.0.1
@@ -1479,6 +1485,9 @@ packages:
   '@types/node@24.3.0':
     resolution: {integrity: sha512-aPTXCrfwnDLj4VvXrm+UUCQjNEvJgNA8s5F1cvwQU+3KNltTOkBm1j30uNLyqqPNe7gE3KFzImYoZEfLhp4Yow==}
 
+  '@types/papaparse@5.3.16':
+    resolution: {integrity: sha512-T3VuKMC2H0lgsjI9buTB3uuKj3EMD2eap1MOuEQuBQ44EnDx/IkGhU6EwiTf9zG3za4SKlmwKAImdDKdNnCsXg==}
+
   '@types/resolve@1.20.2':
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
 
@@ -2494,6 +2503,9 @@ packages:
 
   package-manager-detector@0.2.11:
     resolution: {integrity: sha512-BEnLolu+yuz22S56CU1SUKq3XC3PkwD5wv4ikR4MfGvnRVcmzXR9DwSlW2fEamyTPyXHomBJRzgapeuBvRNzJQ==}
+
+  papaparse@5.5.3:
+    resolution: {integrity: sha512-5QvjGxYVjxO59MGU2lHVYpRWBBtKHnlIAcSe1uNFCkkptUh63NFRj0FJQm7nR67puEruUci/ZkjmEFrjCAyP4A==}
 
   parse-json@5.2.0:
     resolution: {integrity: sha512-ayCKvm/phCGxOkYRSCM82iDwct8/EonSEgCSxWxD7ve6jHggsFl4fZVQBPRNgQoKiuV/odhFrGzQXZwbifC8Rg==}
@@ -4347,6 +4359,10 @@ snapshots:
     dependencies:
       undici-types: 7.10.0
 
+  '@types/papaparse@5.3.16':
+    dependencies:
+      '@types/node': 24.3.0
+
   '@types/resolve@1.20.2': {}
 
   '@types/stack-utils@2.0.3': {}
@@ -5485,6 +5501,8 @@ snapshots:
   package-manager-detector@0.2.11:
     dependencies:
       quansync: 0.2.11
+
+  papaparse@5.5.3: {}
 
   parse-json@5.2.0:
     dependencies:

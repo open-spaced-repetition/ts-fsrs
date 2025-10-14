@@ -83,6 +83,11 @@ impl FSRSItem {
     self.inner.long_term_review_cnt() as u32
   }
 
+  #[napi]
+  pub fn include_long_term_reviews(&self) -> bool {
+    self.inner.reviews.iter().any(|review| review.delta_t > 0)
+  }
+
   #[napi(js_name = "toString")]
   pub fn to_string(&self) -> napi::Result<String> {
     serde_json::to_string(&self.inner)
