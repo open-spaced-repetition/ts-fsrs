@@ -10,7 +10,7 @@ on:
     branches:
       - main
       - preview
-      - dev
+
     paths-ignore:
       - ".devcontainer/**"
       # - '.github/**'
