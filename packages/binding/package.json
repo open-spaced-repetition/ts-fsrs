@@ -24,7 +24,7 @@
   },
   "license": "MIT",
   "scripts": {
-    "artifacts": "napi artifacts -d ../../artifacts --build-output-dir .",
+    "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
     "build": "napi build --platform --release -o ./dist",
     "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
     "build:debug": "napi build --platform",
@@ -93,16 +93,16 @@
     "directory": "packages/binding"
   },
   "optionalDependencies": {
-    "@open-spaced-repetition/binding-android-arm64": "0.0.1",
-    "@open-spaced-repetition/binding-darwin-arm64": "0.0.1",
-    "@open-spaced-repetition/binding-darwin-x64": "0.0.1",
-    "@open-spaced-repetition/binding-linux-arm64-gnu": "0.0.1",
-    "@open-spaced-repetition/binding-linux-arm64-musl": "0.0.1",
-    "@open-spaced-repetition/binding-linux-x64-gnu": "0.0.1",
-    "@open-spaced-repetition/binding-linux-x64-musl": "0.0.1",
-    "@open-spaced-repetition/binding-wasm32-wasi": "0.0.1",
-    "@open-spaced-repetition/binding-win32-arm64-msvc": "0.0.1",
-    "@open-spaced-repetition/binding-win32-ia32-msvc": "0.0.1",
-    "@open-spaced-repetition/binding-win32-x64-msvc": "0.0.1"
+    "@open-spaced-repetition/binding-android-arm64": "workspace:^",
+    "@open-spaced-repetition/binding-darwin-arm64": "workspace:^",
+    "@open-spaced-repetition/binding-darwin-x64": "workspace:^",
+    "@open-spaced-repetition/binding-linux-arm64-gnu": "workspace:^",
+    "@open-spaced-repetition/binding-linux-arm64-musl": "workspace:^",
+    "@open-spaced-repetition/binding-linux-x64-gnu": "workspace:^",
+    "@open-spaced-repetition/binding-linux-x64-musl": "workspace:^",
+    "@open-spaced-repetition/binding-wasm32-wasi": "workspace:^",
+    "@open-spaced-repetition/binding-win32-arm64-msvc": "workspace:^",
+    "@open-spaced-repetition/binding-win32-ia32-msvc": "workspace:^",
+    "@open-spaced-repetition/binding-win32-x64-msvc": "workspace:^"
   }
 }

@@ -1,0 +1,36 @@
+{
+  "name": "@open-spaced-repetition/binding-win32-arm64-msvc",
+  "version": "0.0.1",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "fsrs-binding.win32-arm64-msvc.node",
+  "files": [
+    "fsrs-binding.win32-arm64-msvc.node"
+  ],
+  "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/binding"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "os": [
+    "win32"
+  ]
+}

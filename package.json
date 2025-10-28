@@ -28,7 +28,8 @@
     "typescript": "^5.8.3"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/binding/npm/*"
   ],
   "author": "ishiko",
   "license": "MIT",

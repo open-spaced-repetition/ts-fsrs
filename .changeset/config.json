@@ -2,7 +2,22 @@
   "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
   "changelog": "@changesets/cli/changelog",
   "commit": false,
-  "fixed": [],
+  "fixed": [
+    [
+      "@open-spaced-repetition/binding",
+      "@open-spaced-repetition/binding-android-arm64",
+      "@open-spaced-repetition/binding-darwin-arm64",
+      "@open-spaced-repetition/binding-darwin-x64",
+      "@open-spaced-repetition/binding-linux-arm64-gnu",
+      "@open-spaced-repetition/binding-linux-arm64-musl",
+      "@open-spaced-repetition/binding-linux-x64-gnu",
+      "@open-spaced-repetition/binding-linux-x64-musl",
+      "@open-spaced-repetition/binding-wasm32-wasi",
+      "@open-spaced-repetition/binding-win32-arm64-msvc",
+      "@open-spaced-repetition/binding-win32-ia32-msvc",
+      "@open-spaced-repetition/binding-win32-x64-msvc"
+    ]
+  ],
   "linked": [["ts-fsrs"]],
   "access": "public",
   "baseBranch": "main",

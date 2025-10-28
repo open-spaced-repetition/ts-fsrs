@@ -374,22 +374,17 @@ jobs:
         with:
           path: artifacts
       - name: List Artifacts
-        run: ls -R ./artifacts
+        run: ls -R ./packages/binding/artifacts
         shell: bash
       - name: Sync JS & types into binding
         run: |
           mkdir -p packages/binding
           find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
         shell: bash
-      - name: create npm dirs
-        run: |
-          pnpm -F @open-spaced-repetition/binding exec napi create-npm-dirs
       - name: Move artifacts
         run: pnpm -F @open-spaced-repetition/binding artifacts
-      - name: Move npm
-        run: mv packages/binding/npm ./npm
       - name: List packages
-        run: ls -R ./npm
+        run: ls -R ./packages/binding/npm
         shell: bash
       - name: Publish
         run: |

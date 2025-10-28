@@ -88,6 +88,66 @@ importers:
       tinybench:
         specifier: ^5.0.0
         version: 5.0.1
+    optionalDependencies:
+      '@open-spaced-repetition/binding-android-arm64':
+        specifier: workspace:^
+        version: link:npm/android-arm64
+      '@open-spaced-repetition/binding-darwin-arm64':
+        specifier: workspace:^
+        version: link:npm/darwin-arm64
+      '@open-spaced-repetition/binding-darwin-x64':
+        specifier: workspace:^
+        version: link:npm/darwin-x64
+      '@open-spaced-repetition/binding-linux-arm64-gnu':
+        specifier: workspace:^
+        version: link:npm/linux-arm64-gnu
+      '@open-spaced-repetition/binding-linux-arm64-musl':
+        specifier: workspace:^
+        version: link:npm/linux-arm64-musl
+      '@open-spaced-repetition/binding-linux-x64-gnu':
+        specifier: workspace:^
+        version: link:npm/linux-x64-gnu
+      '@open-spaced-repetition/binding-linux-x64-musl':
+        specifier: workspace:^
+        version: link:npm/linux-x64-musl
+      '@open-spaced-repetition/binding-wasm32-wasi':
+        specifier: workspace:^
+        version: link:npm/wasm32-wasi
+      '@open-spaced-repetition/binding-win32-arm64-msvc':
+        specifier: workspace:^
+        version: link:npm/win32-arm64-msvc
+      '@open-spaced-repetition/binding-win32-ia32-msvc':
+        specifier: workspace:^
+        version: link:npm/win32-ia32-msvc
+      '@open-spaced-repetition/binding-win32-x64-msvc':
+        specifier: workspace:^
+        version: link:npm/win32-x64-msvc
+
+  packages/binding/npm/android-arm64: {}
+
+  packages/binding/npm/darwin-arm64: {}
+
+  packages/binding/npm/darwin-x64: {}
+
+  packages/binding/npm/linux-arm64-gnu: {}
+
+  packages/binding/npm/linux-arm64-musl: {}
+
+  packages/binding/npm/linux-x64-gnu: {}
+
+  packages/binding/npm/linux-x64-musl: {}
+
+  packages/binding/npm/wasm32-wasi:
+    dependencies:
+      '@napi-rs/wasm-runtime':
+        specifier: ^1.0.7
+        version: 1.0.7
+
+  packages/binding/npm/win32-arm64-msvc: {}
+
+  packages/binding/npm/win32-ia32-msvc: {}
+
+  packages/binding/npm/win32-x64-msvc: {}
 
   packages/fsrs:
     devDependencies:
