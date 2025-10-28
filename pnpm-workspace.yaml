@@ -4,6 +4,4 @@ packages:
   - examples/*
 
 supportedArchitectures:
-  cpu:
-    - current
-    - wasm32
+  cpu: [current, wasm32]
