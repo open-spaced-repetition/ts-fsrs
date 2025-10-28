@@ -73,16 +73,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
+
+      - name: Setup pnpm
+        shell: bash
+        run: corepack enable pnpm
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -129,6 +128,11 @@ jobs:
           node-version: 20
           cache: 'pnpm'
           architecture: x86
+
+      - name: Setup pnpm (x86)
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        shell: bash
+        run: corepack enable pnpm
 
       - name: Build
         run: ${{ matrix.settings.build }}
@@ -179,14 +183,15 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
       - name: Setup node
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
           architecture: ${{ matrix.settings.architecture }}
+      - name: Setup pnpm
+        shell: bash
+        run: corepack enable pnpm
       - name: Cache test data
         id: cache-revlog
         uses: actions/cache@v4
@@ -232,13 +237,14 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
       - name: Setup node
         uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node }}
           cache: pnpm
+      - name: Setup pnpm
+        shell: bash
+        run: corepack enable pnpm
       - name: Cache test data
         id: cache-revlog
         uses: actions/cache@v4
@@ -295,7 +301,10 @@ jobs:
         with:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
-          run: sh -lc "corepack enable && corepack prepare pnpm@10.15.0 --activate && pnpm run -F @open-spaced-repetition/binding test"
+          run: |
+            sh -lc "set -e
+            corepack enable pnpm
+            pnpm run -F @open-spaced-repetition/binding test"
 
   test-wasi:
     name: Test WASI target
@@ -304,13 +313,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
       - name: Setup node
         uses: actions/setup-node@v5
         with:
           node-version: 22
           cache: pnpm
+      - name: Setup pnpm
+        shell: bash
+        run: corepack enable pnpm
       - name: Cache test data
         id: cache-revlog
         uses: actions/cache@v4
@@ -352,16 +362,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
-
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
+
+      - name: Setup pnpm
+        shell: bash
+        run: corepack enable pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
