@@ -21,8 +21,8 @@
   "license": "MIT",
   "scripts": {
     "artifacts": "napi artifacts -d ../../artifacts --build-output-dir .",
-    "build": "napi build --platform --release --esm",
-    "build:wasm": "napi build --platform --release --esm --target wasm32-wasip1-threads",
+    "build": "napi build --platform --release",
+    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
@@ -34,8 +34,8 @@
   "devDependencies": {
     "@emnapi/core": "^1.4.5",
     "@emnapi/runtime": "^1.4.5",
-    "@napi-rs/cli": "^3.0.3",
-    "@napi-rs/wasm-runtime": "^1.0.1",
+    "@napi-rs/cli": "^3.4.1",
+    "@napi-rs/wasm-runtime": "^1.0.7",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "@types/papaparse": "^5.3.16",
