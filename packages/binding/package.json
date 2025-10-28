@@ -3,26 +3,30 @@
   "version": "0.0.1",
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "browser": "browser.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "browser": "dist/browser.js",
   "exports": {
     ".": {
-      "browser": "./browser.js",
-      "types": "./index.d.ts",
-      "default": "./index.js"
+      "browser": "./dist/browser.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
     },
-    "./wasm": {
-      "browser": "./browser.js",
-      "types": "./index.d.ts",
-      "default": "./wasm.js"
+    "./emnapi": {
+      "browser": "./dist/browser.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/fsrs-binding.wasi.cjs",
+      "default": "./dist/fsrs-binding.wasi-browser.js"
     }
   },
   "license": "MIT",
   "scripts": {
     "artifacts": "napi artifacts -d ../../artifacts --build-output-dir .",
-    "build": "napi build --platform --release",
-    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads",
+    "build": "napi build --platform --release -o ./dist",
+    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
@@ -87,5 +91,18 @@
     "type": "git",
     "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
     "directory": "packages/binding"
+  },
+  "optionalDependencies": {
+    "@open-spaced-repetition/binding-android-arm64": "0.0.1",
+    "@open-spaced-repetition/binding-darwin-arm64": "0.0.1",
+    "@open-spaced-repetition/binding-darwin-x64": "0.0.1",
+    "@open-spaced-repetition/binding-linux-arm64-gnu": "0.0.1",
+    "@open-spaced-repetition/binding-linux-arm64-musl": "0.0.1",
+    "@open-spaced-repetition/binding-linux-x64-gnu": "0.0.1",
+    "@open-spaced-repetition/binding-linux-x64-musl": "0.0.1",
+    "@open-spaced-repetition/binding-wasm32-wasi": "0.0.1",
+    "@open-spaced-repetition/binding-win32-arm64-msvc": "0.0.1",
+    "@open-spaced-repetition/binding-win32-ia32-msvc": "0.0.1",
+    "@open-spaced-repetition/binding-win32-x64-msvc": "0.0.1"
   }
 }
