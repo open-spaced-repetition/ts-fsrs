@@ -391,7 +391,7 @@ jobs:
       - name: Sync JS & types into binding
         run: |
           mkdir -p packages/binding
-          find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
+          find packages/binding/artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
         shell: bash
 
       - name: List packaged bindings
