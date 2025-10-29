@@ -24,6 +24,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
 
 jobs:
   build:
@@ -351,3 +352,56 @@ jobs:
         run: pnpm run -F @open-spaced-repetition/binding test
         env:
           NAPI_RS_FORCE_WASI: 1
+
+  preview-package:
+    name: Preview Package
+    runs-on: ubuntu-latest
+    needs:
+      - test-macOS-windows-binding
+      - test-linux-binding
+      - test-wasi
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v5
+        with:
+          path: artifacts
+
+      - name: List downloaded artifacts
+        run: ls -R artifacts
+        shell: bash
+
+      - name: Sync JS & types into binding
+        run: |
+          mkdir -p packages/binding
+          find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
+        shell: bash
+
+      - name: Move artifacts
+        run: pnpm -F @open-spaced-repetition/binding artifacts
+
+      - name: List packaged bindings
+        run: ls -R packages/binding/npm
+        shell: bash
+
+      - name: Check binary size changes
+        uses: preactjs/compressed-size-action@v2
+        with:
+          pattern: "packages/binding/npm/**/*.{node,wasm}"
+          exclude: "packages/binding/npm/**/package.json"
+          compression: "none"
