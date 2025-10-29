@@ -389,10 +389,7 @@ jobs:
         shell: bash
 
       - name: Sync JS & types into binding
-        run: |
-          mkdir -p packages/binding
-          find packages/binding/artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
-        shell: bash
+        run: pnpm -F @open-spaced-repetition/binding artifacts
 
       - name: List packaged bindings
         run: ls -R packages/binding/npm
@@ -404,3 +401,4 @@ jobs:
           pattern: 'packages/binding/npm/**/*.{node,wasm}'
           exclude: 'packages/binding/npm/**/package.json'
           compression: 'none'
+          build-script: "false"
