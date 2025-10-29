@@ -382,10 +382,10 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v5
         with:
-          path: artifacts
+          path: packages/binding/artifacts
 
       - name: List downloaded artifacts
-        run: ls -R artifacts
+        run: ls -R packages/binding/artifacts
         shell: bash
 
       - name: Sync JS & types into binding
@@ -394,9 +394,6 @@ jobs:
           find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
         shell: bash
 
-      - name: Move artifacts
-        run: pnpm -F @open-spaced-repetition/binding artifacts
-
       - name: List packaged bindings
         run: ls -R packages/binding/npm
         shell: bash
@@ -404,6 +401,6 @@ jobs:
       - name: Check binary size changes
         uses: preactjs/compressed-size-action@v2
         with:
-          pattern: "packages/binding/npm/**/*.{node,wasm}"
-          exclude: "packages/binding/npm/**/package.json"
-          compression: "none"
+          pattern: 'packages/binding/npm/**/*.{node,wasm}'
+          exclude: 'packages/binding/npm/**/package.json'
+          compression: 'none'

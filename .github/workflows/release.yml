@@ -388,10 +388,10 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v5
         with:
-          path: artifacts
+          path: packages/binding/artifacts
 
       - name: List downloaded artifacts
-        run: ls -R artifacts
+        run: ls -R packages/binding/artifacts
         shell: bash
 
       - name: Sync JS & types into binding
@@ -399,9 +399,6 @@ jobs:
           mkdir -p packages/binding
           find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
         shell: bash
-
-      - name: Move artifacts
-        run: pnpm -F @open-spaced-repetition/binding artifacts
 
       - name: List packaged bindings
         run: ls -R packages/binding/npm
