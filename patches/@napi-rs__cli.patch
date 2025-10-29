@@ -1,0 +1,84 @@
+diff --git a/dist/cli.js b/dist/cli.js
+index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b21389abceaf 100755
+--- a/dist/cli.js
++++ b/dist/cli.js
+@@ -722,23 +722,23 @@ async function collectArtifacts(userOptions) {
+ 		const distFilePathLocal = join(parse(packageJsonPath).dir, parsedName.base);
+ 		debug$8.info(`Write file content to [${colors.yellowBright(distFilePathLocal)}]`);
+ 		await writeFileAsync(distFilePathLocal, sourceContent);
++		const wasiTarget = targets.find((t) => t.platform === "wasi");
++		if (wasiTarget && platformArchABI === wasiTarget.platformArchABI) {
++			const wasiDir = join(options.cwd, options.npmDir, wasiTarget.platformArchABI);
++			const cjsFile = join(parsedName.dir, `${binaryName}.wasi.cjs`);
++			const workerFile = join(parsedName.dir, `wasi-worker.mjs`);
++			const browserEntry = join(parsedName.dir, `${binaryName}.wasi-browser.js`);
++			const browserWorkerFile = join(parsedName.dir, `wasi-worker-browser.mjs`);
++			debug$8.info(`Move wasi binding file [${colors.yellowBright(cjsFile)}] to [${colors.yellowBright(wasiDir)}]`);
++			await writeFileAsync(join(wasiDir, `${binaryName}.wasi.cjs`), await readFileAsync(cjsFile));
++			debug$8.info(`Move wasi worker file [${colors.yellowBright(workerFile)}] to [${colors.yellowBright(wasiDir)}]`);
++			await writeFileAsync(join(wasiDir, `wasi-worker.mjs`), await readFileAsync(workerFile));
++			debug$8.info(`Move wasi browser entry file [${colors.yellowBright(browserEntry)}] to [${colors.yellowBright(wasiDir)}]`);
++			await writeFileAsync(join(wasiDir, `${binaryName}.wasi-browser.js`), (await readFileAsync(browserEntry, "utf8")).replace(`new URL('./wasi-worker-browser.mjs', import.meta.url)`, `new URL('${packageName}-wasm32-wasi/wasi-worker-browser.mjs', import.meta.url)`));
++			debug$8.info(`Move wasi browser worker file [${colors.yellowBright(browserWorkerFile)}] to [${colors.yellowBright(wasiDir)}]`);
++			await writeFileAsync(join(wasiDir, `wasi-worker-browser.mjs`), await readFileAsync(browserWorkerFile));
++		}
+ 	})));
+-	const wasiTarget = targets.find((t) => t.platform === "wasi");
+-	if (wasiTarget) {
+-		const wasiDir = join(options.cwd, options.npmDir, wasiTarget.platformArchABI);
+-		const cjsFile = join(options.buildOutputDir ?? options.cwd, `${binaryName}.wasi.cjs`);
+-		const workerFile = join(options.buildOutputDir ?? options.cwd, `wasi-worker.mjs`);
+-		const browserEntry = join(options.buildOutputDir ?? options.cwd, `${binaryName}.wasi-browser.js`);
+-		const browserWorkerFile = join(options.buildOutputDir ?? options.cwd, `wasi-worker-browser.mjs`);
+-		debug$8.info(`Move wasi binding file [${colors.yellowBright(cjsFile)}] to [${colors.yellowBright(wasiDir)}]`);
+-		await writeFileAsync(join(wasiDir, `${binaryName}.wasi.cjs`), await readFileAsync(cjsFile));
+-		debug$8.info(`Move wasi worker file [${colors.yellowBright(workerFile)}] to [${colors.yellowBright(wasiDir)}]`);
+-		await writeFileAsync(join(wasiDir, `wasi-worker.mjs`), await readFileAsync(workerFile));
+-		debug$8.info(`Move wasi browser entry file [${colors.yellowBright(browserEntry)}] to [${colors.yellowBright(wasiDir)}]`);
+-		await writeFileAsync(join(wasiDir, `${binaryName}.wasi-browser.js`), (await readFileAsync(browserEntry, "utf8")).replace(`new URL('./wasi-worker-browser.mjs', import.meta.url)`, `new URL('${packageName}-wasm32-wasi/wasi-worker-browser.mjs', import.meta.url)`));
+-		debug$8.info(`Move wasi browser worker file [${colors.yellowBright(browserWorkerFile)}] to [${colors.yellowBright(wasiDir)}]`);
+-		await writeFileAsync(join(wasiDir, `wasi-worker-browser.mjs`), await readFileAsync(browserWorkerFile));
+-	}
+ }
+ async function collectNodeBinaries(root) {
+ 	const files$1 = await readdirAsync(root, { withFileTypes: true });
+@@ -1639,9 +1639,12 @@ var Builder = class {
+ 		const wasmBinaryName = await this.copyArtifact();
+ 		if (this.cdyLibName) {
+ 			const idents = await this.generateTypeDef();
+-			const jsOutput = await this.writeJsBinding(idents);
++			const jsOutputCjs = await this.writeJsBinding(idents, false);
++			const jsOutputEsm = await this.writeJsBinding(idents, true);
+ 			const wasmBindingsOutput = await this.writeWasiBinding(wasmBinaryName, idents);
+-			if (jsOutput) this.outputs.push(jsOutput);
++			if (jsOutputCjs) this.outputs.push(jsOutputCjs);
++			if (jsOutputEsm) this.outputs.push(jsOutputEsm);
++
+ 			if (wasmBindingsOutput) this.outputs.push(...wasmBindingsOutput);
+ 		}
+ 		return this.outputs;
+@@ -1734,13 +1737,13 @@ var Builder = class {
+ 		}
+ 		return exports$1;
+ 	}
+-	async writeJsBinding(idents) {
++	async writeJsBinding(idents, esm) {
+ 		return writeJsBinding({
+ 			platform: this.options.platform,
+ 			noJsBinding: this.options.noJsBinding,
+ 			idents,
+ 			jsBinding: this.options.jsBinding,
+-			esm: this.options.esm,
++			esm: esm,
+ 			binaryName: this.config.binaryName,
+ 			packageName: this.config.packageName,
+ 			version: process.env.npm_new_version ?? this.config.packageJson.version,
+@@ -1793,7 +1796,7 @@ var Builder = class {
+ };
+ async function writeJsBinding(options) {
+ 	if (!options.platform || options.noJsBinding || options.idents.length === 0) return;
+-	const name$1 = options.jsBinding ?? "index.js";
++	const name$1 = options.jsBinding ?? (options.esm? "index.mjs": "index.cjs");
+ 	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
+ 	try {
+ 		const dest = join(options.outputDir, name$1);

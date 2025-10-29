@@ -1,0 +1,36 @@
+{
+  "name": "@open-spaced-repetition/binding-android-arm64",
+  "version": "0.0.1",
+  "cpu": [
+    "arm64"
+  ],
+  "main": "fsrs-binding.android-arm64.node",
+  "files": [
+    "fsrs-binding.android-arm64.node"
+  ],
+  "description": "The aarch64-linux-android native binary for @open-spaced-repetition/binding",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">= 20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/binding"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "os": [
+    "android"
+  ]
+}

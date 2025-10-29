@@ -6,8 +6,8 @@
     "outDir": "lib",
     "isolatedModules": true,
     "paths": {
-      "@open-spaced-repetition/binding": ["../index.d.ts"],
-      "@open-spaced-repetition/binding/*": ["../*"]
+      "@open-spaced-repetition/binding": ["../dist/index.d.ts"],
+      "@open-spaced-repetition/binding/*": ["../dist/*"]
     }
   },
   "include": ["."],
