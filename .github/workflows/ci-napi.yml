@@ -147,9 +147,11 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            packages/binding/*.node
-            packages/binding/*.js
-            packages/binding/*.d.ts
+            packages/binding/dist/*.node
+            packages/binding/dist/*.js
+            packages/binding/dist/*.d.ts
+            packages/binding/dist/*.cjs
+            packages/binding/dist/*.mjs
           if-no-files-found: error
       - name: Upload WASI artifact
         uses: actions/upload-artifact@v4
@@ -157,11 +159,11 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            packages/binding/*.wasm
-            packages/binding/*.js
-            packages/binding/*.d.ts
-            packages/binding/*.cjs
-            packages/binding/*.mjs
+            packages/binding/dist/*.wasm
+            packages/binding/dist/*.js
+            packages/binding/dist/*.d.ts
+            packages/binding/dist/*.cjs
+            packages/binding/dist/*.mjs
           if-no-files-found: error
 
   test-macOS-windows-binding:
