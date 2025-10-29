@@ -59,10 +59,9 @@
     "node-addon-api"
   ],
   "files": [
-    "index.d.ts",
-    "index.js",
-    "wasm.js",
-    "browser.js"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "napi": {
     "binaryName": "fsrs-binding",
