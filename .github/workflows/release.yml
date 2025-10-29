@@ -353,7 +353,6 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    environment: production
     needs:
       - test-macOS-windows-binding
       - test-linux-binding
@@ -381,6 +380,9 @@ jobs:
       - name: Run tests
         run: pnpm run test::coverage
 
+      - name: Build TS-FSRS
+        run: pnpm -F ts-fsrs build
+
       - name: Download all artifacts
         uses: actions/download-artifact@v5
         with:
@@ -407,9 +409,10 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: pnpm release
+          version: pnpm run version
           createGithubReleases: true
+          commit: 'chore(release): version packages'
+          title: 'chore: release new versions'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
