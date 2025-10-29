@@ -13,7 +13,9 @@
     "build": "pnpm -r run build",
     "docs": "pnpm -F ts-fsrs docs",
     "changeset": "changeset",
-    "release": "pnpm build && changeset publish"
+    "//": "when we create the release PR, we need to update the lock file with the new versions",
+    "version": "changeset version && pnpm i --lockfile-only && (git stash list | grep -q '__automated-changes' && git -c advice.skippedCherryPicks=false stash pop || echo 'No stash to pop')",
+    "release": "changeset publish"
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.2",
@@ -28,7 +30,8 @@
     "typescript": "^5.8.3"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "packages/binding/npm/*"
   ],
   "author": "ishiko",
   "license": "MIT",
@@ -50,7 +53,10 @@
     "ignoredBuiltDependencies": [
       "esbuild",
       "unrs-resolver"
-    ]
+    ],
+    "patchedDependencies": {
+      "@napi-rs/cli": "patches/@napi-rs__cli.patch"
+    }
   },
   "packageManager": "pnpm@10.15.0+sha512.486ebc259d3e999a4e8691ce03b5cac4a71cbeca39372a9b762cb500cfdf0873e2cb16abe3d951b1ee2cf012503f027b98b6584e4df22524e0c7450d9ec7aa7b"
 }

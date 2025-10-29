@@ -20,19 +20,11 @@ on:
       - 'packages/binding/**'
       - '.github/workflows/ci-napi.yml'
       - 'pnpm-lock.yaml'
-  push:
-    branches:
-      - main
-      - preview
-
-    paths:
-      - 'packages/binding/**'
-      - '.github/workflows/ci-napi.yml'
-      - 'pnpm-lock.yaml'
 
 permissions:
   contents: read
   id-token: write
+  pull-requests: write
 
 jobs:
   build:
@@ -42,41 +34,41 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target x86_64-apple-darwin
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-apple-darwin -o ./dist
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target x86_64-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-pc-windows-msvc -o ./dist
             target: x86_64-pc-windows-msvc
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target i686-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
             target: i686-pc-windows-msvc
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target aarch64-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-pc-windows-msvc -o ./dist
             target: aarch64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target x86_64-unknown-linux-gnu --use-napi-cross
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-gnu --use-napi-cross -o ./dist
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target x86_64-unknown-linux-musl -x
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-musl -x -o ./dist
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target aarch64-apple-darwin
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-apple-darwin -o ./dist
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target aarch64-unknown-linux-gnu --use-napi-cross
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-gnu --use-napi-cross -o ./dist
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine-aarch64
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target aarch64-unknown-linux-musl -x
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-musl -x -o ./dist
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target aarch64-linux-android
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-linux-android -o ./dist
           - host: ubuntu-latest
             target: wasm32-wasip1-threads
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --esm --target wasm32-wasip1-threads
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target wasm32-wasip1-threads -o ./dist
 
     name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
@@ -85,10 +77,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Install pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          run_install: false
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -134,6 +125,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Setup pnpm (x86)
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+
       - name: Setup node x86
         uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
@@ -151,9 +147,11 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            packages/binding/*.node
-            packages/binding/*.js
-            packages/binding/*.d.ts
+            packages/binding/dist/*.node
+            packages/binding/dist/*.js
+            packages/binding/dist/*.d.ts
+            packages/binding/dist/*.cjs
+            packages/binding/dist/*.mjs
           if-no-files-found: error
       - name: Upload WASI artifact
         uses: actions/upload-artifact@v4
@@ -161,11 +159,11 @@ jobs:
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
-            packages/binding/*.wasm
-            packages/binding/*.js
-            packages/binding/*.d.ts
-            packages/binding/*.cjs
-            packages/binding/*.mjs
+            packages/binding/dist/*.wasm
+            packages/binding/dist/*.js
+            packages/binding/dist/*.d.ts
+            packages/binding/dist/*.cjs
+            packages/binding/dist/*.mjs
           if-no-files-found: error
 
   test-macOS-windows-binding:
@@ -191,8 +189,9 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
       - name: Setup node
         uses: actions/setup-node@v5
         with:
@@ -219,7 +218,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.settings.target }}
-          path: packages/binding
+          path: packages/binding/dist
       - name: List packages
         run: ls -R packages/binding
         shell: bash
@@ -243,8 +242,9 @@ jobs:
     runs-on: ${{ contains(matrix.target, 'aarch64') && 'ubuntu-24.04-arm' || 'ubuntu-latest' }}
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
       - name: Setup node
         uses: actions/setup-node@v5
         with:
@@ -291,7 +291,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-${{ matrix.target }}
-          path: packages/binding
+          path: packages/binding/dist
       - name: List packages
         run: ls -R packages/binding
         shell: bash
@@ -307,7 +307,10 @@ jobs:
         with:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
-          run: sh -lc "corepack enable && corepack prepare pnpm@10.15.0 --activate && pnpm run -F @open-spaced-repetition/binding test"
+          run: |
+            sh -lc "set -e
+            corepack enable pnpm
+            pnpm run -F @open-spaced-repetition/binding test"
   test-wasi:
     name: Test WASI target
     needs:
@@ -315,8 +318,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
       - name: Setup node
         uses: actions/setup-node@v5
         with:
@@ -342,7 +346,7 @@ jobs:
         uses: actions/download-artifact@v5
         with:
           name: bindings-wasm32-wasip1-threads
-          path: packages/binding
+          path: packages/binding/dist
       - name: List packages
         run: ls -R packages/binding
         shell: bash
@@ -351,60 +355,48 @@ jobs:
         env:
           NAPI_RS_FORCE_WASI: 1
 
-  publish:
-    name: Publish
+  preview-package:
+    name: Preview Package
     runs-on: ubuntu-latest
     needs:
       - test-macOS-windows-binding
       - test-linux-binding
       - test-wasi
     steps:
-      - uses: actions/checkout@v5
-      - name: setup pnpm
-        uses: pnpm/action-setup@v4
-      - name: Setup node
-        uses: actions/setup-node@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        shell: bash
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: pnpm
+          cache: 'pnpm'
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
       - name: Download all artifacts
         uses: actions/download-artifact@v5
         with:
-          path: artifacts
-      - name: List Artifacts
-        run: ls -R ./artifacts
+          path: packages/binding/artifacts
+
+      - name: List downloaded artifacts
+        run: ls -R packages/binding/artifacts
         shell: bash
+
       - name: Sync JS & types into binding
-        run: |
-          mkdir -p packages/binding
-          find artifacts -type f \( -name "*.js" -o -name "*.cjs" -o -name "*.mjs" -o -name "*.d.ts" \) -exec cp -f {} packages/binding/ \;
-        shell: bash
-      - name: create npm dirs
-        run: |
-          pnpm -F @open-spaced-repetition/binding exec napi create-npm-dirs
-      - name: Move artifacts
         run: pnpm -F @open-spaced-repetition/binding artifacts
-      - name: Move npm
-        run: mv packages/binding/npm ./npm
-      - name: List packages
-        run: ls -R ./npm
+
+      - name: List packaged bindings
+        run: ls -R packages/binding/npm
         shell: bash
-      - name: Publish
-        run: |
-          npm config set provenance true
-          if git log -1 --pretty=%B | grep "^v\?[0-9]\+\.[0-9]\+\.[0-9]\+$";
-          then
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --access public
-          elif git log -1 --pretty=%B | grep "^v\?[0-9]\+\.[0-9]\+\.[0-9]\+";
-          then
-            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
-            npm publish --tag next --access public
-          else
-            echo "Not a release, skipping publish"
-          fi
+        
+      - name: Changeset publish dry-run
+        run: pnpm changeset publish --dry-run --no-git-tag
+        shell: bash
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NPM_CONFIG_DRY_RUN: 1

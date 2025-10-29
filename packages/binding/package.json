@@ -3,26 +3,30 @@
   "version": "0.0.1",
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "type": "module",
-  "main": "index.js",
-  "types": "index.d.ts",
-  "browser": "browser.js",
+  "main": "dist/index.cjs",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "browser": "dist/browser.js",
   "exports": {
     ".": {
-      "browser": "./browser.js",
-      "types": "./index.d.ts",
-      "default": "./index.js"
+      "browser": "./dist/browser.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.cjs",
+      "import": "./dist/index.mjs",
+      "default": "./dist/index.mjs"
     },
-    "./wasm": {
-      "browser": "./browser.js",
-      "types": "./index.d.ts",
-      "default": "./wasm.js"
+    "./emnapi": {
+      "browser": "./dist/browser.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/fsrs-binding.wasi.cjs",
+      "default": "./dist/fsrs-binding.wasi-browser.js"
     }
   },
   "license": "MIT",
   "scripts": {
-    "artifacts": "napi artifacts -d ../../artifacts --build-output-dir .",
-    "build": "napi build --platform --release --esm",
-    "build:wasm": "napi build --platform --release --esm --target wasm32-wasip1-threads",
+    "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
+    "build": "napi build --platform --release -o ./dist",
+    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
@@ -34,8 +38,8 @@
   "devDependencies": {
     "@emnapi/core": "^1.4.5",
     "@emnapi/runtime": "^1.4.5",
-    "@napi-rs/cli": "^3.0.3",
-    "@napi-rs/wasm-runtime": "^1.0.1",
+    "@napi-rs/cli": "^3.4.1",
+    "@napi-rs/wasm-runtime": "^1.0.7",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.0",
     "@types/papaparse": "^5.3.16",
@@ -55,10 +59,9 @@
     "node-addon-api"
   ],
   "files": [
-    "index.d.ts",
-    "index.js",
-    "wasm.js",
-    "browser.js"
+    "dist",
+    "README.md",
+    "LICENSE"
   ],
   "napi": {
     "binaryName": "fsrs-binding",
@@ -87,5 +90,18 @@
     "type": "git",
     "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
     "directory": "packages/binding"
+  },
+  "optionalDependencies": {
+    "@open-spaced-repetition/binding-android-arm64": "workspace:^",
+    "@open-spaced-repetition/binding-darwin-arm64": "workspace:^",
+    "@open-spaced-repetition/binding-darwin-x64": "workspace:^",
+    "@open-spaced-repetition/binding-linux-arm64-gnu": "workspace:^",
+    "@open-spaced-repetition/binding-linux-arm64-musl": "workspace:^",
+    "@open-spaced-repetition/binding-linux-x64-gnu": "workspace:^",
+    "@open-spaced-repetition/binding-linux-x64-musl": "workspace:^",
+    "@open-spaced-repetition/binding-wasm32-wasi": "workspace:^",
+    "@open-spaced-repetition/binding-win32-arm64-msvc": "workspace:^",
+    "@open-spaced-repetition/binding-win32-ia32-msvc": "workspace:^",
+    "@open-spaced-repetition/binding-win32-x64-msvc": "workspace:^"
   }
 }
