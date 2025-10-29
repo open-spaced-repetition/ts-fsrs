@@ -34,41 +34,41 @@ jobs:
         settings:
           - host: macos-latest
             target: x86_64-apple-darwin
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-apple-darwin
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-apple-darwin -o ./dist
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-pc-windows-msvc -o ./dist
             target: x86_64-pc-windows-msvc
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
             target: i686-pc-windows-msvc
           - host: windows-latest
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-pc-windows-msvc
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-pc-windows-msvc -o ./dist
             target: aarch64-pc-windows-msvc
           - host: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-gnu --use-napi-cross
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-gnu --use-napi-cross -o ./dist
           - host: ubuntu-latest
             target: x86_64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-musl -x
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target x86_64-unknown-linux-musl -x -o ./dist
           - host: macos-latest
             target: aarch64-apple-darwin
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-apple-darwin
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-apple-darwin -o ./dist
           - host: ubuntu-latest
             target: aarch64-unknown-linux-gnu
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-debian-aarch64
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-gnu --use-napi-cross
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-gnu --use-napi-cross -o ./dist
           - host: ubuntu-latest
             target: aarch64-unknown-linux-musl
             docker: ghcr.io/napi-rs/napi-rs/nodejs-rust:lts-alpine-aarch64
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-musl -x
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-unknown-linux-musl -x -o ./dist
           - host: ubuntu-latest
             target: aarch64-linux-android
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-linux-android
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target aarch64-linux-android -o ./dist
           - host: ubuntu-latest
             target: wasm32-wasip1-threads
-            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target wasm32-wasip1-threads
+            build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target wasm32-wasip1-threads -o ./dist
 
     name: stable - ${{ matrix.settings.target }} - node@20
     runs-on: ${{ matrix.settings.host }}
