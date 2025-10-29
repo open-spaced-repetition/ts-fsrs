@@ -1,5 +1,5 @@
 diff --git a/dist/cli.js b/dist/cli.js
-index f34170384d379ac5574fec2fa56ebb8571ddfa3e..e2124b8628cf9a981ca0fef0173337cda4ecf879 100755
+index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b21389abceaf 100755
 --- a/dist/cli.js
 +++ b/dist/cli.js
 @@ -722,23 +722,23 @@ async function collectArtifacts(userOptions) {
@@ -7,7 +7,7 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..e2124b8628cf9a981ca0fef0173337cd
  		debug$8.info(`Write file content to [${colors.yellowBright(distFilePathLocal)}]`);
  		await writeFileAsync(distFilePathLocal, sourceContent);
 +		const wasiTarget = targets.find((t) => t.platform === "wasi");
-+		if (wasiTarget) {
++		if (wasiTarget && platformArchABI === wasiTarget.platformArchABI) {
 +			const wasiDir = join(options.cwd, options.npmDir, wasiTarget.platformArchABI);
 +			const cjsFile = join(parsedName.dir, `${binaryName}.wasi.cjs`);
 +			const workerFile = join(parsedName.dir, `wasi-worker.mjs`);

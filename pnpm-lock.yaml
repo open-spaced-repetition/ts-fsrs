@@ -9,7 +9,7 @@ overrides:
 
 patchedDependencies:
   '@napi-rs/cli':
-    hash: 715fe916c240748676893f3770fa244e725af5ac47e57f9339725654136f7570
+    hash: bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23
     path: patches/@napi-rs__cli.patch
 
 importers:
@@ -57,7 +57,7 @@ importers:
         version: 1.5.0
       '@napi-rs/cli':
         specifier: ^3.4.1
-        version: 3.4.1(patch_hash=715fe916c240748676893f3770fa244e725af5ac47e57f9339725654136f7570)(@emnapi/runtime@1.5.0)(@types/node@24.3.0)
+        version: 3.4.1(patch_hash=bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23)(@emnapi/runtime@1.5.0)(@types/node@24.3.0)
       '@napi-rs/wasm-runtime':
         specifier: ^1.0.7
         version: 1.0.7
@@ -3860,7 +3860,7 @@ snapshots:
       globby: 11.1.0
       read-yaml-file: 1.1.0
 
-  '@napi-rs/cli@3.4.1(patch_hash=715fe916c240748676893f3770fa244e725af5ac47e57f9339725654136f7570)(@emnapi/runtime@1.5.0)(@types/node@24.3.0)':
+  '@napi-rs/cli@3.4.1(patch_hash=bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23)(@emnapi/runtime@1.5.0)(@types/node@24.3.0)':
     dependencies:
       '@inquirer/prompts': 7.8.6(@types/node@24.3.0)
       '@napi-rs/cross-toolchain': 1.0.3
