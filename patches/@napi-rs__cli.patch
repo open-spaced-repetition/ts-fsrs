@@ -1,7 +1,22 @@
 diff --git a/dist/cli.js b/dist/cli.js
-index f34170384d379ac5574fec2fa56ebb8571ddfa3e..d8c20bbb2c0f17db8e26a5456d86df78da7ae951 100755
+index f34170384d379ac5574fec2fa56ebb8571ddfa3e..15703ea8f9d6c902c8fd6a50c223c988207047ee 100755
 --- a/dist/cli.js
 +++ b/dist/cli.js
+@@ -726,10 +726,10 @@ async function collectArtifacts(userOptions) {
+ 	const wasiTarget = targets.find((t) => t.platform === "wasi");
+ 	if (wasiTarget) {
+ 		const wasiDir = join(options.cwd, options.npmDir, wasiTarget.platformArchABI);
+-		const cjsFile = join(options.buildOutputDir ?? options.cwd, `${binaryName}.wasi.cjs`);
+-		const workerFile = join(options.buildOutputDir ?? options.cwd, `wasi-worker.mjs`);
+-		const browserEntry = join(options.buildOutputDir ?? options.cwd, `${binaryName}.wasi-browser.js`);
+-		const browserWorkerFile = join(options.buildOutputDir ?? options.cwd, `wasi-worker-browser.mjs`);
++		const cjsFile = join(options.outputDir ?? options.cwd, `${binaryName}.wasi.cjs`);
++		const workerFile = join(options.outputDir ?? options.cwd, `wasi-worker.mjs`);
++		const browserEntry = join(options.outputDir ?? options.cwd, `${binaryName}.wasi-browser.js`);
++		const browserWorkerFile = join(options.outputDir ?? options.cwd, `wasi-worker-browser.mjs`);
+ 		debug$8.info(`Move wasi binding file [${colors.yellowBright(cjsFile)}] to [${colors.yellowBright(wasiDir)}]`);
+ 		await writeFileAsync(join(wasiDir, `${binaryName}.wasi.cjs`), await readFileAsync(cjsFile));
+ 		debug$8.info(`Move wasi worker file [${colors.yellowBright(workerFile)}] to [${colors.yellowBright(wasiDir)}]`);
 @@ -1639,9 +1639,12 @@ var Builder = class {
  		const wasmBinaryName = await this.copyArtifact();
  		if (this.cdyLibName) {
@@ -33,14 +48,12 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..d8c20bbb2c0f17db8e26a5456d86df78
  			binaryName: this.config.binaryName,
  			packageName: this.config.packageName,
  			version: process.env.npm_new_version ?? this.config.packageJson.version,
-@@ -1793,8 +1796,8 @@ var Builder = class {
+@@ -1793,7 +1796,7 @@ var Builder = class {
  };
  async function writeJsBinding(options) {
  	if (!options.platform || options.noJsBinding || options.idents.length === 0) return;
 -	const name$1 = options.jsBinding ?? "index.js";
--	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
 +	const name$1 = options.jsBinding ?? (options.esm? "index.mjs": "index.cjs");
-+	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
+ 	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
  	try {
  		const dest = join(options.outputDir, name$1);
- 		debug$7("Writing js binding to:");
