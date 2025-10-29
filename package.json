@@ -13,7 +13,7 @@
     "build": "pnpm -r run build",
     "docs": "pnpm -F ts-fsrs docs",
     "changeset": "changeset",
-    "//": "when we create the release PR, we need to update the lock file with the new versions",
+    "//": "echo 'when we create the release PR, we need to update the lock file with the new versions'",
     "version": "changeset version && pnpm i --lockfile-only && (git stash list | grep -q '__automated-changes' && git -c advice.skippedCherryPicks=false stash pop || echo 'No stash to pop')",
     "release": "changeset publish"
   },
