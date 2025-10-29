@@ -25,7 +25,6 @@
     "test::publish": "yalc publish",
     "prebuild": "rimraf ./dist",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
-    "prepare": "npm run build",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
     "predocs": "rimraf ../../docs",
     "docs": "tsx ./typedoc.ts"
