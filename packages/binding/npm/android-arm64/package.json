@@ -8,7 +8,7 @@
   "files": [
     "fsrs-binding.android-arm64.node"
   ],
-  "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
+  "description": "The aarch64-linux-android native binary for @open-spaced-repetition/binding",
   "keywords": [
     "napi-rs",
     "NAPI",
