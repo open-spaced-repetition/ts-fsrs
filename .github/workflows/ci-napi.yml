@@ -394,14 +394,9 @@ jobs:
       - name: List packaged bindings
         run: ls -R packages/binding/npm
         shell: bash
-
-      - name: Check binary size changes
-        uses: preactjs/compressed-size-action@v2
-        with:
-          pattern: 'packages/binding/npm/**/*.{node,wasm}'
-          exclude: 'packages/binding/npm/**/package.json'
-          compression: 'none'
-          # https://github.com/preactjs/compressed-size-action/blob/2a937a1dd255ef04f3ee3611816b630873f5faa3/src/index.js#L152-L154
-          install-script: ''
-          # https://github.com/preactjs/compressed-size-action/blob/2a937a1dd255ef04f3ee3611816b630873f5faa3/src/index.js#L83-L85
-          build-script: '//'
+        
+      - name: Changeset publish dry-run
+        run: pnpm changeset publish --dry-run --no-git-tag
+        shell: bash
+        env:
+          NPM_CONFIG_DRY_RUN: 1
