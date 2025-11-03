@@ -406,6 +406,11 @@ jobs:
           ls -R packages/binding/dist
         shell: bash
 
+      # Ensure npm 11.5.1 or later is installed
+      # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
+      - name: Update npm
+        run: npm install -g npm@latest
+
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
@@ -417,6 +422,3 @@ jobs:
           title: 'chore: release new versions'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
-          # https://github.com/changesets/changesets/issues/1152#issuecomment-3190884868
-          NPM_TOKEN: ''
