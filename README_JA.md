@@ -9,8 +9,8 @@
 [![Downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov
 )](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
-[![Publish](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/publish.yml?style=flat-square&logo=githubactions&label=Publish
-)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release
+)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
 [![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
 )](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
@@ -28,13 +28,15 @@ ts-fsrs の開発に参加したい貢献者や開発者のために、一貫し
 
 # ts-fsrsの使用方法
 
+## ts-fsrs (スケジューラー)
+
 `ts-fsrs@3.x`はNode.js（>=16.0.0）で動作する必要があります。`ts-fsrs@4.x`からは、最小必要なNode.jsバージョンは18.0.0です。
 `ts-fsrs@3.5.6`以降、ts-fsrsはCommonJS、ESM、UMDモジュールシステムをサポートしています。
 
 ```bash
-npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+npm install ts-fsrs
 yarn add ts-fsrs
-pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+pnpm install ts-fsrs
 bun add ts-fsrs
 ```
 
@@ -81,6 +83,63 @@ for (const item of scheduling_cards) {
   パッケージにアクセスする)
 - [実際のケース - Next.jsやHono.js、kyselyを利用する](https://github.com/ishiko732/ts-fsrs-demo)
 - [モダンなフラッシュカード - Next.jsやtRPCなど技術を利用している](https://github.com/zsh-eng/spaced)
+
+## @open-spaced-repetition/binding (オプティマイザー)
+
+> **⚠️ ベータ版のお知らせ**：このパッケージは現在ベータ版です。APIは予告なく変更される可能性があります。
+
+パラメータ最適化などの計算集約的なタスクのために、[fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) と [napi-rs](https://napi.rs/) に基づいた高性能なオプティマイザーを提供しています：
+
+- **要件**：Node.js >= 20.0.0
+- **使用例**：パラメータ最適化、大規模データセットのバッチ処理
+- **プラットフォームサポート**：Windows、macOS、Linux（x64/arm64）、Android、WebAssembly
+- **⚠️ 制限事項**：
+  - edge-runtime環境では実行できません（edge-runtimeはWASIをサポートしていません）
+  - WASMサポートには追加設定が必要です
+
+### インストール
+
+**基本インストール**（自動プラットフォーム検出）：
+```bash
+npm install @open-spaced-repetition/binding
+pnpm install @open-spaced-repetition/binding
+yarn add @open-spaced-repetition/binding
+bun add @open-spaced-repetition/binding
+```
+
+**WebAssemblyインストール**：
+
+WASMバージョンをインストールするには、パッケージマネージャーを設定する必要があります：
+
+- **pnpm**：`pnpm-workspace.yaml`に追加：
+  ```yaml
+  supportedArchitectures:
+    cpu: [current, wasm32]
+  ```
+
+- **yarn**：yarn v4が必要です。`supportedArchitectures`の設定については、[NAPI-RSドキュメント](https://napi.rs/docs/concepts/webassembly#install-the-webassembly-package)を参照してください
+
+- **WASMモードを強制**：環境変数を設定：
+  ```bash
+  NAPI_RS_FORCE_WASI=1
+  ```
+
+### 基本的な例
+
+詳細：[packages/binding/__tests__/demo/simple.ts](./packages/binding/__tests__/demo/simple.ts)
+
+```typescript
+import { computeParameters, convertCsvToFsrsItems } from '@open-spaced-repetition/binding';
+
+// レビュー履歴からFSRSパラメータを最適化
+const parameters = await computeParameters(fsrsItems, {
+  enableShortTerm: true,
+  timeout: 100,
+  progress: (cur, total) => console.log(`${cur}/${total}`)
+});
+```
+
+> **注意**：bindingパッケージはパラメータ最適化のためにネイティブパフォーマンスを提供します。通常のカードスケジューリングには、上記の`ts-fsrs`パッケージを使用してください。
 
 # 基本的な使い方
 
