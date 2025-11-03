@@ -389,12 +389,17 @@ jobs:
         shell: bash
 
       - name: Sync JS & types into binding
-        run: pnpm -F @open-spaced-repetition/binding artifacts
+        run: |
+          pnpm -F @open-spaced-repetition/binding artifacts
+          mkdir -p packages/binding/dist
+          cp packages/binding/artifacts/bindings-aarch64-unknown-linux-musl/*.{js,cjs,mjs,d.ts} packages/binding/dist/ || true
 
       - name: List packaged bindings
-        run: ls -R packages/binding/npm
+        run: |
+          ls -R packages/binding/npm
+          ls -R packages/binding/dist
         shell: bash
-        
+
       - name: Changeset publish dry-run
         run: pnpm changeset publish --dry-run --no-git-tag
         shell: bash
