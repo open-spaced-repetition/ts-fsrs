@@ -406,6 +406,7 @@ jobs:
         uses: changesets/action@v1
         with:
           version: pnpm run version
+          publish: pnpm run release
           createGithubReleases: true
           commit: 'chore(release): version packages'
           title: 'chore: release new versions'
