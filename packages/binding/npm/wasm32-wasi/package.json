@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding-wasm32-wasi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "cpu": [
     "wasm32"
   ],

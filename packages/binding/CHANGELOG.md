@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.1.1
+
+### Patch Changes
+
+- [#241](https://github.com/open-spaced-repetition/ts-fsrs/pull/241) [`f2b700d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/f2b700db6e53d43410f3dbd8b5f6d3e7a35d6e80) Thanks [@ishiko732](https://github.com/ishiko732)! - Fix missing build artifacts in the binding package and ensure .js, .cjs, .mjs, and .d.ts files are properly included in the distributed package.
+
 ## 0.1.0
 
 ### Minor Changes
