@@ -32,4 +32,4 @@
 
 ## Documentation
 
-See [README.md](../../README.md#open-spaced-repetitionbinding-optimizer) for installation instructions and usage examples.
+See [README.md](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/README.md#open-spaced-repetitionbinding-optimizer) for installation instructions and usage examples.
