@@ -9,8 +9,8 @@
 [![Downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov
 )](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
-[![Publish](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/publish.yml?style=flat-square&logo=githubactions&label=Publish
-)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release
+)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
 [![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
 )](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
@@ -26,13 +26,15 @@ ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.
 
 # 使用ts-fsrs
 
+## ts-fsrs (调度器)
+
 `ts-fsrs@3.x`需要运行在 Node.js (>=16.0.0)上，`ts-fsrs@4.x`需要运行在 Node.js (>=18.0.0)上。
 从`ts-fsrs@3.5.6`开始，ts-fsrs支持CommonJS、ESM和UMD模块系统
 
 ```bash
-npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+npm install ts-fsrs
 yarn add ts-fsrs
-pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+pnpm install ts-fsrs
 bun add ts-fsrs
 ```
 
@@ -78,6 +80,63 @@ for (const item of scheduling_cards) {
 - [浏览器使用](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (使用CDN来访问ts-fsrs ESM包)
 - [案例应用 - 基于Next.js+Hono.js+kysely](https://github.com/ishiko732/ts-fsrs-demo)
 - [现代化抽成卡 - Next.js+Drizzle+tRPC](https://github.com/zsh-eng/spaced)
+
+## @open-spaced-repetition/binding (优化器)
+
+> **⚠️ Beta 提示**：该包目前处于 beta 阶段，API 可能随时发生变化。
+
+对于参数优化等计算密集型任务，我们提供了基于 [fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) 和 [napi-rs](https://napi.rs/) 的高性能优化器：
+
+- **运行要求**：Node.js >= 20.0.0
+- **使用场景**：参数优化、大数据集批处理
+- **平台支持**：Windows、macOS、Linux（x64/arm64）、Android、WebAssembly
+- **⚠️ 限制**：
+  - 无法在 edge-runtime 环境中运行（edge-runtime 不支持 WASI）
+  - 使用 WASM 需要额外配置
+
+### 安装方式
+
+**基础安装**（自动检测平台）：
+```bash
+npm install @open-spaced-repetition/binding
+pnpm install @open-spaced-repetition/binding
+yarn add @open-spaced-repetition/binding
+bun add @open-spaced-repetition/binding
+```
+
+**WebAssembly 安装**：
+
+要安装 WASM 版本，需要配置包管理器：
+
+- **pnpm**：在 `pnpm-workspace.yaml` 中添加：
+  ```yaml
+  supportedArchitectures:
+    cpu: [current, wasm32]
+  ```
+
+- **yarn**：需要使用 yarn v4 版本，并配置 `supportedArchitectures`，详见 [NAPI-RS 文档](https://napi.rs/docs/concepts/webassembly#install-the-webassembly-package)
+
+- **强制使用 WASM**：配置环境变量：
+  ```bash
+  NAPI_RS_FORCE_WASI=1
+  ```
+
+### 基本示例
+
+详见：[packages/binding/__tests__/demo/simple.ts](./packages/binding/__tests__/demo/simple.ts)
+
+```typescript
+import { computeParameters, convertCsvToFsrsItems } from '@open-spaced-repetition/binding';
+
+// 从复习历史优化 FSRS 参数
+const parameters = await computeParameters(fsrsItems, {
+  enableShortTerm: true,
+  timeout: 100,
+  progress: (cur, total) => console.log(`${cur}/${total}`)
+});
+```
+
+> **注意**：binding 包为参数优化提供原生性能。对于日常卡片调度，请使用上面的 `ts-fsrs` 包。
 
 # 基本使用方法
 

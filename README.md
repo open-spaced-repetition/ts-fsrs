@@ -8,8 +8,8 @@
 [![Downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov
 )](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
-[![Publish](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/publish.yml?style=flat-square&logo=githubactions&label=Publish
-)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/publish.yml)
+[![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release
+)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
 [![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
 )](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
@@ -26,13 +26,16 @@ For contributors and developers who want to work on ts-fsrs itself, we provide a
 📖 **[Development Quickstart Guide](./.devcontainer/QUICKSTART.md)** - Get started with VS Code Dev Containers
 
 # Usage
+
+## ts-fsrs (scheduler)
+
 `ts-fsrs@3.x` requires Node.js version `16.0.0` or higher. Starting with `ts-fsrs@4.x`, the minimum required Node.js version is `18.0.0`.
 From version `3.5.6` onwards, ts-fsrs supports CommonJS, ESM, and UMD module systems.
 
 ```bash
-npm install ts-fsrs # npm install github:open-spaced-repetition/ts-fsrs
+npm install ts-fsrs
 yarn add ts-fsrs
-pnpm install ts-fsrs # pnpm install github:open-spaced-repetition/ts-fsrs
+pnpm install ts-fsrs
 bun add ts-fsrs
 ```
 
@@ -76,6 +79,63 @@ More resources:
 - [Browser](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html) (ts-fsrs package using CDN)
 - [ts-fsrs-demo - Next.js+Hono.js+kysely](https://github.com/ishiko732/ts-fsrs-demo)
 - [spaced - Next.js+Drizzle+tRPC](https://github.com/zsh-eng/spaced)
+
+## @open-spaced-repetition/binding (optimizer)
+
+> **⚠️ Beta Notice**: This package is currently in beta. The API may change at any time.
+
+For computationally intensive tasks like parameter optimization, we provide a high-performance optimizer based on [fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) and [napi-rs](https://napi.rs/):
+
+- **Requirements**: Node.js >= 20.0.0
+- **Use Cases**: Parameter optimization, batch processing of large datasets
+- **Platform Support**: Windows, macOS, Linux (x64/arm64), Android, WebAssembly
+- **⚠️ Limitations**:
+  - Cannot run in edge-runtime environments (edge-runtime does not support WASI)
+  - For WASM support, additional configuration is required
+
+### Installation
+
+**Basic Installation** (Automatic platform detection):
+```bash
+npm install @open-spaced-repetition/binding
+pnpm install @open-spaced-repetition/binding
+yarn add @open-spaced-repetition/binding
+bun add @open-spaced-repetition/binding
+```
+
+**WebAssembly Installation**:
+
+To install the WASM version, configure your package manager:
+
+- **pnpm**: Add to `pnpm-workspace.yaml`:
+  ```yaml
+  supportedArchitectures:
+    cpu: [current, wasm32]
+  ```
+
+- **yarn**: Requires yarn v4. Configure `supportedArchitectures` as detailed in the [NAPI-RS documentation](https://napi.rs/docs/concepts/webassembly#install-the-webassembly-package)
+
+- **Force WASM mode**: Set the environment variable:
+  ```bash
+  NAPI_RS_FORCE_WASI=1
+  ```
+
+### Basic Example
+
+See: [packages/binding/__tests__/demo/simple.ts](./packages/binding/__tests__/demo/simple.ts)
+
+```typescript
+import { computeParameters, convertCsvToFsrsItems } from '@open-spaced-repetition/binding';
+
+// Optimize FSRS parameters from review history
+const parameters = await computeParameters(fsrsItems, {
+  enableShortTerm: true,
+  timeout: 100,
+  progress: (cur, total) => console.log(`${cur}/${total}`)
+});
+```
+
+> **Note**: The binding package provides native performance for parameter optimization. For regular card scheduling, use the `ts-fsrs` package above.
 
 # Basic Use 
 
