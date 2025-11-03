@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding-win32-x64-msvc",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "cpu": [
     "x64"
   ],
