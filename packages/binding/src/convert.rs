@@ -140,20 +140,16 @@ pub fn convert_csv_to_fsrs_items(
     .into_iter()
     .chunk_by(|r| r.card_id.clone())
     .into_iter()
-    .filter_map(|(_card_id, entries)| {
-      match convert_to_fsrs_items_internal(
+    .map(|(_card_id, entries)| {
+      convert_to_fsrs_items_internal(
         entries.collect(),
         next_day_starts_at,
         &timezone,
         &offset_provider,
-      ) {
-        Ok(items) => Some(items),
-        Err(e) => {
-          eprintln!("Error converting revlog entries: {}", e);
-          None
-        }
-      }
+      )
     })
+    .collect::<Result<Vec<_>>>()?
+    .into_iter()
     .flatten()
     .collect_vec();
 
