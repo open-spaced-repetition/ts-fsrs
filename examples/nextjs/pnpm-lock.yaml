@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@open-spaced-repetition/binding':
-        specifier: ^0.1.1
-        version: 0.1.1
+        specifier: ^0.1.2
+        version: 0.1.2
       hono:
         specifier: ^4.10.4
         version: 4.10.4
@@ -310,73 +310,73 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@open-spaced-repetition/binding-android-arm64@0.1.1':
-    resolution: {integrity: sha512-xWKVbH1jSHZH0b8o4TkR1n1rksrXpmgKDEdpeUi9lkUMuWYAeKeOW8SNSQ+xt8t0Rd/tBcSJ4g8Sv6p66tE2Ag==}
+  '@open-spaced-repetition/binding-android-arm64@0.1.2':
+    resolution: {integrity: sha512-/t+SNZWAaiPwFX1AOk36hYws3yhAkvUKcbMmGg4EQ1ihzOcqJxirlz3zxEI0sArWPpq9fTZExcVZ/d5EEDOUBQ==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [android]
 
-  '@open-spaced-repetition/binding-darwin-arm64@0.1.1':
-    resolution: {integrity: sha512-sOY2UZhOOdzxAlzlzYhI4nOv1PL+u/Z7TCnzGnCwZsnuIB8LkVWD1ulkPEEQ068Zda6yBLYxwk2RQ5M0U+lpVQ==}
+  '@open-spaced-repetition/binding-darwin-arm64@0.1.2':
+    resolution: {integrity: sha512-WK1DO6MerbBoPhQY6ZFfQboDO5mQNyOESH23AoDFd7S6MzxOHvUegqMCQmQiW6JJEcPX10ZjAG9LoWqlO6gzsQ==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [darwin]
 
-  '@open-spaced-repetition/binding-darwin-x64@0.1.1':
-    resolution: {integrity: sha512-cBFXyNxUXauWuaTdUhWbRYqkz7EPiJdMIuDA/Z/BYhCYLcYy5op8RUtA/humGHJBJYz1EyffE3bYCsywbjP5Rg==}
+  '@open-spaced-repetition/binding-darwin-x64@0.1.2':
+    resolution: {integrity: sha512-FRBDw23AlVkeFkx+OTT5u3nptpRDQyoqJ2G18aTRnH169GlQQ8fRkyZpPYFvu/AIZNQqjyacecnX5pHmneAB+w==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [darwin]
 
-  '@open-spaced-repetition/binding-linux-arm64-gnu@0.1.1':
-    resolution: {integrity: sha512-tb//2XUplQqqCqcr6Dxu3VyylK2OikGov0jSAQv62/aoo976qnjW3frkWjsXqNDBdUqZ8geP+38TMWjJpZTw9w==}
+  '@open-spaced-repetition/binding-linux-arm64-gnu@0.1.2':
+    resolution: {integrity: sha512-+LOIRlA2lsVU9+R9mF5fg+egPzf3Sgjr1AHVw14nkzOS2LxCTZKAZMB6X3e8nBEYNqS3SBXFFMjOivLh3sYMHw==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
 
-  '@open-spaced-repetition/binding-linux-arm64-musl@0.1.1':
-    resolution: {integrity: sha512-OWZLeUaOSJ6aU9e+wb+xWw+/RWjXpmmQCndpN/BC0frggsWgaVGohaysDTNB6kzKMs3iKE87Jx7C6adxLjQURA==}
+  '@open-spaced-repetition/binding-linux-arm64-musl@0.1.2':
+    resolution: {integrity: sha512-HyBiF50pbsm+Ael+VwJHX18WtgKFzuAQi494Wq8zQ/EiGZ++CvcI/NvfRGYECpRa3/MY3y1LJ5PBPmdwnN0uow==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [linux]
 
-  '@open-spaced-repetition/binding-linux-x64-gnu@0.1.1':
-    resolution: {integrity: sha512-Y+zqTAFaL3oG1qMX7yDtZXU1hOZrM1beHVVTl8n6XXpQsVB86cB4rLTo0um2U+rvctkFo7Y6nnSLyspYx3vImw==}
+  '@open-spaced-repetition/binding-linux-x64-gnu@0.1.2':
+    resolution: {integrity: sha512-s6TEyMfOkYgRNw7bCXxcy8xd7TE2P0D8oQmtPn76zNkhKVHETbvGHfa3YHUiXjcx070z4bP49oz4OjDqvDjQdw==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
 
-  '@open-spaced-repetition/binding-linux-x64-musl@0.1.1':
-    resolution: {integrity: sha512-1Ampj7jFgn0XlK3LO84M95oJJZSN/eUiTR9GFJ8iCJyvAu0TIHOvkMbqK+TQifUwKx2TtIiY4jzVP7DB6ZGI0Q==}
+  '@open-spaced-repetition/binding-linux-x64-musl@0.1.2':
+    resolution: {integrity: sha512-+vJD8XWmXL8BTw4w8Kjox0F4h0ddU8e4zss8rXL9/B0KBvebox2cSFa0w64KfFR4Z9Cut75dd8gWuXXA8gYeMw==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [linux]
 
-  '@open-spaced-repetition/binding-wasm32-wasi@0.1.1':
-    resolution: {integrity: sha512-zEpUZJLIU/wQaE4EwpXKcl8TTNOBAFUWq03+VIp0QLWvpFEaIxFsPQOE2Egmps1u0WeEJbd0xmD4IT8JQvaFAw==}
+  '@open-spaced-repetition/binding-wasm32-wasi@0.1.2':
+    resolution: {integrity: sha512-2Hq/b4Y4aH4leia74t0Uj5e1t+KY4NYT/IsM+z5HWR5nKDZFbRpy0jkl5IlZSbdRKH7Drh7T0vgEnWoDfh+4Gg==}
     engines: {node: '>=14.0.0'}
     cpu: [wasm32]
 
-  '@open-spaced-repetition/binding-win32-arm64-msvc@0.1.1':
-    resolution: {integrity: sha512-lhieLYjrcpDnnDW6J5vB4zoXR1GRbtE3W6MTe7sbjjXswkgoSYNbtHYDcxjOYpL5usca6gdRMfEMdC3X/uoFAg==}
+  '@open-spaced-repetition/binding-win32-arm64-msvc@0.1.2':
+    resolution: {integrity: sha512-u1Qb0Bw14eU+9y8YOev6UK7e8ig6pepzVzeAKLwWbcHOAhOKqiaB4LKFIaLyLEVdcZpPudjulR2KBuZqDZYWsg==}
     engines: {node: '>= 20'}
     cpu: [arm64]
     os: [win32]
 
-  '@open-spaced-repetition/binding-win32-ia32-msvc@0.1.1':
-    resolution: {integrity: sha512-L3aByVNB/M7i9GHIqpDVcAsU50yTILHMmsF/BKcowgM/0tBue2O2/zmtCdZVzjBnFjE7g9UgAYSZuJm/suQ0bg==}
+  '@open-spaced-repetition/binding-win32-ia32-msvc@0.1.2':
+    resolution: {integrity: sha512-5Gx4IGuhrN5FOEvGDDWWZMhdZorFW4jO6p/5bZUwD1BbaT0raQ9pM6MJso0aBhyPZ4IfUVBsI7MKVI54woVKSA==}
     engines: {node: '>= 20'}
     cpu: [ia32]
     os: [win32]
 
-  '@open-spaced-repetition/binding-win32-x64-msvc@0.1.1':
-    resolution: {integrity: sha512-9EHq1mHrdHZxrCMjaUacrTcYhwpRQQ7gJP0tZMD65BKF09xeFf3CITFrKCJ2GNKhpbyG/qTHxRV0s1zaoy7Obw==}
+  '@open-spaced-repetition/binding-win32-x64-msvc@0.1.2':
+    resolution: {integrity: sha512-My+E1DOMtIoTteW0uBs+a23hnxn/cbSB7mf0HljXdKRn5umq2UihbILL/Dr/h05PeQFK7ntvl/fa1dHMf+1J4g==}
     engines: {node: '>= 20'}
     cpu: [x64]
     os: [win32]
 
-  '@open-spaced-repetition/binding@0.1.1':
-    resolution: {integrity: sha512-WFa9F658fht/6bLHeClDdMNwHbO5upVgs2JsyC5AjyTPDSUM9hjiq3b7ro3CNayD6CeoCiaKncY+apmIR35qDw==}
+  '@open-spaced-repetition/binding@0.1.2':
+    resolution: {integrity: sha512-hxMUyJq/Cw73/VYKBTZy0Tj7t/jHQLzvfphCCxevE8sSIq+WTGrrrS2p+Uv1M4BHKviH5cOEIJVqS7vpuJKVJg==}
     engines: {node: '>= 20'}
 
   '@swc/helpers@0.5.15':
@@ -874,54 +874,54 @@ snapshots:
   '@next/swc-win32-x64-msvc@16.0.1':
     optional: true
 
-  '@open-spaced-repetition/binding-android-arm64@0.1.1':
+  '@open-spaced-repetition/binding-android-arm64@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-darwin-arm64@0.1.1':
+  '@open-spaced-repetition/binding-darwin-arm64@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-darwin-x64@0.1.1':
+  '@open-spaced-repetition/binding-darwin-x64@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-linux-arm64-gnu@0.1.1':
+  '@open-spaced-repetition/binding-linux-arm64-gnu@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-linux-arm64-musl@0.1.1':
+  '@open-spaced-repetition/binding-linux-arm64-musl@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-linux-x64-gnu@0.1.1':
+  '@open-spaced-repetition/binding-linux-x64-gnu@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-linux-x64-musl@0.1.1':
+  '@open-spaced-repetition/binding-linux-x64-musl@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-wasm32-wasi@0.1.1':
+  '@open-spaced-repetition/binding-wasm32-wasi@0.1.2':
     dependencies:
       '@napi-rs/wasm-runtime': 1.0.7
     optional: true
 
-  '@open-spaced-repetition/binding-win32-arm64-msvc@0.1.1':
+  '@open-spaced-repetition/binding-win32-arm64-msvc@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-win32-ia32-msvc@0.1.1':
+  '@open-spaced-repetition/binding-win32-ia32-msvc@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding-win32-x64-msvc@0.1.1':
+  '@open-spaced-repetition/binding-win32-x64-msvc@0.1.2':
     optional: true
 
-  '@open-spaced-repetition/binding@0.1.1':
+  '@open-spaced-repetition/binding@0.1.2':
     optionalDependencies:
-      '@open-spaced-repetition/binding-android-arm64': 0.1.1
-      '@open-spaced-repetition/binding-darwin-arm64': 0.1.1
-      '@open-spaced-repetition/binding-darwin-x64': 0.1.1
-      '@open-spaced-repetition/binding-linux-arm64-gnu': 0.1.1
-      '@open-spaced-repetition/binding-linux-arm64-musl': 0.1.1
-      '@open-spaced-repetition/binding-linux-x64-gnu': 0.1.1
-      '@open-spaced-repetition/binding-linux-x64-musl': 0.1.1
-      '@open-spaced-repetition/binding-wasm32-wasi': 0.1.1
-      '@open-spaced-repetition/binding-win32-arm64-msvc': 0.1.1
-      '@open-spaced-repetition/binding-win32-ia32-msvc': 0.1.1
-      '@open-spaced-repetition/binding-win32-x64-msvc': 0.1.1
+      '@open-spaced-repetition/binding-android-arm64': 0.1.2
+      '@open-spaced-repetition/binding-darwin-arm64': 0.1.2
+      '@open-spaced-repetition/binding-darwin-x64': 0.1.2
+      '@open-spaced-repetition/binding-linux-arm64-gnu': 0.1.2
+      '@open-spaced-repetition/binding-linux-arm64-musl': 0.1.2
+      '@open-spaced-repetition/binding-linux-x64-gnu': 0.1.2
+      '@open-spaced-repetition/binding-linux-x64-musl': 0.1.2
+      '@open-spaced-repetition/binding-wasm32-wasi': 0.1.2
+      '@open-spaced-repetition/binding-win32-arm64-msvc': 0.1.2
+      '@open-spaced-repetition/binding-win32-ia32-msvc': 0.1.2
+      '@open-spaced-repetition/binding-win32-x64-msvc': 0.1.2
 
   '@swc/helpers@0.5.15':
     dependencies:
