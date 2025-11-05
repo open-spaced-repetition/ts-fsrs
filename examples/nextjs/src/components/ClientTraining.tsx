@@ -1,13 +1,10 @@
 'use client'
 
-import {
-  computeParameters,
-  convertCsvToFsrsItems,
-} from '@open-spaced-repetition/binding'
+import { computeParameters } from '@open-spaced-repetition/binding'
 import { useEffect, useId, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '@/types/training'
-import { getTimezoneOffset } from '@/utils/timezone'
+import { convertFSRSItemByFile } from '@/utils/convert.js'
 
 interface TimezoneOption {
   value: string
@@ -85,20 +82,12 @@ export default function ClientTraining({
       console.time('parsing csv time')
       const parseStartTime = performance.now()
 
-      let arrayBuffer: ArrayBuffer | null = await csvFile.arrayBuffer()
-      let buffer: Uint8Array | null = new Uint8Array(arrayBuffer)
-
       // Convert CSV to FSRS items
-      const fsrsItems = convertCsvToFsrsItems(
-        buffer,
+      const fsrsItems = await convertFSRSItemByFile(
+        csvFile,
         nextDayStartsAt,
-        timezone,
-        getTimezoneOffset
+        timezone
       )
-
-      // Release intermediate buffers to free memory
-      arrayBuffer = null
-      buffer = null
 
       const parseEndTime = performance.now()
       const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`

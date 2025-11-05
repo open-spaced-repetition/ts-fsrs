@@ -1,13 +1,10 @@
-import {
-  computeParameters,
-  convertCsvToFsrsItems,
-} from '@open-spaced-repetition/binding'
+import { computeParameters } from '@open-spaced-repetition/binding'
 import { Hono } from 'hono'
 import { streamSSE } from 'hono/streaming'
 import { handle } from 'hono/vercel'
 
 import type { OptimizationResult } from '@/types/training'
-import { getTimezoneOffset } from '@/utils/timezone'
+import { convertFSRSItemByFile } from '@/utils/convert.js'
 
 export const dynamic = 'force-dynamic'
 
@@ -64,21 +61,12 @@ app.post('/', async (c) => {
       // Timing: Parse CSV
       const parseStartTime = performance.now()
 
-      // Read file as buffer
-      let arrayBuffer: ArrayBuffer | null = await file.arrayBuffer()
-      let buffer: Uint8Array | null = new Uint8Array(arrayBuffer)
-
       // Convert CSV to FSRS items
-      const fsrsItems = convertCsvToFsrsItems(
-        buffer,
+      const fsrsItems = await convertFSRSItemByFile(
+        file,
         nextDayStartsAt,
-        timezone,
-        getTimezoneOffset
+        timezone
       )
-
-      // Release intermediate buffers to free memory
-      arrayBuffer = null
-      buffer = null
 
       const parseEndTime = performance.now()
       const parseDuration = parseEndTime - parseStartTime
