@@ -22,14 +22,26 @@ app.post('/', async (c) => {
       const formData = await c.req.formData()
       const file = formData.get('file') as File | null
       const timezone = (formData.get('timezone') as string) || 'Asia/Shanghai'
-      const nextDayStartsAt = parseInt(
-        (formData.get('nextDayStartsAt') as string) || '4',
-        10
-      )
-      const numRelearningSteps = parseInt(
-        (formData.get('numRelearningSteps') as string) || '1',
-        10
-      )
+      const nextDayStartsAtStr = (formData.get('nextDayStartsAt') as string) || '4'
+      const nextDayStartsAt = parseInt(nextDayStartsAtStr, 10)
+      const numRelearningStepsStr =
+        (formData.get('numRelearningSteps') as string) || '1'
+      const numRelearningSteps = parseInt(numRelearningStepsStr, 10)
+
+      if (
+        isNaN(nextDayStartsAt) ||
+        nextDayStartsAt < 0 ||
+        nextDayStartsAt > 23 ||
+        isNaN(numRelearningSteps)
+      ) {
+        await stream.writeSSE({
+          data: JSON.stringify({
+            type: 'error',
+            message: 'Invalid parameters provided.',
+          }),
+        })
+        return
+      }
 
       if (!file) {
         await stream.writeSSE({
