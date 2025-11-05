@@ -1,6 +1,6 @@
-# FSRS Next.js Example
+# FSRS Next.js Optimizer Example
 
-This is a [Next.js](https://nextjs.org) example demonstrating how to use the FSRS (Free Spaced Repetition Scheduler) algorithm with WebAssembly bindings in a modern web application.
+This is a [Next.js](https://nextjs.org) example demonstrating how to build an FSRS (Free Spaced Repetition Scheduler) parameter optimizer using WebAssembly bindings in a modern web application.
 
 ## Overview
 
