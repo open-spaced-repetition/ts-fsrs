@@ -1,5 +1,5 @@
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
-import { getTimezoneOffset } from '@/utils/timezone'
+import { getSupportedTimezones, getTimezoneOffset } from '@/utils/timezone'
 
 export async function convertFSRSItemByFile(
   file: File,
@@ -8,6 +8,10 @@ export async function convertFSRSItemByFile(
 ) {
   const arrayBuffer: ArrayBuffer | null = await file.arrayBuffer()
   const buffer: Uint8Array | null = new Uint8Array(arrayBuffer)
+
+  if (!getSupportedTimezones.includes(timezone)) {
+    throw new Error(`Unsupported timezone: ${timezone}`)
+  }
 
   // Convert CSV to FSRS items
   const fsrsItems = convertCsvToFsrsItems(

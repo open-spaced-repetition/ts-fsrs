@@ -29,12 +29,12 @@ export function getFormatter(tz: string): Intl.DateTimeFormat {
 }
 
 /**
- * Get timezone offset in milliseconds for a given timezone at a specific time
+ * Get timezone offset in minutes for a given timezone at a specific time
  * Uses Intl.DateTimeFormat to accurately calculate timezone offset including DST
  *
  * @param ms - The timestamp in milliseconds
  * @param tz - The timezone string (e.g., 'Asia/Shanghai', 'America/New_York')
- * @returns The timezone offset in milliseconds
+ * @returns The timezone offset in minutes
  */
 export const getTimezoneOffset = (ms: number, tz: string): number => {
   try {
@@ -95,16 +95,9 @@ export const getTimezoneOffset = (ms: number, tz: string): number => {
       tzSeconds
     )
 
-    // The offset is the difference between local time and UTC
-    return tzTime - utcTime
+    // The offset is the difference between local time and UTC, convert to minutes
+    return Math.floor((tzTime - utcTime) / (60 * 1000))
   } catch (error) {
-    // Fallback: try to parse timezone offset from string like "UTC+8" or "GMT-5"
-    const utcMatch = tz.match(/^(?:UTC|GMT)([+-]\d+)$/i)
-    if (utcMatch) {
-      const hours = parseInt(utcMatch[1], 10)
-      return hours * 60 * 60 * 1000
-    }
-
     // Throw error if timezone is invalid
     throw new Error(
       `Failed to calculate timezone offset for: ${tz}. ${error instanceof Error ? error.message : String(error)}`
