@@ -190,7 +190,6 @@ export function useSSETraining(
       }
     } finally {
       setIsProcessing(false)
-      setStatusMessage('')
     }
   }
 

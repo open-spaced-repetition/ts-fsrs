@@ -57,6 +57,14 @@ export default function ClientTraining({
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      const MAX_FILE_SIZE_MB = 100 // 100MB limit for client-side processing
+      if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+        alert(
+          `File size exceeds ${MAX_FILE_SIZE_MB}MB. Please select a smaller file.`
+        )
+        event.target.value = '' // Reset file input
+        return
+      }
       setCsvFile(file)
       // Reset previous results
       setResults([])
@@ -239,7 +247,9 @@ export default function ClientTraining({
               type="number"
               id={nextDayStartsAtId}
               value={nextDayStartsAt}
-              onChange={(e) => setNextDayStartsAt(Number(e.target.value))}
+              onChange={(e) =>
+                setNextDayStartsAt(Number(e.target.value) || nextDayStartsAt)
+              }
               disabled={isProcessing}
               min={0}
               max={23}
