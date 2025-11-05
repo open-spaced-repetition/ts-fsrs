@@ -1226,10 +1226,11 @@ dependencies = [
 
 [[package]]
 name = "fsrs-binding"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "csv",
  "fsrs",
+ "itertools",
  "napi",
  "napi-build",
  "napi-derive",
