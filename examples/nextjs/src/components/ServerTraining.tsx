@@ -1,33 +1,35 @@
-'use client';
+'use client'
 
-import { useEffect, useState } from 'react';
-import { useSSETraining } from '@/hooks/useSSETraining';
+import { useEffect, useState } from 'react'
+import { useSSETraining } from '@/hooks/useSSETraining'
 
 interface TimezoneOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 interface ServerTrainingProps {
-  onProcessingChange?: (isProcessing: boolean) => void;
+  onProcessingChange?: (isProcessing: boolean) => void
 }
 
-export default function ServerTraining({ onProcessingChange }: ServerTrainingProps) {
-  const [csvFile, setCsvFile] = useState<File | null>(null);
-  const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4);
-  const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1);
+export default function ServerTraining({
+  onProcessingChange,
+}: ServerTrainingProps) {
+  const [csvFile, setCsvFile] = useState<File | null>(null)
+  const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
+  const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
   const [timezone, setTimezone] = useState<string>(() => {
     // Initialize with user's system timezone using lazy initializer
     if (typeof window !== 'undefined') {
       try {
-        return Intl.DateTimeFormat().resolvedOptions().timeZone;
+        return Intl.DateTimeFormat().resolvedOptions().timeZone
       } catch {
-        return 'Asia/Shanghai';
+        return 'Asia/Shanghai'
       }
     }
-    return 'Asia/Shanghai'; // SSR fallback
-  });
-  const [timezones, setTimezones] = useState<TimezoneOption[]>([]);
+    return 'Asia/Shanghai' // SSR fallback
+  })
+  const [timezones, setTimezones] = useState<TimezoneOption[]>([])
 
   // Use SSE training hook
   const {
@@ -39,40 +41,40 @@ export default function ServerTraining({ onProcessingChange }: ServerTrainingPro
     resetState,
   } = useSSETraining({
     onError: (error) => {
-      alert(`Processing failed: ${error.message}`);
+      alert(`Processing failed: ${error.message}`)
     },
-  });
+  })
 
   // Fetch timezone options
   useEffect(() => {
     fetch('/api/timezone')
       .then((res) => res.json())
       .then((data) => setTimezones(data))
-      .catch((err) => console.error('Failed to fetch timezones:', err));
-  }, []);
+      .catch((err) => console.error('Failed to fetch timezones:', err))
+  }, [])
 
   // Notify parent component when processing state changes
   useEffect(() => {
-    onProcessingChange?.(isProcessing);
-  }, [isProcessing, onProcessingChange]);
+    onProcessingChange?.(isProcessing)
+  }, [isProcessing, onProcessingChange])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const file = event.target.files?.[0]
     if (file) {
-      setCsvFile(file);
+      setCsvFile(file)
       // Reset previous results
-      resetState();
+      resetState()
     }
-  };
+  }
 
   const handleProcessCSV = async () => {
     if (!csvFile) {
-      alert('Please select a CSV file first');
-      return;
+      alert('Please select a CSV file first')
+      return
     }
 
-    await startTraining(csvFile, timezone, nextDayStartsAt, numRelearningSteps);
-  };
+    await startTraining(csvFile, timezone, nextDayStartsAt, numRelearningSteps)
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto p-6">
@@ -161,7 +163,8 @@ export default function ServerTraining({ onProcessingChange }: ServerTrainingPro
             className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500 p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
           />
           <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Number of learning steps before a card is considered relearned (0-10)
+            Number of learning steps before a card is considered relearned
+            (0-10)
           </p>
         </div>
       </div>
@@ -180,7 +183,9 @@ export default function ServerTraining({ onProcessingChange }: ServerTrainingPro
       {/* Status message */}
       {statusMessage && (
         <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
-          <p className="text-blue-800 dark:text-blue-300 font-medium">{statusMessage}</p>
+          <p className="text-blue-800 dark:text-blue-300 font-medium">
+            {statusMessage}
+          </p>
         </div>
       )}
 
@@ -202,70 +207,74 @@ export default function ServerTraining({ onProcessingChange }: ServerTrainingPro
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {results.map((result, index) => {
-            const [current, total] = result.progress.split('/').map(Number);
-            const progressPercentage =
-              total > 0 ? Math.round((current / total) * 100) : 0;
+            {results.map((result) => {
+              const [current, total] = result.progress.split('/').map(Number)
+              const progressPercentage =
+                total > 0 ? Math.round((current / total) * 100) : 0
 
-            return (
-              <div
-                key={
-                  result.enableShortTerm
-                    ? 'short-term-enabled'
-                    : 'short-term-disabled'
-                }
-                className={`p-5 border rounded-lg ${
-                  result.completed
-                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                    : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
-                }`}
-              >
-                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-                  {result.enableShortTerm
-                    ? 'Short-Term Enabled'
-                    : 'Short-Term Disabled'}
-                </h3>
+              return (
+                <div
+                  key={
+                    result.enableShortTerm
+                      ? 'short-term-enabled'
+                      : 'short-term-disabled'
+                  }
+                  className={`p-5 border rounded-lg ${
+                    result.completed
+                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                      : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
+                  }`}
+                >
+                  <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+                    {result.enableShortTerm
+                      ? 'Short-Term Enabled'
+                      : 'Short-Term Disabled'}
+                  </h3>
 
-                {/* Progress bar */}
-                {!result.completed && result.progress !== '0/0' && (
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        Progress: {result.progress}
-                      </span>
-                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                        {progressPercentage}%
-                      </span>
+                  {/* Progress bar */}
+                  {!result.completed && result.progress !== '0/0' && (
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Progress: {result.progress}
+                        </span>
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          {progressPercentage}%
+                        </span>
+                      </div>
+                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
+                        <div
+                          className="bg-green-600 dark:bg-green-500 h-3 rounded-full transition-all duration-300 ease-out"
+                          style={{ width: `${progressPercentage}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                      <div
-                        className="bg-green-600 dark:bg-green-500 h-3 rounded-full transition-all duration-300 ease-out"
-                        style={{ width: `${progressPercentage}%` }}
-                      />
+                  )}
+
+                  {result.completed && (
+                    <div>
+                      <p className="mb-2 text-green-700 dark:text-green-400 font-medium">
+                        ✓ Completed
+                      </p>
+                      <p className="mb-2 text-gray-900 dark:text-gray-100">
+                        <strong>Optimized Parameters:</strong>
+                      </p>
+                      <pre className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 rounded-md overflow-auto text-sm">
+                        {JSON.stringify(result.parameters, null, 2)}
+                      </pre>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {result.completed && (
-                  <div>
-                    <p className="mb-2 text-green-700 dark:text-green-400 font-medium">
-                      ✓ Completed
-                    </p>
-                    <p className="mb-2 text-gray-900 dark:text-gray-100">
-                      <strong>Optimized Parameters:</strong>
-                    </p>
-                    <pre className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 rounded-md overflow-auto text-sm">
-                      {JSON.stringify(result.parameters, null, 2)}
-                    </pre>
-                  </div>
-                )}
-
-                {!result.completed && isProcessing && result.progress === '0/0' && (
-                  <p className="text-orange-600 dark:text-orange-400">Waiting to start...</p>
-                )}
-              </div>
-            );
-          })}
+                  {!result.completed &&
+                    isProcessing &&
+                    result.progress === '0/0' && (
+                      <p className="text-orange-600 dark:text-orange-400">
+                        Waiting to start...
+                      </p>
+                    )}
+                </div>
+              )
+            })}
           </div>
 
           {stats.trainingTime && (
@@ -299,16 +308,18 @@ export default function ServerTraining({ onProcessingChange }: ServerTrainingPro
             Click &quot;Start Server Processing&quot; button to begin parameter
             optimization on the server
           </li>
-          <li>Wait for computation to complete and view the optimized results</li>
+          <li>
+            Wait for computation to complete and view the optimized results
+          </li>
         </ol>
         <div className="mt-4 p-3 bg-white dark:bg-gray-800 border border-green-200 dark:border-green-700 rounded">
           <p className="text-sm text-gray-700 dark:text-gray-300">
-            <strong>Note:</strong> Server-side training processes the file on the
-            server, which may be more suitable for large datasets or when you want
-            to offload computation from the client.
+            <strong>Note:</strong> Server-side training processes the file on
+            the server, which may be more suitable for large datasets or when
+            you want to offload computation from the client.
           </p>
         </div>
       </div>
     </div>
-  );
+  )
 }

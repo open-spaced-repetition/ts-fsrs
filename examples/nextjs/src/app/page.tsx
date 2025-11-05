@@ -1,12 +1,12 @@
-'use client';
+'use client'
 
-import { useState } from 'react';
-import ClientTraining from '@/components/ClientTraining';
-import ServerTraining from '@/components/ServerTraining';
+import { useState } from 'react'
+import ClientTraining from '@/components/ClientTraining'
+import ServerTraining from '@/components/ServerTraining'
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'client' | 'server'>('client');
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [activeTab, setActiveTab] = useState<'client' | 'server'>('client')
+  const [isProcessing, setIsProcessing] = useState(false)
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
@@ -70,8 +70,8 @@ export default function Home() {
               className="text-blue-600 dark:text-blue-400 hover:underline"
             >
               TS-FSRS
-            </a>
-            {' '}and{' '}
+            </a>{' '}
+            and{' '}
             <a
               href="https://github.com/open-spaced-repetition/fsrs-rs"
               target="_blank"
@@ -84,5 +84,5 @@ export default function Home() {
         </footer>
       </div>
     </div>
-  );
+  )
 }
