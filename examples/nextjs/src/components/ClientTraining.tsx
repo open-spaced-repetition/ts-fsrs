@@ -4,7 +4,7 @@ import { computeParameters } from '@open-spaced-repetition/binding'
 import { useEffect, useId, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '@/types/training'
-import { convertFSRSItemByFile } from '@/utils/convert.js'
+import { convertFSRSItemByFile } from '@/utils/convert'
 
 interface TimezoneOption {
   value: string

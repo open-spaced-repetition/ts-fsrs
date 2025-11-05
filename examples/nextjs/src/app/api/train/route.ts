@@ -4,7 +4,7 @@ import { bodyLimit } from 'hono/body-limit'
 import { streamSSE } from 'hono/streaming'
 import { handle } from 'hono/vercel'
 import type { OptimizationResult } from '@/types/training'
-import { convertFSRSItemByFile } from '@/utils/convert.js'
+import { convertFSRSItemByFile } from '@/utils/convert'
 
 export const dynamic = 'force-dynamic'
 
