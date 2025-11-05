@@ -6,7 +6,7 @@ settings:
 
 importers:
 
-  nextjs:
+  .:
     dependencies:
       '@open-spaced-repetition/binding':
         specifier: ^0.1.1

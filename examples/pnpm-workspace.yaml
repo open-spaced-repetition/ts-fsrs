@@ -1,6 +1,0 @@
-packages:
-  - nextjs
-
-
-supportedArchitectures:
-  cpu: [current, wasm32]
