@@ -1,5 +1,5 @@
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
-import { getTimezoneOffset } from '@/utils/timezone.js'
+import { getTimezoneOffset } from '@/utils/timezone'
 
 export async function convertFSRSItemByFile(
   file: File,
