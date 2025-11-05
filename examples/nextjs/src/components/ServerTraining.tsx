@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { useSSETraining } from '@/hooks/useSSETraining'
 
 interface TimezoneOption {
@@ -15,6 +15,11 @@ interface ServerTrainingProps {
 export default function ServerTraining({
   onProcessingChange,
 }: ServerTrainingProps) {
+  // Generate unique IDs for form fields
+  const timezoneId = useId()
+  const nextDayStartsAtId = useId()
+  const numRelearningStepsId = useId()
+
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
   const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
@@ -102,13 +107,13 @@ export default function ServerTraining({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label
-              htmlFor="server-timezone"
+              htmlFor={timezoneId}
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Timezone
             </label>
             <select
-              id="server-timezone"
+              id={timezoneId}
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
               disabled={isProcessing}
@@ -124,14 +129,14 @@ export default function ServerTraining({
 
           <div>
             <label
-              htmlFor="server-nextDayStartsAt"
+              htmlFor={nextDayStartsAtId}
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Next Day Starts At (hour)
             </label>
             <input
               type="number"
-              id="server-nextDayStartsAt"
+              id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) => setNextDayStartsAt(Number(e.target.value))}
               disabled={isProcessing}
@@ -147,14 +152,14 @@ export default function ServerTraining({
 
         <div className="mt-4">
           <label
-            htmlFor="server-numRelearningSteps"
+            htmlFor={numRelearningStepsId}
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             Number of Relearning Steps
           </label>
           <input
             type="number"
-            id="server-numRelearningSteps"
+            id={numRelearningStepsId}
             value={numRelearningSteps}
             onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
             disabled={isProcessing}

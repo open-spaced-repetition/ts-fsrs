@@ -4,7 +4,7 @@ import {
   computeParameters,
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '@/types/training'
 import { getTimezoneOffset } from '@/utils/timezone'
@@ -21,6 +21,11 @@ interface ClientTrainingProps {
 export default function ClientTraining({
   onProcessingChange,
 }: ClientTrainingProps) {
+  // Generate unique IDs for form fields
+  const timezoneId = useId()
+  const nextDayStartsAtId = useId()
+  const numRelearningStepsId = useId()
+
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
@@ -214,13 +219,13 @@ export default function ClientTraining({
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label
-              htmlFor="timezone"
+              htmlFor={timezoneId}
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Timezone
             </label>
             <select
-              id="timezone"
+              id={timezoneId}
               value={timezone}
               onChange={(e) => setTimezone(e.target.value)}
               disabled={isProcessing}
@@ -236,14 +241,14 @@ export default function ClientTraining({
 
           <div>
             <label
-              htmlFor="nextDayStartsAt"
+              htmlFor={nextDayStartsAtId}
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
             >
               Next Day Starts At (hour)
             </label>
             <input
               type="number"
-              id="nextDayStartsAt"
+              id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) => setNextDayStartsAt(Number(e.target.value))}
               disabled={isProcessing}
@@ -259,14 +264,14 @@ export default function ClientTraining({
 
         <div className="mt-4">
           <label
-            htmlFor="numRelearningSteps"
+            htmlFor={numRelearningStepsId}
             className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
           >
             Number of Relearning Steps
           </label>
           <input
             type="number"
-            id="numRelearningSteps"
+            id={numRelearningStepsId}
             value={numRelearningSteps}
             onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
             disabled={isProcessing}
