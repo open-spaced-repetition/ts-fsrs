@@ -417,7 +417,7 @@ jobs:
         with:
           version: pnpm run version
           publish: pnpm run release
-          createGithubReleases: true
+          createGithubReleases: false
           commit: 'chore(release): version packages'
           title: 'chore: release new versions'
         env:
