@@ -2,6 +2,8 @@
 
 This is a [Next.js](https://nextjs.org) example demonstrating how to build an FSRS (Free Spaced Repetition Scheduler) parameter optimizer using WebAssembly bindings in a modern web application.
 
+**🌐 Live Demo:** https://fsrs-demo-nextjs.parallelveil.com/
+
 ## Overview
 
 This example showcases two different approaches for FSRS parameter optimization:
