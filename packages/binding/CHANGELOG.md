@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.1.2
+
+### Patch Changes
+
+- [#246](https://github.com/open-spaced-repetition/ts-fsrs/pull/246) [`cd2c43a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/cd2c43aafab831a8a1808fcf6ffaef79ed55ec28) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(binding): ensure convert items are sorted by review time
+
 ## 0.1.1
 
 ### Patch Changes
