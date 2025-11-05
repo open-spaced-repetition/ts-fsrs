@@ -8,7 +8,7 @@ const formatterCache = new Map<string, Intl.DateTimeFormat>();
  * @param tz - Timezone string
  * @returns Cached or new DateTimeFormat instance
  */
-function getFormatter(tz: string): Intl.DateTimeFormat {
+export function getFormatter(tz: string): Intl.DateTimeFormat {
   let formatter = formatterCache.get(tz);
 
   if (!formatter) {
