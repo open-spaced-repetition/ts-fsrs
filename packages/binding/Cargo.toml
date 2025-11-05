@@ -2,7 +2,7 @@
 authors = ["ishiko <ishiko732@gmail.com>"]
 edition = "2024"
 name = "fsrs-binding"
-version = "0.0.1"
+version = "0.0.2"
 
 [lib]
 crate-type = ["cdylib"]
@@ -17,6 +17,7 @@ time = { version = "0.3", default-features = false, features = [
 ] }
 serde = "1.0.228"
 serde_json = "1.0.143"
+itertools = "0.14.0"
 
 [dependencies.fsrs]
 git = "https://github.com/open-spaced-repetition/fsrs-rs"

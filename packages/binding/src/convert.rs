@@ -1,4 +1,5 @@
 use csv::ReaderBuilder;
+use itertools::Itertools;
 use napi_derive::napi;
 
 use napi::bindgen_prelude::{FnArgs, Function, Result};
@@ -65,7 +66,7 @@ fn convert_to_fsrs_items_internal(
   next_day_starts_at: i64,
   timezone: &str,
   offset_provider: &Function<FnArgs<(i64, String)>, i32>,
-) -> Result<Vec<(String, FSRSBindingItem)>> {
+) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
 
   if !entries.is_empty() {
@@ -106,9 +107,10 @@ fn convert_to_fsrs_items_internal(
           FSRSBindingItem {
             inner: fsrs::FSRSItem { reviews },
           },
+          entry.review_time,
         )
       })
-      .filter(|(_, item)| item.current().is_some_and(|r| r.inner.delta_t > 0))
+      .filter(|(_, item, _)| item.current().is_some_and(|r| r.inner.delta_t > 0))
       .collect(),
   )
 }
@@ -125,32 +127,38 @@ pub fn convert_csv_to_fsrs_items(
 ) -> Result<Vec<FSRSBindingItem>> {
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
 
-  let revlogs: Vec<RevlogEntry> = rdr
+  let mut revlogs: Vec<RevlogEntry> = rdr
     .deserialize::<RevlogEntry>()
     .collect::<std::result::Result<Vec<RevlogEntry>, _>>()
     .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
 
-  let mut grouped = std::collections::HashMap::<String, Vec<RevlogEntry>>::new();
-  for entry in revlogs.into_iter() {
-    grouped
-      .entry(entry.card_id.clone())
-      .or_default()
-      .push(entry);
-  }
+  // Sort by review_time first to ensure ordering
+  revlogs.sort_by_cached_key(|r| (r.card_id.clone(), r.review_time));
 
-  for vec in grouped.values_mut() {
-    if vec.len() > 1 {
-      vec.sort_unstable_by_key(|r| r.review_time);
-    }
-  }
+  // Group by card_id while maintaining time order
+  let mut revlogs = revlogs
+    .into_iter()
+    .chunk_by(|r| r.card_id.clone())
+    .into_iter()
+    .filter_map(|(_card_id, entries)| {
+      match convert_to_fsrs_items_internal(
+        entries.collect(),
+        next_day_starts_at,
+        &timezone,
+        &offset_provider,
+      ) {
+        Ok(items) => Some(items),
+        Err(e) => {
+          eprintln!("Error converting revlog entries: {}", e);
+          None
+        }
+      }
+    })
+    .flatten()
+    .collect_vec();
 
-  let mut result: Vec<(String, FSRSBindingItem)> = Vec::new();
-  for (_cid, entries) in grouped {
-    match convert_to_fsrs_items_internal(entries, next_day_starts_at, &timezone, &offset_provider) {
-      Ok(items) => result.extend(items),
-      Err(e) => return Err(e),
-    }
-  }
+  // Sort by review_time to maintain correct order across groups
+  revlogs.sort_by_cached_key(|(_, _, review_time)| *review_time);
 
-  Ok(result.into_iter().map(|(_, item)| item).collect())
+  Ok(revlogs.into_iter().map(|(_, item, _)| item).collect())
 }
