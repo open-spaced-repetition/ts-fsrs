@@ -6,6 +6,10 @@ inputs:
     description: Node version to use
     required: false
     default: '20'
+  architecture:
+    description: Node architecture to use
+    required: false
+    default: ''
 
 runs:
   using: 'composite'
@@ -17,7 +21,8 @@ runs:
     - name: Install Node.js
       uses: actions/setup-node@v4
       with:
-        node-version: ${{ matrix.node }}
+        node-version: ${{ inputs['node-version'] }}
+        architecture: ${{ inputs.architecture }}
         cache: 'pnpm'
 
     - name: Install dependencies

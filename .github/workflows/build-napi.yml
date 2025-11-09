@@ -1,4 +1,9 @@
 name: build-napi
+env:
+  DEBUG: napi:*
+  APP_NAME: optimizer
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  CARGO_INCREMENTAL: '1'
 
 on:
   workflow_call:
@@ -50,7 +55,6 @@ jobs:
           - host: ubuntu-latest
             target: wasm32-wasip1-threads
             build: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target wasm32-wasip1-threads -o ./dist
-
 
     runs-on: ${{ matrix.settings.host }}
     name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}

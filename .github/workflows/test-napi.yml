@@ -1,5 +1,11 @@
 name: test-napi-binding
 
+env:
+  DEBUG: napi:*
+  APP_NAME: optimizer
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  CARGO_INCREMENTAL: '1'
+
 on:
   workflow_call:
     inputs:
@@ -25,6 +31,7 @@ jobs:
         uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ inputs.node-version }}
+          architecture: ${{ inputs.target =='aarch64-apple-darwin' && 'arm64' || inputs.target =='x86_64-apple-darwin' && 'x64' || '' }}
 
       - name: Cache test data
         id: cache-revlog
