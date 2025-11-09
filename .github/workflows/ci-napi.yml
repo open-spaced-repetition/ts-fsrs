@@ -19,6 +19,8 @@ on:
     paths:
       - 'packages/binding/**'
       - '.github/workflows/ci-napi.yml'
+      - '.github/workflows/build-napi.yml'
+      - '.github/workflows/test-napi.yml'
       - 'pnpm-lock.yaml'
 
 permissions:
@@ -28,7 +30,7 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/reusable/build-napi.yml
+    uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
   test:
@@ -49,7 +51,7 @@ jobs:
           - '20'
           - '22'
 
-    uses: ./.github/reusable/test-napi.yml
+    uses: ./.github/workflows/test-napi.yml
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}

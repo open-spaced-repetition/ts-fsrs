@@ -37,7 +37,7 @@ jobs:
     needs:
       - check
     if: github.event_name == 'workflow_dispatch' || needs.check.outputs.has-permissions == 'true'
-    uses: ./.github/reusable/build-napi.yml
+    uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
   test:
@@ -58,7 +58,7 @@ jobs:
           - '20'
           - '22'
 
-    uses: ./.github/reusable/test-napi.yml
+    uses: ./.github/workflows/test-napi.yml
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}

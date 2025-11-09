@@ -24,7 +24,7 @@ permissions:
 
 jobs:
   build:
-    uses: ./.github/reusable/build-napi.yml
+    uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
   test:
@@ -45,7 +45,7 @@ jobs:
           - '20'
           - '22'
 
-    uses: ./.github/reusable/test-napi.yml
+    uses: ./.github/workflows/test-napi.yml
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
@@ -59,7 +59,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node & pnpm
-        uses: ./.github/reusable/setup-node-pnpm.yml
+        uses: ./.github/workflows/setup-node-pnpm.yml
         with:
           node-version: ${{ matrix.node }}
 
