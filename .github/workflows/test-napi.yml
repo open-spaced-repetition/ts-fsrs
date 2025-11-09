@@ -50,13 +50,13 @@ jobs:
         shell: bash
 
       - name: Test WASI binding
-        if: contains(inputs.target, 'wasm32-wasip1')
+        if: inputs.target == 'wasm32-wasip1-threads'
         run: pnpm run -F @open-spaced-repetition/binding test
         env:
           NAPI_RS_FORCE_WASI: 1
 
       - name: Determine docker params
-        if: startsWith(inputs.target, 'x86_64') == false && contains(inputs.target, 'wasm32-wasip1') == false
+        if: contains(inputs.target, 'unknown-linux-gnu') == true || contains(inputs.target, 'unknown-linux-musl') == true
         id: docker
         run: |
           node -e "
@@ -94,6 +94,6 @@ jobs:
           run: |
             sh -lc "corepack enable pnpm && pnpm run -F @open-spaced-repetition/binding test"
 
-      - name: Test native binding
-        if: startsWith(inputs.target, 'x86_64') || contains(inputs.target, 'apple') || contains(inputs.target, 'windows')
+      - name: Test native binding (Windows/MacOS)
+        if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
         run: pnpm run -F @open-spaced-repetition/binding test
