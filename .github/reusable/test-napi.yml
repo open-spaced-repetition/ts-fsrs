@@ -22,7 +22,7 @@ jobs:
       - uses: actions/checkout@v5
 
       - name: Setup pnpm & node
-        uses: ./.github/reusable/setup-node-pnpm.yml
+        uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ inputs.node-version }}
 
