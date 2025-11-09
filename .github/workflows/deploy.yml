@@ -18,18 +18,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        shell: bash
-        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node & pnpm
+        uses: ./.github/reusable/setup-node-pnpm.yml
         with:
           node-version: 20
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Build docs
         run: pnpm run docs

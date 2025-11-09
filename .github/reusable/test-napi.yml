@@ -1,0 +1,99 @@
+name: test-napi-binding
+
+on:
+  workflow_call:
+    inputs:
+      target:
+        type: string
+        required: true
+      node-version:
+        type: string
+        required: true
+
+jobs:
+  test:
+    runs-on: >-
+      ${{ contains(inputs.target, 'apple') && 'macos-latest' ||
+          contains(inputs.target, 'windows') && 'windows-latest' ||
+          contains(inputs.target, 'aarch64') && 'ubuntu-24.04-arm' ||
+          'ubuntu-latest' }}
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Setup pnpm & node
+        uses: ./.github/reusable/setup-node-pnpm.yml
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Cache test data
+        id: cache-revlog
+        uses: actions/cache@v4
+        with:
+          path: packages/binding/__tests__/revlog.csv
+          key: revlog-csv-v1
+
+      - name: Download test data
+        if: steps.cache-revlog.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p packages/binding/__tests__
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+
+      - name: Download artifact
+        uses: actions/download-artifact@v5
+        with:
+          name: bindings-${{ inputs.target }}
+          path: packages/binding/dist
+
+      - name: List packages
+        run: ls -R packages/binding
+        shell: bash
+
+      - name: Test WASI binding
+        if: contains(inputs.target, 'wasm32-wasip1')
+        run: pnpm run -F @open-spaced-repetition/binding test
+        env:
+          NAPI_RS_FORCE_WASI: 1
+
+      - name: Determine docker params
+        if: startsWith(inputs.target, 'x86_64') == false && contains(inputs.target, 'wasm32-wasip1') == false
+        id: docker
+        run: |
+          node -e "
+            const target = '${{ inputs.target }}';
+            if (target.startsWith('aarch64')) {
+              console.log('PLATFORM=linux/arm64');
+            } else if (target.startsWith('armv7')) {
+              console.log('PLATFORM=linux/arm/v7');
+            } else {
+              console.log('PLATFORM=linux/amd64');
+            }
+            if (target.endsWith('-musl')) {
+              console.log('IMAGE=node:${{ inputs.node-version }}-alpine');
+            } else {
+              console.log('IMAGE=node:${{ inputs.node-version }}-slim');
+            }
+          " >> $GITHUB_OUTPUT
+          echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        if: contains(inputs.target, 'armv7')
+        with:
+          platforms: all
+
+      - run: docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
+        if: contains(inputs.target, 'armv7')
+
+      - name: Test via Docker
+        if: startsWith(inputs.target, 'x86_64') == false && contains(inputs.target, 'wasm32-wasip1') == false
+        uses: addnab/docker-run-action@v3
+        with:
+          image: ${{ steps.docker.outputs.IMAGE }}
+          options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
+          run: |
+            sh -lc "corepack enable pnpm && pnpm run -F @open-spaced-repetition/binding test"
+
+      - name: Test native binding
+        if: startsWith(inputs.target, 'x86_64') || contains(inputs.target, 'apple') || contains(inputs.target, 'windows')
+        run: pnpm run -F @open-spaced-repetition/binding test

@@ -1,0 +1,26 @@
+name: setup-node-pnpm
+
+on:
+  workflow_call:
+    inputs:
+      node-version:
+        type: string
+        default: '20'
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      node-version: ${{ inputs.node-version }}
+
+    steps:
+      - name: Setup pnpm
+        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies (Node.js)
+        run: pnpm install --frozen-lockfile
