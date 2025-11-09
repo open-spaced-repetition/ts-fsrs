@@ -1,0 +1,31 @@
+name: build-packages
+description: Sync JS/types and assemble binding artifacts into dist
+
+runs:
+  using: "composite"
+  steps:
+    - name: Download all artifacts
+      uses: actions/download-artifact@v5
+      with:
+        path: packages/binding/artifacts
+
+    - name: List downloaded artifacts
+      run: ls -R packages/binding/artifacts
+      shell: bash
+
+    - name: Sync JS & types into binding
+      run: |
+        pnpm -F @open-spaced-repetition/binding artifacts
+        mkdir -p packages/binding/dist
+        cp packages/binding/artifacts/bindings-aarch64-unknown-linux-musl/*.{js,cjs,mjs,d.ts} packages/binding/dist/ || true
+      shell: bash
+
+    - name: List packaged bindings
+      run: |
+        ls -R packages/binding/npm
+        ls -R packages/binding/dist
+      shell: bash
+
+    - name: Build TS-FSRS
+      run: pnpm -F ts-fsrs build
+      shell: bash

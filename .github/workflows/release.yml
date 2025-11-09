@@ -70,9 +70,7 @@ jobs:
         run: pnpm run test::coverage
 
       - name: Build Packages
-        uses: ./.github/reusable/build-packages.yml
-        with:
-          node-version: 20
+        uses: ./.github/actions/build-packages
 
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow

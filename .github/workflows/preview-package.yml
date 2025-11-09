@@ -72,7 +72,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup Node & pnpm
-        uses: ./.github/reusable/setup-node-pnpm.yml
+        uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ matrix.node }}
 
@@ -83,9 +83,6 @@ jobs:
         run: pnpm run test::coverage
 
       - name: Build Packages
-        uses: ./.github/reusable/build-packages.yml
-        with:
-          node-version: 20
+        uses: ./.github/actions/build-packages
 
       - run: pnpm dlx pkg-pr-new publish --compact
-
