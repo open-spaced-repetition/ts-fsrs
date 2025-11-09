@@ -93,7 +93,7 @@ jobs:
         if: contains(inputs.target, 'armv7')
 
       - name: Test via Docker
-        if: startsWith(inputs.target, 'x86_64') == false && contains(inputs.target, 'wasm32-wasip1') == false
+        if: contains(inputs.target, 'unknown-linux-gnu') == true || contains(inputs.target, 'unknown-linux-musl') == true
         uses: addnab/docker-run-action@v3
         with:
           image: ${{ steps.docker.outputs.IMAGE }}
