@@ -23,7 +23,10 @@ permissions:
 jobs:
   check:
     # First, trigger a permissions check on the user approving the pull request.
-    if: github.event_name == 'workflow_dispatch' || github.event.review.state == 'approved' || github.base_ref == 'chore/pkg-pr-new'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_review' && github.event.review.state == 'approved') ||
+      github.ref == 'refs/heads/chore/pkg-pr-new'
     runs-on: ubuntu-latest
     outputs:
       has-permissions: ${{ steps.checkPermissions.outputs.require-result }}
@@ -39,7 +42,10 @@ jobs:
   build:
     needs:
       - check
-    if: github.event_name == 'workflow_dispatch' || needs.check.outputs.has-permissions == 'true'
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request_review' && needs.check.outputs.has-permissions == 'true') ||
+      github.ref == 'refs/heads/chore/pkg-pr-new'
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
