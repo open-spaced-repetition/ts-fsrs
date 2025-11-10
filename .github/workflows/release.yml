@@ -61,7 +61,7 @@ jobs:
       - name: Setup Node & pnpm
         uses: ./.github/workflows/setup-node-pnpm.yml
         with:
-          node-version: ${{ matrix.node }}
+          node-version: 20
 
       - name: Run checks
         run: pnpm run check
