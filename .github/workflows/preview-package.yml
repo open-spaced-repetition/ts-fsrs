@@ -72,4 +72,5 @@ jobs:
       - name: Build Packages
         uses: ./.github/actions/build-packages
 
-      - run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/wasm32-wasi' --compact
+      - name: Publish Preview Packages
+        run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --compact --packageManager=pnpm
