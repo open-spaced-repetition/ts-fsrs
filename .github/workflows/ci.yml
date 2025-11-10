@@ -5,29 +5,28 @@ concurrency:
   cancel-in-progress: true
 
 on:
-
   pull_request:
     branches:
       - main
       - preview
 
     paths-ignore:
-      - ".devcontainer/**"
+      - '.devcontainer/**'
       # - '.github/**'
-      - ".vscode/**"
-      - ".gitignore"
-      - ".npmignore"
-      - "LICENSE"
-      - "README.md"
+      - '.vscode/**'
+      - '.gitignore'
+      - '.npmignore'
+      - 'LICENSE'
+      - 'README.md'
   push:
     paths-ignore:
-      - ".devcontainer/**"
+      - '.devcontainer/**'
       # - '.github/**'
-      - ".vscode/**"
-      - ".gitignore"
-      - ".npmignore"
-      - "LICENSE"
-      - "README.md"
+      - '.vscode/**'
+      - '.gitignore'
+      - '.npmignore'
+      - 'LICENSE'
+      - 'README.md'
     branches:
       - main
       - preview
@@ -42,7 +41,7 @@ jobs:
       matrix:
         node: [20]
         platform: [ubuntu-latest, macos-latest, windows-latest]
-    name: "${{matrix.platform}} / Node.js ${{ matrix.node }}"
+    name: '${{matrix.platform}} / Node.js ${{ matrix.node }}'
     runs-on: ${{matrix.platform}}
 
     steps:
@@ -55,24 +54,16 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup pnpm
-        shell: bash
-        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
-
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Setup Node & pnpm
+        uses: ./.github/actions/setup-node-pnpm
         with:
           node-version: ${{ matrix.node }}
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
           components: clippy, rustfmt
-          
+
       - name: Check
         run: pnpm run check
 

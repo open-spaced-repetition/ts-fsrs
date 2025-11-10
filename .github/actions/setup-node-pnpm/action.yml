@@ -1,0 +1,30 @@
+name: setup-node-pnpm
+description: Setup Node.js and pnpm with workspace install caching
+
+inputs:
+  node-version:
+    description: Node version to use
+    required: false
+    default: '20'
+  architecture:
+    description: Node architecture to use
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup pnpm
+      run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+      shell: bash
+
+    - name: Install Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs['node-version'] }}
+        architecture: ${{ inputs.architecture }}
+        cache: 'pnpm'
+
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+      shell: bash
