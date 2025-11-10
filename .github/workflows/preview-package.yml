@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - chore-pkg-pr-new 
+      - chore/pkg-pr-new 
 
 permissions:
   contents: write
