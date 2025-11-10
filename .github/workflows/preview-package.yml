@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - chore/pkg-pr-new 
+      - chore/pkg-pr-new
 
 permissions:
   contents: write
@@ -23,7 +23,7 @@ permissions:
 jobs:
   check:
     # First, trigger a permissions check on the user approving the pull request.
-    if: github.event_name != 'workflow_dispatch' && github.event.review.state == 'approved'
+    if: github.event_name == 'workflow_dispatch' || github.event.review.state == 'approved' || github.base_ref == 'chore/pkg-pr-new'
     runs-on: ubuntu-latest
     outputs:
       has-permissions: ${{ steps.checkPermissions.outputs.require-result }}
