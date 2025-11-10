@@ -49,33 +49,11 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
-  test:
-    needs: build
-    strategy:
-      fail-fast: false
-      matrix:
-        target:
-          - x86_64-pc-windows-msvc
-          - x86_64-apple-darwin
-          - aarch64-apple-darwin
-          - x86_64-unknown-linux-gnu
-          - x86_64-unknown-linux-musl
-          - aarch64-unknown-linux-gnu
-          - aarch64-unknown-linux-musl
-          - wasm32-wasip1-threads
-        node:
-          - '20'
-          - '22'
-
-    uses: ./.github/workflows/test-napi.yml
-    with:
-      target: ${{ matrix.target }}
-      node-version: ${{ matrix.node }}
   release:
     name: Release
     runs-on: ubuntu-latest
     needs:
-      - test
+      - build
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -94,4 +72,4 @@ jobs:
       - name: Build Packages
         uses: ./.github/actions/build-packages
 
-      - run: pnpm dlx pkg-pr-new publish --compact
+      - run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/wasm32-wasi' --compact
