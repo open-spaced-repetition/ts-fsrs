@@ -21,6 +21,7 @@
     "check::fix": "biome check --write ./src",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "test": "jest --config=jest.config.ts --passWithNoTests",
+    "test::vitest": "vitest run --config=vitest.config.ts --passWithNoTests",
     "test::coverage": "jest --config=jest.config.ts --coverage",
     "test::publish": "yalc publish",
     "prebuild": "rimraf ./dist",

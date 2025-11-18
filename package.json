@@ -23,13 +23,15 @@
     "@changesets/cli": "^2.29.7",
     "@types/jest": "^30.0.0",
     "@types/node": "^24.3.0",
+    "@vitest/coverage-v8": "4.0.10",
     "jest": "^30.1.2",
     "pkg-pr-new": "^0.0.60",
     "rimraf": "^6.0.1",
     "ts-jest": "^29.4.0",
     "ts-node": "10.9.2",
     "tsx": "^4.20.5",
-    "typescript": "^5.8.3"
+    "typescript": "^5.8.3",
+    "vitest": "^4.0.10"
   },
   "workspaces": [
     "packages/*",
