@@ -29,10 +29,8 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     coverage: {
-      enabled: true,
       reporter: ['text', 'cobertura', 'html'],
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.d.ts', 'src/**/__tests__/**'],
       thresholds: {
         lines: 80,
       },

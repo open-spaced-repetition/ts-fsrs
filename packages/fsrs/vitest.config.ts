@@ -20,10 +20,8 @@ export default defineConfig({
   test: {
     globals: true,
     coverage: {
-      enabled: true,
       reporter: ['text', 'cobertura', 'html'],
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.d.ts', 'src/**/__tests__/**'],
       thresholds: {
         lines: 80,
       },

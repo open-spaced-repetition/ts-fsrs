@@ -9,7 +9,7 @@
     "check::fix": "pnpm -r run check::fix",
     "dev": "pnpm -r run dev",
     "test": "pnpm -r run test",
-    "test::coverage": "jest --config=jest.config.ts --coverage",
+    "test::coverage": "vitest run --config=vitest.config.ts --coverage",
     "build": "pnpm -r run build",
     "docs": "pnpm -F ts-fsrs docs",
     "changeset": "changeset",
