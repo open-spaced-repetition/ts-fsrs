@@ -9,8 +9,6 @@ import {
   State,
 } from 'ts-fsrs'
 
-import { vi } from 'vitest'
-
 describe('FSRS-5', () => {
   const w = [
     0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,

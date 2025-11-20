@@ -2,5 +2,5 @@ src
 .gitgnore
 test
 .eslintrc.json
-jest.config.ts
+vitest.config.ts
 .prettierrc.json

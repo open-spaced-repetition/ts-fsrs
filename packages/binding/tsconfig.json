@@ -10,7 +10,8 @@
     "noUnusedParameters": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
-    "noEmitHelpers": true
+    "noEmitHelpers": true,
+    "types": ["vitest/globals", "node"]
   },
   "include": ["."],
   "exclude": ["node_modules", "benchmark", "__test__", ".cargo"]
