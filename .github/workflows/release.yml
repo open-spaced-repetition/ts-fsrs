@@ -45,7 +45,7 @@ jobs:
           - "20"
           - "22"
 
-    uses: ./.github/workflows/test-napi.yml
+    uses: ./.github/workflows/test.yml
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
