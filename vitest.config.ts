@@ -3,10 +3,7 @@ import { defineConfig } from 'vitest/config'
 export default defineConfig({
   test: {
     globals: true,
-    projects: [
-      'packages/*',
-      '!packages/binding/npm/*'
-    ],
+    projects: ['packages/*', '!packages/binding/npm/*'],
     coverage: {
       provider: 'istanbul',
       reportsDirectory: 'coverage',
@@ -21,6 +18,9 @@ export default defineConfig({
       reporter: ['text', 'cobertura', 'html'],
       thresholds: {
         lines: 80,
+        branches: 80,
+        functions: 80,
+        statements: 80,
       },
     },
   },
