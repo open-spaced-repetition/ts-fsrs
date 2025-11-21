@@ -1,4 +1,4 @@
-name: test-napi-binding
+name: test
 
 env:
   DEBUG: napi:*
@@ -15,6 +15,9 @@ on:
       node-version:
         type: string
         required: true
+
+permissions:
+  id-token: write
 
 jobs:
   test:
@@ -42,6 +45,7 @@ jobs:
 
       - name: Download test data
         if: steps.cache-revlog.outputs.cache-hit != 'true'
+        shell: bash
         run: |
           mkdir -p packages/binding/__tests__
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
@@ -58,7 +62,7 @@ jobs:
 
       - name: Test WASI binding
         if: inputs.target == 'wasm32-wasip1-threads'
-        run: pnpm run -F @open-spaced-repetition/binding test
+        run: pnpm test
         env:
           NAPI_RS_FORCE_WASI: 1
 
@@ -99,8 +103,16 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
           run: |
-            sh -lc "corepack enable pnpm && pnpm run -F @open-spaced-repetition/binding test"
+            sh -lc "corepack enable pnpm && pnpm test"
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
-        run: pnpm run -F @open-spaced-repetition/binding test
+        run: pnpm test::coverage
+
+      - name: Upload coverage to Codecov
+        if: (!cancelled()) && inputs.target == 'aarch64-apple-darwin'
+        uses: codecov/codecov-action@v4
+        with:
+          use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
+          token: ${{ secrets.CODECOV_TOKEN }}
+          fail_ci_if_error: true

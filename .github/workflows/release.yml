@@ -7,8 +7,8 @@ concurrency:
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
-  CARGO_INCREMENTAL: '1'
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+  CARGO_INCREMENTAL: "1"
 
 on:
   push:
@@ -42,10 +42,10 @@ jobs:
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
         node:
-          - '20'
-          - '22'
+          - "20"
+          - "22"
 
-    uses: ./.github/workflows/test-napi.yml
+    uses: ./.github/workflows/test.yml
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
@@ -66,11 +66,23 @@ jobs:
       - name: Run checks
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test::coverage
-
       - name: Build Packages
         uses: ./.github/actions/build-packages
+      - name: Cache test data
+        id: cache-revlog
+        uses: actions/cache@v4
+        with:
+          path: packages/binding/__tests__/revlog.csv
+          key: revlog-csv-v1
+
+      - name: Download test data
+        if: steps.cache-revlog.outputs.cache-hit != 'true'
+        shell: bash
+        run: |
+          mkdir -p packages/binding/__tests__
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+      - name: Run tests
+        run: pnpm run test::coverage
 
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
@@ -84,7 +96,7 @@ jobs:
           version: pnpm run version
           publish: pnpm run release
           createGithubReleases: false
-          commit: 'chore(release): version packages'
-          title: 'chore: release new versions'
+          commit: "chore(release): version packages"
+          title: "chore: release new versions"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
