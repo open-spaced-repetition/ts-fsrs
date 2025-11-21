@@ -45,7 +45,6 @@
     "@tybys/wasm-util": "^0.10.0",
     "@types/papaparse": "^5.3.16",
     "chalk": "^5.4.1",
-    "cross-env": "^10.0.0",
     "emnapi": "^1.4.5",
     "npm-run-all2": "^8.0.4",
     "papaparse": "^5.5.3",

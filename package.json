@@ -25,7 +25,6 @@
     "@vitest/coverage-istanbul": "4.0.10",
     "pkg-pr-new": "^0.0.60",
     "rimraf": "^6.0.1",
-    "ts-node": "10.9.2",
     "tsx": "^4.20.5",
     "typescript": "^5.8.3",
     "vitest": "^4.0.10"
