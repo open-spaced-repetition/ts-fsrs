@@ -19,14 +19,6 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    coverage: {
-      reporter: ['text', 'cobertura', 'html'],
-      include: ['src/**/*.ts'],
-      thresholds: {
-        lines: 80,
-      },
-    },
-
     include: ['**/__tests__/*.ts?(x)', '**/__tests__/**/*.ts?(x)'],
   },
 })

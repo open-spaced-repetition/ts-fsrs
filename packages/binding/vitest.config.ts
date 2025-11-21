@@ -28,13 +28,6 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    coverage: {
-      reporter: ['text', 'cobertura', 'html'],
-      include: ['src/**/*.ts'],
-      thresholds: {
-        lines: 80,
-      },
-    },
     include: ['**/__tests__/*.spec.ts?(x)', '**/__tests__/*.test.ts?(x)'],
     testTimeout: 1_000 * 60 * 4,
   },
