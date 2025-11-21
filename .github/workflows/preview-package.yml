@@ -55,11 +55,11 @@ jobs:
       - name: Run checks
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test::coverage
-
       - name: Build Packages
         uses: ./.github/actions/build-packages
+
+      - name: Run tests
+        run: pnpm run test::coverage
 
       - name: Publish Preview Packages
         run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --compact --packageManager=pnpm

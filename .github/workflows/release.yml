@@ -7,8 +7,8 @@ concurrency:
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
-  MACOSX_DEPLOYMENT_TARGET: '10.13'
-  CARGO_INCREMENTAL: '1'
+  MACOSX_DEPLOYMENT_TARGET: "10.13"
+  CARGO_INCREMENTAL: "1"
 
 on:
   push:
@@ -42,8 +42,8 @@ jobs:
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
         node:
-          - '20'
-          - '22'
+          - "20"
+          - "22"
 
     uses: ./.github/workflows/test-napi.yml
     with:
@@ -66,11 +66,11 @@ jobs:
       - name: Run checks
         run: pnpm run check
 
-      - name: Run tests
-        run: pnpm run test::coverage
-
       - name: Build Packages
         uses: ./.github/actions/build-packages
+
+      - name: Run tests
+        run: pnpm run test::coverage
 
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
@@ -84,7 +84,7 @@ jobs:
           version: pnpm run version
           publish: pnpm run release
           createGithubReleases: false
-          commit: 'chore(release): version packages'
-          title: 'chore: release new versions'
+          commit: "chore(release): version packages"
+          title: "chore: release new versions"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
