@@ -22,6 +22,7 @@
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "@types/node": "^24.3.0",
+    "@vitest/coverage-istanbul": "4.0.10",
     "@vitest/coverage-v8": "4.0.10",
     "pkg-pr-new": "^0.0.60",
     "rimraf": "^6.0.1",

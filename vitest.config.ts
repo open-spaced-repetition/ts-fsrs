@@ -8,7 +8,7 @@ export default defineConfig({
       './packages/binding/vitest.config.ts',
     ],
     coverage: {
-      provider: 'v8',
+      provider: 'istanbul',
       reportsDirectory: 'coverage',
       include: ['packages/**/src/**/*.ts'],
       reporter: ['text', 'cobertura', 'html'],
