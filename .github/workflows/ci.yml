@@ -1,8 +1,14 @@
-name: ci
+name: CI
 
 concurrency:
-  group: ci-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
+
+env:
+  DEBUG: napi:*
+  APP_NAME: optimizer
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  CARGO_INCREMENTAL: '1'
 
 on:
   pull_request:
@@ -10,68 +16,42 @@ on:
       - main
       - preview
 
-    paths-ignore:
-      - '.devcontainer/**'
-      # - '.github/**'
-      - '.vscode/**'
-      - '.gitignore'
-      - '.npmignore'
-      - 'LICENSE'
-      - 'README.md'
-  push:
-    paths-ignore:
-      - '.devcontainer/**'
-      # - '.github/**'
-      - '.vscode/**'
-      - '.gitignore'
-      - '.npmignore'
-      - 'LICENSE'
-      - 'README.md'
-    branches:
-      - main
-      - preview
-      - dev
+    paths:
+      - 'packages/binding/**'
+      - '.github/workflows/ci-napi.yml'
+      - '.github/workflows/build-napi.yml'
+      - '.github/workflows/test.yml'
+      - 'pnpm-lock.yaml'
 
 permissions:
-  contents: read # to fetch code (actions/checkout)
+  contents: read
+  id-token: write
+  pull-requests: write
 
 jobs:
   build:
+    uses: ./.github/workflows/build-napi.yml
+    with:
+      node-version: 20
+  test:
+    needs: build
     strategy:
+      fail-fast: false
       matrix:
-        node: [20]
-        platform: [ubuntu-latest, macos-latest, windows-latest]
-    name: '${{matrix.platform}} / Node.js ${{ matrix.node }}'
-    runs-on: ${{matrix.platform}}
+        target:
+          - x86_64-pc-windows-msvc
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+          - aarch64-unknown-linux-musl
+          - wasm32-wasip1-threads
+        node:
+          - '20'
+          - '22'
 
-    steps:
-      - name: Configure Git line endings on Windows
-        if: runner.os == 'Windows'
-        run: |
-          git config --global core.autocrlf false
-          git config --global core.eol lf
-
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node & pnpm
-        uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: ${{ matrix.node }}
-
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Check
-        run: pnpm run check
-
-      - name: Run tests and collect coverage
-        run: pnpm run test::coverage
-
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          fail_ci_if_error: true
+    uses: ./.github/workflows/test.yml
+    with:
+      target: ${{ matrix.target }}
+      node-version: ${{ matrix.node }}

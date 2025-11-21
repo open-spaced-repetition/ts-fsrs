@@ -1,4 +1,4 @@
-name: test-napi-binding
+name: test
 
 env:
   DEBUG: napi:*
@@ -58,7 +58,7 @@ jobs:
 
       - name: Test WASI binding
         if: inputs.target == 'wasm32-wasip1-threads'
-        run: pnpm run -F @open-spaced-repetition/binding test
+        run: pnpm test::coverage
         env:
           NAPI_RS_FORCE_WASI: 1
 
@@ -99,8 +99,17 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
           run: |
-            sh -lc "corepack enable pnpm && pnpm run -F @open-spaced-repetition/binding test"
+            sh -lc "corepack enable pnpm && pnpm test::coverage"
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
-        run: pnpm run -F @open-spaced-repetition/binding test
+        run: pnpm test::coverage
+
+      - name: Upload coverage to Codecov
+        if: (!cancelled()) && inputs.target == 'aarch64-apple-darwin'
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage/cobertura-coverage.xml
+          flags: ${{ inputs.target }}
+          name: coverage-${{ inputs.target }}
