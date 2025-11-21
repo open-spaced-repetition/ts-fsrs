@@ -17,7 +17,7 @@ on:
       - preview
 
     paths:
-      - 'packages/binding/**'
+      - 'packages/**'
       - '.github/workflows/ci.yml'
       - '.github/workflows/build-napi.yml'
       - '.github/workflows/test.yml'
