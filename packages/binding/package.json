@@ -33,8 +33,8 @@
     "check:fix": "biome format --write",
     "check:toml": "taplo format",
     "check:rs": "cargo fmt && cargo clippy",
-    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules vitest run --config=vitest.config.ts --passWithNoTests",
-    "test::coverage": "cross-env NODE_OPTIONS=--experimental-vm-modules vitest run --config=vitest.config.ts --passWithNoTests --coverage"
+    "test": "vitest run --config=vitest.config.ts --passWithNoTests",
+    "test::coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage"
   },
   "devDependencies": {
     "@emnapi/core": "^1.4.5",

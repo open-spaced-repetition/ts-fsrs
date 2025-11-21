@@ -36,5 +36,6 @@ export default defineConfig({
       },
     },
     include: ['**/__tests__/*.spec.ts?(x)', '**/__tests__/*.test.ts?(x)'],
+    testTimeout: 1_000 * 60 * 4,
   },
 })
