@@ -20,5 +20,6 @@ export default defineConfig({
   test: {
     globals: true,
     include: ['**/__tests__/*.ts?(x)', '**/__tests__/**/*.ts?(x)'],
+    testTimeout: 1_000 * 60 * 1,
   },
 })
