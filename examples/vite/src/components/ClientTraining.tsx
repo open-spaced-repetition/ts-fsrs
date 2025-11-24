@@ -1,5 +1,5 @@
 import { computeParameters } from '@open-spaced-repetition/binding'
-import { useId, useState } from 'react'
+import { useId, useRef, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '../types/training'
 import { convertFSRSItemByFile } from '../utils/convert'
@@ -25,6 +25,10 @@ export default function ClientTraining({
     trainingTime: '',
     fsrsItemsCount: 0,
   })
+
+  // Use refs to track last update time for throttling
+  const lastUpdateTimeRef = useRef<{ [key: string]: number }>({})
+  const UPDATE_THROTTLE_MS = 500 // Update UI at most every 100ms
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -63,10 +67,7 @@ export default function ClientTraining({
       const parseStartTime = performance.now()
 
       // Convert CSV to FSRS items
-      const fsrsItems = await convertFSRSItemByFile(
-        csvFile,
-        nextDayStartsAt
-      )
+      const fsrsItems = await convertFSRSItemByFile(csvFile, nextDayStartsAt)
 
       const parseEndTime = performance.now()
       const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`
@@ -102,24 +103,50 @@ export default function ClientTraining({
 
       // Compute parameters wrapper
       const computeParametersWrapper = async (enableShortTerm: boolean) => {
+        const key = `enableShortTerm_${enableShortTerm}`
+
+        // Track progress state to avoid redundant updates
+        let lastProgressUpdate = { cur: -1, total: -1 }
+
         const optimizedParameters = await computeParameters(fsrsItems, {
           enableShortTerm,
           numRelearningSteps,
           progress: (cur, total) => {
-            console.debug(
-              `[enableShortTerm = ${
-                enableShortTerm ? 1 : 0
-              }] Progress: ${cur}/${total}`
-            )
+            // Skip if progress hasn't changed
+            if (lastProgressUpdate.cur === cur && lastProgressUpdate.total === total) {
+              return
+            }
 
-            // Update progress in real-time
-            setResults((prev) =>
-              prev.map((r) =>
-                r.enableShortTerm === enableShortTerm
-                  ? { ...r, progress: `${cur}/${total}` }
-                  : r
+            // Throttle UI updates to avoid excessive re-renders
+            const now = Date.now()
+            const lastUpdate = lastUpdateTimeRef.current[key] || 0
+
+            // Always update on first call, last call, or after throttle interval
+            const shouldUpdate =
+              cur === 0 ||
+              cur === total ||
+              now - lastUpdate >= UPDATE_THROTTLE_MS
+
+            if (shouldUpdate) {
+              console.debug(
+                `[enableShortTerm = ${
+                  enableShortTerm ? 1 : 0
+                }] Progress: ${cur}/${total}`
               )
-            )
+
+              lastUpdateTimeRef.current[key] = now
+              lastProgressUpdate = { cur, total }
+
+              // Update progress in real-time using functional update
+              // to ensure we always work with the latest state
+              setResults((prev) =>
+                prev.map((r) =>
+                  r.enableShortTerm === enableShortTerm
+                    ? { ...r, progress: `${cur}/${total}` }
+                    : r
+                )
+              )
+            }
           },
         })
 
@@ -128,7 +155,7 @@ export default function ClientTraining({
           optimizedParameters
         )
 
-        // Update results with completed parameters
+        // Update results with completed parameters using functional update
         setResults((prev) =>
           prev.map((r) =>
             r.enableShortTerm === enableShortTerm
@@ -208,7 +235,7 @@ export default function ClientTraining({
               Hour when a new day begins (0-23)
             </p>
           </div>
-          
+
           <div>
             <label
               htmlFor={numRelearningStepsId}
