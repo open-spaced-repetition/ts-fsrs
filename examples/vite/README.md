@@ -2,6 +2,8 @@
 
 This example demonstrates how to use the FSRS parameter optimizer with Vite and React for **client-side parameter training**. This is a tool for optimizing FSRS algorithm parameters based on your review history data.
 
+**🌐 Live Demo:** https://fsrs-demo-vite.parallelveil.com/
+
 > **Note**: This example focuses on **parameter optimization/training** only. It does not include the FSRS scheduler functionality. For scheduler usage, see the main [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) library.
 
 ## Features
