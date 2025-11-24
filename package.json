@@ -22,12 +22,12 @@
     "@changesets/changelog-github": "^0.5.1",
     "@changesets/cli": "^2.29.7",
     "@types/node": "^24.10.1",
-    "@vitest/coverage-istanbul": "4.0.12",
+    "@vitest/coverage-istanbul": "4.0.13",
     "pkg-pr-new": "^0.0.60",
     "rimraf": "^6.1.2",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.12"
+    "vitest": "^4.0.13"
   },
   "workspaces": [
     "packages/*",
