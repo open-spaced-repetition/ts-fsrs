@@ -3,11 +3,13 @@
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 mod convert;
+mod evaluate;
 mod model;
 mod progress;
 mod train;
 
 pub use convert::*;
+pub use evaluate::*;
 pub use model::*;
 pub use train::*;
 
