@@ -8,7 +8,8 @@
     "paths": {
       "@open-spaced-repetition/binding": ["../dist/index.d.ts"],
       "@open-spaced-repetition/binding/*": ["../dist/*"]
-    }
+    },
+    "types": ["vitest/globals", "node"]
   },
   "include": ["."],
   "exclude": ["lib"]

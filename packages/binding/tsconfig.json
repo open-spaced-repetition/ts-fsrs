@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "noEmitHelpers": true,
-    "types": ["vitest/globals", "node"]
+    "types": ["node"]
   },
   "include": ["."],
   "exclude": ["node_modules", "benchmark", "__test__", ".cargo"]
