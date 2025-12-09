@@ -6,7 +6,8 @@
   ],
   "main": "fsrs-binding.win32-arm64-msvc.node",
   "files": [
-    "fsrs-binding.win32-arm64-msvc.node"
+    "fsrs-binding.win32-arm64-msvc.node",
+    "CHANGELOG.md"
   ],
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "keywords": [
