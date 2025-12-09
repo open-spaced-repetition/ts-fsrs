@@ -299,7 +299,7 @@ export class FSRSAlgorithm {
       Math.pow(s, -this.param.w[19]) *
       Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]))
 
-    const maskedSinc = g >= 2 ? Math.max(sinc, 1.0) : sinc
+    const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
     return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
   }
 
