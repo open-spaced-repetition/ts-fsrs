@@ -248,7 +248,7 @@ describe('next_ds', () => {
           .exp()
       )
 
-      const maskedSinc = g >= 2 ? Math.max(sinc, 1.0) : sinc
+      const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
 
       return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
     }
