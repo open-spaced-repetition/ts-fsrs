@@ -6,8 +6,7 @@
   ],
   "main": "fsrs-binding.android-arm64.node",
   "files": [
-    "fsrs-binding.android-arm64.node",
-    "CHANGELOG.md"
+    "fsrs-binding.android-arm64.node"
   ],
   "description": "The aarch64-linux-android native binary for @open-spaced-repetition/binding",
   "keywords": [

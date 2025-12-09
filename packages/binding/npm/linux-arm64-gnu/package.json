@@ -6,8 +6,7 @@
   ],
   "main": "fsrs-binding.linux-arm64-gnu.node",
   "files": [
-    "fsrs-binding.linux-arm64-gnu.node",
-    "CHANGELOG.md"
+    "fsrs-binding.linux-arm64-gnu.node"
   ],
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "keywords": [

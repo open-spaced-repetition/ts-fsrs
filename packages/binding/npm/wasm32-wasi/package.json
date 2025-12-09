@@ -10,8 +10,7 @@
     "fsrs-binding.wasi.cjs",
     "fsrs-binding.wasi-browser.js",
     "wasi-worker.mjs",
-    "wasi-worker-browser.mjs",
-    "CHANGELOG.md"
+    "wasi-worker-browser.mjs"
   ],
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "keywords": [
