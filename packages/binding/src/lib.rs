@@ -78,4 +78,39 @@ impl FSRS {
       ))),
     }
   }
+
+  #[napi]
+  pub fn universal_metrics(
+    &self,
+    train_set: Vec<&FSRSItem>,
+    parameter: Option<Vec<f64>>,
+  ) -> Result<(f32, f32)> {
+    let train_data: Vec<fsrs::FSRSItem> = train_set
+      .into_iter()
+      .map(|item| item.inner.clone())
+      .collect();
+
+    // TODO: merge with the same code in evaluate
+    let (mut dataset_for_initialization, mut trainset): (Vec<fsrs::FSRSItem>, Vec<fsrs::FSRSItem>) =
+      train_data
+        .into_iter()
+        .partition(|item| item.long_term_review_cnt() == 1);
+    (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
+    let items = [dataset_for_initialization, trainset].concat();
+
+    let params: Vec<f32> = match parameter {
+      Some(p) if !p.is_empty() => p.iter().map(|&x| x as f32).collect(),
+      _ => fsrs::DEFAULT_PARAMETERS.clone().to_vec(),
+    };
+
+    let result = self.inner.universal_metrics(items, &params, |_| true);
+
+    match result {
+      Ok((self_by_other, other_by_self)) => Ok((self_by_other, other_by_self)),
+      Err(e) => Err(napi::Error::from_reason(format!(
+        "Universal metrics computation failed: {}",
+        e
+      ))),
+    }
+  }
 }
