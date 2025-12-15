@@ -316,7 +316,7 @@ dependencies = [
  "libm",
  "macerator",
  "matrixmultiply",
- "ndarray",
+ "ndarray 0.16.1",
  "num-traits",
  "paste",
  "portable-atomic-util",
@@ -1210,12 +1210,12 @@ checksum = "aa9a19cbb55df58761df49b23516a86d432839add4af60fc256da840f66ed35b"
 [[package]]
 name = "fsrs"
 version = "6.0.0"
-source = "git+https://github.com/open-spaced-repetition/fsrs-rs?rev=0187b45608ec9470b74f289aaaf0069b458220df#0187b45608ec9470b74f289aaaf0069b458220df"
+source = "git+https://github.com/open-spaced-repetition/fsrs-rs?rev=b46226aae5ea03959c27cd81abb603bb6b744907#b46226aae5ea03959c27cd81abb603bb6b744907"
 dependencies = [
  "burn",
  "itertools",
  "log",
- "ndarray",
+ "ndarray 0.17.1",
  "priority-queue",
  "rand",
  "rayon",
@@ -2054,6 +2054,21 @@ dependencies = [
  "portable-atomic-util",
  "rawpointer",
  "rayon",
+]
+
+[[package]]
+name = "ndarray"
+version = "0.17.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0c7c9125e8f6f10c9da3aad044cc918cf8784fa34de857b1aa68038eb05a50a9"
+dependencies = [
+ "matrixmultiply",
+ "num-complex",
+ "num-integer",
+ "num-traits",
+ "portable-atomic",
+ "portable-atomic-util",
+ "rawpointer",
 ]
 
 [[package]]

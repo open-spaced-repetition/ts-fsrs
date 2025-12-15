@@ -20,9 +20,9 @@ serde_json = "1.0.143"
 itertools = "0.14.0"
 
 [dependencies.fsrs]
-git = "https://github.com/ishiko732/fsrs-rs"
-# https://github.com/open-spaced-repetition/fsrs-rs/pull/370
-rev = "6592cd9a2b72c3791cb78c7e9b2dc965342409c2"
+git = "https://github.com/open-spaced-repetition/fsrs-rs"
+# https://github.com/open-spaced-repetition/fsrs-rs/pull/382
+rev = "b46226aae5ea03959c27cd81abb603bb6b744907"
 default-features = false
 
 [build-dependencies]
