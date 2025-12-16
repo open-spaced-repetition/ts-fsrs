@@ -228,7 +228,7 @@ pub struct ComputeParametersOptions<'env> {
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
   // Progress callback temporarily disabled for v3 migration
-  #[napi(ts_type = "(current: number, total: number) => boolean | undefined")]
+  #[napi(ts_type = "(current: number, total: number) => boolean | undefined | void")]
   pub progress: Option<ProgressFunc<'env>>,
   #[napi(ts_type = "number")]
   pub timeout: Option<u32>,
