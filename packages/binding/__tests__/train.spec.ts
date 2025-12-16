@@ -64,4 +64,39 @@ describe('FSRS compute_parameters', () => {
     expect(Array.isArray(parameters)).toBe(true)
     console.log('Minimal data parameters:', parameters)
   })
+
+  test('returning false aborts computation', async () => {
+    let callCount = 0
+    const result = computeParameters(allItems, {
+      enableShortTerm: true,
+      progress: (current: number, total: number) => {
+        callCount++
+        console.debug(`[abort test] ${current}/${total}, call #${callCount}`)
+        if (callCount >= 2) {
+          return false
+        }
+      },
+      timeout: 100,
+    })
+    await expect(result).rejects.toThrow()
+    expect(callCount).toBeGreaterThanOrEqual(2)
+  })
+
+  test(
+    'throwing error in callback aborts computation',
+    async () => {
+      let callCount = 0
+      const result = computeParameters(allItems, {
+        enableShortTerm: true,
+        progress: () => {
+          callCount++
+          if (callCount >= 2) {
+            throw new Error('User cancelled')
+          }
+        },
+        timeout: 100,
+      })
+      await expect(result).rejects.toThrow()
+    }
+  )
 })
