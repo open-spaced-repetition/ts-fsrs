@@ -219,6 +219,8 @@ pub struct ModelEvaluation {
   pub rmse_bins: f64,
 }
 
+type ProgressFunc<'env> = Function<'env, FnArgs<(u32, u32)>, Option<bool>>;
+
 #[napi(object)]
 pub struct ComputeParametersOptions<'env> {
   /// Whether to enable short-term memory parameters
@@ -226,8 +228,8 @@ pub struct ComputeParametersOptions<'env> {
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
   // Progress callback temporarily disabled for v3 migration
-  #[napi(ts_type = "(current: number, total: number) => void | Promise<void>")]
-  pub progress: Option<Function<'env, FnArgs<(u32, u32)>, ()>>,
+  #[napi(ts_type = "(current: number, total: number) => boolean | undefined")]
+  pub progress: Option<ProgressFunc<'env>>,
   #[napi(ts_type = "number")]
   pub timeout: Option<u32>,
 }
