@@ -1,6 +1,5 @@
 #![deny(clippy::all)]
 
-use fsrs::filter_outlier;
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 mod convert;
@@ -53,16 +52,7 @@ impl FSRS {
 
   #[napi]
   pub fn evaluate(&self, train_set: Vec<&FSRSItem>) -> Result<ModelEvaluation> {
-    let train_data: Vec<fsrs::FSRSItem> = train_set
-      .into_iter()
-      .map(|item| item.inner.clone())
-      .collect();
-    let (mut dataset_for_initialization, mut trainset): (Vec<fsrs::FSRSItem>, Vec<fsrs::FSRSItem>) =
-      train_data
-        .into_iter()
-        .partition(|item| item.long_term_review_cnt() == 1);
-    (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
-    let items = [dataset_for_initialization, trainset].concat();
+    let items = prepare_items(train_set);
 
     // Because the computation finishes very quickly, progress reporting is not supported here
     let result = self.inner.evaluate(items, |_| true);
@@ -85,18 +75,7 @@ impl FSRS {
     train_set: Vec<&FSRSItem>,
     parameter: Option<Vec<f64>>,
   ) -> Result<(f32, f32)> {
-    let train_data: Vec<fsrs::FSRSItem> = train_set
-      .into_iter()
-      .map(|item| item.inner.clone())
-      .collect();
-
-    // TODO: merge with the same code in evaluate
-    let (mut dataset_for_initialization, mut trainset): (Vec<fsrs::FSRSItem>, Vec<fsrs::FSRSItem>) =
-      train_data
-        .into_iter()
-        .partition(|item| item.long_term_review_cnt() == 1);
-    (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
-    let items = [dataset_for_initialization, trainset].concat();
+    let items = prepare_items(train_set);
 
     let params: Vec<f32> = match parameter {
       Some(p) if !p.is_empty() => p.iter().map(|&x| x as f32).collect(),
