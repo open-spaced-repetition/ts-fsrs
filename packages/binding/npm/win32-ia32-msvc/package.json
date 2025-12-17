@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding-win32-ia32-msvc",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "cpu": [
     "ia32"
   ],
