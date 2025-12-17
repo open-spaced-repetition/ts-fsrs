@@ -40,7 +40,7 @@ describe('FSRS model', () => {
 
   /**
 diff --git a/src/inference.rs b/src/inference.rs
-index f5b20bf..f662363 100644
+index f5b20bf..6ff1d3b 100644
 --- a/src/inference.rs
 +++ b/src/inference.rs
 @@ -780,7 +780,7 @@ fn measure_a_by_b(pred_a: &[f32], pred_b: &[f32], true_val: &[f32]) -> f32 {
@@ -61,18 +61,34 @@ index f5b20bf..f662363 100644
          let (mut dataset_for_initialization, mut trainset): (Vec<FSRSItem>, Vec<FSRSItem>) = items
              .into_iter()
              .partition(|item| item.long_term_review_cnt() == 1);
-@@ -972,7 +972,7 @@ mod tests {
+@@ -972,23 +972,13 @@ mod tests {
          ])?;
          let metrics = fsrs.evaluate(items.clone(), |_| true).unwrap();
  
 -        [metrics.log_loss, metrics.rmse_bins].assert_approx_eq([0.20580745, 0.026005825]);
+-
+-        let fsrs = FSRS::default();
+-        let metrics = fsrs.evaluate(items.clone(), |_| true).unwrap();
+-
+-        [metrics.log_loss, metrics.rmse_bins].assert_approx_eq([0.20967911, 0.030774858]);
+-
+-        let fsrs = FSRS::new(PARAMETERS)?;
+-        let metrics = fsrs.evaluate(items.clone(), |_| true).unwrap();
+-
+-        [metrics.log_loss, metrics.rmse_bins].assert_approx_eq([0.208_657_4, 0.030_946_612]);
 +        [metrics.log_loss, metrics.rmse_bins].assert_approx_eq([0.3340487, 0.038114432]);
  
-         let fsrs = FSRS::default();
-         let metrics = fsrs.evaluate(items.clone(), |_| true).unwrap();
-
+         let (self_by_other, other_by_self) = fsrs
+             .universal_metrics(items.clone(), &DEFAULT_PARAMETERS, |_| true)
+             .unwrap();
+ 
+-        [self_by_other, other_by_self].assert_approx_eq([0.014087644, 0.017199915]);
++        [self_by_other, other_by_self].assert_approx_eq([0.023714684, 0.017120838]);
+ 
+         Ok(())
+     }
    */
-  test('evaluate with empty training set', () => {
+  test('evaluate', () => {
     const f = new FSRSBinding([
       0.335561, 1.6840581, 5.166598, 11.659035, 7.466705, 0.7205129, 2.622295,
       0.001, 1.315015, 0.10468433, 0.8349206, 1.822305, 0.12473127, 0.26111007,
@@ -80,6 +96,7 @@ index f5b20bf..f662363 100644
       0.20447432,
     ])
     expect(() => f.evaluate([])).toThrow()
+    expect(() => f.universalMetrics([])).toThrow()
 
     const csvBuffer = readFileSync(new URL('./revlog.csv', import.meta.url))
     const offset = 480 // UTC+8
@@ -90,5 +107,11 @@ index f5b20bf..f662363 100644
     console.debug('metrics', metrics)
     expect(metrics.logLoss).toBeCloseTo(0.3340487, 4)
     expect(metrics.rmseBins).toBeCloseTo(0.038114432, 4)
+
+    const result = f.universalMetrics(items)
+    console.debug('universal metrics', result)
+    expect(result.length).toBe(2)
+    expect(result[0]).toBeCloseTo(0.023714684, 4)
+    expect(result[1]).toBeCloseTo(0.017120838, 4)
   })
 })
