@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-linux-x64-gnu
 
+## 0.2.0
+
 ## 0.1.2
 
 ## 0.1.1
