@@ -61,15 +61,15 @@ jobs:
         id: cache-revlog
         uses: actions/cache@v4
         with:
-          path: packages/binding/__tests__/revlog.csv
+          path: packages/binding-test/src/revlog.csv
           key: revlog-csv-v1
 
       - name: Download test data
         if: steps.cache-revlog.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          mkdir -p packages/binding/__tests__
-          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+          mkdir -p packages/binding-test/src
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
 
       - name: Run tests
         run: pnpm run test::coverage

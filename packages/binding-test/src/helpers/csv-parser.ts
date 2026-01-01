@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import {
   FSRSBindingItem,
   FSRSBindingReview,
-} from '@open-spaced-repetition/binding/index.js'
+} from '@open-spaced-repetition/binding'
 import Papa from 'papaparse'
 
 export interface CSVRecord {

@@ -4,7 +4,7 @@ import {
   convertCsvToFsrsItems,
   FSRSBindingItem,
   FSRSBindingReview,
-} from '@open-spaced-repetition/binding/index.js'
+} from '@open-spaced-repetition/binding'
 import { getTimezoneOffset } from './helpers/csv-parser.js'
 
 describe('FSRS compute_parameters', () => {
