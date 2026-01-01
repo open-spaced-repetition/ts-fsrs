@@ -36,6 +36,7 @@ permissions:
 
 jobs:
   build:
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     strategy:
       matrix:
         node: [20]

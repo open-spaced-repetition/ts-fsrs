@@ -12,6 +12,7 @@ permissions:
 
 jobs:
   build-and-deploy:
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     runs-on: ubuntu-latest
 
     steps:

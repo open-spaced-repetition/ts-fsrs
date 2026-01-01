@@ -24,10 +24,12 @@ permissions:
 
 jobs:
   build:
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
   test:
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     needs: build
     strategy:
       fail-fast: false
@@ -50,6 +52,7 @@ jobs:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
   release:
+    if: ${{ !endsWith(github.actor, '[bot]') }}
     name: Release
     runs-on: ubuntu-latest
     needs:
