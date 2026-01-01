@@ -13,7 +13,7 @@
     "@types/papaparse": "^5.5.2",
     "papaparse": "^5.5.3",
     "tinybench": "^6.0.0",
-    "vite": "^6.0.7",
+    "vite": "^7.3.0",
     "vitest": "^4.0.16"
   },
   "dependencies": {
