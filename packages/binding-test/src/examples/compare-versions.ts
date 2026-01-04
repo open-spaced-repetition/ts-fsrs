@@ -1,7 +1,7 @@
-#!/usr/bin/env -S TSX_TSCONFIG_PATH=./__tests__/tsconfig.json NAPI_RS_FORCE_WASI=1 tsx
+#!/usr/bin/env NAPI_RS_FORCE_WASI=1 tsx
 
 import { readFileSync } from 'node:fs'
-import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding/index.js'
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
 import {
   getTimezoneOffset,
   parseCSVToFSRSItems,

@@ -4,7 +4,7 @@ import {
   FSRSBinding,
   FSRSBindingItem,
   FSRSBindingReview,
-} from '@open-spaced-repetition/binding/index.js'
+} from '@open-spaced-repetition/binding'
 import { readFileSync } from 'node:fs'
 
 describe('FSRS model', () => {

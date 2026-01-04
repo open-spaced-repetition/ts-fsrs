@@ -1,7 +1,7 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding/index.js'
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
 import { getTimezoneOffset, parseCSVToFSRSItems } from './helpers/csv-parser.js'
 
 const __filename = fileURLToPath(import.meta.url)

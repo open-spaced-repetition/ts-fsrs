@@ -14,6 +14,7 @@ export default defineConfig({
         '**/__tests__/**',
         '**/*.spec.ts',
         '**/*.test.ts',
+        'packages/binding-test/**',
       ],
       reporter: ['text', 'cobertura', 'html'],
       thresholds: {
