@@ -11,8 +11,7 @@
 )](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release
 )](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
-)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/open-spaced-repetition/ts-fsrs)
 
 ts-fsrs是一个基于TypeScript的多功能包，支持[ES模块](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c)、[CommonJS](https://en.wikipedia.org/wiki/CommonJS)和UMD。它实现了[自由间隔重复调度器（FSRS）算法](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler/blob/main/README_CN.md)，使开发人员能够将FSRS集成到他们的闪卡应用程序中，从而增强用户的学习体验。
 

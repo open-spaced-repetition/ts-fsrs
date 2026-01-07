@@ -10,8 +10,7 @@
 )](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release
 )](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages
-)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/open-spaced-repetition/ts-fsrs)
 
 ts-fsrs is a versatile package written in TypeScript that supports [ES modules](https://gist.github.com/sindresorhus/a39789f98801d908bbc7ff3ecc99d99c), [CommonJS](https://en.wikipedia.org/wiki/CommonJS), and UMD. It implements the [Free Spaced Repetition Scheduler (FSRS) algorithm](https://github.com/open-spaced-repetition/free-spaced-repetition-scheduler), enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.
 
