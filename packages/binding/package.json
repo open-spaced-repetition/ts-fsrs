@@ -38,7 +38,7 @@
     "@emnapi/core": "^1.7.1",
     "@emnapi/runtime": "^1.7.1",
     "@napi-rs/cli": "^3.4.1",
-    "@napi-rs/wasm-runtime": "^1.1.0",
+    "@napi-rs/wasm-runtime": "^1.1.1",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.1",
     "@types/papaparse": "^5.5.2",
