@@ -2,11 +2,11 @@ use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
 use napi_derive::napi;
 use std::sync::{Arc, Mutex};
 
-use crate::{ComputeParametersOptions, FSRSItem, progress};
+use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation, prepare_items, progress};
 
-pub struct ComputeParametersTask {
+pub struct EvaluateParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
-  pub(crate) state: Arc<Mutex<fsrs::CombinedProgressState>>,
+  pub(crate) state: Arc<Mutex<progress::ProgressState>>,
   pub(crate) enable_short_term: bool,
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) timeout_ms: u32,
@@ -15,9 +15,9 @@ pub struct ComputeParametersTask {
   pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
 }
 
-impl Task for ComputeParametersTask {
-  type Output = Vec<f32>;
-  type JsValue = Vec<f64>;
+impl Task for EvaluateParametersTask {
+  type Output = fsrs::ModelEvaluation;
+  type JsValue = ModelEvaluation;
 
   fn compute(&mut self) -> Result<Self::Output> {
     #[cfg(not(target_arch = "wasm32"))]
@@ -30,13 +30,30 @@ impl Task for ComputeParametersTask {
       )
     };
 
-    let out = fsrs::compute_parameters(fsrs::ComputeParametersInput {
-      train_set: std::mem::take(&mut self.train),
-      progress: Some(Arc::clone(&self.state)),
-      enable_short_term: self.enable_short_term,
-      num_relearning_steps: self.num_relearning_steps,
-    })
-    .map_err(|e| napi::Error::from_reason(format!("compute_parameters failed: {e}")))?;
+    let state = Arc::clone(&self.state);
+    let result = fsrs::evaluate_with_time_series_splits(
+      fsrs::ComputeParametersInput {
+        train_set: std::mem::take(&mut self.train),
+        progress: None,
+        enable_short_term: self.enable_short_term,
+        num_relearning_steps: self.num_relearning_steps,
+      },
+      move |item_progress| {
+        if let Ok(mut guard) = state.lock() {
+          guard.current = item_progress.current;
+          guard.total = item_progress.total;
+          if guard.want_abort {
+            return false;
+          }
+        }
+        true
+      },
+    )
+    .map_err(|e| napi::Error::from_reason(format!("evaluate_parameters failed: {e}")));
+
+    if let Ok(mut guard) = self.state.lock() {
+      guard.finished = true;
+    }
 
     #[cfg(not(target_arch = "wasm32"))]
     let _ = _progress_thread.join().ok();
@@ -47,26 +64,26 @@ impl Task for ComputeParametersTask {
       let _ = handle.join().ok();
     }
 
-    Ok(out)
+    result
   }
 
   fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
-    Ok(output.iter().map(|&x| x as f64).collect())
+    Ok(ModelEvaluation {
+      log_loss: output.log_loss as f64,
+      rmse_bins: output.rmse_bins as f64,
+    })
   }
 }
 
-/// Calculate appropriate parameters for the provided review history.
-#[napi(ts_return_type = "Promise<number[]>", catch_unwind)]
-pub fn compute_parameters(
+/// Evaluate parameters using time-series splits.
+#[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
+pub fn evaluate_parameters(
   train_set: Vec<&FSRSItem>,
   #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
-) -> AsyncTask<ComputeParametersTask> {
-  let train_data: Vec<fsrs::FSRSItem> = train_set
-    .into_iter()
-    .map(|item| item.inner.clone())
-    .collect();
+) -> AsyncTask<EvaluateParametersTask> {
+  let items = prepare_items(train_set);
 
-  let state = fsrs::CombinedProgressState::new_shared();
+  let state = Arc::new(Mutex::new(progress::ProgressState::default()));
   let timeout = options.as_ref().and_then(|x| x.timeout).unwrap_or(500);
 
   let progress_tsfn = options
@@ -103,8 +120,8 @@ pub fn compute_parameters(
     .and_then(|x| x.num_relearning_steps)
     .map(|x| x as usize);
 
-  AsyncTask::new(ComputeParametersTask {
-    train: train_data,
+  AsyncTask::new(EvaluateParametersTask {
+    train: items,
     state,
     timeout_ms: timeout,
     progress_cb: progress_tsfn_for_task,

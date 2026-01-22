@@ -2,6 +2,7 @@ import * as fs from 'node:fs'
 import {
   computeParameters,
   convertCsvToFsrsItems,
+  evaluateParameters,
   FSRSBindingItem,
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
@@ -64,6 +65,23 @@ describe('FSRS compute_parameters', () => {
     expect(Array.isArray(parameters)).toBe(true)
     console.log('Minimal data parameters:', parameters)
   })
+
+  test('evaluate_parameters with time series splits', async () => {
+    if (allItems.length === 0) {
+      throw new Error('No valid items parsed from CSV, skipping test')
+    }
+
+    const metrics = await evaluateParameters(allItems, {
+      enableShortTerm: true,
+      progress: (current: number, total: number) => {
+        console.debug(`[evaluate] Progress: ${current}/${total}`)
+      },
+      timeout: 500,
+    })
+
+    expect(metrics.logLoss).toBeCloseTo(0.32699051, 4)
+    expect(metrics.rmseBins).toBeCloseTo(0.026878573, 4)
+  }, 180_000)
 
   test('returning false aborts computation', async () => {
     let callCount = 0
