@@ -50,7 +50,7 @@ impl Task for EvaluateParametersTask {
       }
       true
     })
-    .map_err(|e| napi::Error::from_reason(format!("evaluate_parameters failed: {e}")));
+    .map_err(|e| napi::Error::from_reason(format!("evaluate_with_time_series_splits failed: {e}")));
 
     if let Ok(mut guard) = self.state.lock() {
       guard.finished = true;
