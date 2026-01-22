@@ -2,7 +2,7 @@ import * as fs from 'node:fs'
 import {
   computeParameters,
   convertCsvToFsrsItems,
-  evaluateParameters,
+  evaluateWithTimeSeriesSplits,
   FSRSBindingItem,
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
@@ -71,7 +71,7 @@ describe('FSRS compute_parameters', () => {
       throw new Error('No valid items parsed from CSV, skipping test')
     }
 
-    const metrics = await evaluateParameters(allItems, {
+    const metrics = await evaluateWithTimeSeriesSplits(allItems, {
       enableShortTerm: true,
       progress: (current: number, total: number) => {
         console.debug(`[evaluate] Progress: ${current}/${total}`)
@@ -100,21 +100,31 @@ describe('FSRS compute_parameters', () => {
     expect(callCount).toBeGreaterThanOrEqual(2)
   })
 
-  test(
-    'throwing error in callback aborts computation',
-    async () => {
-      let callCount = 0
-      const result = computeParameters(allItems, {
-        enableShortTerm: true,
-        progress: () => {
-          callCount++
-          if (callCount >= 2) {
-            throw new Error('User cancelled')
-          }
-        },
-        timeout: 100,
-      })
-      await expect(result).rejects.toThrow()
-    }
-  )
+  test('throwing error in callback aborts computation', async () => {
+    let computeCallCount = 0
+    const computeResult = computeParameters(allItems, {
+      enableShortTerm: true,
+      progress: () => {
+        computeCallCount++
+        if (computeCallCount >= 2) {
+          throw new Error('User cancelled')
+        }
+      },
+      timeout: 100,
+    })
+
+    await expect(computeResult).rejects.toThrow()
+    let evaluateCallCount = 0
+    const evaluateResult = evaluateWithTimeSeriesSplits(allItems, {
+      enableShortTerm: true,
+      progress: () => {
+        evaluateCallCount++
+        if (evaluateCallCount >= 2) {
+          throw new Error('User cancelled')
+        }
+      },
+      timeout: 100,
+    })
+    await expect(evaluateResult).rejects.toThrow()
+  })
 })
