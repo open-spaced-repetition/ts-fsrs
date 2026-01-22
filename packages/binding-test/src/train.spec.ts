@@ -100,31 +100,24 @@ describe('FSRS compute_parameters', () => {
     expect(callCount).toBeGreaterThanOrEqual(2)
   })
 
-  test('throwing error in callback aborts computation', async () => {
-    let computeCallCount = 0
-    const computeResult = computeParameters(allItems, {
+  test.each([
+    { name: 'computeParameters', fn: computeParameters },
+    {
+      name: 'evaluateWithTimeSeriesSplits',
+      fn: evaluateWithTimeSeriesSplits,
+    },
+  ])('throwing error in callback aborts $name', async ({ fn }) => {
+    let callCount = 0
+    const result = fn(allItems, {
       enableShortTerm: true,
       progress: () => {
-        computeCallCount++
-        if (computeCallCount >= 2) {
+        callCount++
+        if (callCount >= 2) {
           throw new Error('User cancelled')
         }
       },
       timeout: 100,
     })
-
-    await expect(computeResult).rejects.toThrow()
-    let evaluateCallCount = 0
-    const evaluateResult = evaluateWithTimeSeriesSplits(allItems, {
-      enableShortTerm: true,
-      progress: () => {
-        evaluateCallCount++
-        if (evaluateCallCount >= 2) {
-          throw new Error('User cancelled')
-        }
-      },
-      timeout: 100,
-    })
-    await expect(evaluateResult).rejects.toThrow()
+    await expect(result).rejects.toThrow()
   })
 })
