@@ -1,0 +1,7 @@
+# To avoid polluting the root pnpm-lock.yaml, I added a pnpm-workspace.yaml file inside each example.
+packages:
+  - .
+
+
+supportedArchitectures:
+  cpu: [current, wasm32]
