@@ -65,6 +65,11 @@ jobs:
 
       - name: Run checks
         run: pnpm run check
+        env:
+          TURBO_API: ${{ secrets.TURBO_API }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
       - name: Build Packages
         uses: ./.github/actions/build-packages

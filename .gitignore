@@ -2,6 +2,9 @@
 node_modules/
 .pnpm-store/
 
+# Turbo
+.turbo/
+
 
 # Build outputs
 **/dist

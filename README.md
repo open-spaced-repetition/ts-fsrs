@@ -237,3 +237,41 @@ type ReviewLog = {
     review: Date; // Date of the review
 }
 ```
+
+# Turborepo Remote Cache
+
+This monorepo uses [Turborepo](https://turbo.build/repo) for task orchestration with remote caching support.
+
+## Required Environment Variables
+
+To enable remote caching, set the following environment variables:
+
+| Variable | Description |
+|----------|-------------|
+| `TURBO_API` | URL of your Turbo Remote Cache server |
+| `TURBO_TEAM` | Team identifier for cache namespacing |
+| `TURBO_TOKEN` | Authentication token for the cache server |
+| `TURBO_REMOTE_CACHE_SIGNATURE_KEY` | (Optional) Key for cache artifact signing |
+
+## Verifying Cache Hits
+
+### Local Cache
+
+Run any Turbo task twice to verify local caching:
+
+```bash
+pnpm run check   # First run: cache miss
+pnpm run check   # Second run: cache hit
+```
+
+Look for these indicators in the output:
+- `cache miss, executing <hash>` - Task was executed
+- `cache hit, replaying logs <hash>` - Task result was retrieved from cache
+- `Cached: X cached, Y total` - Summary showing cached tasks
+- `FULL TURBO` - All tasks were served from cache
+
+### CI Remote Cache
+
+In GitHub Actions, look for the same indicators. When remote caching is enabled, you'll see:
+- `Remote caching enabled` instead of `Remote caching disabled`
+- Cache hits on tasks that were previously executed, even across different CI runs
