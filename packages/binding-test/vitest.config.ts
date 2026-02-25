@@ -8,6 +8,7 @@ export default defineConfig({
     testTimeout: 1_000 * 60 * 4,
     coverage: {
       provider: 'istanbul',
+      exclude: ['src/helpers/**', 'src/examples/**'],
     },
   },
 })
