@@ -33,6 +33,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
+    secrets: inherit
   test:
     needs: build
     strategy:
@@ -55,3 +56,4 @@ jobs:
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
+    secrets: inherit

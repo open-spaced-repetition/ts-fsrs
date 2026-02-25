@@ -5,6 +5,11 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
     },
+    "@open-spaced-repetition/binding#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["NAPI_TARGET"]
+    },
     "check": {
       "outputs": []
     },
@@ -15,8 +20,16 @@
       "dependsOn": ["^build"],
       "outputs": []
     },
+    "@open-spaced-repetition/binding-test#test": {
+      "dependsOn": [],
+      "outputs": []
+    },
     "test::coverage": {
       "dependsOn": ["^build"],
+      "outputs": ["coverage/**"]
+    },
+    "@open-spaced-repetition/binding-test#test::coverage": {
+      "dependsOn": [],
       "outputs": ["coverage/**"]
     },
     "dev": {
