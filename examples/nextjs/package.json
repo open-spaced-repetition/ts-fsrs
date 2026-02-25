@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@open-spaced-repetition/binding": "^0.1.2",
-    "hono": "^4.11.7",
+    "hono": "^4.11.10",
     "next": "16.1.5",
     "react": "19.2.0",
     "react-dom": "19.2.0"
