@@ -18,10 +18,10 @@
   "type": "module",
   "scripts": {
     "check": "biome check ./src",
-    "check::fix": "biome check --write ./src",
+    "check:fix": "biome check --write ./src",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
-    "test::coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
+    "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "test::publish": "yalc publish",
     "prebuild": "rimraf ./dist",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",

@@ -6,13 +6,14 @@
   "type": "module",
   "scripts": {
     "check": "turbo run check",
-    "check::fix": "turbo run check::fix",
+    "check:fix": "turbo run check:fix",
     "dev": "turbo run dev",
     "test": "turbo run test",
-    "test::coverage": "turbo run test::coverage",
+    "test:coverage": "turbo run test:coverage",
     "build": "turbo run build",
     "docs": "turbo run docs --filter=ts-fsrs",
     "changeset": "changeset",
+    "//note:naming": "Use single colon (:) instead of double colon (::) in script names. Turbo fails to parse glob expressions for cache log files when task names contain '::' (see https://github.com/vercel/turborepo/issues/6136).",
     "//": "when we create the release PR, we need to update the lock file with the new versions",
     "version": "changeset version && pnpm i --lockfile-only && (git stash list | grep -q '__automated-changes' && git -c advice.skippedCherryPicks=false stash pop || echo 'No stash to pop')",
     "release": "changeset publish"

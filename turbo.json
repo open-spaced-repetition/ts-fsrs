@@ -16,7 +16,7 @@
       "outputs": [],
       "env": ["TURBO_PLATFORM"]
     },
-    "check::fix": {
+    "check:fix": {
       "outputs": []
     },
     "test": {
@@ -27,11 +27,11 @@
       "dependsOn": [],
       "outputs": []
     },
-    "test::coverage": {
+    "test:coverage": {
       "dependsOn": ["^build"],
       "outputs": ["coverage/**"]
     },
-    "@open-spaced-repetition/binding-test#test::coverage": {
+    "@open-spaced-repetition/binding-test#test:coverage": {
       "dependsOn": [],
       "outputs": ["coverage/**"]
     },

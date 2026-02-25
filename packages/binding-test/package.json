@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "test::coverage": "vitest run --coverage",
+    "test:coverage": "vitest run --coverage",
     "dev": "vitest"
   },
   "devDependencies": {

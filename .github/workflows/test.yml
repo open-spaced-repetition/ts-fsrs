@@ -111,7 +111,7 @@ jobs:
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
-        run: pnpm test::coverage
+        run: pnpm test:coverage
         env:
           TURBO_API: ${{ secrets.TURBO_API }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}

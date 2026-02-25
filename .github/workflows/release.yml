@@ -89,7 +89,7 @@ jobs:
           mkdir -p packages/binding-test/src
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
       - name: Run tests
-        run: pnpm run test::coverage
+        run: pnpm run test:coverage
         env:
           TURBO_API: ${{ secrets.TURBO_API }}
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
