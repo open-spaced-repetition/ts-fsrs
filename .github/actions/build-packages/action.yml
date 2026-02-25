@@ -27,5 +27,5 @@ runs:
       shell: bash
 
     - name: Build TS-FSRS
-      run: pnpm -F ts-fsrs build
+      run: pnpm exec turbo run build --filter=ts-fsrs
       shell: bash

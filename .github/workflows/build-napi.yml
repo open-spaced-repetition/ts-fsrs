@@ -108,6 +108,7 @@ jobs:
           architecture: x86
 
       - name: Build
+        if: matrix.settings.target != 'i686-pc-windows-msvc'
         run: pnpm exec turbo run build --filter=@open-spaced-repetition/binding -- --target ${{ matrix.settings.target }} ${{ matrix.settings.extra_flags }}
         shell: bash
         env:
@@ -116,6 +117,11 @@ jobs:
           TURBO_TEAM: ${{ vars.TURBO_TEAM }}
           TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
           TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+      # Turborepo does not support windows ia32 architecture, fall back to direct napi build
+      - name: Build (i686)
+        if: matrix.settings.target == 'i686-pc-windows-msvc'
+        run: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
+        shell: bash
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         if: matrix.settings.target != 'wasm32-wasip1-threads'

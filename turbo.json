@@ -8,10 +8,12 @@
     "@open-spaced-repetition/binding#build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
-      "env": ["NAPI_TARGET"]
+      "env": ["NAPI_TARGET"],
+      "passThroughEnv": ["ANDROID_NDK_LATEST_HOME"]
     },
     "check": {
-      "outputs": []
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
     },
     "check::fix": {
       "outputs": []

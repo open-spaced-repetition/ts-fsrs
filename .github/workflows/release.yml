@@ -27,6 +27,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
+    secrets: inherit
   test:
     needs: build
     strategy:
@@ -49,6 +50,7 @@ jobs:
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
+    secrets: inherit
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -88,6 +90,11 @@ jobs:
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
       - name: Run tests
         run: pnpm run test::coverage
+        env:
+          TURBO_API: ${{ secrets.TURBO_API }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
