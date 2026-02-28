@@ -22,7 +22,8 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding-test#test": {
       "dependsOn": [],
@@ -30,7 +31,8 @@
     },
     "test:coverage": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "env": ["TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding-test#test:coverage": {
       "dependsOn": [],
