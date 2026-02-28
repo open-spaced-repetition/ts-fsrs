@@ -44,7 +44,7 @@
     },
     "docs": {
       "dependsOn": ["build"],
-      "outputs": ["docs/**"]
+      "outputs": ["../../docs/**"]
     }
   }
 }
