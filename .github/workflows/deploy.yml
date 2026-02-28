@@ -5,6 +5,12 @@ on:
     branches:
       - main
 
+env:
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+
 permissions:
   contents: write
   pages: write
@@ -25,11 +31,6 @@ jobs:
 
       - name: Build docs
         run: pnpm run docs
-        env:
-          TURBO_API: ${{ secrets.TURBO_API }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
       - name: Copy example folder
         run: cp -R example/* docs/
 

@@ -5,6 +5,10 @@ env:
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
 on:
   pull_request_review:
@@ -55,11 +59,6 @@ jobs:
 
       - name: Run checks
         run: pnpm run check
-        env:
-          TURBO_API: ${{ secrets.TURBO_API }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
       - name: Build Packages
         uses: ./.github/actions/build-packages
@@ -79,11 +78,6 @@ jobs:
 
       - name: Run tests
         run: pnpm run test:coverage
-        env:
-          TURBO_API: ${{ secrets.TURBO_API }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
       - name: Publish Preview Packages
         run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --compact --packageManager=pnpm

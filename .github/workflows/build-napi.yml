@@ -4,6 +4,10 @@ env:
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
 on:
   workflow_call:
@@ -113,10 +117,6 @@ jobs:
         shell: bash
         env:
           NAPI_TARGET: ${{ matrix.settings.target }}
-          TURBO_API: ${{ secrets.TURBO_API }}
-          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-          TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
       # Turborepo does not support windows ia32 architecture, fall back to direct napi build
       - name: Build (i686)
         if: matrix.settings.target == 'i686-pc-windows-msvc'
