@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "type": "module",
   "main": "dist/index.cjs",
