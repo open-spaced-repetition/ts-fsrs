@@ -1,0 +1,50 @@
+{
+  "$schema": "./node_modules/turbo/schema.json",
+  "globalDependencies": ["pnpm-lock.yaml", "package.json", "biome.json"],
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@open-spaced-repetition/binding#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["NAPI_TARGET"],
+      "passThroughEnv": ["ANDROID_NDK_LATEST_HOME"]
+    },
+    "check": {
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "check:fix": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "@open-spaced-repetition/binding-test#test": {
+      "dependsOn": [],
+      "outputs": []
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "@open-spaced-repetition/binding-test#test:coverage": {
+      "dependsOn": [],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "docs": {
+      "dependsOn": ["build"],
+      "outputs": ["../../docs/**"]
+    }
+  }
+}

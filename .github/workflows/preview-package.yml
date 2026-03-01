@@ -5,6 +5,10 @@ env:
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
 on:
   pull_request_review:
@@ -38,6 +42,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
+    secrets: inherit
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -72,7 +77,7 @@ jobs:
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
 
       - name: Run tests
-        run: pnpm run test::coverage
+        run: pnpm run test:coverage
 
       - name: Publish Preview Packages
         run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --compact --packageManager=pnpm

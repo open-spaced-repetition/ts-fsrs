@@ -5,6 +5,11 @@ env:
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+  TURBO_PLATFORM: ${{ inputs.target }}
 
 on:
   workflow_call:
@@ -107,7 +112,7 @@ jobs:
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
-        run: pnpm test::coverage
+        run: pnpm test:coverage
 
       - name: Upload coverage to Codecov
         if: (!cancelled()) && inputs.target == 'aarch64-apple-darwin'
