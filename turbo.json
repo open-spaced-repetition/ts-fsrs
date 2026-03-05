@@ -26,8 +26,15 @@
       "env": ["TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding-test#test": {
-      "dependsOn": [],
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
       "outputs": []
+    },
+    "@open-spaced-repetition/binding#build:dynamic": {
+      "outputs": [
+        "dist/dynamic-wasi.cjs",
+        "dist/dynamic-wasi-browser.js",
+        "dist/dynamic-wasi.d.ts"
+      ]
     },
     "test:coverage": {
       "dependsOn": ["^build"],
@@ -35,7 +42,7 @@
       "env": ["TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding-test#test:coverage": {
-      "dependsOn": [],
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
       "outputs": ["coverage/**"]
     },
     "dev": {

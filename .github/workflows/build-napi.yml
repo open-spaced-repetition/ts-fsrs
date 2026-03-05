@@ -122,6 +122,10 @@ jobs:
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         run: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
         shell: bash
+      - name: Copy dynamic loader files
+        run: node packages/binding/copy-dynamic.js
+        shell: bash
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         if: matrix.settings.target != 'wasm32-wasip1-threads'

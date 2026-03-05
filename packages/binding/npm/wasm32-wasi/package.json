@@ -5,6 +5,18 @@
     "wasm32"
   ],
   "main": "fsrs-binding.wasi.cjs",
+  "exports": {
+    ".": {
+      "browser": "./fsrs-binding.wasi-browser.js",
+      "require": "./fsrs-binding.wasi.cjs",
+      "default": "./fsrs-binding.wasi.cjs"
+    },
+    "./wasi-worker": {
+      "browser": "./wasi-worker-browser.mjs",
+      "default": "./wasi-worker.mjs"
+    },
+    "./wasm": "./fsrs-binding.wasm32-wasi.wasm"
+  },
   "files": [
     "fsrs-binding.wasm32-wasi.wasm",
     "fsrs-binding.wasi.cjs",
