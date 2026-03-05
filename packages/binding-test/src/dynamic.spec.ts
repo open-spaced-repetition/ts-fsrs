@@ -12,14 +12,18 @@ const require = createRequire(import.meta.url)
  * In published packages, they live in @open-spaced-repetition/binding-wasm32-wasi.
  * In monorepo dev, they live in the main binding package's dist/.
  */
-function resolveWasiAssets(): { wasmPath: string; workerPath: string } | undefined {
+function resolveWasiAssets():
+  | { wasmPath: string; workerPath: string }
+  | undefined {
   // Try @open-spaced-repetition/binding-wasm32-wasi first (published)
   try {
     const wasmPath = fileURLToPath(
       import.meta.resolve('@open-spaced-repetition/binding-wasm32-wasi/wasm')
     )
     const workerPath = fileURLToPath(
-      import.meta.resolve('@open-spaced-repetition/binding-wasm32-wasi/wasi-worker')
+      import.meta.resolve(
+        '@open-spaced-repetition/binding-wasm32-wasi/wasi-worker'
+      )
     )
     if (existsSync(wasmPath) && existsSync(workerPath)) {
       return { wasmPath, workerPath }
@@ -27,7 +31,9 @@ function resolveWasiAssets(): { wasmPath: string; workerPath: string } | undefin
   } catch {}
   // Fallback: monorepo dev — files in main binding dist/
   try {
-    const bindingDir = dirname(require.resolve('@open-spaced-repetition/binding'))
+    const bindingDir = dirname(
+      require.resolve('@open-spaced-repetition/binding')
+    )
     const wasmPath = join(bindingDir, 'fsrs-binding.wasm32-wasi.wasm')
     const workerPath = join(bindingDir, 'wasi-worker.mjs')
     if (existsSync(wasmPath) && existsSync(workerPath)) {
