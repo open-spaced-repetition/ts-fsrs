@@ -123,10 +123,7 @@ jobs:
         run: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
         shell: bash
       - name: Copy dynamic loader files
-        run: |
-          cp packages/binding/js/dynamic-wasi.cjs packages/binding/dist/
-          cp packages/binding/js/dynamic-wasi-browser.js packages/binding/dist/
-          cp packages/binding/js/dynamic-wasi.d.ts packages/binding/dist/
+        run: node packages/binding/copy-dynamic.js
         shell: bash
 
       - name: Upload artifact
