@@ -23,7 +23,9 @@ async function _resolveWasm(wasm) {
   }
   if (typeof wasm === 'string' || wasm instanceof URL) {
     const raw = wasm instanceof URL ? wasm.href : String(wasm)
-    const wasmPath = raw.startsWith('file://') ? require('node:url').fileURLToPath(raw) : raw
+    const wasmPath = raw.startsWith('file://')
+      ? require('node:url').fileURLToPath(raw)
+      : raw
     return __nodeFs.readFileSync(wasmPath)
   }
   throw new TypeError(
@@ -37,7 +39,9 @@ function _resolveWorker(worker) {
   }
   if (typeof worker === 'string' || worker instanceof URL) {
     const raw = worker instanceof URL ? worker.href : String(worker)
-    const workerPath = raw.startsWith('file://') ? require('node:url').fileURLToPath(raw) : raw
+    const workerPath = raw.startsWith('file://')
+      ? require('node:url').fileURLToPath(raw)
+      : raw
     return () => {
       const w = new Worker(workerPath, { env: process.env })
       w.onmessage = ({ data }) => {
