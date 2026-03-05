@@ -4,6 +4,7 @@
 // Dynamic loader for Node.js — allows external wasm/worker resources.
 
 const __nodeFs = require('node:fs')
+const __nodeOs = require('node:os')
 const __nodePath = require('node:path')
 const { WASI: __nodeWASI } = require('node:wasi')
 const { Worker } = require('node:worker_threads')
@@ -50,7 +51,7 @@ function _resolveWorker(worker) {
     const workerPath = raw.startsWith('file://')
       ? require('node:url').fileURLToPath(raw)
       : raw
-    return () => _wrapWorker(new Worker(workerPath, { env: process.env }))
+    return () => _wrapWorker(new Worker(workerPath))
   }
   if (worker != null && typeof worker === 'object') {
     return () => _wrapWorker(worker)
@@ -65,12 +66,12 @@ async function initOptimizer(options) {
   const onCreateWorker = _resolveWorker(options.worker)
 
   // --- WASI setup ---
-  const __rootDir = __nodePath.parse(process.cwd()).root
+  const __tmpDir = __nodeFs.mkdtempSync(__nodePath.join(__nodeOs.tmpdir(), 'fsrs-'))
   const __wasi = new __nodeWASI({
     version: 'preview1',
-    env: process.env,
+    env: {},
     preopens: {
-      [__rootDir]: __rootDir,
+      '/tmp': __tmpDir,
     },
   })
 
