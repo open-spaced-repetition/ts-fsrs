@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { Worker } from 'node:worker_threads'
 import { initOptimizer } from '@open-spaced-repetition/binding/dynamic-wasi'
 
@@ -114,6 +114,22 @@ describeIfWasm('initOptimizer', () => {
     expect(parameters).toBeDefined()
     expect(Array.isArray(parameters)).toBe(true)
     expect(parameters.length).toBe(21)
+  })
+
+  test('initializes with URL objects', async () => {
+    const binding = await initOptimizer({
+      wasm: pathToFileURL(wasmPath!),
+      worker: pathToFileURL(workerPath!),
+    })
+    expect(binding.FSRSBinding).toBeDefined()
+  })
+
+  test('initializes with file:// URL strings', async () => {
+    const binding = await initOptimizer({
+      wasm: pathToFileURL(wasmPath!).href,
+      worker: pathToFileURL(workerPath!).href,
+    })
+    expect(binding.FSRSBinding).toBeDefined()
   })
 
   test('throws on invalid wasm input', async () => {
