@@ -3,7 +3,11 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
-const files = ['dynamic-wasi.cjs', 'dynamic-wasi-browser.js', 'dynamic-wasi.d.ts']
+const files = [
+  'dynamic-wasi.cjs',
+  'dynamic-wasi-browser.js',
+  'dynamic-wasi.d.ts',
+]
 const src = join(__dirname, 'js')
 const dest = join(__dirname, 'dist')
 
