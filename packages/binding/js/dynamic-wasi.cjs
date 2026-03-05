@@ -66,7 +66,9 @@ async function initOptimizer(options) {
   const onCreateWorker = _resolveWorker(options.worker)
 
   // --- WASI setup ---
-  const __tmpDir = __nodeFs.mkdtempSync(__nodePath.join(__nodeOs.tmpdir(), 'fsrs-'))
+  const __tmpDir = __nodeFs.mkdtempSync(
+    __nodePath.join(__nodeOs.tmpdir(), 'fsrs-')
+  )
   const __wasi = new __nodeWASI({
     version: 'preview1',
     env: {},
