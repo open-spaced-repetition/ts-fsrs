@@ -33,26 +33,27 @@ async function _resolveWasm(wasm) {
   )
 }
 
+function _wrapWorker(w) {
+  w.onmessage = ({ data }) => {
+    __wasmCreateOnMessageForFsProxy(__nodeFs)(data)
+  }
+  _unrefWorker(w)
+  return w
+}
+
 function _resolveWorker(worker) {
   if (typeof worker === 'function') {
-    return worker
+    return () => _wrapWorker(worker())
   }
   if (typeof worker === 'string' || worker instanceof URL) {
     const raw = worker instanceof URL ? worker.href : String(worker)
     const workerPath = raw.startsWith('file://')
       ? require('node:url').fileURLToPath(raw)
       : raw
-    return () => {
-      const w = new Worker(workerPath, { env: process.env })
-      w.onmessage = ({ data }) => {
-        __wasmCreateOnMessageForFsProxy(__nodeFs)(data)
-      }
-      _unrefWorker(w)
-      return w
-    }
+    return () => _wrapWorker(new Worker(workerPath, { env: process.env }))
   }
   if (worker != null && typeof worker === 'object') {
-    return () => worker
+    return () => _wrapWorker(worker)
   }
   throw new TypeError(
     'options.worker must be a function, Worker instance, file path string, or URL'
