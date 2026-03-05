@@ -38,6 +38,6 @@ export interface InitOptimizerOptions {
  * })
  * ```
  */
-export declare function initOptimizer<T = typeof binding>(
+export declare function initOptimizer(
   options: InitOptimizerOptions
-): Promise<T>
+): Promise<typeof binding>
