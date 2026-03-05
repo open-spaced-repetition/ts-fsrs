@@ -124,9 +124,9 @@ jobs:
         shell: bash
       - name: Copy dynamic loader files
         run: |
-          cp packages/binding/js/dynamic.cjs packages/binding/dist/
-          cp packages/binding/js/dynamic-browser.js packages/binding/dist/
-          cp packages/binding/js/dynamic.d.ts packages/binding/dist/
+          cp packages/binding/js/dynamic-wasi.cjs packages/binding/dist/
+          cp packages/binding/js/dynamic-wasi-browser.js packages/binding/dist/
+          cp packages/binding/js/dynamic-wasi.d.ts packages/binding/dist/
         shell: bash
 
       - name: Upload artifact

@@ -17,7 +17,7 @@ export interface InitOptimizerOptions {
  *
  * @example
  * ```ts
- * import { initOptimizer } from '@open-spaced-repetition/binding/dynamic'
+ * import { initOptimizer } from '@open-spaced-repetition/binding/dynamic-wasi'
  *
  * const binding = await initOptimizer({
  *   wasm: '/path/to/fsrs-binding.wasm32-wasi.wasm',
