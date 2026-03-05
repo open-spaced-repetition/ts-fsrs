@@ -28,7 +28,9 @@ function resolveWasiAssets():
     if (existsSync(wasmPath) && existsSync(workerPath)) {
       return { wasmPath, workerPath }
     }
-  } catch {}
+  } catch (e) {
+    console.error('Error resolving wasm32-wasi assets (published):', e)
+  }
   // Fallback: monorepo dev — files in main binding dist/
   try {
     const bindingDir = dirname(
@@ -39,7 +41,9 @@ function resolveWasiAssets():
     if (existsSync(wasmPath) && existsSync(workerPath)) {
       return { wasmPath, workerPath }
     }
-  } catch {}
+  } catch (e) {
+    console.error('Error resolving wasm32-wasi assets (monorepo dev):', e)
+  }
   return undefined
 }
 
