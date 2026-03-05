@@ -20,13 +20,25 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/fsrs-binding.wasi.cjs",
       "default": "./dist/fsrs-binding.wasi-browser.js"
-    }
+    },
+    "./dynamic": {
+      "browser": "./dist/dynamic-browser.js",
+      "types": "./dist/dynamic.d.ts",
+      "require": "./dist/dynamic.cjs",
+      "default": "./dist/dynamic.cjs"
+    },
+    "./wasi-worker": {
+      "browser": "./dist/wasi-worker-browser.mjs",
+      "default": "./dist/wasi-worker.mjs"
+    },
+    "./wasm": "./dist/fsrs-binding.wasm32-wasi.wasm"
   },
   "license": "MIT",
   "scripts": {
     "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
-    "build": "napi build --platform --release -o ./dist",
-    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
+    "build": "napi build --platform --release -o ./dist && pnpm run build:dynamic",
+    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist && pnpm run build:dynamic",
+    "build:dynamic": "mkdir -p dist && cp js/dynamic.cjs dist/ && cp js/dynamic-browser.js dist/ && cp js/dynamic.d.ts dist/",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
