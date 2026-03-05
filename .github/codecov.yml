@@ -1,0 +1,3 @@
+codecov:
+  # turborepo cache is not compatible with codecov, so we disable caching for codecov reports
+  max_report_age: off
