@@ -53,11 +53,8 @@ function _resolveWorker(worker) {
       : raw
     return () => _wrapWorker(new Worker(workerPath))
   }
-  if (worker != null && typeof worker === 'object') {
-    return () => _wrapWorker(worker)
-  }
   throw new TypeError(
-    'options.worker must be a function, Worker instance, file path string, or URL'
+    'options.worker must be a factory function, file path string, or URL'
   )
 }
 

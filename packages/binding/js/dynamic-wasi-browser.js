@@ -33,11 +33,8 @@ function _resolveWorker(worker) {
     const workerUrl = typeof worker === 'string' ? worker : worker.href
     return () => new Worker(workerUrl, { type: 'module' })
   }
-  if (worker != null && typeof worker === 'object') {
-    return () => worker
-  }
   throw new TypeError(
-    'options.worker must be a function, Worker instance, URL string, or URL'
+    'options.worker must be a factory function, URL string, or URL'
   )
 }
 
