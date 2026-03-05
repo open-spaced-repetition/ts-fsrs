@@ -2,8 +2,8 @@
 import type * as binding from './index'
 
 export interface InitOptimizerOptions {
-  /** wasm binary: Buffer/ArrayBuffer, file path, URL, or fetch Response */
-  wasm: BufferSource | string | URL | Response
+  /** wasm binary: ArrayBuffer, Uint8Array (including Node.js Buffer), file path, URL, or fetch Response */
+  wasm: ArrayBuffer | Uint8Array | string | URL | Response
   /** Worker factory function, Worker instance, or path/URL to worker script */
   worker: (() => Worker) | Worker | string | URL
 }
