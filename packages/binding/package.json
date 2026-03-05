@@ -31,8 +31,8 @@
   "license": "MIT",
   "scripts": {
     "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
-    "build": "napi build --platform --release -o ./dist && pnpm run build:dynamic",
-    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist && pnpm run build:dynamic",
+    "build": "napi build --platform --release -o ./dist",
+    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
     "build:dynamic": "mkdir -p dist && cp js/dynamic-wasi.cjs dist/ && cp js/dynamic-wasi-browser.js dist/ && cp js/dynamic-wasi.d.ts dist/",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
