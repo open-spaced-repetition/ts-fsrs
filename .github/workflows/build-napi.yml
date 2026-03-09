@@ -66,7 +66,10 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
+          # Pin to 1.93.1 to avoid wasm32-wasip1-threads regression in 1.94.0
+          # See: https://github.com/rust-lang/rust/issues/137510
+          #      https://github.com/rust-lang/rust/issues/146721
+          toolchain: 1.93.1
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo
