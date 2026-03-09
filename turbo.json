@@ -27,7 +27,8 @@
     },
     "@open-spaced-repetition/binding-test#test": {
       "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
-      "outputs": []
+      "outputs": [],
+      "env": ["TURBO_PLATFORM", "NAPI_RS_FORCE_WASI"]
     },
     "@open-spaced-repetition/binding#build:dynamic": {
       "outputs": [
@@ -43,7 +44,8 @@
     },
     "@open-spaced-repetition/binding-test#test:coverage": {
       "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "env": ["TURBO_PLATFORM", "NAPI_RS_FORCE_WASI"]
     },
     "dev": {
       "cache": false,
