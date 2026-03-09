@@ -70,6 +70,7 @@ jobs:
         run: pnpm test
         env:
           NAPI_RS_FORCE_WASI: 1
+          TURBO_REMOTE_CACHE_DISABLED: true
 
       - name: Determine docker params
         if: contains(inputs.target, 'unknown-linux-gnu') == true || contains(inputs.target, 'unknown-linux-musl') == true
