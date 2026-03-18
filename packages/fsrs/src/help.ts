@@ -216,7 +216,8 @@ export function clamp(value: number, min: number, max: number): number {
 }
 
 export function roundTo(num: number, decimals: number): number {
-  return Number(Math.round(Number(num + 'e' + decimals)) + 'e-' + decimals);
+    const factor = 10 ** decimals;
+    return Math.round(num * factor) / factor
 }
 
 export function dateDiffInDays(last: Date, cur: Date) {
