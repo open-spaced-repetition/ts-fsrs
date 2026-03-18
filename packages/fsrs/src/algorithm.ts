@@ -167,7 +167,8 @@ export class FSRSAlgorithm {
    * @return {number} Difficulty $$D \in [1,10]$$
    */
   init_difficulty(g: Grade): number {
-    const d = this.param.w[4] - Math.exp((g - 1) * this.param.w[5]) + 1
+    const w = this.param.w
+    const d = w[4] - Math.exp((g - 1) * w[5]) + 1
     return roundTo(d, 8)
   }
 
@@ -236,7 +237,8 @@ export class FSRSAlgorithm {
    * @return {number} difficulty
    */
   mean_reversion(init: number, current: number): number {
-    return roundTo((this.param.w[7] * init + (1 - this.param.w[7]) * current), 8)
+    const w = this.param.w
+    return roundTo((w[7] * init + (1 - w[7]) * current), 8)
   }
 
   /**
@@ -249,15 +251,16 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_r new stability after recall
    */
   next_recall_stability(d: number, s: number, r: number, g: Grade): number {
-    const hard_penalty = Rating.Hard === g ? this.param.w[15] : 1
-    const easy_bound = Rating.Easy === g ? this.param.w[16] : 1
+    const w = this.param.w
+    const hard_penalty = Rating.Hard === g ? w[15] : 1
+    const easy_bound = Rating.Easy === g ? w[16] : 1
     return roundTo(clamp(
       s *
         (1 +
-          Math.exp(this.param.w[8]) *
+          Math.exp(w[8]) *
             (11 - d) *
-            Math.pow(s, -this.param.w[9]) *
-            (Math.exp((1 - r) * this.param.w[10]) - 1) *
+            Math.pow(s, -w[9]) *
+            (Math.exp((1 - r) * w[10]) - 1) *
             hard_penalty *
             easy_bound),
       S_MIN,
@@ -276,11 +279,12 @@ export class FSRSAlgorithm {
    * @return {number} S^\prime_f new stability after forgetting
    */
   next_forget_stability(d: number, s: number, r: number): number {
+    const w = this.param.w
     return roundTo(clamp(
-      this.param.w[11] *
-        Math.pow(d, -this.param.w[12]) *
-        (Math.pow(s + 1, this.param.w[13]) - 1) *
-        Math.exp((1 - r) * this.param.w[14]),
+      w[11] *
+        Math.pow(d, -w[12]) *
+        (Math.pow(s + 1, w[13]) - 1) *
+        Math.exp((1 - r) * w[14]),
       S_MIN,
       36500.0
     ), 8)
@@ -293,9 +297,10 @@ export class FSRSAlgorithm {
    * @param {Grade} g Grade (Rating[0.again,1.hard,2.good,3.easy])
    */
   next_short_term_stability(s: number, g: Grade): number {
+    const w = this.param.w
     const sinc =
-      Math.pow(s, -this.param.w[19]) *
-      Math.exp(this.param.w[17] * (g - 3 + this.param.w[18]))
+      Math.pow(s, -w[19]) *
+      Math.exp(w[17] * (g - 3 + w[18]))
 
     const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
     return roundTo(clamp(s * maskedSinc, S_MIN, 36500.0), 8)
@@ -351,6 +356,7 @@ export class FSRSAlgorithm {
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       )
     }
+    const w = this.param.w
     r = typeof r === 'number' ? r : this.forgetting_curve(t, s)
     let new_s: number
     if (t === 0 && this.param.enable_short_term) {
@@ -359,8 +365,8 @@ export class FSRSAlgorithm {
       const s_after_fail = this.next_forget_stability(d, s, r)
       let [w_17, w_18] = [0, 0]
       if (this.param.enable_short_term) {
-        w_17 = this.param.w[17]
-        w_18 = this.param.w[18]
+        w_17 = w[17]
+        w_18 = w[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
       new_s = clamp(roundTo(next_s_min, 8), S_MIN, s_after_fail)
