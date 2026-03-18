@@ -215,6 +215,10 @@ export function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
+export function roundTo(num: number, decimals: number): number {
+  return Number(Math.round(Number(num + 'e' + decimals)) + 'e-' + decimals);
+}
+
 export function dateDiffInDays(last: Date, cur: Date) {
   // Discard the time and time-zone information.
   const utc1 = Date.UTC(
