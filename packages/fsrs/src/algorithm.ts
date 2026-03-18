@@ -352,11 +352,11 @@ export class FSRSAlgorithm {
       )
     }
     r = typeof r === 'number' ? r : this.forgetting_curve(t, s)
-    const s_after_success = this.next_recall_stability(d, s, r, g)
-    const s_after_fail = this.next_forget_stability(d, s, r)
-    const s_after_short_term = this.next_short_term_stability(s, g)
-    let new_s = s_after_success
-    if (g === 1) {
+    let new_s: number
+    if (t === 0 && this.param.enable_short_term) {
+      new_s = this.next_short_term_stability(s, g)
+    } else if (g === 1) {
+      const s_after_fail = this.next_forget_stability(d, s, r)
       let [w_17, w_18] = [0, 0]
       if (this.param.enable_short_term) {
         w_17 = this.param.w[17]
@@ -364,9 +364,8 @@ export class FSRSAlgorithm {
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
       new_s = clamp(roundTo(next_s_min, 8), S_MIN, s_after_fail)
-    }
-    if (t === 0 && this.param.enable_short_term) {
-      new_s = s_after_short_term
+    } else {
+      new_s = this.next_recall_stability(d, s, r, g)
     }
 
     const new_d = this.next_difficulty(d, g)
