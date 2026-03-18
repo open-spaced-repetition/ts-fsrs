@@ -89,7 +89,7 @@ export class FSRSAlgorithm {
       throw new Error('Requested retention rate should be in the range (0,1]')
     }
     const { decay, factor } = computeDecayFactor(this.param.w)
-    return roundTo(((Math.pow(request_retention, 1 / decay) - 1) / factor), 8)
+    return roundTo((Math.pow(request_retention, 1 / decay) - 1) / factor, 8)
   }
 
   /**
@@ -207,7 +207,7 @@ export class FSRSAlgorithm {
    * @see https://github.com/open-spaced-repetition/fsrs4anki/issues/697
    */
   linear_damping(delta_d: number, old_d: number): number {
-    return roundTo(((delta_d * (10 - old_d)) / 9), 8)
+    return roundTo((delta_d * (10 - old_d)) / 9, 8)
   }
 
   /**
@@ -238,7 +238,7 @@ export class FSRSAlgorithm {
    */
   mean_reversion(init: number, current: number): number {
     const w = this.param.w
-    return roundTo((w[7] * init + (1 - w[7]) * current), 8)
+    return roundTo(w[7] * init + (1 - w[7]) * current, 8)
   }
 
   /**
@@ -254,18 +254,21 @@ export class FSRSAlgorithm {
     const w = this.param.w
     const hard_penalty = Rating.Hard === g ? w[15] : 1
     const easy_bound = Rating.Easy === g ? w[16] : 1
-    return roundTo(clamp(
-      s *
-        (1 +
-          Math.exp(w[8]) *
-            (11 - d) *
-            Math.pow(s, -w[9]) *
-            (Math.exp((1 - r) * w[10]) - 1) *
-            hard_penalty *
-            easy_bound),
-      S_MIN,
-      36500.0
-    ), 8)
+    return roundTo(
+      clamp(
+        s *
+          (1 +
+            Math.exp(w[8]) *
+              (11 - d) *
+              Math.pow(s, -w[9]) *
+              (Math.exp((1 - r) * w[10]) - 1) *
+              hard_penalty *
+              easy_bound),
+        S_MIN,
+        36500.0
+      ),
+      8
+    )
   }
 
   /**
@@ -280,14 +283,17 @@ export class FSRSAlgorithm {
    */
   next_forget_stability(d: number, s: number, r: number): number {
     const w = this.param.w
-    return roundTo(clamp(
-      w[11] *
-        Math.pow(d, -w[12]) *
-        (Math.pow(s + 1, w[13]) - 1) *
-        Math.exp((1 - r) * w[14]),
-      S_MIN,
-      36500.0
-    ), 8)
+    return roundTo(
+      clamp(
+        w[11] *
+          Math.pow(d, -w[12]) *
+          (Math.pow(s + 1, w[13]) - 1) *
+          Math.exp((1 - r) * w[14]),
+        S_MIN,
+        36500.0
+      ),
+      8
+    )
   }
 
   /**
@@ -298,9 +304,7 @@ export class FSRSAlgorithm {
    */
   next_short_term_stability(s: number, g: Grade): number {
     const w = this.param.w
-    const sinc =
-      Math.pow(s, -w[19]) *
-      Math.exp(w[17] * (g - 3 + w[18]))
+    const sinc = Math.pow(s, -w[19]) * Math.exp(w[17] * (g - 3 + w[18]))
 
     const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
     return roundTo(clamp(s * maskedSinc, S_MIN, 36500.0), 8)
