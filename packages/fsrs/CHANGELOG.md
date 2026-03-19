@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 5.3.1
+
+### Patch Changes
+
+- [#315](https://github.com/open-spaced-repetition/ts-fsrs/pull/315) [`40e712e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/40e712ebf229997154682294f40436bf1524022d) Thanks [@moaaz-ae](https://github.com/moaaz-ae)! - fix: prevent unexpected skipping of learning steps when Rating.Good is selected in State.Learning (#311)
+
 ## 5.3.0
 
 ### Minor Changes
