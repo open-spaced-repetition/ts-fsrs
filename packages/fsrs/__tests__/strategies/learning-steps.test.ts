@@ -356,4 +356,61 @@ describe('integrated into FSRS', () => {
       expect(record[Rating.Good].card.scheduled_days).toEqual(3)
     })
   })
+
+  describe('Progression', () => {
+    const params = generatorParameters({
+      enable_fuzz: false,
+      enable_short_term: true,
+      learning_steps: ['1m', '10m', '30m', '1h', '6h', '12h'],
+      relearning_steps: ['10m', '1h', '6h'],
+      request_retention: 0.94,
+    })
+    const f = fsrs(params)
+
+    it('Exhausting learning steps', () => {
+      const emptyCard = createEmptyCard()
+      let card = f.next(emptyCard, emptyCard.due, Rating.Again).card
+
+      // There are 6 steps (0 to 5)
+      for (let i = 1; i <= 5; i++) {
+        card = f.next(card, card.due, Rating.Good).card
+        expect(card.learning_steps).toBe(i)
+        expect(card.state).toBe(State.Learning)
+      }
+
+      // Final Good should go to Review
+      const finalCard = f.next(card, card.due, Rating.Good).card
+      expect(finalCard.state).toBe(State.Review)
+    })
+
+    it('Relearning steps', () => {
+      const emptyCard = createEmptyCard()
+      // Move to Review first
+      let card = f.next(emptyCard, emptyCard.due, Rating.Easy).card
+      expect(card.state).toBe(State.Review)
+
+      // Lapse -> Relearning
+      card = f.next(card, card.due, Rating.Again).card
+      expect(card.state).toBe(State.Relearning)
+      expect(card.learning_steps).toBe(0)
+
+      // Relearning Good(0) -> next step index 1
+      card = f.next(card, card.due, Rating.Good).card
+      expect(card.learning_steps).toBe(1)
+    })
+
+    it('Consistency of difficulty and stability', () => {
+      const emptyCard = createEmptyCard()
+      // Rating sequence: Again, Good, Good
+      const card0 = f.next(emptyCard, emptyCard.due, Rating.Again).card
+
+      const card1 = f.next(card0, card0.due, Rating.Good).card
+      const card2 = f.next(card1, card1.due, Rating.Good).card
+
+      expect(card1.difficulty).toBeGreaterThan(0)
+      expect(card1.stability).toBeGreaterThan(0)
+      expect(card2.difficulty).toBeGreaterThan(0)
+      expect(card2.stability).toBeGreaterThan(0)
+    })
+  })
 })
