@@ -11,11 +11,8 @@
       "require": "./fsrs-binding.wasi.cjs",
       "default": "./fsrs-binding.wasi.cjs"
     },
-    "./wasi-worker": {
-      "browser": "./wasi-worker-browser.mjs",
-      "default": "./wasi-worker.mjs"
-    },
-    "./wasm": "./fsrs-binding.wasm32-wasi.wasm"
+    "./wasi-worker-browser.mjs":"./wasi-worker-browser.mjs",
+    "./fsrs-binding.wasm32-wasi.wasm":"./fsrs-binding.wasm32-wasi.wasm"
   },
   "files": [
     "fsrs-binding.wasm32-wasi.wasm",
