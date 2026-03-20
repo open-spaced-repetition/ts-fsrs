@@ -9,7 +9,7 @@ overrides:
 
 patchedDependencies:
   '@napi-rs/cli':
-    hash: 03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127
+    hash: 5371032c194be3edac9e4334f64492dddbb01b1e539952ecfa97d9e3d4836bde
     path: patches/@napi-rs__cli.patch
 
 importers:
@@ -60,7 +60,7 @@ importers:
         version: 1.9.1
       '@napi-rs/cli':
         specifier: ^3.4.1
-        version: 3.4.1(patch_hash=03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)
+        version: 3.4.1(patch_hash=5371032c194be3edac9e4334f64492dddbb01b1e539952ecfa97d9e3d4836bde)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)
       '@napi-rs/wasm-runtime':
         specifier: ^1.1.1
         version: 1.1.1
@@ -77,8 +77,8 @@ importers:
         specifier: ^5.4.1
         version: 5.6.2
       emnapi:
-        specifier: ^1.8.1
-        version: 1.8.1
+        specifier: ^1.9.0
+        version: 1.9.1
       npm-run-all2:
         specifier: ^8.0.4
         version: 8.0.4
@@ -1909,8 +1909,8 @@ packages:
   electron-to-chromium@1.5.279:
     resolution: {integrity: sha512-0bblUU5UNdOt5G7XqGiJtpZMONma6WAfq9vsFmtn9x1+joAObr6x1chfqyxFSDCAFwFhCQDrqeAr6MYdpwJ9Hg==}
 
-  emnapi@1.8.1:
-    resolution: {integrity: sha512-34i2BbgHx1LnEO4JCGQYo6h6s4e4KrdWtdTHfllBNLbXSHPmdIHplxKejfabsRK+ukNciqVdalB+fxMibqHdaQ==}
+  emnapi@1.9.1:
+    resolution: {integrity: sha512-s4RbfzgbYg9cWBZXJT6LazImJQ5p+F+LyTsCWQJXbGVdPmtCtdlwqd0Oiv3O51KyYV/Hq58xszaQ/l153tK6Uw==}
     peerDependencies:
       node-addon-api: '>= 6.1.0'
     peerDependenciesMeta:
@@ -3437,7 +3437,7 @@ snapshots:
       globby: 11.1.0
       read-yaml-file: 1.1.0
 
-  '@napi-rs/cli@3.4.1(patch_hash=03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)':
+  '@napi-rs/cli@3.4.1(patch_hash=5371032c194be3edac9e4334f64492dddbb01b1e539952ecfa97d9e3d4836bde)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)':
     dependencies:
       '@inquirer/prompts': 7.8.6(@types/node@25.3.3)
       '@napi-rs/cross-toolchain': 1.0.3
@@ -3446,7 +3446,7 @@ snapshots:
       clipanion: 4.0.0-rc.4(typanion@3.14.0)
       colorette: 2.0.20
       debug: 4.4.1
-      emnapi: 1.8.1
+      emnapi: 1.9.1
       es-toolkit: 1.39.10
       js-yaml: 4.1.0
       semver: 7.7.2
@@ -4254,7 +4254,7 @@ snapshots:
 
   electron-to-chromium@1.5.279: {}
 
-  emnapi@1.8.1: {}
+  emnapi@1.9.1: {}
 
   emoji-regex@8.0.0: {}
 

@@ -25,22 +25,33 @@ async function _resolveWasm(wasm) {
   )
 }
 
-function _resolveWorker(worker) {
+function _resolveWorker(worker, errorEvent) {
+  let factory
   if (typeof worker === 'function') {
-    return worker
-  }
-  if (typeof worker === 'string' || worker instanceof URL) {
+    factory = worker
+  } else if (typeof worker === 'string' || worker instanceof URL) {
     const workerUrl = typeof worker === 'string' ? worker : worker.href
-    return () => new Worker(workerUrl, { type: 'module' })
+    factory = () => new Worker(workerUrl, { type: 'module' })
+  } else {
+    throw new TypeError(
+      'options.worker must be a factory function, URL string, or URL'
+    )
   }
-  throw new TypeError(
-    'options.worker must be a factory function, URL string, or URL'
-  )
+  if (!errorEvent) return factory
+  return () => {
+    const w = factory()
+    w.addEventListener('message', (event) => {
+      if (event.data && typeof event.data === 'object' && event.data.type === 'error') {
+        window.dispatchEvent(new CustomEvent('napi-rs-worker-error', { detail: event.data }))
+      }
+    })
+    return w
+  }
 }
 
 export async function initOptimizer(options) {
   const wasmBinary = await _resolveWasm(options.wasm)
-  const onCreateWorker = _resolveWorker(options.worker)
+  const onCreateWorker = _resolveWorker(options.worker, options.errorEvent ?? false)
 
   // --- WASI setup ---
   const __wasi = new __WASI({
