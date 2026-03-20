@@ -41,8 +41,14 @@ function _resolveWorker(worker, errorEvent) {
   return () => {
     const w = factory()
     w.addEventListener('message', (event) => {
-      if (event.data && typeof event.data === 'object' && event.data.type === 'error') {
-        window.dispatchEvent(new CustomEvent('napi-rs-worker-error', { detail: event.data }))
+      if (
+        event.data &&
+        typeof event.data === 'object' &&
+        event.data.type === 'error'
+      ) {
+        window.dispatchEvent(
+          new CustomEvent('napi-rs-worker-error', { detail: event.data })
+        )
       }
     })
     return w
@@ -51,7 +57,10 @@ function _resolveWorker(worker, errorEvent) {
 
 export async function initOptimizer(options) {
   const wasmBinary = await _resolveWasm(options.wasm)
-  const onCreateWorker = _resolveWorker(options.worker, options.errorEvent ?? false)
+  const onCreateWorker = _resolveWorker(
+    options.worker,
+    options.errorEvent ?? false
+  )
 
   // --- WASI setup ---
   const __wasi = new __WASI({
