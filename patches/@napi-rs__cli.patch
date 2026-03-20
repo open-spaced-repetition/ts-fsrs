@@ -1,7 +1,33 @@
 diff --git a/dist/cli.js b/dist/cli.js
-index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b21389abceaf 100755
+index f34170384d379ac5574fec2fa56ebb8571ddfa3e..88e8cd383ca9656469761020fba0b85aa26a95f9 100755
 --- a/dist/cli.js
 +++ b/dist/cli.js
+@@ -125,14 +125,14 @@ var dependencies = {
+ 	"clipanion": "^4.0.0-rc.4",
+ 	"colorette": "^2.0.20",
+ 	"debug": "^4.4.1",
+-	"emnapi": "^1.5.0",
++	"emnapi": "^1.9.0",
+ 	"es-toolkit": "^1.39.10",
+ 	"js-yaml": "^4.1.0",
+ 	"semver": "^7.7.2",
+ 	"typanion": "^3.14.0"
+ };
+ var devDependencies = {
+-	"@emnapi/runtime": "^1.5.0",
++	"@emnapi/runtime": "^1.9.0",
+ 	"@oxc-node/core": "^0.0.32",
+ 	"@std/toml": "npm:@jsr/std__toml@^1.0.10",
+ 	"@types/debug": "^4.1.12",
+@@ -148,7 +148,7 @@ var devDependencies = {
+ 	"tslib": "^2.8.1",
+ 	"typescript": "^5.9.2"
+ };
+-var peerDependencies = { "@emnapi/runtime": "^1.5.0" };
++var peerDependencies = { "@emnapi/runtime": "^1.9.0" };
+ var peerDependenciesMeta = {
+ 	"@emnapi/runtime": { "optional": true },
+ 	"emnapi": { "optional": true }
 @@ -722,23 +722,23 @@ async function collectArtifacts(userOptions) {
  		const distFilePathLocal = join(parse(packageJsonPath).dir, parsedName.base);
  		debug$8.info(`Write file content to [${colors.yellowBright(distFilePathLocal)}]`);
@@ -82,3 +108,33 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b213
  	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
  	try {
  		const dest = join(options.outputDir, name$1);
+diff --git a/package.json b/package.json
+index c6559c023473bbaec90d475763a74170dcf8d161..1c7a5c30c915cff3a6f89823f5021b27304fd626 100644
+--- a/package.json
++++ b/package.json
+@@ -67,14 +67,14 @@
+     "clipanion": "^4.0.0-rc.4",
+     "colorette": "^2.0.20",
+     "debug": "^4.4.1",
+-    "emnapi": "^1.5.0",
++    "emnapi": "^1.9.0",
+     "es-toolkit": "^1.39.10",
+     "js-yaml": "^4.1.0",
+     "semver": "^7.7.2",
+     "typanion": "^3.14.0"
+   },
+   "devDependencies": {
+-    "@emnapi/runtime": "^1.5.0",
++    "@emnapi/runtime": "^1.9.0",
+     "@oxc-node/core": "^0.0.32",
+     "@std/toml": "npm:@jsr/std__toml@^1.0.10",
+     "@types/debug": "^4.1.12",
+@@ -91,7 +91,7 @@
+     "typescript": "^5.9.2"
+   },
+   "peerDependencies": {
+-    "@emnapi/runtime": "^1.5.0"
++    "@emnapi/runtime": "^1.9.0"
+   },
+   "peerDependenciesMeta": {
+     "@emnapi/runtime": {

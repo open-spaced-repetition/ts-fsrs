@@ -50,10 +50,7 @@
   },
   "pnpm": {
     "overrides": {
-      "is-core-module": "npm:@nolyfill/is-core-module@^1",
-      "@emnapi/core": "npm:@emnapi/core@^1.9.0",
-      "@emnapi/runtime": "npm:@emnapi/runtime@^1.9.0",
-      "@emnapi/wasi-threads": "npm:@emnapi/wasi-threads@^1.2.0"
+      "is-core-module": "npm:@nolyfill/is-core-module@^1"
     },
     "ignoredBuiltDependencies": [
       "esbuild",

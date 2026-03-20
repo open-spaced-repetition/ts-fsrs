@@ -46,6 +46,8 @@
   },
   "browser": "fsrs-binding.wasi-browser.js",
   "dependencies": {
-    "@napi-rs/wasm-runtime": "^1.1.1"
+    "@napi-rs/wasm-runtime": "^1.1.1",
+    "@emnapi/core": "^1.9.0",
+    "@emnapi/runtime": "^1.9.0"
   }
 }

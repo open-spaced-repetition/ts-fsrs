@@ -6,13 +6,10 @@ settings:
 
 overrides:
   is-core-module: npm:@nolyfill/is-core-module@^1
-  '@emnapi/core': npm:@emnapi/core@^1.9.0
-  '@emnapi/runtime': npm:@emnapi/runtime@^1.9.0
-  '@emnapi/wasi-threads': npm:@emnapi/wasi-threads@^1.2.0
 
 patchedDependencies:
   '@napi-rs/cli':
-    hash: bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23
+    hash: 03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127
     path: patches/@napi-rs__cli.patch
 
 importers:
@@ -56,14 +53,14 @@ importers:
   packages/binding:
     devDependencies:
       '@emnapi/core':
-        specifier: npm:@emnapi/core@^1.9.0
+        specifier: ^1.9.0
         version: 1.9.1
       '@emnapi/runtime':
-        specifier: npm:@emnapi/runtime@^1.9.0
+        specifier: ^1.9.0
         version: 1.9.1
       '@napi-rs/cli':
         specifier: ^3.4.1
-        version: 3.4.1(patch_hash=bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)
+        version: 3.4.1(patch_hash=03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)
       '@napi-rs/wasm-runtime':
         specifier: ^1.1.1
         version: 1.1.1
@@ -164,6 +161,12 @@ importers:
 
   packages/binding/npm/wasm32-wasi:
     dependencies:
+      '@emnapi/core':
+        specifier: ^1.9.0
+        version: 1.9.1
+      '@emnapi/runtime':
+        specifier: ^1.9.0
+        version: 1.9.1
       '@napi-rs/wasm-runtime':
         specifier: ^1.1.1
         version: 1.1.1
@@ -3434,7 +3437,7 @@ snapshots:
       globby: 11.1.0
       read-yaml-file: 1.1.0
 
-  '@napi-rs/cli@3.4.1(patch_hash=bc1d3730cd86d5a542abc390518d6ea6bb522fd1a95a76a4179bca1d6991ad23)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)':
+  '@napi-rs/cli@3.4.1(patch_hash=03f2ccd25527c23bb860a2b3b0295a2ea6feb275e4b68c5a4923157098f88127)(@emnapi/runtime@1.9.1)(@types/node@25.3.3)':
     dependencies:
       '@inquirer/prompts': 7.8.6(@types/node@25.3.3)
       '@napi-rs/cross-toolchain': 1.0.3
