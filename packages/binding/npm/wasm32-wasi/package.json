@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding-wasm32-wasi",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "cpu": [
     "wasm32"
   ],
@@ -11,10 +11,10 @@
       "require": "./fsrs-binding.wasi.cjs",
       "default": "./fsrs-binding.wasi.cjs"
     },
-    "./wasi-worker-browser.mjs":"./wasi-worker-browser.mjs",
-    "./wasi-worker.mjs":"./wasi-worker.mjs",
-    "./fsrs-binding.wasm32-wasi.wasm":"./fsrs-binding.wasm32-wasi.wasm",
-     "./wasi-worker": {
+    "./wasi-worker-browser.mjs": "./wasi-worker-browser.mjs",
+    "./wasi-worker.mjs": "./wasi-worker.mjs",
+    "./fsrs-binding.wasm32-wasi.wasm": "./fsrs-binding.wasm32-wasi.wasm",
+    "./wasi-worker": {
       "browser": "./wasi-worker-browser.mjs",
       "default": "./wasi-worker.mjs"
     },

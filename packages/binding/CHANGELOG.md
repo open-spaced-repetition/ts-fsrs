@@ -1,5 +1,21 @@
 # @open-spaced-repetition/binding
 
+## 0.2.1
+
+### Patch Changes
+
+- [#319](https://github.com/open-spaced-repetition/ts-fsrs/pull/319) [`d80230e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d80230ebbf43c4ae470e392cca14be98dffa0063) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(binding): worker and WASM path issues in the export flow to prevent Webpack and Turbopack resolution errors.
+
+- [#319](https://github.com/open-spaced-repetition/ts-fsrs/pull/319) [`d80230e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d80230ebbf43c4ae470e392cca14be98dffa0063) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(binding): bump @emnapi/core and @emnapi/runtime to ^1.9.0 to avoid `Cannot read properties of undefined (reading 'whenLoaded')` error.
+
+  ref: https://github.com/toyobayashi/emnapi/issues/202
+
+- [#319](https://github.com/open-spaced-repetition/ts-fsrs/pull/319) [`d80230e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d80230ebbf43c4ae470e392cca14be98dffa0063) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): support `errorEvent` option to emit custom events for errors in WASI worker.
+
+  When enabled, worker errors are captured and dispatched as `napi-rs-worker-error` CustomEvent on `window`, allowing applications to handle WASM panics gracefully in the browser.
+
+  ref: https://github.com/toyobayashi/emnapi/issues/203
+
 ## 0.2.0
 
 ### Minor Changes
