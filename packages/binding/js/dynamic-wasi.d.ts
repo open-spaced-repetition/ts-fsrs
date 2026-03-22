@@ -6,6 +6,8 @@ export interface InitOptimizerOptions {
   wasm: ArrayBuffer | Uint8Array | string | URL | Response
   /** Worker factory function (called multiple times for thread pool) or path/URL to worker script */
   worker: (() => Worker) | string | URL
+  /** Whether to emit custom events for errors in worker (browser only) */
+  errorEvent?: boolean
 }
 
 /**

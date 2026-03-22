@@ -18,11 +18,13 @@ function resolveWasiAssets():
   // Try @open-spaced-repetition/binding-wasm32-wasi first (published)
   try {
     const wasmPath = fileURLToPath(
-      import.meta.resolve('@open-spaced-repetition/binding-wasm32-wasi/wasm')
+      import.meta.resolve(
+        '@open-spaced-repetition/binding-wasm32-wasi/fsrs-binding.wasm32-wasi.wasm'
+      )
     )
     const workerPath = fileURLToPath(
       import.meta.resolve(
-        '@open-spaced-repetition/binding-wasm32-wasi/wasi-worker'
+        '@open-spaced-repetition/binding-wasm32-wasi/wasi-worker.mjs'
       )
     )
     if (existsSync(wasmPath) && existsSync(workerPath)) {
