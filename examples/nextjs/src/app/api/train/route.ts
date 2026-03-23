@@ -134,15 +134,22 @@ app.post(
               )
 
               // Send progress update via SSE
-              stream.writeSSE({
-                data: JSON.stringify({
-                  type: 'progress',
-                  enableShortTerm,
-                  current: cur,
-                  total: total,
-                  progress: `${cur}/${total}`,
-                }),
-              })
+              stream
+                .writeSSE({
+                  data: JSON.stringify({
+                    type: 'progress',
+                    enableShortTerm,
+                    current: cur,
+                    total: total,
+                    progress: `${cur}/${total}`,
+                  }),
+                })
+                .catch((error) => {
+                  console.error(
+                    '[Server] Error sending progress update:',
+                    error
+                  )
+                })
             },
           })
 
