@@ -128,13 +128,13 @@ app.post(
           const optimizedParameters = await computeParameters(fsrsItems, {
             enableShortTerm,
             numRelearningSteps,
-            progress: async (cur, total) => {
+            progress: (cur, total) => {
               console.debug(
                 `[Server][enableShortTerm = ${enableShortTerm ? 1 : 0}] Progress: ${cur}/${total}`
               )
 
               // Send progress update via SSE
-              await stream.writeSSE({
+              stream.writeSSE({
                 data: JSON.stringify({
                   type: 'progress',
                   enableShortTerm,
