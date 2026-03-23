@@ -30,12 +30,12 @@
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "decimal.js": "^10.5.0",
     "rollup": "^4.54.0",
-    "rollup-plugin-dts": "^6.3.0",
+    "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "tslib": "^2.8.1",
     "typedoc": "0.28.12",
