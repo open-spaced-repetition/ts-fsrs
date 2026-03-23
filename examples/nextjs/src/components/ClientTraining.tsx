@@ -175,7 +175,9 @@ export default function ClientTraining({
       // Run computations sequentially to reduce memory pressure
       // Running in parallel may cause WebAssembly memory access errors with large datasets
       await computeParametersWrapper(true)
-      if (abortedRef.current) return
+      if (abortedRef.current) {
+        throw new Error('Aborted by user')
+      }
       await computeParametersWrapper(false)
 
       const trainingEndTime = performance.now()
