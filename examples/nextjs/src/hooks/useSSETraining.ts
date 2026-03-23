@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import type {
   OptimizationResult,
   SSEMessage,
@@ -20,6 +20,7 @@ interface UseSSETrainingReturn {
     nextDayStartsAt: number,
     numRelearningSteps: number
   ) => Promise<void>
+  abortTraining: () => void
   resetState: () => void
 }
 
@@ -29,6 +30,7 @@ export function useSSETraining(
   const { onError } = options
 
   const [isProcessing, setIsProcessing] = useState(false)
+  const abortControllerRef = useRef<AbortController | null>(null)
   const [statusMessage, setStatusMessage] = useState<string>('')
   const [results, setResults] = useState<OptimizationResult[]>([])
   const [stats, setStats] = useState<TrainingStats>({
@@ -126,6 +128,9 @@ export function useSSETraining(
     setIsProcessing(true)
     setStatusMessage('Uploading file...')
 
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
+
     try {
       // Create form data
       const formData = new FormData()
@@ -138,6 +143,7 @@ export function useSSETraining(
       const response = await fetch('/api/train', {
         method: 'POST',
         body: formData,
+        signal: abortController.signal,
       })
 
       if (!response.ok) {
@@ -180,6 +186,12 @@ export function useSSETraining(
         }
       }
     } catch (error) {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        setStatusMessage('Training cancelled.')
+        setResults([])
+        setStats({ parseTime: '', trainingTime: '', fsrsItemsCount: 0 })
+        return
+      }
       console.error('Error processing CSV file:', error)
       const errorMessage =
         error instanceof Error ? error.message : 'Processing failed'
@@ -189,8 +201,13 @@ export function useSSETraining(
         alert(`Processing failed: ${errorMessage}`)
       }
     } finally {
+      abortControllerRef.current = null
       setIsProcessing(false)
     }
+  }
+
+  const abortTraining = () => {
+    abortControllerRef.current?.abort()
   }
 
   const resetState = () => {
@@ -209,6 +226,7 @@ export function useSSETraining(
     results,
     stats,
     startTraining,
+    abortTraining,
     resetState,
   }
 }
