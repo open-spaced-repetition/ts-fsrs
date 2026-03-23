@@ -125,6 +125,9 @@ app.post(
             }),
           })
 
+          // Use a promise chain to serialize progress SSE writes and preserve ordering
+          let writeQueue = Promise.resolve()
+
           const optimizedParameters = await computeParameters(fsrsItems, {
             enableShortTerm,
             numRelearningSteps,
@@ -135,17 +138,19 @@ app.post(
               if (c.req.raw.signal.aborted) {
                 return false
               }
-              // Send progress update via SSE
-              stream
-                .writeSSE({
-                  data: JSON.stringify({
-                    type: 'progress',
-                    enableShortTerm,
-                    current: cur,
-                    total: total,
-                    progress: `${cur}/${total}`,
-                  }),
-                })
+              // Enqueue progress update to preserve message ordering
+              writeQueue = writeQueue
+                .then(() =>
+                  stream.writeSSE({
+                    data: JSON.stringify({
+                      type: 'progress',
+                      enableShortTerm,
+                      current: cur,
+                      total: total,
+                      progress: `${cur}/${total}`,
+                    }),
+                  })
+                )
                 .catch((error) => {
                   console.error(
                     '[Server] Error sending progress update:',
