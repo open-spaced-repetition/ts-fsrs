@@ -10,7 +10,7 @@
     "lint:fix": "biome format ./src --write"
   },
   "dependencies": {
-    "@open-spaced-repetition/binding": "^0.1.2",
+    "@open-spaced-repetition/binding": "^0.2.1",
     "hono": "^4.12.7",
     "next": "16.1.7",
     "react": "19.2.0",

@@ -43,6 +43,7 @@ export default function ServerTraining({
     results,
     stats,
     startTraining,
+    abortTraining,
     resetState,
   } = useSSETraining({
     onError: (error) => {
@@ -193,6 +194,15 @@ export default function ServerTraining({
         >
           {isProcessing ? 'Processing on Server...' : 'Start Server Processing'}
         </button>
+        {isProcessing && (
+          <button
+            type="button"
+            onClick={abortTraining}
+            className="ml-3 px-6 py-3 text-base font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white"
+          >
+            Cancel
+          </button>
+        )}
       </div>
 
       {/* Status message */}
