@@ -132,7 +132,9 @@ app.post(
               console.debug(
                 `[Server][enableShortTerm = ${enableShortTerm ? 1 : 0}] Progress: ${cur}/${total}`
               )
-
+              if (c.req.raw.signal.aborted) {
+                return false
+              }
               // Send progress update via SSE
               stream
                 .writeSSE({
