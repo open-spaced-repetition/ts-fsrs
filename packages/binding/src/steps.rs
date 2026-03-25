@@ -27,32 +27,26 @@ const MIN_COUNT_FOR_STATS: usize = 4;
 const IQR_OUTLIER_THRESHOLD: usize = 250;
 const DEFAULT_STABILITY: f64 = 86400.0;
 
-fn log_loss(y_true: f64, y_pred: f64) -> f64 {
+fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) -> f64 {
   let epsilon = 1e-15;
-  let y_pred = y_pred.clamp(epsilon, 1.0 - epsilon);
-  -(y_true * y_pred.ln() + (1.0 - y_true) * (1.0 - y_pred).ln())
-}
-
-fn power_forgetting_curve(t: f64, s: f64, decay: f64) -> f64 {
-  let factor = 0.9_f64.powf(1.0 / decay) - 1.0;
-  (1.0 + factor * t / s).powf(decay)
-}
-
-fn total_loss(points: &[(f64, f64)], stability: f64, decay: f64) -> f64 {
-  points
-    .iter()
-    .map(|&(t, y)| log_loss(y, power_forgetting_curve(t, stability, decay)))
-    .sum()
+  let inv_s = 1.0 / stability;
+  points.iter().fold(0.0, |acc, &(t, y)| {
+    let y_pred = (1.0 + factor * t * inv_s).powf(decay).clamp(epsilon, 1.0 - epsilon);
+    acc - (y * y_pred.ln() + (1.0 - y) * (1.0 - y_pred).ln())
+  })
 }
 
 fn fit_forgetting_curve(points: &[(f64, f64)], decay: f64) -> f64 {
+  let factor = 0.9_f64.powf(1.0 / decay) - 1.0;
   // Search range: 1 second to 30 days; sufficient for learning steps (capped at 12h)
   let (mut low, mut high) = (1.0, 86400.0 * 30.0);
   let tolerance = 0.1;
   while high - low > tolerance {
     let left_third = low + (high - low) / 3.0;
     let right_third = high - (high - low) / 3.0;
-    if total_loss(points, left_third, decay) < total_loss(points, right_third, decay) {
+    if total_loss(points, left_third, factor, decay)
+      < total_loss(points, right_third, factor, decay)
+    {
       high = right_third;
     } else {
       low = left_third;
