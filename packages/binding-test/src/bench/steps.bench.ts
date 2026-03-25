@@ -1,6 +1,7 @@
 import * as fs from 'node:fs'
-import { Bench } from 'tinybench'
+
 import { computeOptimalSteps } from '@open-spaced-repetition/binding'
+import { Bench } from 'tinybench'
 
 const csvBuffer = fs.readFileSync(new URL('../revlog.csv', import.meta.url))
 

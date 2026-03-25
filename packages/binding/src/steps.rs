@@ -26,6 +26,7 @@ const MIN_COUNT_FOR_RECOMMEND: usize = 100;
 const MIN_COUNT_FOR_STATS: usize = 4;
 const IQR_OUTLIER_THRESHOLD: usize = 250;
 const DEFAULT_STABILITY: f64 = 86400.0;
+const MAX_SEARCH_STABILITY: f64 = 86400.0 * 30.0; // 30 days in seconds
 const INV_PHI: f64 = 0.6180339887498949; // (sqrt(5) - 1) / 2
 
 fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) -> f64 {
@@ -39,8 +40,7 @@ fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) ->
 
 fn fit_forgetting_curve(points: &[(f64, f64)], decay: f64) -> f64 {
   let factor = 0.9_f64.powf(1.0 / decay) - 1.0;
-  // Search range: 1 second to 30 days; sufficient for learning steps (capped at 12h)
-  let (mut low, mut high) = (1.0, 86400.0 * 30.0);
+  let (mut low, mut high) = (1.0, MAX_SEARCH_STABILITY);
   let mut x1 = high - INV_PHI * (high - low);
   let mut x2 = low + INV_PHI * (high - low);
   let mut f1 = total_loss(points, x1, factor, decay);
@@ -75,6 +75,7 @@ fn compute_rating_stats(points: &mut [(f64, f64)], decay: f64) -> Option<StepRat
   let delta_ts: Vec<f64> = points.iter().map(|(t, _)| *t).collect();
   let recalls: Vec<f64> = points.iter().map(|(_, r)| *r).collect();
 
+  // Nearest-rank quartile indices (not interpolated like numpy's default)
   let q1_idx = n / 4;
   let q2_idx = n / 2;
   let q3_idx = 3 * n / 4;
@@ -119,23 +120,24 @@ fn compute_rating_stats(points: &mut [(f64, f64)], decay: f64) -> Option<StepRat
   let retention = recalls.iter().sum::<f64>() / n as f64;
 
   // Fit forgetting curve with optional outlier filtering
-  let fit_points = if n >= IQR_OUTLIER_THRESHOLD {
+  let stability = if retention == 1.0 || retention == 0.0 {
+    DEFAULT_STABILITY
+  } else if n >= IQR_OUTLIER_THRESHOLD {
     let iqr = delay_q3 - delay_q1;
     let lower = delay_q1 - 1.5 * iqr;
     let upper = delay_q3 + 1.5 * iqr;
-    points
+    let filtered: Vec<_> = points
       .iter()
       .filter(|(t, _)| *t >= lower && *t <= upper)
       .copied()
-      .collect::<Vec<_>>()
+      .collect();
+    if filtered.is_empty() {
+      DEFAULT_STABILITY
+    } else {
+      fit_forgetting_curve(&filtered, decay).round()
+    }
   } else {
-    points.to_vec()
-  };
-
-  let stability = if fit_points.is_empty() || retention == 1.0 || retention == 0.0 {
-    DEFAULT_STABILITY
-  } else {
-    fit_forgetting_curve(&fit_points, decay).round()
+    fit_forgetting_curve(points, decay).round()
   };
 
   Some(StepRatingStats {
@@ -275,6 +277,12 @@ pub fn compute_optimal_steps(
       -params[20]
     }
   };
+
+  if desired_retention <= 0.0 || desired_retention >= 1.0 {
+    return Err(napi::Error::from_reason(
+      "desired_retention must be between 0 and 1 (exclusive)".to_string(),
+    ));
+  }
 
   // Parse CSV
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);

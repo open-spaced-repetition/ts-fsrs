@@ -21,7 +21,7 @@ describe('computeOptimalSteps', () => {
     expect(result.recommendedLearningSteps).toEqual([90, 5485])
     expect(result.recommendedRelearningSteps).toEqual([1122])
 
-    console.log('Step stats result:', JSON.stringify(result, null, 2))
+    console.debug('Step stats result:', JSON.stringify(result, null, 2))
   })
 
   test('should compute step stats with parameters array', () => {
@@ -36,7 +36,7 @@ describe('computeOptimalSteps', () => {
     expect(result).toBeDefined()
     expect(result.recommendedLearningSteps).toEqual([80, 5806])
     expect(result.recommendedRelearningSteps).toEqual([1049])
-    console.log('Step stats with params:', JSON.stringify(result, null, 2))
+    console.debug('Step stats with params:', JSON.stringify(result, null, 2))
   })
 
   test('recommended steps should be reasonable', () => {
@@ -51,8 +51,8 @@ describe('computeOptimalSteps', () => {
       expect(step).toBeLessThan(43200)
     }
 
-    console.log('Learning steps (seconds):', result.recommendedLearningSteps)
-    console.log(
+    console.debug('Learning steps (seconds):', result.recommendedLearningSteps)
+    console.debug(
       'Relearning steps (seconds):',
       result.recommendedRelearningSteps
     )
@@ -62,6 +62,12 @@ describe('computeOptimalSteps', () => {
     expect(() => {
       computeOptimalSteps(csvBuffer, 0.9, [1.0, 2.0]) // too short
     }).toThrow('at least 21 elements')
+  })
+
+  test('should reject invalid desired_retention', () => {
+    expect(() => computeOptimalSteps(csvBuffer, 0.0, 0.5)).toThrow('desired_retention')
+    expect(() => computeOptimalSteps(csvBuffer, 1.0, 0.5)).toThrow('desired_retention')
+    expect(() => computeOptimalSteps(csvBuffer, -0.1, 0.5)).toThrow('desired_retention')
   })
 
   test('different desired_retention should affect step values', () => {
