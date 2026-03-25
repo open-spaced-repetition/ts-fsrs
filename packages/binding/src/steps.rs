@@ -26,6 +26,7 @@ const MIN_COUNT_FOR_RECOMMEND: usize = 100;
 const MIN_COUNT_FOR_STATS: usize = 4;
 const IQR_OUTLIER_THRESHOLD: usize = 250;
 const DEFAULT_STABILITY: f64 = 86400.0;
+const INV_PHI: f64 = 0.6180339887498949; // (sqrt(5) - 1) / 2
 
 fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) -> f64 {
   let epsilon = 1e-15;
@@ -40,16 +41,24 @@ fn fit_forgetting_curve(points: &[(f64, f64)], decay: f64) -> f64 {
   let factor = 0.9_f64.powf(1.0 / decay) - 1.0;
   // Search range: 1 second to 30 days; sufficient for learning steps (capped at 12h)
   let (mut low, mut high) = (1.0, 86400.0 * 30.0);
+  let mut x1 = high - INV_PHI * (high - low);
+  let mut x2 = low + INV_PHI * (high - low);
+  let mut f1 = total_loss(points, x1, factor, decay);
+  let mut f2 = total_loss(points, x2, factor, decay);
   let tolerance = 0.1;
   while high - low > tolerance {
-    let left_third = low + (high - low) / 3.0;
-    let right_third = high - (high - low) / 3.0;
-    if total_loss(points, left_third, factor, decay)
-      < total_loss(points, right_third, factor, decay)
-    {
-      high = right_third;
+    if f1 < f2 {
+      high = x2;
+      x2 = x1;
+      f2 = f1;
+      x1 = high - INV_PHI * (high - low);
+      f1 = total_loss(points, x1, factor, decay);
     } else {
-      low = left_third;
+      low = x1;
+      x1 = x2;
+      f1 = f2;
+      x2 = low + INV_PHI * (high - low);
+      f2 = total_loss(points, x2, factor, decay);
     }
   }
   (high + low) / 2.0
