@@ -104,17 +104,17 @@ fn compute_rating_stats(points: &mut [(f64, f64)], decay: f64) -> Option<StepRat
   let q2_idx = n / 2;
   let q3_idx = 3 * n / 4;
 
-  let delay_q1 = if n % 4 != 0 {
+  let delay_q1 = if !n.is_multiple_of(4) {
     delta_ts[q1_idx]
   } else {
     (delta_ts[q1_idx.saturating_sub(1)] + delta_ts[q1_idx]) / 2.0
   };
-  let delay_q2 = if n % 2 != 0 {
+  let delay_q2 = if !n.is_multiple_of(2) {
     delta_ts[q2_idx]
   } else {
     (delta_ts[q2_idx.saturating_sub(1)] + delta_ts[q2_idx]) / 2.0
   };
-  let delay_q3 = if n % 4 != 0 {
+  let delay_q3 = if !n.is_multiple_of(4) {
     delta_ts[q3_idx]
   } else {
     (delta_ts[q3_idx.saturating_sub(1)] + delta_ts[q3_idx]) / 2.0
