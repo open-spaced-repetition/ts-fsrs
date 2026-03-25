@@ -8,18 +8,16 @@ describe('computeOptimalSteps', () => {
     const result = computeOptimalSteps(csvBuffer, 0.9, 0.5)
 
     expect(result).toBeDefined()
-    // Check structure
-    expect(result).toHaveProperty('again')
-    expect(result).toHaveProperty('hard')
-    expect(result).toHaveProperty('good')
-    expect(result).toHaveProperty('againThenGood')
-    expect(result).toHaveProperty('goodThenAgain')
-    expect(result).toHaveProperty('relearning')
-    expect(result).toHaveProperty('recommendedLearningSteps')
-    expect(result).toHaveProperty('recommendedRelearningSteps')
-
-    expect(result.recommendedLearningSteps).toEqual([90, 5485])
-    expect(result.recommendedRelearningSteps).toEqual([1122])
+    expect(result).toMatchObject({
+      again: expect.objectContaining({ count: expect.any(Number) }),
+      hard: expect.objectContaining({ count: expect.any(Number) }),
+      good: expect.objectContaining({ count: expect.any(Number) }),
+      againThenGood: expect.objectContaining({ count: expect.any(Number) }),
+      goodThenAgain: expect.objectContaining({ count: expect.any(Number) }),
+      relearning: expect.objectContaining({ count: expect.any(Number) }),
+      recommendedLearningSteps: [90, 5485],
+      recommendedRelearningSteps: [1122],
+    })
 
     console.debug('Step stats result:', JSON.stringify(result, null, 2))
   })
