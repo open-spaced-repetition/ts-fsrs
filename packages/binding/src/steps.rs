@@ -28,6 +28,30 @@ const IQR_OUTLIER_THRESHOLD: usize = 250;
 const DEFAULT_STABILITY: f64 = 86400.0;
 const MAX_SEARCH_STABILITY: f64 = 86400.0 * 30.0; // 30 days in seconds
 const INV_PHI: f64 = 0.6180339887498949; // (sqrt(5) - 1) / 2
+const MIN_DECAY: f64 = 0.1;
+const MAX_DECAY: f64 = 0.8;
+
+fn resolve_decay(decay_or_params: &Either<f64, Vec<f64>>) -> Result<f64> {
+  let (source, raw_decay) = match decay_or_params {
+    Either::A(val) => ("decay", *val),
+    Either::B(params) => {
+      if params.len() < 21 {
+        return Err(napi::Error::from_reason(
+          "Parameters array must have at least 21 elements (w[0]..w[20])".to_string(),
+        ));
+      }
+      ("Parameters array w[20] (decay)", params[20])
+    }
+  };
+
+  if !raw_decay.is_finite() || !(MIN_DECAY..=MAX_DECAY).contains(&raw_decay) {
+    return Err(napi::Error::from_reason(format!(
+      "{source} must be finite and between {MIN_DECAY} and {MAX_DECAY} (inclusive)"
+    )));
+  }
+
+  Ok(-raw_decay)
+}
 
 fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) -> f64 {
   let epsilon = 1e-15;
@@ -265,18 +289,7 @@ pub fn compute_optimal_steps(
   desired_retention: f64,
   #[napi(ts_arg_type = "number | number[]")] decay_or_params: Either<f64, Vec<f64>>,
 ) -> Result<StepStatsResult> {
-  // Resolve decay from Either<f64, Vec<f64>>
-  let decay = match &decay_or_params {
-    Either::A(val) => -val,
-    Either::B(params) => {
-      if params.len() < 21 {
-        return Err(napi::Error::from_reason(
-          "Parameters array must have at least 21 elements (w[0]..w[20])".to_string(),
-        ));
-      }
-      -params[20]
-    }
-  };
+  let decay = resolve_decay(&decay_or_params)?;
 
   if desired_retention <= 0.0 || desired_retention >= 1.0 {
     return Err(napi::Error::from_reason(
