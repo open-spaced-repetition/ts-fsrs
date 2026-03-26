@@ -10,7 +10,7 @@ use time::{Date, Duration, OffsetDateTime};
 use crate::FSRSItem as FSRSBindingItem;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevlogEntry {
+pub(crate) struct RevlogEntry {
   // card_id,review_time,review_rating,review_state,review_duration
   pub card_id: String,
   pub review_time: i64,

@@ -6,10 +6,12 @@ mod convert;
 mod evaluate;
 mod model;
 mod progress;
+mod steps;
 mod train;
 pub use convert::*;
 pub use evaluate::*;
 pub use model::*;
+pub use steps::*;
 pub use train::*;
 
 #[napi(js_name = "FSRSBinding")]
