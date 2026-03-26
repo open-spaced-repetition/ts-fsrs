@@ -1,6 +1,12 @@
 {
   "$schema": "./node_modules/turbo/schema.json",
-  "globalDependencies": ["pnpm-lock.yaml", "package.json", "biome.json"],
+  "globalDependencies": [
+    "pnpm-lock.yaml",
+    "package.json",
+    "biome.json",
+    ".github/actions/**",
+    ".github/workflows/**"
+  ],
   "ui": "stream",
   "tasks": {
     "build": {
