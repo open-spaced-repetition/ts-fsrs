@@ -19,7 +19,7 @@ If you are contributing to `packages/binding`, we recommend using the Dev Contai
 
 ## Local Setup
 
-You can work in one of two supported ways:
+You can setup the repository in one of two supported ways:
 
 - local toolchains on your host machine
 - the repository Dev Container for a preconfigured environment
@@ -76,7 +76,7 @@ pnpm --filter @open-spaced-repetition/binding check
 
 This repository uses [Changesets](https://github.com/changesets/changesets) for release management.
 
-Add a changeset for any user-facing package change:
+When you make any changes to a package, Add a changeset to describe them:
 
 ```bash
 pnpm changeset

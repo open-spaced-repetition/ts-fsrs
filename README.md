@@ -62,7 +62,7 @@ For detailed usage, advanced examples, browser/WASI setup, and API notes:
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
 - [TypeDoc API docs](https://open-spaced-repetition.github.io/ts-fsrs/)
-- [Workflow diagram](./ts-fsrs-workflow.drawio)
+- [State transition diagram for cards](./ts-fsrs-workflow.drawio)
 
 ## Examples
 
@@ -77,4 +77,4 @@ FSRS is also available in other languages and ecosystems:
 
 ## Contribute
 
-For development setup, Dev Container usage, and contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).
+For how to setup a local development eniroment, how to set up a Dev Container, and contribution guidelines, see [CONTRIBUTING.md](./CONTRIBUTING.md).

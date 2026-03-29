@@ -90,7 +90,7 @@ const scheduler = fsrs({
 })
 ```
 
-`request_retention` controls how aggressively the scheduler keeps cards fresh. Higher values increase review load, lower values reduce it.
+`request_retention` Is the percentage (`0.0-1.0`) that the scheduler will try and have you get correct. Higher values increase review load, lower values reduce it.
 
 `maximum_interval` caps how far into the future a card can be scheduled.
 
@@ -143,7 +143,7 @@ Use `next` when you already know the selected rating.
 const result = scheduler.next(card, new Date(), Rating.Good)
 ```
 
-If you want to map the result into your own storage shape, pass an `afterHandler`.
+If you want to map the result into your own storage type, pass an `afterHandler`.
 
 ```ts
 const saved = scheduler.next(card, new Date(), Rating.Good, ({ card, log }) => ({
