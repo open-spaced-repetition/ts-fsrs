@@ -52,6 +52,8 @@
     "dist",
     "CHANGELOG.md",
     "README.md",
+    "README_CN.md",
+    "README_JA.md",
     "LICENSE"
   ],
   "repository": {

@@ -38,7 +38,8 @@
         "biomejs.biome",
         "yoavbls.pretty-ts-errors",
         "esbenp.prettier-vscode",
-
+        "vitest.explorer",
+        
         // Rust
         "rust-lang.rust-analyzer",
         "tamasfe.even-better-toml",
