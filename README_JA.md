@@ -22,7 +22,9 @@
 
 ## インストール
 
-`ts-fsrs` は Node.js `>=20.0.0` が必要です。
+現在このリポジトリで公開しているすべてのパッケージは Node.js `>=20.0.0` を必要とします。
+
+Node.js 16 と 18 はすでにサポート終了で、現在は Node.js 20 未満をサポート対象として扱っていません。詳しくは [Node.js の公式リリース状況ページ](https://nodejs.org/en/about/previous-releases#looking-for-the-latest-release-of-a-version-branch) を参照してください。
 
 ```bash
 pnpm add ts-fsrs

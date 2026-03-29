@@ -22,7 +22,9 @@
 
 ## 安装
 
-`ts-fsrs` 需要 Node.js `>=20.0.0`。
+当前仓库中的所有包都要求 Node.js `>=20.0.0`。
+
+Node.js 16 和 18 已经停止维护，因此我们不再考虑支持低于 Node.js 20 的版本。详见 [Node.js 官方发布状态页面](https://nodejs.org/en/about/previous-releases#looking-for-the-latest-release-of-a-version-branch)。
 
 ```bash
 pnpm add ts-fsrs

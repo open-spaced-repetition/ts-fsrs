@@ -21,7 +21,9 @@ This repository contains two main packages:
 
 ## Installation
 
-`ts-fsrs` requires Node.js `>=20.0.0`.
+All current packages in this repository require Node.js `>=20.0.0`.
+
+Node.js 16 and 18 are end-of-life, so we no longer consider versions earlier than Node.js 20. See the [official release status page](https://nodejs.org/en/about/previous-releases#looking-for-the-latest-release-of-a-version-branch).
 
 ```bash
 pnpm add ts-fsrs
