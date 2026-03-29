@@ -82,7 +82,7 @@ const scheduler = fsrs({
 })
 ```
 
-`request_retention` 控制调度器希望维持的最低记忆保持率。值越高，复习越频繁；值越低，复习越少。
+`request_retention` 调度器希望维持的最低记忆保持率（0%到100%）。值越高，复习越频繁；值越低，复习越少。
 
 `maximum_interval` 用于限制卡片最多可以被安排到未来多少天。
 

@@ -65,7 +65,7 @@ console.log(result.log)
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
 - [TypeDoc API ドキュメント](https://open-spaced-repetition.github.io/ts-fsrs/)
-- [ワークフロー図](./ts-fsrs-workflow.drawio)
+- [カードの状態遷移図](./ts-fsrs-workflow.drawio)
 
 ## 例
 
@@ -80,4 +80,4 @@ FSRS には他の言語やエコシステム向けの実装もあります。
 
 ## コントリビュート
 
-開発環境、Dev Container、コントリビューション手順は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。
+どうやって開発環境をセットアップするか、Dev Container を使った迅速な開発方法、コントリビューション手順は [CONTRIBUTING.md](./CONTRIBUTING.md) を参照してください。

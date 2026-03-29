@@ -65,7 +65,7 @@ console.log(result.log)
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
 - [TypeDoc API 文档](https://open-spaced-repetition.github.io/ts-fsrs/)
-- [工作流图](./ts-fsrs-workflow.drawio)
+- [卡片状态转换图](./ts-fsrs-workflow.drawio)
 
 ## 示例
 
@@ -80,4 +80,4 @@ FSRS 也有其他语言和生态的实现：
 
 ## 贡献
 
-开发环境、Dev Container 和贡献规范见 [CONTRIBUTING.md](./CONTRIBUTING.md)。
+如何配置开发环境、使用Dev Container快速开发以及贡献规范请查阅 [CONTRIBUTING.md](./CONTRIBUTING.md)文档。
