@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-win32-ia32-msvc
 
+## 0.3.0
+
 ## 0.2.1
 
 ## 0.2.0

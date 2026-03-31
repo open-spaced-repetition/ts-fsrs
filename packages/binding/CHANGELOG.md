@@ -1,5 +1,21 @@
 # @open-spaced-repetition/binding
 
+## 0.3.0
+
+### Minor Changes
+
+- [#325](https://github.com/open-spaced-repetition/ts-fsrs/pull/325) [`948e3cd`](https://github.com/open-spaced-repetition/ts-fsrs/commit/948e3cd3cc2d2717bd0bfd6e7c9cbda7cfae98ed) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): add `computeOptimalSteps` to analyze revlog and recommend optimal learning/relearning steps
+
+  Compute optimal learning/relearning steps from CSV revlog data.
+  Analyzes review history by rating groups, fits forgetting curves via golden-section search,
+  and recommends step durations based on desired retention and decay parameters.
+
+### Patch Changes
+
+- [#327](https://github.com/open-spaced-repetition/ts-fsrs/pull/327) [`e089f2f`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e089f2fe888298c99d1d68285f1dfa1697cea7f8) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: Build the binding packages with Rust 1.94.1 and invalidate Turborepo caches when CI configuration changes.
+
+- [#329](https://github.com/open-spaced-repetition/ts-fsrs/pull/329) [`5cd8949`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5cd8949544788224eada1b2e6f8597756ca594cb) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: include README, localized package docs, and license files in the published binding tarball
+
 ## 0.2.1
 
 ### Patch Changes
