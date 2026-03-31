@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 5.3.2
+
+### Patch Changes
+
+- [#329](https://github.com/open-spaced-repetition/ts-fsrs/pull/329) [`5cd8949`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5cd8949544788224eada1b2e6f8597756ca594cb) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: include README, localized package docs, and license files in the published `ts-fsrs` tarball
+
 ## 5.3.1
 
 ### Patch Changes
