@@ -50,7 +50,7 @@
     "@tybys/wasm-util": "^0.10.1",
     "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
-    "emnapi": "^1.9.0",
+    "emnapi": "^1.9.2",
     "npm-run-all2": "^8.0.4",
     "papaparse": "^5.5.3",
     "tinybench": "^6.0.0"
