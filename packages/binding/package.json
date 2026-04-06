@@ -42,8 +42,8 @@
     "check:rs": "cargo fmt && cargo clippy"
   },
   "devDependencies": {
-    "@emnapi/core": "^1.9.0",
-    "@emnapi/runtime": "^1.9.0",
+    "@emnapi/core": "^1.9.2",
+    "@emnapi/runtime": "^1.9.2",
     "@napi-rs/cli": "^3.4.1",
     "@napi-rs/wasm-runtime": "^1.1.2",
     "@taplo/cli": "^0.7.0",
