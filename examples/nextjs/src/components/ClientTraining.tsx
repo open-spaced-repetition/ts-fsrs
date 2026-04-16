@@ -1,7 +1,7 @@
 'use client'
 
 import { computeParameters } from '@open-spaced-repetition/binding'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '@/types/training'
 import { convertFSRSItemByFile } from '@/utils/convert'
@@ -25,6 +25,7 @@ export default function ClientTraining({
 
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const abortedRef = useRef(false)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
   const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
   const [timezone, setTimezone] = useState<string>(() => {
@@ -83,6 +84,7 @@ export default function ClientTraining({
     }
 
     setIsProcessing(true)
+    abortedRef.current = false
     onProcessingChange?.(true)
 
     try {
@@ -140,6 +142,9 @@ export default function ClientTraining({
                 enableShortTerm ? 1 : 0
               }] Progress: ${cur}/${total}`
             )
+            if (abortedRef.current) {
+              return false
+            }
 
             // Update progress in real-time
             setResults((prev) =>
@@ -170,6 +175,9 @@ export default function ClientTraining({
       // Run computations sequentially to reduce memory pressure
       // Running in parallel may cause WebAssembly memory access errors with large datasets
       await computeParametersWrapper(true)
+      if (abortedRef.current) {
+        throw new Error('Aborted by user')
+      }
       await computeParametersWrapper(false)
 
       const trainingEndTime = performance.now()
@@ -182,6 +190,12 @@ export default function ClientTraining({
       }))
       console.timeEnd('full training time')
     } catch (error) {
+      if (abortedRef.current) {
+        console.debug('Training cancelled by user.')
+        setResults([])
+        setStats({ parseTime: '', trainingTime: '', fsrsItemsCount: 0 })
+        return
+      }
       console.error('Error processing CSV file:', error)
       alert(`Processing failed: ${error}`)
     } finally {
@@ -294,6 +308,17 @@ export default function ClientTraining({
         >
           {isProcessing ? 'Processing...' : 'Start Processing'}
         </button>
+        {isProcessing && (
+          <button
+            type="button"
+            onClick={() => {
+              abortedRef.current = true
+            }}
+            className="ml-3 px-6 py-3 text-base font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white"
+          >
+            Cancel
+          </button>
+        )}
       </div>
 
       {stats.parseTime && (

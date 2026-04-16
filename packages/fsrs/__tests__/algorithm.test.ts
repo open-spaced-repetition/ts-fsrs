@@ -248,7 +248,7 @@ describe('next_ds', () => {
           .exp()
       )
 
-      const maskedSinc = g >= 3 ? Math.max(sinc, 1.0) : sinc
+      const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
 
       return +clamp(s * maskedSinc, S_MIN, 36500.0).toFixed(8)
     }
@@ -317,9 +317,7 @@ describe('next_ds', () => {
     ])
     expect(s_fail_collection).toEqual(expected_s_fail)
 
-    expect(s_short_collection).toEqual([
-      1.596_818, 2.747_009_59, 5, 8.129_609_56,
-    ])
+    expect(s_short_collection).toEqual([1.596_818, 5, 5, 8.129_609_56])
     expect(s_short_collection).toEqual(expected_s_short)
 
     expect(next_s_collection).toEqual([

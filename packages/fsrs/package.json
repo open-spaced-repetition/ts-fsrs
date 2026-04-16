@@ -1,7 +1,7 @@
 {
   "name": "ts-fsrs",
   "private": false,
-  "version": "5.2.3",
+  "version": "5.3.2",
   "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
   "types": "dist/index.d.ts",
   "main": "dist/index.cjs",
@@ -18,10 +18,10 @@
   "type": "module",
   "scripts": {
     "check": "biome check ./src",
-    "check::fix": "biome check --write ./src",
+    "check:fix": "biome check --write ./src",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
-    "test::coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
+    "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "test::publish": "yalc publish",
     "prebuild": "rimraf ./dist",
     "build": "rollup -c rollup.config.ts --configPlugin esbuild",
@@ -30,16 +30,16 @@
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.0",
+    "@rollup/plugin-commonjs": "^29.0.2",
     "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.3",
     "decimal.js": "^10.5.0",
-    "rollup": "^4.53.3",
-    "rollup-plugin-dts": "^6.2.3",
+    "rollup": "^4.54.0",
+    "rollup-plugin-dts": "^6.4.1",
     "rollup-plugin-esbuild": "^6.2.1",
     "tslib": "^2.8.1",
-    "typedoc": "0.28.12",
-    "typedoc-plugin-extras": "4.0.0"
+    "typedoc": "0.28.18",
+    "typedoc-plugin-extras": "4.0.1"
   },
   "author": "ishiko",
   "license": "MIT",
@@ -50,7 +50,10 @@
   ],
   "files": [
     "dist",
+    "CHANGELOG.md",
     "README.md",
+    "README_CN.md",
+    "README_JA.md",
     "LICENSE"
   ],
   "repository": {

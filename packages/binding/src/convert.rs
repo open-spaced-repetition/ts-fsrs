@@ -1,4 +1,5 @@
 use csv::ReaderBuilder;
+use fsrs::filter_outlier;
 use itertools::Itertools;
 use napi_derive::napi;
 
@@ -9,7 +10,7 @@ use time::{Date, Duration, OffsetDateTime};
 use crate::FSRSItem as FSRSBindingItem;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct RevlogEntry {
+pub(crate) struct RevlogEntry {
   // card_id,review_time,review_rating,review_state,review_duration
   pub card_id: String,
   pub review_time: i64,
@@ -157,4 +158,17 @@ pub fn convert_csv_to_fsrs_items(
   revlogs.sort_by_cached_key(|(_, _, review_time)| *review_time);
 
   Ok(revlogs.into_iter().map(|(_, item, _)| item).collect())
+}
+
+pub(crate) fn prepare_items(train_set: Vec<&FSRSBindingItem>) -> Vec<fsrs::FSRSItem> {
+  let train_data: Vec<fsrs::FSRSItem> = train_set
+    .into_iter()
+    .map(|item| item.inner.clone())
+    .collect();
+  let (mut dataset_for_initialization, mut trainset): (Vec<fsrs::FSRSItem>, Vec<fsrs::FSRSItem>) =
+    train_data
+      .into_iter()
+      .partition(|item| item.long_term_review_cnt() == 1);
+  (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
+  [dataset_for_initialization, trainset].concat()
 }

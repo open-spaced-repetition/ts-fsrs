@@ -1,7 +1,33 @@
 diff --git a/dist/cli.js b/dist/cli.js
-index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b21389abceaf 100755
+index f34170384d379ac5574fec2fa56ebb8571ddfa3e..baf53f0755c129e579d54b002a8feed4de11af78 100755
 --- a/dist/cli.js
 +++ b/dist/cli.js
+@@ -125,14 +125,14 @@ var dependencies = {
+ 	"clipanion": "^4.0.0-rc.4",
+ 	"colorette": "^2.0.20",
+ 	"debug": "^4.4.1",
+-	"emnapi": "^1.5.0",
++	"emnapi": "^1.9.0",
+ 	"es-toolkit": "^1.39.10",
+ 	"js-yaml": "^4.1.0",
+ 	"semver": "^7.7.2",
+ 	"typanion": "^3.14.0"
+ };
+ var devDependencies = {
+-	"@emnapi/runtime": "^1.5.0",
++	"@emnapi/runtime": "^1.9.0",
+ 	"@oxc-node/core": "^0.0.32",
+ 	"@std/toml": "npm:@jsr/std__toml@^1.0.10",
+ 	"@types/debug": "^4.1.12",
+@@ -148,7 +148,7 @@ var devDependencies = {
+ 	"tslib": "^2.8.1",
+ 	"typescript": "^5.9.2"
+ };
+-var peerDependencies = { "@emnapi/runtime": "^1.5.0" };
++var peerDependencies = { "@emnapi/runtime": "^1.9.0" };
+ var peerDependenciesMeta = {
+ 	"@emnapi/runtime": { "optional": true },
+ 	"emnapi": { "optional": true }
 @@ -722,23 +722,23 @@ async function collectArtifacts(userOptions) {
  		const distFilePathLocal = join(parse(packageJsonPath).dir, parsedName.base);
  		debug$8.info(`Write file content to [${colors.yellowBright(distFilePathLocal)}]`);
@@ -42,7 +68,71 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b213
  }
  async function collectNodeBinaries(root) {
  	const files$1 = await readdirAsync(root, { withFileTypes: true });
-@@ -1639,9 +1639,12 @@ var Builder = class {
+@@ -1007,7 +1007,7 @@ if (!nativeBinding) {
+ 
+ //#endregion
+ //#region src/api/templates/load-wasi-template.ts
+-const createWasiBrowserBinding = (wasiFilename, initialMemory = 4e3, maximumMemory = 65536, fs$1 = false, asyncInit = false, buffer = false) => {
++const createWasiBrowserBinding = (wasiFilename, initialMemory = 4e3, maximumMemory = 65536, fs$1 = false, asyncInit = false, buffer = false, errorEvent = false) => {
+ 	return `import {
+   createOnMessage as __wasmCreateOnMessageForFsProxy,
+   getDefaultContext as __emnapiGetDefaultContext,
+@@ -1055,6 +1055,11 @@ const {
+       type: 'module',
+     })
+ ${fs$1 ? `    worker.addEventListener('message', __wasmCreateOnMessageForFsProxy(__fs))\n` : ""}
++${errorEvent ? `    worker.addEventListener('message', (event) => {
++      if (event.data && typeof event.data === 'object' && event.data.type === 'error') {
++        window.dispatchEvent(new CustomEvent('napi-rs-worker-error', { detail: event.data }))
++      }
++    })\n` : ""}
+     return worker
+   },
+   overwriteImports(importObject) {
+@@ -1253,12 +1258,14 @@ globalThis.onmessage = function (e) {
+   handler.handle(e);
+ };
+ `;
+-const createWasiBrowserWorkerBinding = (fs$1) => {
++const createWasiBrowserWorkerBinding = (fs$1, errorEvent = false) => {
+ 	return `${fs$1 ? `import { instantiateNapiModuleSync, MessageHandler, WASI, createFsProxy } from '@napi-rs/wasm-runtime'
+ import { memfsExported as __memfsExported } from '@napi-rs/wasm-runtime/fs'
+ 
+ const fs = createFsProxy(__memfsExported)` : `import { instantiateNapiModuleSync, MessageHandler, WASI } from '@napi-rs/wasm-runtime'`}
+ 
++${errorEvent ? `const errorOutputs = []` : ""}
++
+ const handler = new MessageHandler({
+   onLoad({ wasmModule, wasmMemory }) {
+     ${fs$1 ? `const wasi = new WASI({
+@@ -1273,6 +1280,7 @@ const handler = new MessageHandler({
+       printErr: function() {
+         // eslint-disable-next-line no-console
+         console.error.apply(console, arguments)
++${errorEvent ? `        errorOutputs.push([...arguments])` : ""}
+       },
+     })` : `const wasi = new WASI({
+       print: function () {
+@@ -1282,6 +1290,7 @@ const handler = new MessageHandler({
+       printErr: function() {
+         // eslint-disable-next-line no-console
+         console.error.apply(console, arguments)
++${errorEvent ? `        errorOutputs.push([...arguments])` : ""}
+       },
+     })`}
+     return instantiateNapiModuleSync(wasmModule, {
+@@ -1297,6 +1306,10 @@ const handler = new MessageHandler({
+       },
+     })
+   },
++${errorEvent ? `  onError(error) {
++    postMessage({ type: 'error', error, errorOutputs })
++    errorOutputs.length = 0
++  },` : ""}
+ })
+ 
+ globalThis.onmessage = function (e) {
+@@ -1639,9 +1652,12 @@ var Builder = class {
  		const wasmBinaryName = await this.copyArtifact();
  		if (this.cdyLibName) {
  			const idents = await this.generateTypeDef();
@@ -57,7 +147,7 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b213
  			if (wasmBindingsOutput) this.outputs.push(...wasmBindingsOutput);
  		}
  		return this.outputs;
-@@ -1734,13 +1737,13 @@ var Builder = class {
+@@ -1734,13 +1750,13 @@ var Builder = class {
  		}
  		return exports$1;
  	}
@@ -73,7 +163,28 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b213
  			binaryName: this.config.binaryName,
  			packageName: this.config.packageName,
  			version: process.env.npm_new_version ?? this.config.packageJson.version,
-@@ -1793,7 +1796,7 @@ var Builder = class {
+@@ -1749,7 +1765,7 @@ var Builder = class {
+ 	}
+ 	async writeWasiBinding(distFileName, idents) {
+ 		if (distFileName) {
+-			var _this$config$wasm, _this$config$wasm2, _this$config$wasm3, _this$config$wasm4, _this$config$wasm5, _this$config$wasm6, _this$config$wasm7, _this$config$wasm8;
++			var _this$config$wasm, _this$config$wasm2, _this$config$wasm3, _this$config$wasm4, _this$config$wasm5, _this$config$wasm6, _this$config$wasm7, _this$config$wasm7b, _this$config$wasm8, _this$config$wasm9;
+ 			const { name: name$1, dir: dir$1 } = parse(distFileName);
+ 			const bindingPath = join(dir$1, `${this.config.binaryName}.wasi.cjs`);
+ 			const browserBindingPath = join(dir$1, `${this.config.binaryName}.wasi-browser.js`);
+@@ -1758,9 +1774,9 @@ var Builder = class {
+ 			const browserEntryPath = join(dir$1, "browser.js");
+ 			const exportsCode = `module.exports = __napiModule.exports\n` + idents.map((ident) => `module.exports.${ident} = __napiModule.exports.${ident}`).join("\n");
+ 			await writeFileAsync(bindingPath, createWasiBinding(name$1, this.config.packageName, (_this$config$wasm = this.config.wasm) === null || _this$config$wasm === void 0 ? void 0 : _this$config$wasm.initialMemory, (_this$config$wasm2 = this.config.wasm) === null || _this$config$wasm2 === void 0 ? void 0 : _this$config$wasm2.maximumMemory) + exportsCode + "\n", "utf8");
+-			await writeFileAsync(browserBindingPath, createWasiBrowserBinding(name$1, (_this$config$wasm3 = this.config.wasm) === null || _this$config$wasm3 === void 0 ? void 0 : _this$config$wasm3.initialMemory, (_this$config$wasm4 = this.config.wasm) === null || _this$config$wasm4 === void 0 ? void 0 : _this$config$wasm4.maximumMemory, (_this$config$wasm5 = this.config.wasm) === null || _this$config$wasm5 === void 0 || (_this$config$wasm5 = _this$config$wasm5.browser) === null || _this$config$wasm5 === void 0 ? void 0 : _this$config$wasm5.fs, (_this$config$wasm6 = this.config.wasm) === null || _this$config$wasm6 === void 0 || (_this$config$wasm6 = _this$config$wasm6.browser) === null || _this$config$wasm6 === void 0 ? void 0 : _this$config$wasm6.asyncInit, (_this$config$wasm7 = this.config.wasm) === null || _this$config$wasm7 === void 0 || (_this$config$wasm7 = _this$config$wasm7.browser) === null || _this$config$wasm7 === void 0 ? void 0 : _this$config$wasm7.buffer) + `export default __napiModule.exports\n` + idents.map((ident) => `export const ${ident} = __napiModule.exports.${ident}`).join("\n") + "\n", "utf8");
++			await writeFileAsync(browserBindingPath, createWasiBrowserBinding(name$1, (_this$config$wasm3 = this.config.wasm) === null || _this$config$wasm3 === void 0 ? void 0 : _this$config$wasm3.initialMemory, (_this$config$wasm4 = this.config.wasm) === null || _this$config$wasm4 === void 0 ? void 0 : _this$config$wasm4.maximumMemory, (_this$config$wasm5 = this.config.wasm) === null || _this$config$wasm5 === void 0 || (_this$config$wasm5 = _this$config$wasm5.browser) === null || _this$config$wasm5 === void 0 ? void 0 : _this$config$wasm5.fs, (_this$config$wasm6 = this.config.wasm) === null || _this$config$wasm6 === void 0 || (_this$config$wasm6 = _this$config$wasm6.browser) === null || _this$config$wasm6 === void 0 ? void 0 : _this$config$wasm6.asyncInit, (_this$config$wasm7 = this.config.wasm) === null || _this$config$wasm7 === void 0 || (_this$config$wasm7 = _this$config$wasm7.browser) === null || _this$config$wasm7 === void 0 ? void 0 : _this$config$wasm7.buffer, (_this$config$wasm7b = this.config.wasm) === null || _this$config$wasm7b === void 0 || (_this$config$wasm7b = _this$config$wasm7b.browser) === null || _this$config$wasm7b === void 0 ? void 0 : _this$config$wasm7b.errorEvent) + `export default __napiModule.exports\n` + idents.map((ident) => `export const ${ident} = __napiModule.exports.${ident}`).join("\n") + "\n", "utf8");
+ 			await writeFileAsync(workerPath, WASI_WORKER_TEMPLATE, "utf8");
+-			await writeFileAsync(browserWorkerPath, createWasiBrowserWorkerBinding(((_this$config$wasm8 = this.config.wasm) === null || _this$config$wasm8 === void 0 || (_this$config$wasm8 = _this$config$wasm8.browser) === null || _this$config$wasm8 === void 0 ? void 0 : _this$config$wasm8.fs) ?? false), "utf8");
++			await writeFileAsync(browserWorkerPath, createWasiBrowserWorkerBinding(((_this$config$wasm8 = this.config.wasm) === null || _this$config$wasm8 === void 0 || (_this$config$wasm8 = _this$config$wasm8.browser) === null || _this$config$wasm8 === void 0 ? void 0 : _this$config$wasm8.fs) ?? false, ((_this$config$wasm9 = this.config.wasm) === null || _this$config$wasm9 === void 0 || (_this$config$wasm9 = _this$config$wasm9.browser) === null || _this$config$wasm9 === void 0 ? void 0 : _this$config$wasm9.errorEvent) ?? false), "utf8");
+ 			await writeFileAsync(browserEntryPath, `export * from '${this.config.packageName}-wasm32-wasi'\n`);
+ 			return [
+ 				{
+@@ -1793,7 +1809,7 @@ var Builder = class {
  };
  async function writeJsBinding(options) {
  	if (!options.platform || options.noJsBinding || options.idents.length === 0) return;
@@ -82,3 +193,33 @@ index f34170384d379ac5574fec2fa56ebb8571ddfa3e..bcc8e4db557719775912dcd71789b213
  	const binding = (options.esm ? createEsmBinding : createCjsBinding)(options.binaryName, options.packageName, options.idents, options.version);
  	try {
  		const dest = join(options.outputDir, name$1);
+diff --git a/package.json b/package.json
+index c6559c023473bbaec90d475763a74170dcf8d161..1c7a5c30c915cff3a6f89823f5021b27304fd626 100644
+--- a/package.json
++++ b/package.json
+@@ -67,14 +67,14 @@
+     "clipanion": "^4.0.0-rc.4",
+     "colorette": "^2.0.20",
+     "debug": "^4.4.1",
+-    "emnapi": "^1.5.0",
++    "emnapi": "^1.9.0",
+     "es-toolkit": "^1.39.10",
+     "js-yaml": "^4.1.0",
+     "semver": "^7.7.2",
+     "typanion": "^3.14.0"
+   },
+   "devDependencies": {
+-    "@emnapi/runtime": "^1.5.0",
++    "@emnapi/runtime": "^1.9.0",
+     "@oxc-node/core": "^0.0.32",
+     "@std/toml": "npm:@jsr/std__toml@^1.0.10",
+     "@types/debug": "^4.1.12",
+@@ -91,7 +91,7 @@
+     "typescript": "^5.9.2"
+   },
+   "peerDependencies": {
+-    "@emnapi/runtime": "^1.5.0"
++    "@emnapi/runtime": "^1.9.0"
+   },
+   "peerDependenciesMeta": {
+     "@emnapi/runtime": {

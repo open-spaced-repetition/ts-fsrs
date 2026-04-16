@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding",
-  "version": "0.1.2",
+  "version": "0.3.0",
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "type": "module",
   "main": "dist/index.cjs",
@@ -20,6 +20,12 @@
       "types": "./dist/index.d.ts",
       "require": "./dist/fsrs-binding.wasi.cjs",
       "default": "./dist/fsrs-binding.wasi-browser.js"
+    },
+    "./dynamic-wasi": {
+      "browser": "./dist/dynamic-wasi-browser.js",
+      "types": "./dist/dynamic-wasi.d.ts",
+      "require": "./dist/dynamic-wasi.cjs",
+      "default": "./dist/dynamic-wasi.cjs"
     }
   },
   "license": "MIT",
@@ -27,28 +33,27 @@
     "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
     "build": "napi build --platform --release -o ./dist",
     "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
+    "build:dynamic": "node copy-dynamic.js",
     "build:debug": "napi build --platform",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
     "check:fix": "biome format --write",
     "check:toml": "taplo format",
-    "check:rs": "cargo fmt && cargo clippy",
-    "test": "vitest run --config=vitest.config.ts --passWithNoTests",
-    "test::coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage"
+    "check:rs": "cargo fmt && cargo clippy"
   },
   "devDependencies": {
-    "@emnapi/core": "^1.7.1",
-    "@emnapi/runtime": "^1.7.1",
+    "@emnapi/core": "^1.9.2",
+    "@emnapi/runtime": "^1.9.2",
     "@napi-rs/cli": "^3.4.1",
-    "@napi-rs/wasm-runtime": "^1.0.7",
+    "@napi-rs/wasm-runtime": "^1.1.3",
     "@taplo/cli": "^0.7.0",
     "@tybys/wasm-util": "^0.10.1",
-    "@types/papaparse": "^5.5.0",
+    "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
-    "emnapi": "^1.7.1",
+    "emnapi": "^1.9.2",
     "npm-run-all2": "^8.0.4",
     "papaparse": "^5.5.3",
-    "tinybench": "^5.1.0"
+    "tinybench": "^6.0.0"
   },
   "keywords": [
     "napi-rs",
@@ -60,11 +65,19 @@
   ],
   "files": [
     "dist",
+    "CHANGELOG.md",
     "README.md",
+    "README_CN.md",
+    "README_JA.md",
     "LICENSE"
   ],
   "napi": {
     "binaryName": "fsrs-binding",
+    "wasm": {
+      "browser": {
+        "errorEvent": true
+      }
+    },
     "targets": [
       "i686-pc-windows-msvc",
       "x86_64-pc-windows-msvc",

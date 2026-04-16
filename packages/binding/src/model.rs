@@ -220,14 +220,49 @@ pub struct ModelEvaluation {
 }
 
 #[napi(object)]
+pub struct StepRatingStats {
+  /// Number of data points for this rating
+  pub count: u32,
+  /// Delay quartiles in seconds
+  pub delay_q1: f64,
+  pub delay_q2: f64,
+  pub delay_q3: f64,
+  /// Retention rates for each quartile segment
+  pub r1: f64,
+  pub r2: f64,
+  pub r3: f64,
+  pub r4: f64,
+  /// Overall retention rate
+  pub retention: f64,
+  /// Fitted stability in seconds
+  pub stability: f64,
+}
+
+#[napi(object)]
+pub struct StepStatsResult {
+  pub again: Option<StepRatingStats>,
+  pub hard: Option<StepRatingStats>,
+  pub good: Option<StepRatingStats>,
+  pub again_then_good: Option<StepRatingStats>,
+  pub good_then_again: Option<StepRatingStats>,
+  pub relearning: Option<StepRatingStats>,
+  /// Recommended learning steps in seconds (e.g. [60, 600] for "1m 10m")
+  pub recommended_learning_steps: Vec<i64>,
+  /// Recommended relearning steps in seconds
+  pub recommended_relearning_steps: Vec<i64>,
+}
+
+type ProgressFunc<'env> = Function<'env, FnArgs<(u32, u32)>, Option<bool>>;
+
+#[napi(object)]
 pub struct ComputeParametersOptions<'env> {
   /// Whether to enable short-term memory parameters
   pub enable_short_term: bool,
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
   // Progress callback temporarily disabled for v3 migration
-  #[napi(ts_type = "(current: number, total: number) => void | Promise<void>")]
-  pub progress: Option<Function<'env, FnArgs<(u32, u32)>, ()>>,
+  #[napi(ts_type = "(current: number, total: number) => boolean | undefined | void")]
+  pub progress: Option<ProgressFunc<'env>>,
   #[napi(ts_type = "number")]
   pub timeout: Option<u32>,
 }

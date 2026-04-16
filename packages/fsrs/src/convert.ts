@@ -47,6 +47,9 @@ export class TypeConvert {
     throw new Error(`Invalid state:[${value}]`)
   }
   static time(value: unknown): Date {
+    if (value instanceof Date) {
+      return value
+    }
     const date = new Date(value as string)
     if (
       typeof value === 'object' &&
