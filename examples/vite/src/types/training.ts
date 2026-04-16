@@ -7,17 +7,6 @@ export interface OptimizationResult {
   completed: boolean
 }
 
-export interface TrainingProgress {
-  current: number
-  total: number
-}
-
-export interface TrainingConfig {
-  enableShortTerm: boolean
-  numRelearningSteps: number
-  timezone?: string
-}
-
 export interface TrainingStats {
   parseTime: string
   trainingTime: string
