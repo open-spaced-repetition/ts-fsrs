@@ -2,7 +2,7 @@ import { computeParameters } from '@open-spaced-repetition/binding'
 import { useCallback, useId, useRef, useState } from 'react'
 
 import type { OptimizationResult, TrainingStats } from '../types/training'
-import { convertFSRSItemByFile } from '../utils/convert'
+import { convertFSRSItemsByFile } from '../utils/convert'
 
 interface ClientTrainingProps {
   onProcessingChange?: (isProcessing: boolean) => void
@@ -86,7 +86,7 @@ export default function ClientTraining({
       const parseStartTime = performance.now()
 
       // Convert CSV to FSRS items
-      const fsrsItems = await convertFSRSItemByFile(csvFile, nextDayStartsAt)
+      const fsrsItems = await convertFSRSItemsByFile(csvFile, nextDayStartsAt)
 
       const parseEndTime = performance.now()
       const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`

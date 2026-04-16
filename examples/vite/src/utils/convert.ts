@@ -9,7 +9,7 @@ import { getTimezoneOffset } from './timezone'
  * local timezone. The binding's offset-provider callback ignores the
  * timezone string and falls back to the local system offset.
  */
-export async function convertFSRSItemByFile(
+export async function convertFSRSItemsByFile(
   file: File,
   nextDayStartsAt: number
 ): Promise<FSRSBindingItem[]> {
