@@ -276,7 +276,7 @@ export default function ClientTraining({
               id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) =>
-                setNextDayStartsAt(Number(e.target.value) || nextDayStartsAt)
+                setNextDayStartsAt(e.target.value === '' ? nextDayStartsAt : Number(e.target.value))
               }
               disabled={isProcessing}
               min={0}
