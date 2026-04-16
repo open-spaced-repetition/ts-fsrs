@@ -2,14 +2,18 @@ use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
 use napi_derive::napi;
 use std::sync::{Arc, Mutex};
 
-use crate::{ComputeParametersOptions, FSRSItem, progress};
+use crate::{ComputeParametersOptions, FSRSItem};
+#[cfg(not(target_arch = "wasm32"))]
+use crate::progress;
 
 pub struct ComputeParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
   pub(crate) state: Arc<Mutex<fsrs::CombinedProgressState>>,
   pub(crate) enable_short_term: bool,
   pub(crate) num_relearning_steps: Option<usize>,
+  #[cfg(not(target_arch = "wasm32"))]
   pub(crate) timeout_ms: u32,
+  #[cfg(not(target_arch = "wasm32"))]
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
   #[cfg(target_arch = "wasm32")]
   pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
@@ -84,14 +88,9 @@ pub fn compute_parameters(
       progress_tsfn,
     ))
   };
-  #[cfg(not(target_arch = "wasm32"))]
-  let progress_thread_handle: Option<std::thread::JoinHandle<()>> = None;
-
-  // non-wasm reuses TSFN in task; wasm sets it to None (unused).
+  // non-wasm reuses TSFN in task; wasm does not pass callback into task.
   #[cfg(not(target_arch = "wasm32"))]
   let progress_tsfn_for_task = progress_tsfn;
-  #[cfg(target_arch = "wasm32")]
-  let progress_tsfn_for_task: Option<crate::progress::ProgressCallback> = None;
 
   let enable_short_term = options
     .as_ref()
@@ -106,7 +105,9 @@ pub fn compute_parameters(
   AsyncTask::new(ComputeParametersTask {
     train: train_data,
     state,
+    #[cfg(not(target_arch = "wasm32"))]
     timeout_ms: timeout,
+    #[cfg(not(target_arch = "wasm32"))]
     progress_cb: progress_tsfn_for_task,
     enable_short_term,
     num_relearning_steps,

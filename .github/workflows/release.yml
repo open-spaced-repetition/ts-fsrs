@@ -9,6 +9,10 @@ env:
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: "10.13"
   CARGO_INCREMENTAL: "1"
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
 on:
   push:
@@ -27,6 +31,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: 20
+    secrets: inherit
   test:
     needs: build
     strategy:
@@ -49,6 +54,7 @@ jobs:
     with:
       target: ${{ matrix.target }}
       node-version: ${{ matrix.node }}
+    secrets: inherit
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -72,17 +78,17 @@ jobs:
         id: cache-revlog
         uses: actions/cache@v4
         with:
-          path: packages/binding/__tests__/revlog.csv
+          path: packages/binding-test/src/revlog.csv
           key: revlog-csv-v1
 
       - name: Download test data
         if: steps.cache-revlog.outputs.cache-hit != 'true'
         shell: bash
         run: |
-          mkdir -p packages/binding/__tests__
-          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding/__tests__/revlog.csv
+          mkdir -p packages/binding-test/src
+          curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
       - name: Run tests
-        run: pnpm run test::coverage
+        run: pnpm run test:coverage
 
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow

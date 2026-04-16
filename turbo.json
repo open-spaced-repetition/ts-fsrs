@@ -1,0 +1,63 @@
+{
+  "$schema": "./node_modules/turbo/schema.json",
+  "globalDependencies": [
+    "pnpm-lock.yaml",
+    "package.json",
+    "biome.json",
+    ".github/actions/**",
+    ".github/workflows/**"
+  ],
+  "ui": "stream",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"]
+    },
+    "@open-spaced-repetition/binding#build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**"],
+      "env": ["NAPI_TARGET"],
+      "passThroughEnv": ["ANDROID_NDK_LATEST_HOME"]
+    },
+    "check": {
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "check:fix": {
+      "outputs": []
+    },
+    "test": {
+      "dependsOn": ["^build"],
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "@open-spaced-repetition/binding-test#test": {
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
+      "outputs": []
+    },
+    "@open-spaced-repetition/binding#build:dynamic": {
+      "outputs": [
+        "dist/dynamic-wasi.cjs",
+        "dist/dynamic-wasi-browser.js",
+        "dist/dynamic-wasi.d.ts"
+      ]
+    },
+    "test:coverage": {
+      "dependsOn": ["^build"],
+      "outputs": ["coverage/**"],
+      "env": ["TURBO_PLATFORM"]
+    },
+    "@open-spaced-repetition/binding-test#test:coverage": {
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
+      "outputs": ["coverage/**"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "docs": {
+      "dependsOn": ["build"],
+      "outputs": ["../../docs/**"]
+    }
+  }
+}

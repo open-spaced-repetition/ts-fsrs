@@ -31,6 +31,12 @@ on:
       - main
       - preview
 
+env:
+  TURBO_API: ${{ secrets.TURBO_API }}
+  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
+
 permissions:
   contents: read # to fetch code (actions/checkout)
 
@@ -65,3 +71,5 @@ jobs:
 
       - name: Check
         run: pnpm run check
+        env:
+          TURBO_PLATFORM: ${{ matrix.platform }}

@@ -2,9 +2,10 @@ import * as fs from 'node:fs'
 import {
   computeParameters,
   convertCsvToFsrsItems,
+  evaluateWithTimeSeriesSplits,
   FSRSBindingItem,
   FSRSBindingReview,
-} from '@open-spaced-repetition/binding/index.js'
+} from '@open-spaced-repetition/binding'
 import { getTimezoneOffset } from './helpers/csv-parser.js'
 
 describe('FSRS compute_parameters', () => {
@@ -63,5 +64,60 @@ describe('FSRS compute_parameters', () => {
     expect(parameters).toBeDefined()
     expect(Array.isArray(parameters)).toBe(true)
     console.log('Minimal data parameters:', parameters)
+  })
+
+  test('evaluate_parameters with time series splits', async () => {
+    if (allItems.length === 0) {
+      throw new Error('No valid items parsed from CSV, skipping test')
+    }
+
+    const metrics = await evaluateWithTimeSeriesSplits(allItems, {
+      enableShortTerm: true,
+      progress: (current: number, total: number) => {
+        console.debug(`[evaluate] Progress: ${current}/${total}`)
+      },
+      timeout: 500,
+    })
+
+    expect(metrics.logLoss).toBeCloseTo(0.32699051, 4)
+    expect(metrics.rmseBins).toBeCloseTo(0.026878573, 4)
+  }, 180_000)
+
+  test('returning false aborts computation', async () => {
+    let callCount = 0
+    const result = computeParameters(allItems, {
+      enableShortTerm: true,
+      progress: (current: number, total: number) => {
+        callCount++
+        console.debug(`[abort test] ${current}/${total}, call #${callCount}`)
+        if (callCount >= 2) {
+          return false
+        }
+      },
+      timeout: 100,
+    })
+    await expect(result).rejects.toThrow()
+    expect(callCount).toBeGreaterThanOrEqual(2)
+  })
+
+  test.each([
+    { name: 'computeParameters', fn: computeParameters },
+    {
+      name: 'evaluateWithTimeSeriesSplits',
+      fn: evaluateWithTimeSeriesSplits,
+    },
+  ])('throwing error in callback aborts $name', async ({ fn }) => {
+    let callCount = 0
+    const result = fn(allItems, {
+      enableShortTerm: true,
+      progress: () => {
+        callCount++
+        if (callCount >= 2) {
+          throw new Error('User cancelled')
+        }
+      },
+      timeout: 100,
+    })
+    await expect(result).rejects.toThrow()
   })
 })
