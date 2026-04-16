@@ -4,7 +4,7 @@ This example demonstrates how to use the FSRS parameter optimizer with Vite and 
 
 **🌐 Live Demo:** https://fsrs-demo-vite.parallelveil.com/
 
-> **Note**: This example focuses on **parameter optimization/training** only. It does not include the FSRS scheduler functionality. For scheduler usage, see the main [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs) library.
+> **Note**: This example focuses on **parameter optimization/training** only. It does not include the FSRS scheduler functionality. For scheduler usage, see the main [ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs/tree/main/packages/fsrs) library.
 
 ## Features
 
