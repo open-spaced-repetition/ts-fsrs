@@ -70,10 +70,10 @@ export class FSRSAlgorithm {
   private cachedFactor!: number
 
   constructor(params: Partial<FSRSParameters>) {
-    this.param = new Proxy(
-      generatorParameters(params),
-      this.params_handler_proxy()
-    )
+    const generated = generatorParameters(params)
+    this.param = new Proxy(generated, this.params_handler_proxy())
+    // Wrap initial w array with Proxy for in-place mutation detection
+    generated.w = this.createWProxy(generated.w as number[])
     this.updateDecayFactor()
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
@@ -127,23 +127,38 @@ export class FSRSAlgorithm {
     this.update_parameters(params)
   }
 
+  protected createWProxy(w: number[]): number[] {
+    const onUpdate = () => this.updateDecayFactor()
+    return new Proxy(w, {
+      set(target, prop, value) {
+        const result = Reflect.set(target, prop, value)
+        if (typeof prop === 'string' && !Number.isNaN(Number(prop))) {
+          onUpdate()
+        }
+        return result
+      },
+    })
+  }
+
   protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRSAlgorithm
     return {
-      set: function (
+      set: (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
-      ) {
+      ) => {
         if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
           )
         } else if (prop === 'w') {
-          value = migrateParameters(
-            value as FSRSParameters['w'],
-            target.relearning_steps.length,
-            target.enable_short_term
+          value = _this.createWProxy(
+            migrateParameters(
+              value as FSRSParameters['w'],
+              target.relearning_steps.length,
+              target.enable_short_term
+            )
           )
         }
         Reflect.set(target, prop, value)

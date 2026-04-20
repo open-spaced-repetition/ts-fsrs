@@ -4,8 +4,8 @@ import {
   FSRS5_DEFAULT_DECAY,
   FSRS6_DEFAULT_DECAY,
   FSRSAlgorithm,
-  fsrs,
   forgetting_curve,
+  fsrs,
   generatorParameters,
 } from 'ts-fsrs'
 
@@ -22,14 +22,11 @@ describe('forgetting_curve cache consistency', () => {
       { t: 90, s: 365.0 },
     ]
 
-    it.each(testCases)(
-      'forgetting_curve(t=$t, s=$s)',
-      ({ t, s }) => {
-        const instanceResult = algorithm.forgetting_curve(t, s)
-        const standaloneResult = forgetting_curve(default_w, t, s)
-        expect(instanceResult).toBe(standaloneResult)
-      }
-    )
+    it.each(testCases)('forgetting_curve(t=$t, s=$s)', ({ t, s }) => {
+      const instanceResult = algorithm.forgetting_curve(t, s)
+      const standaloneResult = forgetting_curve(default_w, t, s)
+      expect(instanceResult).toBe(standaloneResult)
+    })
   })
 
   describe('cache updates correctly when w changes via parameters setter', () => {
@@ -92,6 +89,60 @@ describe('forgetting_curve cache consistency', () => {
 
       expect(after).not.toBe(before)
       expect(after).toBe(expected)
+    })
+  })
+
+  describe('cache updates on in-place w element mutation', () => {
+    it('fsrs: parameters.w[20] = newValue', () => {
+      const f = fsrs({})
+      const before = f.forgetting_curve(5, 30.0)
+
+      ;(f.parameters.w as number[])[20] = FSRS5_DEFAULT_DECAY
+      const after = f.forgetting_curve(5, 30.0)
+      const expected = forgetting_curve(FSRS5_DEFAULT_DECAY, 5, 30.0)
+
+      expect(after).not.toBe(before)
+      expect(after).toBe(expected)
+    })
+
+    it('FSRSAlgorithm: parameters.w[20] = newValue', () => {
+      const algo = new FSRSAlgorithm({})
+      const before = algo.forgetting_curve(5, 30.0)
+
+      ;(algo.parameters.w as number[])[20] = FSRS5_DEFAULT_DECAY
+      const after = algo.forgetting_curve(5, 30.0)
+      const expected = forgetting_curve(FSRS5_DEFAULT_DECAY, 5, 30.0)
+
+      expect(after).not.toBe(before)
+      expect(after).toBe(expected)
+    })
+
+    it('non-numeric property on w does not trigger cache update', () => {
+      const f = fsrs({})
+      const before = f.forgetting_curve(5, 30.0)
+
+      // Pushing an extra element triggers 'set' with numeric index AND 'length',
+      // but only the numeric index should call updateDecayFactor.
+      // Here we verify that after push + restoring length, the cache stays correct.
+      const w = f.parameters.w as number[]
+      const originalLength = w.length
+      w.push(0)
+      w.length = originalLength
+      // decay value (w[20]) was not changed, so forgetting_curve should return the same
+      expect(f.forgetting_curve(5, 30.0)).toBe(before)
+    })
+
+    it('in-place then full assignment round-trip', () => {
+      const f = fsrs({})
+      const original = f.forgetting_curve(5, 30.0)
+
+      // In-place mutation
+      ;(f.parameters.w as number[])[20] = FSRS5_DEFAULT_DECAY
+      expect(f.forgetting_curve(5, 30.0)).not.toBe(original)
+
+      // Full assignment back to default
+      f.parameters.w = default_w
+      expect(f.forgetting_curve(5, 30.0)).toBe(original)
     })
   })
 
@@ -242,9 +293,7 @@ describe('forgetting_curve cache consistency', () => {
       // Verify via forgetting_curve formula: R = (1 + factor * t / s) ^ decay
       const t = 5
       const s = 30.0
-      const expected = +(
-        Math.pow(1 + (factor * t) / s, decay)
-      ).toFixed(8)
+      const expected = +Math.pow(1 + (factor * t) / s, decay).toFixed(8)
       // roundTo(x, 8) may differ slightly from toFixed(8), so use toBeCloseTo
       expect(algorithm.forgetting_curve(t, s)).toBeCloseTo(expected, 8)
     })
@@ -259,9 +308,7 @@ describe('forgetting_curve cache consistency', () => {
       const { decay, factor } = computeDecayFactor(new_w)
       const t = 10
       const s = 50.0
-      const expected = +(
-        Math.pow(1 + (factor * t) / s, decay)
-      ).toFixed(8)
+      const expected = +Math.pow(1 + (factor * t) / s, decay).toFixed(8)
       expect(algorithm.forgetting_curve(t, s)).toBeCloseTo(expected, 8)
     })
   })
