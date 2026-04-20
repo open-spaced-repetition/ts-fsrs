@@ -53,7 +53,6 @@
       "minimatch": ">=10.2.3"
     },
     "ignoredBuiltDependencies": [
-      "esbuild",
       "unrs-resolver"
     ],
     "patchedDependencies": {
