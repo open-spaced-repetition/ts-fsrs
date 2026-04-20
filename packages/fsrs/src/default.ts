@@ -178,7 +178,6 @@ export function createEmptyCard<R = Card>(
     due: now ? TypeConvert.time(now) : new Date(),
     stability: 0,
     difficulty: 0,
-    elapsed_days: 0,
     scheduled_days: 0,
     reps: 0,
     lapses: 0,

@@ -56,8 +56,6 @@ export abstract class AbstractScheduler implements IScheduler {
     }
     this.current.last_review = this.review_time
     this.elapsed_days = interval
-    // pending removal in v6.0.0
-    this.current.elapsed_days = interval
     this.current.reps += 1
 
     // init seed strategy
@@ -113,7 +111,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected abstract reviewState(grade: Grade): RecordLogItem
 
   protected buildLog(rating: Grade): ReviewLog {
-    const { last_review, due, elapsed_days } = this.last
+    const { last_review, due } = this.last
 
     return {
       rating: rating,
@@ -121,8 +119,6 @@ export abstract class AbstractScheduler implements IScheduler {
       due: last_review || due,
       stability: this.current.stability,
       difficulty: this.current.difficulty,
-      elapsed_days: this.elapsed_days,
-      last_elapsed_days: elapsed_days,
       scheduled_days: this.current.scheduled_days,
       learning_steps: this.current.learning_steps,
       review: this.review_time,
