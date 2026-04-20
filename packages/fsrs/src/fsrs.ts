@@ -129,14 +129,14 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
             target.relearning_steps.length,
             target.enable_short_term
           )
-          Reflect.set(target, prop, value)
+        }
+        Reflect.set(target, prop, value)
+        if (prop === 'w') {
           _this.updateDecayFactor()
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           )
-          return true
         }
-        Reflect.set(target, prop, value)
         return true
       },
     }

@@ -23,7 +23,7 @@ export const computeDecayFactor = (
   return { decay, factor: roundTo(factor, 8) }
 }
 
-export function _forgetting_curve(
+export function forgetting_curve_inner(
   decay: number,
   factor: number,
   elapsed_days: number,
@@ -56,7 +56,7 @@ export function forgetting_curve(
   stability: number
 ): number {
   const { decay, factor } = computeDecayFactor(decayOrParams)
-  return _forgetting_curve(decay, factor, elapsed_days, stability)
+  return forgetting_curve_inner(decay, factor, elapsed_days, stability)
 }
 
 /**
@@ -145,14 +145,14 @@ export class FSRSAlgorithm {
             target.relearning_steps.length,
             target.enable_short_term
           )
-          Reflect.set(target, prop, value)
+        }
+        Reflect.set(target, prop, value)
+        if (prop === 'w') {
           _this.updateDecayFactor()
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           )
-          return true
         }
-        Reflect.set(target, prop, value)
         return true
       },
     }
@@ -340,7 +340,7 @@ export class FSRSAlgorithm {
    * @return {number} r Retrievability (probability of recall)
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
-    return _forgetting_curve(
+    return forgetting_curve_inner(
       this.cachedDecay,
       this.cachedFactor,
       elapsed_days,
