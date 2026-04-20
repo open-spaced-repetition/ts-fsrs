@@ -20,9 +20,9 @@ import {
 } from 'ts-fsrs'
 
 const _computeDecayFactor = (decay: number) => {
-  const DECAY = -decay
+  const DECAY = decay
   const FACTOR = +new Decimal(0.9)
-    .pow(new Decimal(1).div(DECAY))
+    .pow(new Decimal(1).div(-DECAY))
     .sub(1)
     .toFixed(8)
   return { DECAY, FACTOR }
@@ -91,7 +91,7 @@ describe('forgetting_curve', () => {
     return +new Decimal(
       new Decimal(1)
         .add(new Decimal(FACTOR).mul(elapsed_days).div(stability))
-        .pow(DECAY)
+        .pow(-DECAY)
     ).toFixed(8)
   }
   // https://github.com/open-spaced-repetition/fsrs-rs/blob/3e2f0b423fed194d238cdcb55c1baccd0eca63f0/src/pre_training.rs#L289-L296
@@ -363,7 +363,7 @@ describe('next_interval', () => {
     const params = generatorParameters({ maximum_interval: 365 })
     const { decay, factor } = computeDecayFactor(params.w)
     const intervalModifier =
-      (Math.pow(params.request_retention, 1 / decay) - 1) / factor
+      (Math.pow(params.request_retention, 1 / -decay) - 1) / factor
     let f: FSRS = fsrs(params)
 
     const s = 737.47

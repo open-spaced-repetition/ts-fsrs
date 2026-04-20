@@ -290,10 +290,10 @@ describe('forgetting_curve cache consistency', () => {
       const algorithm = new FSRSAlgorithm(defaultParams)
       const { decay, factor } = computeDecayFactor(default_w)
 
-      // Verify via forgetting_curve formula: R = (1 + factor * t / s) ^ decay
+      // Verify via forgetting_curve formula: R = (1 + factor * t / s) ^ -decay
       const t = 5
       const s = 30.0
-      const expected = +Math.pow(1 + (factor * t) / s, decay).toFixed(8)
+      const expected = +Math.pow(1 + (factor * t) / s, -decay).toFixed(8)
       // roundTo(x, 8) may differ slightly from toFixed(8), so use toBeCloseTo
       expect(algorithm.forgetting_curve(t, s)).toBeCloseTo(expected, 8)
     })
@@ -308,7 +308,7 @@ describe('forgetting_curve cache consistency', () => {
       const { decay, factor } = computeDecayFactor(new_w)
       const t = 10
       const s = 50.0
-      const expected = +Math.pow(1 + (factor * t) / s, decay).toFixed(8)
+      const expected = +Math.pow(1 + (factor * t) / s, -decay).toFixed(8)
       expect(algorithm.forgetting_curve(t, s)).toBeCloseTo(expected, 8)
     })
   })
