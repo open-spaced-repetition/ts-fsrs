@@ -44,7 +44,6 @@ export class Reschedule {
    * @param card - The card being reviewed.
    * @param state - The state of the card after the review.
    * @param reviewed - The date the card was reviewed.
-   * @param elapsed_days - The number of days since the last review.
    * @param stability - (Optional) The stability of the card.
    * @param difficulty - (Optional) The difficulty of the card.
    * @param due - (Optional) The due date for the next review.
@@ -55,7 +54,6 @@ export class Reschedule {
     card: Card,
     state: State,
     reviewed: Date,
-    elapsed_days: number,
     stability?: number,
     difficulty?: number,
     due?: Date
@@ -72,8 +70,6 @@ export class Reschedule {
         due: <Date>due ?? reviewed,
         stability: card.stability,
         difficulty: card.difficulty,
-        elapsed_days: elapsed_days,
-        last_elapsed_days: card.elapsed_days,
         scheduled_days: card.scheduled_days,
         learning_steps: card.learning_steps,
         review: <Date>reviewed,
@@ -91,8 +87,6 @@ export class Reschedule {
         due: card.last_review || card.due,
         stability: card.stability,
         difficulty: card.difficulty,
-        elapsed_days: elapsed_days,
-        last_elapsed_days: card.elapsed_days,
         scheduled_days: card.scheduled_days,
         learning_steps: card.learning_steps,
         review: <Date>reviewed,
@@ -104,7 +98,6 @@ export class Reschedule {
         last_review: <Date>reviewed,
         stability: stability || card.stability,
         difficulty: difficulty || card.difficulty,
-        elapsed_days: elapsed_days,
         scheduled_days: scheduled_days,
         reps: card.reps + 1,
       } satisfies Card
@@ -127,16 +120,10 @@ export class Reschedule {
       let item: RecordLogItem
       review.review = TypeConvert.time(review.review)
       if (review.rating === Rating.Manual) {
-        // ref: abstract_scheduler.ts#init
-        let interval = 0
-        if (cur_card.state !== State.New && cur_card.last_review) {
-          interval = date_diff(review.review, cur_card.last_review, 'days')
-        }
         item = this.handleManualRating(
           cur_card,
           review.state,
           review.review,
-          interval,
           review.stability,
           review.difficulty,
           review.due ? TypeConvert.time(review.due) : undefined
@@ -160,7 +147,7 @@ export class Reschedule {
       return null
     }
     // if first_card === recordItem.card then return null
-    const { card: reschedule_card, log } = record_log_item
+    const { card: reschedule_card } = record_log_item
     const cur_card = <Card>TypeConvert.card(current_card) // copy card
     if (cur_card.due.getTime() === reschedule_card.due.getTime()) {
       return null
@@ -174,7 +161,6 @@ export class Reschedule {
       cur_card,
       reschedule_card.state,
       TypeConvert.time(now),
-      log.elapsed_days,
       update_memory ? reschedule_card.stability : undefined,
       update_memory ? reschedule_card.difficulty : undefined,
       reschedule_card.due

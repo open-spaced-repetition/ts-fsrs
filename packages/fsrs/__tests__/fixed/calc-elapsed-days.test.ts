@@ -103,42 +103,34 @@ test.skip('SSE 71.77', () => {
 
   const expected = [
     {
-      elapsed_days: 0,
       s: 24.88,
       d: 7.09,
     },
     {
-      elapsed_days: 0,
       s: 26.95,
       d: 7.09,
     },
     {
-      elapsed_days: 0,
       s: 24.46,
       d: 8.24,
     },
     {
-      elapsed_days: 0,
       s: 26.48,
       d: 8.24,
     },
     {
-      elapsed_days: 0,
       s: 28.69,
       d: 8.23,
     },
     {
-      elapsed_days: 0,
       s: 31.08,
       d: 8.23,
     },
     {
-      elapsed_days: 0,
       s: 47.44,
       d: 8.23,
     },
     {
-      elapsed_days: 119,
       s: 71.77,
       d: 8.23,
     },
@@ -156,7 +148,6 @@ test.skip('SSE 71.77', () => {
     const log = f.next(card, now, rating)
     card = log.card
     console.debug(i + 1)
-    expect(card.elapsed_days).toBe(expected[i].elapsed_days)
     expect(card.stability).toBeCloseTo(expected[i].s, 2)
     expect(card.difficulty).toBeCloseTo(expected[i].d, 2)
   }

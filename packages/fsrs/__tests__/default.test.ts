@@ -183,7 +183,6 @@ describe('default Card', () => {
       expect(card.due).toEqual(now)
       expect(card.stability).toEqual(0)
       expect(card.difficulty).toEqual(0)
-      expect(card.elapsed_days).toEqual(0)
       expect(card.scheduled_days).toEqual(0)
       expect(card.reps).toEqual(0)
       expect(card.lapses).toEqual(0)
