@@ -111,9 +111,7 @@ export interface FSRSReview {
   delta_t: number
 }
 
-export type FSRSHistory = Partial<
-  Omit<ReviewLog, 'rating' | 'review'>
-> &
+export type FSRSHistory = Partial<Omit<ReviewLog, 'rating' | 'review'>> &
   (
     | {
         rating: Grade
