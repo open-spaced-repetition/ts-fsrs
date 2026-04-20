@@ -1,4 +1,4 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm'
+import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import { createEmptyCard, migrateParameters } from './default'
 import { date_diff } from './help'
@@ -129,10 +129,12 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
             target.relearning_steps.length,
             target.enable_short_term
           )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          Reflect.set(target, prop, value)
+          _this.updateDecayFactor()
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           )
+          return true
         }
         Reflect.set(target, prop, value)
         return true

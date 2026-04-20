@@ -57,16 +57,24 @@ export class FSRSAlgorithm {
   protected param!: FSRSParameters
   protected intervalModifier!: number
   protected _seed?: string
+  private cachedDecay!: number
+  private cachedFactor!: number
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
       generatorParameters(params),
       this.params_handler_proxy()
     )
+    this.updateDecayFactor()
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
     )
-    this.forgetting_curve = forgetting_curve.bind(this, this.param.w)
+  }
+
+  protected updateDecayFactor(): void {
+    const { decay, factor } = computeDecayFactor(this.param.w)
+    this.cachedDecay = decay
+    this.cachedFactor = factor
   }
 
   get interval_modifier(): number {
@@ -88,8 +96,11 @@ export class FSRSAlgorithm {
     if (request_retention <= 0 || request_retention > 1) {
       throw new Error('Requested retention rate should be in the range (0,1]')
     }
-    const { decay, factor } = computeDecayFactor(this.param.w)
-    return roundTo((Math.pow(request_retention, 1 / decay) - 1) / factor, 8)
+    return roundTo(
+      (Math.pow(request_retention, 1 / this.cachedDecay) - 1) /
+        this.cachedFactor,
+      8
+    )
   }
 
   /**
@@ -125,10 +136,12 @@ export class FSRSAlgorithm {
             target.relearning_steps.length,
             target.enable_short_term
           )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
+          Reflect.set(target, prop, value)
+          _this.updateDecayFactor()
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           )
+          return true
         }
         Reflect.set(target, prop, value)
         return true
@@ -317,7 +330,15 @@ export class FSRSAlgorithm {
    * @param {number} stability Stability (interval when R=90%)
    * @return {number} r Retrievability (probability of recall)
    */
-  forgetting_curve: (elapsed_days: number, stability: number) => number
+  forgetting_curve(elapsed_days: number, stability: number): number {
+    return roundTo(
+      Math.pow(
+        1 + (this.cachedFactor * elapsed_days) / stability,
+        this.cachedDecay
+      ),
+      8
+    )
+  }
   /**
    * Calculates the next state of memory based on the current state, time elapsed, and grade.
    *

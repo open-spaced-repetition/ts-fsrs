@@ -20,6 +20,7 @@
     "check": "biome check ./src",
     "check:fix": "biome check --write ./src",
     "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
+    "bench": "vitest bench --config=vitest.config.ts",
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
     "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "test::publish": "yalc publish",
