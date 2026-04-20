@@ -23,6 +23,15 @@ export const computeDecayFactor = (
   return { decay, factor: roundTo(factor, 8) }
 }
 
+export function _forgetting_curve(
+  decay: number,
+  factor: number,
+  elapsed_days: number,
+  stability: number
+): number {
+  return roundTo(Math.pow(1 + (factor * elapsed_days) / stability, decay), 8)
+}
+
 /**
  * The formula used is :
  * $$R(t,S) = (1 + \text{FACTOR} \times \frac{t}{9 \cdot S})^{\text{DECAY}}$$
@@ -47,7 +56,7 @@ export function forgetting_curve(
   stability: number
 ): number {
   const { decay, factor } = computeDecayFactor(decayOrParams)
-  return roundTo(Math.pow(1 + (factor * elapsed_days) / stability, decay), 8)
+  return _forgetting_curve(decay, factor, elapsed_days, stability)
 }
 
 /**
@@ -331,12 +340,11 @@ export class FSRSAlgorithm {
    * @return {number} r Retrievability (probability of recall)
    */
   forgetting_curve(elapsed_days: number, stability: number): number {
-    return roundTo(
-      Math.pow(
-        1 + (this.cachedFactor * elapsed_days) / stability,
-        this.cachedDecay
-      ),
-      8
+    return _forgetting_curve(
+      this.cachedDecay,
+      this.cachedFactor,
+      elapsed_days,
+      stability
     )
   }
   /**
