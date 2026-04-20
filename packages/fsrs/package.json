@@ -3,41 +3,39 @@
   "private": false,
   "version": "5.3.2",
   "description": "ts-fsrs is a versatile package written in TypeScript that supports ES modules, CommonJS, and UMD. It implements the Free Spaced Repetition Scheduler (FSRS) algorithm, enabling developers to integrate FSRS into their flashcard applications to enhance the user learning experience.",
-  "types": "dist/index.d.ts",
+  "types": "dist/index.d.mts",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs",
-      "umd": "./dist/index.umd.js",
-      "default": "./dist/index.mjs",
-      "types": "./dist/index.d.ts"
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      },
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "default": "./dist/index.mjs"
     }
   },
   "type": "module",
   "scripts": {
     "check": "biome check ./src",
     "check:fix": "biome check --write ./src",
-    "dev": "rollup -c rollup.config.ts --configPlugin esbuild -w",
+    "dev": "tsdown --watch",
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
     "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "test::publish": "yalc publish",
     "prebuild": "rimraf ./dist",
-    "build": "rollup -c rollup.config.ts --configPlugin esbuild",
+    "build": "tsdown",
     "build:types": "tsc --project ./tsconfig.json --declaration true",
     "predocs": "rimraf ../../docs",
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^29.0.2",
-    "@rollup/plugin-json": "^6.1.0",
-    "@rollup/plugin-node-resolve": "^16.0.3",
     "decimal.js": "^10.5.0",
-    "rollup": "^4.54.0",
-    "rollup-plugin-dts": "^6.4.1",
-    "rollup-plugin-esbuild": "^6.2.1",
-    "tslib": "^2.8.1",
+    "tsdown": "^0.21.9",
     "typedoc": "0.28.18",
     "typedoc-plugin-extras": "4.0.1"
   },
