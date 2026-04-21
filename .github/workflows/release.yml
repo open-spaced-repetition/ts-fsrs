@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - main
+      - preview
   workflow_dispatch:
 
 permissions:
@@ -95,6 +96,10 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      - name: Enter beta prerelease mode
+        if: github.ref != 'refs/heads/main'
+        run: npx changeset pre enter beta
+
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
@@ -106,3 +111,4 @@ jobs:
           title: "chore: release new versions"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
