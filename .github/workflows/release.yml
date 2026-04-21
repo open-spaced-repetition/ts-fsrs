@@ -106,3 +106,16 @@ jobs:
           title: "chore: release new versions"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Releases
+        if: steps.changesets.outputs.published == 'true'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+        run: |
+          if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
+            echo "Non-main branch ($GITHUB_REF) — running in dry-run."
+            bash .github/scripts/create-github-releases.sh --dry-run
+          else
+            bash .github/scripts/create-github-releases.sh
+          fi
