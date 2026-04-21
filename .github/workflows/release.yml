@@ -96,9 +96,29 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
-      - name: Enter beta prerelease mode
-        if: github.ref != 'refs/heads/main'
-        run: npx changeset pre enter beta
+      # pre.json is committed, so we must make this step idempotent:
+      #   - non-main + pre.json absent  -> enter pre mode
+      #   - non-main + pre.json present -> already in pre mode, skip
+      #   - main     + pre.json present -> leftover from preview, exit it
+      #   - main     + pre.json absent  -> nothing to do
+      - name: Sync changeset prerelease mode
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            if [[ -f .changeset/pre.json ]]; then
+              echo "On main with pre.json present — exiting prerelease mode."
+              npx changeset pre exit
+            else
+              echo "On main; not in prerelease mode — nothing to do."
+            fi
+          else
+            if [[ -f .changeset/pre.json ]]; then
+              echo "Already in prerelease mode — skipping pre enter."
+            else
+              echo "Entering beta prerelease mode."
+              npx changeset pre enter beta
+            fi
+          fi
 
       - name: Create Release PR or Publish
         id: changesets

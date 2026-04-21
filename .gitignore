@@ -44,8 +44,3 @@ pnpm-debug.log*
 # Rust
 target/
 artifacts/
-
-# Changesets — pre.json is created at CI-time by `changeset pre enter`
-# and must never be committed, otherwise the next preview run would
-# start in pre mode and `pre enter beta` would throw.
-.changeset/pre.json
