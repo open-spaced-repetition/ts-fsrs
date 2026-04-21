@@ -1,4 +1,4 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm'
+import { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import { createEmptyCard, migrateParameters } from './default'
 import { date_diff } from './help'
@@ -112,11 +112,11 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRS
     return {
-      set: function (
+      set: (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
-      ) {
+      ) => {
         if (prop === 'request_retention' && Number.isFinite(value)) {
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(value)
@@ -124,17 +124,21 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
         } else if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         } else if (prop === 'w') {
-          value = migrateParameters(
-            value as FSRSParameters['w'],
-            target.relearning_steps.length,
-            target.enable_short_term
+          value = _this.createWProxy(
+            migrateParameters(
+              value as FSRSParameters['w'],
+              target.relearning_steps.length,
+              target.enable_short_term
+            )
           )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
+        }
+        Reflect.set(target, prop, value)
+        if (prop === 'w') {
+          _this.updateDecayFactor()
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
           )
         }
-        Reflect.set(target, prop, value)
         return true
       },
     }
