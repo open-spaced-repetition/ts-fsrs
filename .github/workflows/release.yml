@@ -113,9 +113,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
         run: |
-          flag=""
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
-            flag="--dry-run"
             echo "Non-main branch ($GITHUB_REF) — running in dry-run."
+            bash .github/scripts/create-github-releases.sh --dry-run
+          else
+            bash .github/scripts/create-github-releases.sh
           fi
-          bash .github/scripts/create-github-releases.sh $flag

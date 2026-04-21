@@ -42,10 +42,12 @@ done
 (( DRY_RUN )) || : "${GITHUB_TOKEN:?GITHUB_TOKEN is required}"
 
 cd "$(git rev-parse --show-toplevel)"
-git config user.email >/dev/null 2>&1 || {
+# Annotated tags require both name and email; configure each independently
+# so a half-configured environment does not break `git tag -a`.
+git config user.email >/dev/null 2>&1 || \
   git config user.email "github-actions[bot]@users.noreply.github.com"
+git config user.name  >/dev/null 2>&1 || \
   git config user.name  "github-actions[bot]"
-}
 
 # Make sure local tag state matches remote before deciding what to create.
 # Skip in dry-run to avoid polluting the user's local repo.
@@ -103,11 +105,19 @@ while IFS= read -r row; do
 
   pkg_dir=$(dir_for "$name")
   if [[ -z "$pkg_dir" ]]; then
-    echo "Error: unknown package '$name' (add it to dir_for/tag_for)." >&2
-    exit_code=1; continue
+    # Platform subpackages like @open-spaced-repetition/binding-darwin-arm64
+    # are published as artifacts of the main binding package and have no
+    # independent release story. Skip without failing — npm publish has
+    # already succeeded for them by the time we get here.
+    echo "Skip '$name' (no release mapping; treated as a subpackage)."
+    continue
   fi
 
   tag=$(tag_for "$name" "$version")
+  if [[ -z "$tag" ]]; then
+    echo "Error: no tag mapping for package '$name' (update tag_for)." >&2
+    exit_code=1; continue
+  fi
   title="${name}@${version}"
   changelog="${pkg_dir}/CHANGELOG.md"
 
