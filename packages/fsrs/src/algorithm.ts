@@ -10,21 +10,16 @@ import {
 } from './models'
 import type { int } from './types'
 /**
- * $$\text{decay} = w_{20}$$
+ * $$\text{decay} = -w_{20}$$
  *
- * $$\text{factor} = e^{\frac{\ln 0.9}{-\text{decay}}} - 1$$
- *
- * TODO: decay was previously returned as negative (-w[20]).
- * Now returns positive (w[20]) with Math.abs for backwards compatibility.
- * Remove Math.abs in the next major version.
+ * $$\text{factor} = e^{\frac{\ln 0.9}{\text{decay}}} - 1$$
  */
 export const computeDecayFactor = (
   decayOrParams: number | number[] | readonly number[]
 ) => {
-  const decay = Math.abs(
-    typeof decayOrParams === 'number' ? decayOrParams : decayOrParams[20]
-  )
-  const factor = Math.exp(Math.pow(-decay, -1) * Math.log(0.9)) - 1.0
+  const decay =
+    typeof decayOrParams === 'number' ? -decayOrParams : -decayOrParams[20]
+  const factor = Math.exp(Math.pow(decay, -1) * Math.log(0.9)) - 1.0
   return { decay, factor: roundTo(factor, 8) }
 }
 
@@ -34,7 +29,7 @@ export function forgetting_curve_inner(
   elapsed_days: number,
   stability: number
 ): number {
-  return roundTo(Math.pow(1 + (factor * elapsed_days) / stability, -decay), 8)
+  return roundTo(Math.pow(1 + (factor * elapsed_days) / stability, decay), 8)
 }
 
 /**
@@ -111,7 +106,7 @@ export class FSRSAlgorithm {
       throw new Error('Requested retention rate should be in the range (0,1]')
     }
     return roundTo(
-      (Math.pow(request_retention, 1 / -this.cachedDecay) - 1) /
+      (Math.pow(request_retention, 1 / this.cachedDecay) - 1) /
         this.cachedFactor,
       8
     )
