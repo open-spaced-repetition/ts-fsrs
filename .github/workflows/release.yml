@@ -18,6 +18,7 @@ on:
   push:
     branches:
       - main
+      - preview
   workflow_dispatch:
 
 permissions:
@@ -95,6 +96,30 @@ jobs:
       - name: Update npm
         run: npm install -g npm@latest
 
+      # pre.json is committed, so we must make this step idempotent:
+      #   - non-main + pre.json absent  -> enter pre mode
+      #   - non-main + pre.json present -> already in pre mode, skip
+      #   - main     + pre.json present -> leftover from preview, exit it
+      #   - main     + pre.json absent  -> nothing to do
+      - name: Sync changeset prerelease mode
+        shell: bash
+        run: |
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            if [[ -f .changeset/pre.json ]]; then
+              echo "On main with pre.json present — exiting prerelease mode."
+              pnpm exec changeset pre exit
+            else
+              echo "On main; not in prerelease mode — nothing to do."
+            fi
+          else
+            if [[ -f .changeset/pre.json ]]; then
+              echo "Already in prerelease mode — skipping pre enter."
+            else
+              echo "Entering beta prerelease mode."
+              pnpm exec changeset pre enter beta
+            fi
+          fi
+
       - name: Create Release PR or Publish
         id: changesets
         uses: changesets/action@v1
@@ -106,3 +131,4 @@ jobs:
           title: "chore: release new versions"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          NPM_CONFIG_PROVENANCE: "true"
