@@ -131,7 +131,8 @@ while IFS= read -r row; do
     exit_code=1; continue
   fi
 
-  notes=$(mktemp); TMP_FILES+=("$notes")
+  # Explicit template: bare `mktemp` is GNU-only; BSD/older macOS requires it.
+  notes=$(mktemp "${TMPDIR:-/tmp}/cs-release-notes.XXXXXX"); TMP_FILES+=("$notes")
   extract_section "$changelog" "$version" >"$notes"
   if [[ ! -s "$notes" ]]; then
     echo "Error: no '## $version' section in $changelog" >&2
