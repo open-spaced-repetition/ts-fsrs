@@ -39,8 +39,8 @@ export const clipParameters = (
       numRelearningSteps
 
     const w17_w18_ceiling = clamp(roundTo(value, 8), 0, W17_W18_Ceiling)
-    clip[17] = [clip[17][0], w17_w18_ceiling]
-    clip[18] = [clip[18][0], w17_w18_ceiling]
+    if (clip[17]) clip[17] = [clip[17][0], w17_w18_ceiling]
+    if (clip[18]) clip[18] = [clip[18][0], w17_w18_ceiling]
   }
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)

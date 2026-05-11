@@ -181,26 +181,31 @@ describe('default params', () => {
     const w = [...default_w]
     w[11] = 0
     w[13] = 0
-    w[14] = -1
+    w[14] = 0
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
     const params = clipParameters(w, 2)
     expect(Number.isFinite(params[17])).toBe(true)
     expect(Number.isFinite(params[18])).toBe(true)
     // Clamped inputs: w11=0.001, w13=0.001, w14=0.0
-    // value = -(ln(0.001) + ln(2^0.001 - 1) + 0) / 2
-    //       = -(ln(0.001) + ln(0.000693387...)) / 2
-    const w11 = 0.001
-    const w13 = 0.001
-    const expectedCeiling = Math.max(
-      0.01,
-      Math.min(
-        2.0,
-        +(-(Math.log(w11) + Math.log(Math.pow(2.0, w13) - 1.0)) / 2).toFixed(8)
-      )
-    )
-    expect(params[17]).toEqual(expectedCeiling)
-    expect(params[18]).toEqual(expectedCeiling)
+    // value = -(ln(0.001) + ln(2^0.001 - 1) + 0) / 2 ~= 7.09, then
+    // clamped to [0, W17_W18_Ceiling=2.0] -> 2.0
+    expect(params[17]).toEqual(2.0)
+    expect(params[18]).toEqual(2.0)
+  })
+
+  it('skip w17/w18 ceiling update when parameters length < 18', () => {
+    // FSRS-4.5 has 17 parameters and no w[17]/w[18]; clip[17]/clip[18] are
+    // undefined after the length-aware view, so the ceiling update must be a no-op.
+    const w17 = [
+      0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
+      0.34, 1.26, 0.29, 2.61,
+    ]
+    expect(() => clipParameters(w17, 2)).not.toThrow()
+    const params = clipParameters(w17, 2)
+    expect(params).toHaveLength(17)
+    // Original values are all in-range and should pass through untouched.
+    expect(params).toEqual(w17)
   })
 })
 
