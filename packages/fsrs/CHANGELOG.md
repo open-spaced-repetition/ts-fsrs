@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 5.3.3
+
+### Patch Changes
+
+- [#353](https://github.com/open-spaced-repetition/ts-fsrs/pull/353) [`fce96ee`](https://github.com/open-spaced-repetition/ts-fsrs/commit/fce96eeba51c84a82f00c827e6157333e0522985) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(clipParameters): clamp w[11]/w[13]/w[14] before computing the w[17]/w[18] ceiling so that out-of-range inputs (e.g. 0 or negative values) no longer produce NaN/-Infinity via Math.log, and avoid invoking CLAMP_PARAMETERS twice by reusing the same clip ranges.
+
 ## 5.3.2
 
 ### Patch Changes
