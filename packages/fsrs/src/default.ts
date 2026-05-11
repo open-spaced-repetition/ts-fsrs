@@ -38,7 +38,7 @@ export const clipParameters = (
       -(Math.log(w11) + Math.log(Math.pow(2.0, w13) - 1.0) + w14 * 0.3) /
       numRelearningSteps
 
-    const w17_w18_ceiling = clamp(roundTo(value, 8), 0, W17_W18_Ceiling)
+    const w17_w18_ceiling = clamp(roundTo(value, 8), 0.01, W17_W18_Ceiling)
     if (clip[17]) clip[17] = [clip[17][0], w17_w18_ceiling]
     if (clip[18]) clip[18] = [clip[18][0], w17_w18_ceiling]
   }
