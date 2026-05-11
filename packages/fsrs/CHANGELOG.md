@@ -38,7 +38,6 @@
 - Source: [GitHub Release](https://github.com/open-spaced-repetition/ts-fsrs/releases/tag/v5.2.3)
 - Permit mock date objects that convert to Date values by @runarberg in https://github.com/open-spaced-repetition/ts-fsrs/pull/215
 - Bump the devdependencies group across 1 directory with 6 updates by @dependabot[bot] in https://github.com/open-spaced-repetition/ts-fsrs/pull/218
-- @runarberg made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/215
 
 ## 5.2.2
 
@@ -63,7 +62,6 @@
 - Update README syntax and enhance documentation by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/205
 - Fix: Prevent premature graduation for cards in learning state by @tomerbeil in https://github.com/open-spaced-repetition/ts-fsrs/pull/206
 - Fix publish.yml by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/207
-- @tomerbeil made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/206
 
 ## 5.2.0
 
@@ -72,7 +70,6 @@
 - Released: 2025-06-15
 - Source: [GitHub Release](https://github.com/open-spaced-repetition/ts-fsrs/releases/tag/v5.2.0)
 - Fix/FSRS-6 default parameters by @xiety in https://github.com/open-spaced-repetition/ts-fsrs/pull/196
-- @xiety made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/196
 
 ## 5.1.0
 
@@ -83,7 +80,6 @@
 - Chore/mark fields and methods as depreacted by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/192
 - Bump the devdependencies group with 6 updates by @dependabot in https://github.com/open-spaced-repetition/ts-fsrs/pull/184
 - Improved Typing for FSRS Class Methods by @nodbew in https://github.com/open-spaced-repetition/ts-fsrs/pull/195
-- @nodbew made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/195
 
 ## 5.0.1
 
@@ -124,7 +120,6 @@
 - Doc/Improve Examples by @david-allison in https://github.com/open-spaced-repetition/ts-fsrs/pull/163
 - Bump the devdependencies group across 1 directory with 8 updates by @dependabot in https://github.com/open-spaced-repetition/ts-fsrs/pull/164
 - Fix/prevent overwriting default values and parameters by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/165
-- @david-allison made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/163
 
 ## 4.7.0
 
@@ -139,7 +134,6 @@
 - Bump the devdependencies group with 6 updates by @dependabot in https://github.com/open-spaced-repetition/ts-fsrs/pull/158
 - Fix/Add Prettier to ci by @Luc-Mcgrady in https://github.com/open-spaced-repetition/ts-fsrs/pull/160
 - Feat/Export the forgetting curve function by @Luc-Mcgrady in https://github.com/open-spaced-repetition/ts-fsrs/pull/159
-- @Luc-Mcgrady made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/160
 
 ## 4.6.1
 
@@ -184,7 +178,6 @@
 - Bump cross-spawn from 7.0.3 to 7.0.6 by @dependabot in https://github.com/open-spaced-repetition/ts-fsrs/pull/139
 - Feat/Impl `initSeed`& `Scheduler` extension based on the strategy pattern by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/137
 - Feat/linear damping by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/133
-- @asukaminato0721 made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/138
 
 ## 4.4.3
 
@@ -247,7 +240,6 @@
 - Chore/clear seedrandom by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/116
 - Add unit test of memory state by @L-M-Sherlock in https://github.com/open-spaced-repetition/ts-fsrs/pull/119
 - Fix/spelling error default by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/120
-- @L-M-Sherlock made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/119
 
 ## 4.1.2
 
@@ -275,7 +267,6 @@
 - Source: [GitHub Release](https://github.com/open-spaced-repetition/ts-fsrs/releases/tag/v4.1.0)
 - upgrade typescript-eslint to version 8 by @joshdavham in https://github.com/open-spaced-repetition/ts-fsrs/pull/107
 - Feat/remove seedrandom & use alea prng by @ishiko732 in https://github.com/open-spaced-repetition/ts-fsrs/pull/108
-- @joshdavham made their first contribution in https://github.com/open-spaced-repetition/ts-fsrs/pull/107
 
 ## 4.0.2
 
