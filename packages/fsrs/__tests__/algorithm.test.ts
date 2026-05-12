@@ -6,7 +6,7 @@ import {
   default_maximum_interval,
   default_request_retention,
   default_w,
-  FSRS,
+  type FSRS,
   FSRS5_DEFAULT_DECAY,
   FSRS6_DEFAULT_DECAY,
   FSRSAlgorithm,
@@ -17,6 +17,7 @@ import {
   get_fuzz_range,
   Rating,
   S_MIN,
+  withFuzzing,
 } from 'ts-fsrs'
 
 const _computeDecayFactor = (decay: number) => {
@@ -340,7 +341,7 @@ describe('next_interval', () => {
       fsrs({
         request_retention: r,
         maximum_interval: Number.MAX_VALUE,
-      }).next_interval(1.0, 0)
+      }).next_interval(1.0)
     )
     // https://github.com/open-spaced-repetition/fsrs-rs/blob/78c36e6b21182c5a13f8649eafe2eb62c1dbdabe/src/inference.rs#L852
     // Result differs by +3 days compared to the reference test due to differing numeric precision: fsrs-rs uses f32, while ts-fsrs uses f64
@@ -364,15 +365,16 @@ describe('next_interval', () => {
     const { decay, factor } = computeDecayFactor(params.w)
     const intervalModifier =
       (Math.pow(params.request_retention, 1 / decay) - 1) / factor
-    let f: FSRS = fsrs(params)
+    const f: FSRS = fsrs(params)
 
     const s = 737.47
-    const next_ivl = f.next_interval(s, 0)
+    const next_ivl = f.next_interval(s)
     expect(next_ivl).toEqual(params.maximum_interval)
 
     const t_fuzz = 98
-    f = fsrs({ ...params, enable_fuzz: true })
-    const next_ivl_fuzz = fsrs(params).next_interval(s, t_fuzz)
+    const fuzzed_params = generatorParameters({ ...params, enable_fuzz: true })
+    const base_ivl = fsrs(fuzzed_params).next_interval(s)
+    const next_ivl_fuzz = withFuzzing(base_ivl, t_fuzz, fuzzed_params)
     const { min_ivl, max_ivl } = get_fuzz_range(
       Math.round(s * intervalModifier),
       t_fuzz,
@@ -384,46 +386,41 @@ describe('next_interval', () => {
   })
 })
 
-describe('FSRS apply_fuzz', () => {
+describe('withFuzzing', () => {
   test('return original interval when fuzzing is disabled', () => {
     const ivl = 3.2
-    const enable_fuzz = false
-    const algorithm = new FSRS({ enable_fuzz: enable_fuzz })
-    expect(algorithm.apply_fuzz(ivl, 0)).toBe(3)
+    const params = generatorParameters({ enable_fuzz: false })
+    expect(withFuzzing(ivl, 0, params)).toBe(3)
   })
 
   test('return original interval when ivl is less than 2.5', () => {
     const ivl = 2.3
-    const enable_fuzz = true
-    const algorithm = new FSRS({ enable_fuzz: enable_fuzz })
-    expect(algorithm.apply_fuzz(ivl, 0)).toBe(2)
+    const params = generatorParameters({ enable_fuzz: true })
+    expect(withFuzzing(ivl, 0, params)).toBe(2)
   })
 
-  test('return original interval when ivl is less than 2.5', () => {
+  test('fuzzed interval stays inside the fuzz range when ivl is 2.5', () => {
     const ivl = 2.5
-    const enable_fuzz = true
-    const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz })
+    const params = generatorParameters({ enable_fuzz: true })
     const { min_ivl, max_ivl } = get_fuzz_range(
       Math.round(2.5),
       0,
       default_maximum_interval
     )
-    const fuzzedInterval = algorithm.apply_fuzz(ivl, 0)
+    const fuzzedInterval = withFuzzing(ivl, 0, params)
     expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
     expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
   })
 
-  test('return original interval when ivl is less than 3', () => {
+  test('fuzzed interval stays inside the fuzz range with explicit seed', () => {
     const ivl = 3
-    const enable_fuzz = true
-    const algorithm = new FSRSAlgorithm({ enable_fuzz: enable_fuzz })
-    algorithm.seed = 'NegativeS2Seed'
+    const params = generatorParameters({ enable_fuzz: true })
     const { min_ivl, max_ivl } = get_fuzz_range(
       Math.round(ivl),
       0,
       default_maximum_interval
     )
-    const fuzzedInterval = algorithm.apply_fuzz(ivl, 0)
+    const fuzzedInterval = withFuzzing(ivl, 0, params, 'NegativeS2Seed')
     expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
     expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
   })

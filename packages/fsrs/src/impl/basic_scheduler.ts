@@ -16,6 +16,7 @@ import {
   type TLearningStepsStrategy,
   type TStrategyHandler,
 } from '../strategies'
+import { withFuzzing } from '../strategies/fuzz'
 import { BasicLearningStepsStrategy } from '../strategies/learning_steps'
 import type { int } from '../types'
 
@@ -98,9 +99,12 @@ export default class BasicScheduler extends AbstractScheduler {
         nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440)
       } else {
         nextCard.learning_steps = 0
-        const interval = this.algorithm.next_interval(
-          nextCard.stability,
-          this.elapsed_days
+        const base = this.algorithm.next_interval(nextCard.stability)
+        const interval = withFuzzing(
+          base,
+          this.elapsed_days,
+          this.algorithm.parameters,
+          this._seed
         )
         nextCard.scheduled_days = interval
         nextCard.due = date_scheduler(this.review_time, interval as int, true)
@@ -216,13 +220,16 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
+    const params = this.algorithm.parameters
+    const fuzz = (ivl: int): int =>
+      withFuzzing(ivl, interval, params, this._seed)
     let hard_interval: int, good_interval: int
-    hard_interval = this.algorithm.next_interval(next_hard.stability, interval)
-    good_interval = this.algorithm.next_interval(next_good.stability, interval)
+    hard_interval = fuzz(this.algorithm.next_interval(next_hard.stability))
+    good_interval = fuzz(this.algorithm.next_interval(next_good.stability))
     hard_interval = Math.min(hard_interval, good_interval) as int
     good_interval = Math.max(good_interval, hard_interval + 1) as int
     const easy_interval = Math.max(
-      this.algorithm.next_interval(next_easy.stability, interval),
+      fuzz(this.algorithm.next_interval(next_easy.stability)),
       good_interval + 1
     ) as int
 

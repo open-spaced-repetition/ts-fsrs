@@ -8,6 +8,7 @@ import {
   type RecordLogItem,
   State,
 } from '../models'
+import { withFuzzing } from '../strategies/fuzz'
 import type { int } from '../types'
 
 export default class LongTermScheduler extends AbstractScheduler {
@@ -97,17 +98,17 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
+    const params = this.algorithm.parameters
+    const fuzz = (ivl: int): int =>
+      withFuzzing(ivl, interval, params, this._seed)
     let again_interval: int,
       hard_interval: int,
       good_interval: int,
       easy_interval: int
-    again_interval = this.algorithm.next_interval(
-      next_again.stability,
-      interval
-    )
-    hard_interval = this.algorithm.next_interval(next_hard.stability, interval)
-    good_interval = this.algorithm.next_interval(next_good.stability, interval)
-    easy_interval = this.algorithm.next_interval(next_easy.stability, interval)
+    again_interval = fuzz(this.algorithm.next_interval(next_again.stability))
+    hard_interval = fuzz(this.algorithm.next_interval(next_hard.stability))
+    good_interval = fuzz(this.algorithm.next_interval(next_good.stability))
+    easy_interval = fuzz(this.algorithm.next_interval(next_easy.stability))
 
     again_interval = Math.min(again_interval, hard_interval) as int
     hard_interval = Math.max(hard_interval, again_interval + 1) as int

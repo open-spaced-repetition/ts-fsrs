@@ -183,7 +183,7 @@ When you pass a decay value directly, it must be positive and within the range `
 If you are working directly with memory states, you can combine `next_state()` and `next_interval()`:
 
 ```ts
-import { fsrs, Rating, type FSRSState } from 'ts-fsrs'
+import { fsrs, Rating, withFuzzing, type FSRSState } from 'ts-fsrs'
 
 const scheduler = fsrs({ enable_fuzz: false })
 
@@ -194,13 +194,22 @@ const memoryState: FSRSState = {
 
 const elapsedDays = 12
 const nextState = scheduler.next_state(memoryState, elapsedDays, Rating.Good)
-const nextInterval = scheduler.next_interval(nextState.stability, elapsedDays)
+const nextInterval = scheduler.next_interval(nextState.stability)
+
+// Optional: apply fuzz at the upper layer (the scheduler does this internally
+// during repeat()/next()). Supply your own seed for deterministic results.
+const fuzzed = withFuzzing(
+  nextInterval,
+  elapsedDays,
+  scheduler.parameters,
+  'my-seed'
+)
 
 console.log(nextState)
-console.log(nextInterval)
+console.log(nextInterval, fuzzed)
 ```
 
-This is useful for simulations, analytics, or custom scheduling pipelines. For standard review flows, prefer `repeat()` or `next()`.
+`next_interval` returns the base interval. Fuzzing now lives in the scheduler/strategy layer — call `withFuzzing` (exported from `ts-fsrs`) if you need to apply it manually. This is useful for simulations, analytics, or custom scheduling pipelines. For standard review flows, prefer `repeat()` or `next()`.
 
 ### History helpers
 
