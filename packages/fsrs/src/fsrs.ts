@@ -35,10 +35,7 @@ type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
   Omit<A, K>
 >
 
-function applyAfterHandler<T, R>(
-  value: T,
-  afterHandler?: (value: T) => R
-): R {
+function applyAfterHandler<T, R>(value: T, afterHandler?: (value: T) => R): R {
   return typeof afterHandler === 'function'
     ? afterHandler(value)
     : (value as unknown as R)
