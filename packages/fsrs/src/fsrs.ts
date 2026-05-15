@@ -35,6 +35,12 @@ type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
   Omit<A, K>
 >
 
+function applyAfterHandler<T, R>(value: T, afterHandler?: (value: T) => R): R {
+  return typeof afterHandler === 'function'
+    ? afterHandler(value)
+    : (value as unknown as R)
+}
+
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
     mode: T,
@@ -240,11 +246,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   ): R {
     const instance = this.getScheduler(card, now)
     const recordLog = instance.preview()
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLog)
-    } else {
-      return recordLog as R
-    }
+    return applyAfterHandler(recordLog, afterHandler)
   }
 
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
@@ -320,11 +322,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       throw new Error('Cannot review a manual rating')
     }
     const recordLogItem = instance.review(g)
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
-    } else {
-      return recordLogItem as R
-    }
+    return applyAfterHandler(recordLogItem, afterHandler)
   }
 
   get_retrievability(
@@ -439,11 +437,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       state: processedLog.state,
       last_review: last_review,
     }
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(prevCard)
-    } else {
-      return prevCard as R
-    }
+    return applyAfterHandler(prevCard, afterHandler)
   }
 
   forget(
@@ -546,11 +540,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       last_review: processedCard.last_review,
     }
     const recordLogItem: RecordLogItem = { card: forget_card, log: forget_log }
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
-    } else {
-      return recordLogItem as R
-    }
+    return applyAfterHandler(recordLogItem, afterHandler)
   }
 
   reschedule<T = RecordLogItem>(
@@ -634,15 +624,14 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       updateMemoryState
     )
 
-    if (recordLogHandler && typeof recordLogHandler === 'function') {
-      return {
-        collections: collections.map(recordLogHandler),
-        reschedule_item: manual_item ? recordLogHandler(manual_item) : null,
-      }
-    }
     return {
-      collections,
-      reschedule_item: manual_item,
+      collections:
+        typeof recordLogHandler === 'function'
+          ? collections.map(recordLogHandler)
+          : collections,
+      reschedule_item: manual_item
+        ? applyAfterHandler(manual_item, recordLogHandler)
+        : null,
     } as IReschedule<T>
   }
 }
