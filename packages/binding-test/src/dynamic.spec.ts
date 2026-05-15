@@ -104,6 +104,18 @@ describeIfWasm('initOptimizer', () => {
     expect(nextStates.easy).toBeDefined()
   })
 
+  test('memoryStateFromSM2 works after init', async () => {
+    const binding = await initOptimizer({
+      wasm: wasmPath!,
+      worker: workerPath!,
+    })
+    const fsrs = new binding.FSRSBinding()
+    expect(typeof fsrs.memoryStateFromSM2).toBe('function')
+    const m = fsrs.memoryStateFromSM2(2.5, 10, 0.9)
+    expect(m.stability).toBeCloseTo(10.0, 3)
+    expect(m.difficulty).toBeCloseTo(6.9140563, 3)
+  })
+
   test('computeParameters works after init', async () => {
     const binding = await initOptimizer({
       wasm: wasmPath!,
