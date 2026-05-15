@@ -84,7 +84,9 @@ impl FSRS {
       .inner
       .memory_state_from_sm2(ease_factor as f32, interval as f32, sm2_retention as f32)
       .map(|inner| MemoryState { inner })
-      .map_err(|e| napi::Error::from_reason(format!("Failed memory_state_from_sm2: {}", e)))
+      .map_err(|e| {
+        napi::Error::from_reason(format!("Failed to create memory state from SM-2: {}", e))
+      })
   }
 
   #[napi]
