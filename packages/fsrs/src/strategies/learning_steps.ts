@@ -1,3 +1,4 @@
+import { FSRSError, FSRSErrorCode } from '../error'
 import {
   type FSRSParameters,
   Rating,
@@ -11,7 +12,10 @@ export const ConvertStepUnitToMinutes = (step: StepUnit): number => {
   const unit = step.slice(-1) as TimeUnit
   const value = parseInt(step.slice(0, -1), 10)
   if (Number.isNaN(value) || !Number.isFinite(value) || value < 0) {
-    throw new Error(`Invalid step value: ${step}`)
+    throw new FSRSError(
+      FSRSErrorCode.INVALID_INPUT,
+      `Invalid step value: ${step}`
+    )
   }
   switch (unit) {
     case 'm':
@@ -21,7 +25,10 @@ export const ConvertStepUnitToMinutes = (step: StepUnit): number => {
     case 'd':
       return value * 1440
     default:
-      throw new Error(`Invalid step unit: ${step}, expected m/h/d`)
+      throw new FSRSError(
+        FSRSErrorCode.INVALID_INPUT,
+        `Invalid step unit: ${step}, expected m/h/d`
+      )
   }
 }
 

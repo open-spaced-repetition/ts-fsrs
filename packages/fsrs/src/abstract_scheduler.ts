@@ -1,5 +1,6 @@
 import type { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
+import { FSRSError, FSRSErrorCode } from './error'
 import { dateDiffInDays, Grades } from './help'
 import {
   type Card,
@@ -44,7 +45,10 @@ export abstract class AbstractScheduler implements IScheduler {
 
   protected checkGrade(grade: Grade): void {
     if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
-      throw new Error(`Invalid grade "${grade}",expected 1-4`)
+      throw new FSRSError(
+        FSRSErrorCode.INVALID_INPUT,
+        `Invalid grade "${grade}",expected 1-4`
+      )
     }
   }
 

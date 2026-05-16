@@ -1,3 +1,4 @@
+import { FSRSError, FSRSErrorCode } from './error'
 import {
   type Card,
   type CardInput,
@@ -24,13 +25,19 @@ export class TypeConvert {
       const restOfString = value.slice(1).toLowerCase()
       const ret = Rating[`${firstLetter}${restOfString}` as keyof typeof Rating]
       if (ret === undefined) {
-        throw new Error(`Invalid rating:[${value}]`)
+        throw new FSRSError(
+          FSRSErrorCode.INVALID_INPUT,
+          `Invalid rating:[${value}]`
+        )
       }
       return ret
     } else if (typeof value === 'number') {
       return value as Rating
     }
-    throw new Error(`Invalid rating:[${value}]`)
+    throw new FSRSError(
+      FSRSErrorCode.INVALID_INPUT,
+      `Invalid rating:[${value}]`
+    )
   }
   static state(value: unknown): State {
     if (typeof value === 'string') {
@@ -38,13 +45,16 @@ export class TypeConvert {
       const restOfString = value.slice(1).toLowerCase()
       const ret = State[`${firstLetter}${restOfString}` as keyof typeof State]
       if (ret === undefined) {
-        throw new Error(`Invalid state:[${value}]`)
+        throw new FSRSError(
+          FSRSErrorCode.INVALID_INPUT,
+          `Invalid state:[${value}]`
+        )
       }
       return ret
     } else if (typeof value === 'number') {
       return value as State
     }
-    throw new Error(`Invalid state:[${value}]`)
+    throw new FSRSError(FSRSErrorCode.INVALID_INPUT, `Invalid state:[${value}]`)
   }
   static time(value: unknown): Date {
     if (value instanceof Date) {
@@ -62,12 +72,15 @@ export class TypeConvert {
       if (!Number.isNaN(timestamp)) {
         return new Date(timestamp)
       } else {
-        throw new Error(`Invalid date:[${value}]`)
+        throw new FSRSError(
+          FSRSErrorCode.INVALID_INPUT,
+          `Invalid date:[${value}]`
+        )
       }
     } else if (typeof value === 'number') {
       return new Date(value)
     }
-    throw new Error(`Invalid date:[${value}]`)
+    throw new FSRSError(FSRSErrorCode.INVALID_INPUT, `Invalid date:[${value}]`)
   }
   static review_log(log: ReviewLogInput | ReviewLog): ReviewLog {
     return {
