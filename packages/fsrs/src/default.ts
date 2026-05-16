@@ -60,9 +60,7 @@ export const clipParameters = (
  * }
  */
 export const checkParameters = (parameters: number[] | readonly number[]) => {
-  const invalid = parameters.find(
-    (param) => !Number.isFinite(param) && !Number.isNaN(param)
-  )
+  const invalid = parameters.find((param) => !Number.isFinite(param))
   if (invalid !== undefined) {
     throw new FSRSError(
       FSRSErrorCode.VALIDATION_FAILED,

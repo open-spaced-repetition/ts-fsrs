@@ -101,6 +101,10 @@ describe('default params', () => {
     )
     w[5] = Infinity
     expect(() => checkParameters(w)).toThrow(/^Non-finite/)
+
+
+    w[5] = NaN
+    expect(() => checkParameters(w)).toThrow()
   })
 
   it('migrateParameters', () => {
