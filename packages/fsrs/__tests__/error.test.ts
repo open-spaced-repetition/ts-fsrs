@@ -9,7 +9,7 @@ import {
   Rating,
   TypeConvert,
 } from 'ts-fsrs'
-import { FSRSError, FSRSErrorCode } from 'ts-fsrs/error'
+import { FSRSError, FSRSErrorCode } from '../src/error.js'
 
 const captureThrownError = (action: () => unknown): unknown => {
   try {
