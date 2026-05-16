@@ -44,7 +44,7 @@ export abstract class AbstractScheduler implements IScheduler {
   }
 
   protected checkGrade(grade: Grade): void {
-    if (!Number.isFinite(grade) || grade < 0 || grade > 4) {
+    if (!Number.isFinite(grade) || grade < 1 || grade > 4) {
       throw new FSRSError(
         FSRSErrorCode.INVALID_INPUT,
         `Invalid grade "${grade}",expected 1-4`
