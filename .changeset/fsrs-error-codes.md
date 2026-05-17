@@ -2,4 +2,4 @@
 "ts-fsrs": minor
 ---
 
-feat(fsrs): Add `FSRSError` with categorized error codes and use it for package validation and operation errors.
+feat(fsrs): Add `FSRSError` base classes and use `FSRSValidationError` for package validation errors.
