@@ -11,7 +11,7 @@ import {
   W17_W18_Ceiling,
 } from './constant'
 import { TypeConvert } from './convert'
-import { FSRSError, FSRSErrorCode } from './error'
+import { FSRSValidationError } from './error'
 import { clamp, roundTo } from './help'
 import { type Card, type DateInput, type FSRSParameters, State } from './models'
 
@@ -62,13 +62,11 @@ export const clipParameters = (
 export const checkParameters = (parameters: number[] | readonly number[]) => {
   const invalid = parameters.find((param) => !Number.isFinite(param))
   if (invalid !== undefined) {
-    throw new FSRSError(
-      FSRSErrorCode.VALIDATION_FAILED,
+    throw new FSRSValidationError(
       `Non-finite or NaN value in parameters ${parameters}`
     )
   } else if (![17, 19, 21].includes(parameters.length)) {
-    throw new FSRSError(
-      FSRSErrorCode.VALIDATION_FAILED,
+    throw new FSRSValidationError(
       `Invalid parameter length: ${parameters.length}. Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively.`
     )
   }

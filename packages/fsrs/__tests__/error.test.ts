@@ -9,7 +9,11 @@ import {
   Rating,
   TypeConvert,
 } from 'ts-fsrs'
-import { FSRSError, FSRSErrorCode } from '../src/error.js'
+import {
+  FSRSError,
+  FSRSOperationError,
+  FSRSValidationError,
+} from '../src/error.js'
 
 const captureThrownError = (action: () => unknown): unknown => {
   try {
@@ -22,16 +26,15 @@ const captureThrownError = (action: () => unknown): unknown => {
 
 const expectFSRSError = (
   action: () => unknown,
-  code: FSRSErrorCode,
-  message: string | RegExp
+  message: string | RegExp,
+  ErrorClass: typeof FSRSError = FSRSError
 ): FSRSError => {
   const error = captureThrownError(action)
+  expect(error).toBeInstanceOf(ErrorClass)
   expect(error).toBeInstanceOf(FSRSError)
   expect(error).toBeInstanceOf(Error)
 
   const fsrsError = error as FSRSError
-  expect(fsrsError.name).toBe('FSRSError')
-  expect(fsrsError.code).toBe(code)
   if (typeof message === 'string') {
     expect(fsrsError.message).toBe(message)
   } else {
@@ -43,39 +46,53 @@ const expectFSRSError = (
 describe('FSRSError', () => {
   test('does not expose the error API from the root entrypoint', () => {
     expect('FSRSError' in fsrsExports).toBe(false)
-    expect('FSRSErrorCode' in fsrsExports).toBe(false)
+    expect('FSRSValidationError' in fsrsExports).toBe(false)
+    expect('FSRSOperationError' in fsrsExports).toBe(false)
   })
 
-  test('keeps the native Error shape with an FSRS error code', () => {
-    const error = new FSRSError(FSRSErrorCode.INVALID_INPUT, 'Invalid value')
+  test('keeps the native Error shape', () => {
+    const error = new FSRSError('Invalid value')
 
     expect(error).toBeInstanceOf(FSRSError)
     expect(error).toBeInstanceOf(Error)
     expect(error.name).toBe('FSRSError')
-    expect(error.code).toBe(FSRSErrorCode.INVALID_INPUT)
     expect(error.message).toBe('Invalid value')
   })
 
-  test('uses the error code as the default message', () => {
-    const error = new FSRSError(FSRSErrorCode.INVALID_INPUT)
+  test('specific error classes inherit from FSRSError', () => {
+    const validationError = new FSRSValidationError('Invalid value')
+    const operationError = new FSRSOperationError('Invalid operation')
+
+    expect(validationError).toBeInstanceOf(FSRSValidationError)
+    expect(validationError).toBeInstanceOf(FSRSError)
+    expect(validationError.name).toBe('FSRSValidationError')
+    expect(validationError.message).toBe('Invalid value')
+
+    expect(operationError).toBeInstanceOf(FSRSOperationError)
+    expect(operationError).toBeInstanceOf(FSRSError)
+    expect(operationError.name).toBe('FSRSOperationError')
+    expect(operationError.message).toBe('Invalid operation')
+  })
+
+  test('uses the default message', () => {
+    const error = new FSRSError()
 
     expect(error.message).toBe('FSRS Error')
-    expect(error.code).toBe(FSRSErrorCode.INVALID_INPUT)
   })
 
   test('wraps invalid input errors', () => {
     expectFSRSError(
       () => TypeConvert.time('invalid-date'),
-      FSRSErrorCode.INVALID_INPUT,
-      'Invalid date:[invalid-date]'
+      'Invalid date:[invalid-date]',
+      FSRSValidationError
     )
   })
 
   test('wraps validation failures', () => {
     expectFSRSError(
       () => checkParameters([0.40255]),
-      FSRSErrorCode.VALIDATION_FAILED,
-      /^Invalid parameter length/
+      /^Invalid parameter length/,
+      FSRSValidationError
     )
   })
 
@@ -91,9 +108,9 @@ describe('FSRSError', () => {
           },
           0,
           Rating.Good
-        ),
-      FSRSErrorCode.INVALID_STATE,
-      'Invalid memory state { difficulty: 0.5, stability: 0 }'
+      ),
+      'Invalid memory state { difficulty: 0.5, stability: 0 }',
+      FSRSValidationError
     )
   })
 
@@ -105,16 +122,16 @@ describe('FSRSError', () => {
           new Date(),
           Rating.Manual as unknown as Grade
         ),
-      FSRSErrorCode.INVALID_OPERATION,
-      'Cannot review a manual rating'
+      'Cannot review a manual rating',
+      FSRSValidationError
     )
   })
 
   test('captures stack from the business throw site', () => {
     const error = expectFSRSError(
       () => TypeConvert.time('invalid-date'),
-      FSRSErrorCode.INVALID_INPUT,
-      'Invalid date:[invalid-date]'
+      'Invalid date:[invalid-date]',
+      FSRSValidationError
     )
     const firstFrame = error.stack
       ?.split('\n')

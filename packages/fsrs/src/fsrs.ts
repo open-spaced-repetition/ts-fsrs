@@ -1,7 +1,7 @@
 import { FSRSAlgorithm, forgetting_curve } from './algorithm'
 import { TypeConvert } from './convert'
 import { createEmptyCard, migrateParameters } from './default'
-import { FSRSError, FSRSErrorCode } from './error'
+import { FSRSValidationError } from './error'
 import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
@@ -320,10 +320,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
-      throw new FSRSError(
-        FSRSErrorCode.INVALID_OPERATION,
-        'Cannot review a manual rating'
-      )
+      throw new FSRSValidationError('Cannot review a manual rating')
     }
     const recordLogItem = instance.review(g)
     return applyAfterHandler(recordLogItem, afterHandler)
@@ -403,10 +400,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     const processedCard = TypeConvert.card(card)
     const processedLog = TypeConvert.review_log(log)
     if (processedLog.rating === Rating.Manual) {
-      throw new FSRSError(
-        FSRSErrorCode.INVALID_OPERATION,
-        'Cannot rollback a manual rating'
-      )
+      throw new FSRSValidationError('Cannot rollback a manual rating')
     }
     let last_due: Date
     let last_review: Date | undefined
