@@ -1,4 +1,5 @@
 import { TypeConvert } from './convert'
+import { FSRSValidationError } from './error'
 import type { DateInput, Grade } from './models'
 import { Rating, type State } from './models'
 import type { int, unit } from './types'
@@ -78,7 +79,7 @@ export function date_scheduler(
 
 export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   if (!now || !pre) {
-    throw new Error('Invalid date')
+    throw new FSRSValidationError('Invalid date')
   }
   const diff = TypeConvert.time(now).getTime() - TypeConvert.time(pre).getTime()
   let r = 0
