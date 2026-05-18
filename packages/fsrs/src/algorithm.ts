@@ -1,6 +1,7 @@
 import { S_MIN } from './constant'
 import { generatorParameters, migrateParameters } from './default'
-import { clamp, roundTo } from './help'
+import { FSRSValidationError } from './error'
+import { clamp, get_fuzz_range, roundTo } from './help'
 import {
   type FSRSParameters,
   type FSRSState,
@@ -80,7 +81,9 @@ export class FSRSAlgorithm {
    */
   calculate_interval_modifier(request_retention: number): number {
     if (request_retention <= 0 || request_retention > 1) {
-      throw new Error('Requested retention rate should be in the range (0,1]')
+      throw new FSRSValidationError(
+        'Requested retention rate should be in the range (0,1]'
+      )
     }
     const { decay, factor } = computeDecayFactor(this.param.w)
     return roundTo((Math.pow(request_retention, 1 / decay) - 1) / factor, 8)
@@ -316,10 +319,10 @@ export class FSRSAlgorithm {
       stability: 0,
     }
     if (t < 0) {
-      throw new Error(`Invalid delta_t "${t}"`)
+      throw new FSRSValidationError(`Invalid delta_t "${t}"`)
     }
     if (g < 0 || g > 4) {
-      throw new Error(`Invalid grade "${g}"`)
+      throw new FSRSValidationError(`Invalid grade "${g}"`)
     }
     if (d === 0 && s === 0) {
       return {
@@ -334,7 +337,7 @@ export class FSRSAlgorithm {
       }
     }
     if (d < 1 || s < S_MIN) {
-      throw new Error(
+      throw new FSRSValidationError(
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       )
     }

@@ -2,6 +2,9 @@
   "$schema": "./node_modules/turbo/schema.json",
   "globalDependencies": [
     "pnpm-lock.yaml",
+    "Cargo.lock",
+    "Cargo.toml",
+    "packages/*/Cargo.toml",
     "package.json",
     "biome.json",
     ".github/actions/**",
