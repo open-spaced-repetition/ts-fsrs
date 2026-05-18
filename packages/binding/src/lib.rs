@@ -73,6 +73,22 @@ impl FSRS {
     }
   }
 
+  #[napi(js_name = "memoryStateFromSM2")]
+  pub fn memory_state_from_sm2(
+    &self,
+    ease_factor: f64,
+    interval: f64,
+    sm2_retention: f64,
+  ) -> Result<MemoryState> {
+    self
+      .inner
+      .memory_state_from_sm2(ease_factor as f32, interval as f32, sm2_retention as f32)
+      .map(|inner| MemoryState { inner })
+      .map_err(|e| {
+        napi::Error::from_reason(format!("Failed to create memory state from SM-2: {}", e))
+      })
+  }
+
   #[napi]
   pub fn universal_metrics(
     &self,

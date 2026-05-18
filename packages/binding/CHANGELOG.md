@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.3.1
+
+### Patch Changes
+
+- [#364](https://github.com/open-spaced-repetition/ts-fsrs/pull/364) [`c50e027`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c50e0277e51d661560efdd833d3b3e00d6b5e35b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): implement `memoryStateFromSM2` method for FSRSBinding
+
 ## 0.3.0
 
 ### Minor Changes

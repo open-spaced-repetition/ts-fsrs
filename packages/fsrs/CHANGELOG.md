@@ -1,5 +1,17 @@
 # ts-fsrs
 
+## 5.4.0
+
+### Minor Changes
+
+- [#365](https://github.com/open-spaced-repetition/ts-fsrs/pull/365) [`ab44ee9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ab44ee97ca71828879b7998babb15bfa9b3aacf8) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): Add `FSRSError` base classes and use `FSRSValidationError` for package validation errors.
+
+### Patch Changes
+
+- [#365](https://github.com/open-spaced-repetition/ts-fsrs/pull/365) [`ab44ee9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ab44ee97ca71828879b7998babb15bfa9b3aacf8) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(checkParameters): reject NaN parameter values during validation.
+
+- [#357](https://github.com/open-spaced-repetition/ts-fsrs/pull/357) [`c0ffcce`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c0ffccefd7824abe5a400c46eaa97a835efb86fa) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(fsrs): extract `applyAfterHandler` helper to deduplicate `afterHandler` plumbing in `repeat`, `next`, `rollback`, `forget`, and `reschedule`
+
 ## 5.3.3
 
 ### Patch Changes

@@ -1,5 +1,6 @@
 import { TypeConvert } from './convert'
 import { createEmptyCard } from './default'
+import { FSRSValidationError } from './error'
 import type { FSRS } from './fsrs'
 import { date_diff } from './help'
 import {
@@ -61,7 +62,9 @@ export class Reschedule {
     due?: Date
   ): RecordLogItem {
     if (typeof state === 'undefined') {
-      throw new Error('reschedule: state is required for manual rating')
+      throw new FSRSValidationError(
+        'reschedule: state is required for manual rating'
+      )
     }
     let log: ReviewLog
     let next_card: Card
@@ -82,7 +85,9 @@ export class Reschedule {
       next_card.last_review = reviewed
     } else {
       if (typeof due === 'undefined') {
-        throw new Error('reschedule: due is required for manual rating')
+        throw new FSRSValidationError(
+          'reschedule: due is required for manual rating'
+        )
       }
       const scheduled_days = date_diff(due, reviewed, 'days')
       log = {
