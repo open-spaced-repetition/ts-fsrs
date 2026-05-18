@@ -208,6 +208,8 @@ importers:
         specifier: 4.0.1
         version: 4.0.1(typedoc@0.28.18(typescript@6.0.3))
 
+  packages/optimizer: {}
+
 packages:
 
   '@babel/code-frame@7.29.0':

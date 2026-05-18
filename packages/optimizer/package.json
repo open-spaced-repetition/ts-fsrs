@@ -1,0 +1,15 @@
+{
+  "name": "@open-spaced-repetition/optimizer",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Pure TypeScript FSRS optimizer with streaming CSV conversion.",
+  "type": "module",
+  "scripts": {
+    "check": "biome check ./src ./__tests__",
+    "check:fix": "biome check --write ./src ./__tests__",
+    "test": "vitest run --config=vitest.config.ts --passWithNoTests"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
