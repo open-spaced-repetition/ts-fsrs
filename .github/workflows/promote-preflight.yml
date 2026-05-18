@@ -1,0 +1,45 @@
+name: Promote preflight
+
+# Detection only. On a preview -> main promotion PR, verify prerelease mode has
+# already been exited (.changeset/pre.json absent, or mode != "pre"). If it is
+# still "pre", fail the check so the PR cannot be promoted until someone exits
+# prerelease. This workflow never pushes or modifies anything.
+#
+# Draft PRs are skipped.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, ready_for_review]
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: promote-preflight-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check-pre-exited:
+    name: Check prerelease exited
+    runs-on: ubuntu-latest
+    if: >-
+      github.event.pull_request.draft == false &&
+      github.head_ref == 'preview'
+    steps:
+      - name: Checkout PR head (preview)
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Verify prerelease mode is exited
+        run: |
+          set -euo pipefail
+          mode="$(node -p "require('fs').existsSync('.changeset/pre.json') ? require('./.changeset/pre.json').mode : 'none'")"
+          echo "pre.json mode = '$mode'"
+          if [[ "$mode" == "pre" ]]; then
+            echo "::error::preview is still in prerelease mode (pre.json mode='pre'). Run \`changeset pre exit\` and update the PR before promoting to main."
+            exit 1
+          fi
+          echo "Prerelease mode already exited (mode='$mode') — promotion allowed."
