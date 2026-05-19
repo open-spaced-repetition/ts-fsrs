@@ -18,8 +18,6 @@ export default class LongTermScheduler extends AbstractScheduler {
     }
 
     this.current.scheduled_days = 0
-    // pending removal in v6.0.0
-    this.current.elapsed_days = 0
 
     const first_interval = 0
     const next_again = this.next_ds(first_interval, Rating.Again)

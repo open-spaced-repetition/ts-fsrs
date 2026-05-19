@@ -24,7 +24,6 @@ type reviewState = {
   state: State
   reps: number
   lapses: number
-  elapsed_days: number
   scheduled_days: number
   learning_steps: number
 }
@@ -48,14 +47,6 @@ function experiment(
             due: state[index - 1].due,
             stability: state[index - 1].stability,
             difficulty: state[index - 1].difficulty,
-            elapsed_days:
-              state[index - 2]?.review && state[index - 1]?.review
-                ? date_diff(
-                    state[index - 1].review!,
-                    state[index - 2].review!,
-                    'days'
-                  )
-                : 0,
             scheduled_days:
               state[index - 1].review && state[index - 1].due
                 ? date_diff(
@@ -88,8 +79,6 @@ function experiment(
                 due: state[index - 1].due,
                 stability: state[index - 1].stability,
                 difficulty: state[index - 1].difficulty,
-                elapsed_days: state[index - 1].elapsed_days,
-                last_elapsed_days: state[index - 1].elapsed_days,
                 scheduled_days: state[index - 1].scheduled_days,
                 learning_steps: state[index - 1].learning_steps,
                 review: review.review,
@@ -100,8 +89,6 @@ function experiment(
                 due: new Date(MOCK_NOW),
                 stability: 0,
                 difficulty: 0,
-                elapsed_days: 0,
-                last_elapsed_days: 0,
                 scheduled_days: 0,
                 learning_steps: 0,
                 review: review.review,
@@ -121,7 +108,6 @@ function experiment(
             state: card.state,
             reps: card.reps,
             lapses: card.lapses,
-            elapsed_days: card.elapsed_days,
             scheduled_days: card.scheduled_days,
             learning_steps: card.learning_steps,
           } satisfies reviewState,
@@ -172,7 +158,6 @@ function testReschedule(
       expect(controlItem.card.reps).toEqual(experimentItem.reps)
       expect(controlItem.card.lapses).toEqual(experimentItem.lapses)
 
-      expect(controlItem.card.elapsed_days).toEqual(experimentItem.elapsed_days)
       expect(controlItem.card.scheduled_days).toEqual(
         experimentItem.scheduled_days
       )
@@ -283,7 +268,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1725469200000 /**2024-09-04T17:00:00.000Z*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
-        elapsed_days: 1,
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
@@ -297,8 +281,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
         stability: 13.48506225,
         difficulty: 1,
-        elapsed_days: 1,
-        last_elapsed_days: 1,
         scheduled_days: 13,
         learning_steps: 0,
         review: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
@@ -310,7 +292,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1725843600000 /**2024-09-09T01:00:00.000Z*/),
         stability: 25.33029347,
         difficulty: 3.27480201,
-        elapsed_days: 1,
         scheduled_days: 25,
         reps: 4,
         lapses: 0,
@@ -324,8 +305,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
         stability: 21.79806877,
         difficulty: 3.2828565,
-        elapsed_days: 1,
-        last_elapsed_days: 1,
         scheduled_days: 21,
         learning_steps: 0,
         review: new Date(1723683600000 /**2024-08-15T01:00:00.000Z*/),
@@ -362,7 +341,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
         stability: 13.48506225,
         difficulty: 1,
-        elapsed_days: 1,
         scheduled_days: 21,
         reps: 3,
         lapses: 0,
@@ -376,8 +354,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1723510800000 /**2024-08-13T01:00:00.000Z*/),
         stability: 13.48506225,
         difficulty: 1,
-        elapsed_days: 1,
-        last_elapsed_days: 1,
         scheduled_days: 13,
         learning_steps: 0,
         review: new Date(1723597200000 /**'2024-08-14T01:00:00.000Z'*/),
@@ -388,7 +364,6 @@ describe('FSRS reschedule', () => {
       due: new Date(1725238800000 /**2024-09-02T01:00:00.000Z*/),
       stability: 21.79806877,
       difficulty: 3.2828565,
-      elapsed_days: 1,
       scheduled_days: 2,
       reps: 5,
       lapses: 0,
@@ -428,7 +403,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1725670800000 /**2024-09-07T01:00:00.000Z*/),
         stability: 23.06595495,
         difficulty: 1,
-        elapsed_days: 1,
         scheduled_days: 23,
         reps: 4,
         lapses: 0,
@@ -442,8 +416,6 @@ describe('FSRS reschedule', () => {
         due: new Date(1723597200000 /**2024-08-14T01:00:00.000Z*/),
         stability: 18.37626562,
         difficulty: 1,
-        elapsed_days: 1,
-        last_elapsed_days: 1,
         scheduled_days: 18,
         learning_steps: 0,
         review: new Date(1723683600000 /**'2024-08-15T01:00:00.000Z'*/),
@@ -480,7 +452,6 @@ describe('FSRS reschedule', () => {
           rating: Rating.Manual,
           state: cur_card.state,
           due: cur_card.last_review || cur_card.due,
-          last_elapsed_days: cur_card.elapsed_days,
           scheduled_days: scheduled_days,
           stability: cur_card.stability,
           difficulty: cur_card.difficulty,
@@ -589,7 +560,6 @@ describe('FSRS reschedule', () => {
       due: new Date(1732060800000 /** 2024-11-20T00:00:00.000Z */),
       stability: 52.44876819,
       difficulty: 2.11475301,
-      elapsed_days: 11,
       scheduled_days: 52,
       reps: 4,
       lapses: 0,

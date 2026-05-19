@@ -1,6 +1,5 @@
 import {
   createEmptyCard,
-  date_diff,
   FSRS,
   fsrs,
   type Grade,
@@ -43,11 +42,6 @@ describe('FSRS-5', () => {
           scheduling_cards[check].log
         )
         expect(rollbackCard).toEqual(card)
-        expect(scheduling_cards[check].log.elapsed_days).toEqual(
-          card.last_review
-            ? date_diff(now, card.last_review as Date, 'days')
-            : 0
-        )
         const _f = fsrs({ w })
         const next = _f.next(card, now, check)
         expect(scheduling_cards[check]).toEqual(next)
@@ -111,7 +105,6 @@ describe('FSRS-5', () => {
 
     const stability: number[] = []
     const difficulty: number[] = []
-    const elapsed_days: number[] = []
     const scheduled_days: number[] = []
     const reps: number[] = []
     const lapses: number[] = []
@@ -122,7 +115,6 @@ describe('FSRS-5', () => {
       difficulty.push(first_card.difficulty)
       reps.push(first_card.reps)
       lapses.push(first_card.lapses)
-      elapsed_days.push(first_card.elapsed_days)
       scheduled_days.push(first_card.scheduled_days)
       states.push(first_card.state)
     }
@@ -130,7 +122,6 @@ describe('FSRS-5', () => {
     expect(difficulty).toEqual([7.1949, 6.48830527, 5.28243442, 3.22450159])
     expect(reps).toEqual([1, 1, 1, 1])
     expect(lapses).toEqual([0, 0, 0, 0])
-    expect(elapsed_days).toEqual([0, 0, 0, 0])
     expect(scheduled_days).toEqual([0, 0, 0, 16])
     expect(states).toEqual([
       State.Learning,
