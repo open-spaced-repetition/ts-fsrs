@@ -18,7 +18,7 @@ test('FSRS-Grades', () => {
   ])
 })
 
-test('Date.prototype.format', () => {
+test('formatDate', () => {
   const now = new Date(2022, 11, 30, 12, 30, 0, 0)
   expect(formatDate(now)).toEqual('2022-12-30 12:30:00')
   expect(formatDate(now.getTime())).toEqual('2022-12-30 12:30:00')
