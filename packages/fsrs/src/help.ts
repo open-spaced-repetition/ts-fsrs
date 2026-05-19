@@ -1,61 +1,8 @@
 import { TypeConvert } from './convert'
+import { FSRSValidationError } from './error'
 import type { DateInput, Grade } from './models'
-import { Rating, type State } from './models'
-import type { int, unit } from './types'
-
-declare global {
-  export interface Date {
-    /**
-     * @deprecated This method will be removed in version 6.0.0.
-     *
-     */
-    scheduler(t: int, isDay?: boolean): Date
-    /**
-     * @deprecated This method will be removed in version 6.0.0.
-     *
-     */
-    diff(pre: Date, unit: unit): int
-    /**
-     * @deprecated This method will be removed in version 6.0.0.
-     *
-     */
-    format(): string
-    /**
-     * @deprecated This method will be removed in version 6.0.0.
-     *
-     */
-    dueFormat(last_review: Date, unit?: boolean, timeUnit?: string[]): string
-  }
-}
-
-/* istanbul ignore next -- @preserve */
-Date.prototype.scheduler = function (t: int, isDay?: boolean): Date {
-  return date_scheduler(this, t, isDay)
-}
-
-/**
- * 当前时间与之前的时间差值
- * @param pre 比当前时间还要之前
- * @param unit 单位: days | minutes
- */
-/* istanbul ignore next -- @preserve */
-Date.prototype.diff = function (pre: Date, unit: unit): int {
-  return date_diff(this, pre, unit) as int
-}
-
-/* istanbul ignore next -- @preserve */
-Date.prototype.format = function (): string {
-  return formatDate(this)
-}
-
-/* istanbul ignore next -- @preserve */
-Date.prototype.dueFormat = function (
-  last_review: Date,
-  unit?: boolean,
-  timeUnit?: string[]
-) {
-  return show_diff_message(this, last_review, unit, timeUnit)
-}
+import { Rating } from './models'
+import type { unit } from './types'
 
 /**
  * 计算日期和时间的偏移，并返回一个新的日期对象。
@@ -78,7 +25,7 @@ export function date_scheduler(
 
 export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   if (!now || !pre) {
-    throw new Error('Invalid date')
+    throw new FSRSValidationError('Invalid date')
   }
   const diff = TypeConvert.time(now).getTime() - TypeConvert.time(pre).getTime()
   let r = 0
@@ -136,34 +83,6 @@ export function show_diff_message(
     }
   }
   return `${Math.floor(diff)}${unit ? timeUnit[i] : ''}`
-}
-
-/* istanbul ignore next -- @preserve */
-/**
- *
- * @deprecated Use TypeConvert.time instead
- * @deprecated This function will be removed in version 6.0.0.
- */
-export function fixDate(value: unknown) {
-  return TypeConvert.time(value)
-}
-
-/* istanbul ignore next -- @preserve */
-/**
- * @deprecated Use TypeConvert.state instead
- * @deprecated This function will be removed in version 6.0.0.
- */
-export function fixState(value: unknown): State {
-  return TypeConvert.state(value)
-}
-
-/* istanbul ignore next -- @preserve */
-/**
- * @deprecated Use TypeConvert.rating instead
- * @deprecated This function will be removed in version 6.0.0.
- */
-export function fixRating(value: unknown): Rating {
-  return TypeConvert.rating(value)
 }
 
 export const Grades: Readonly<Grade[]> = Object.freeze([

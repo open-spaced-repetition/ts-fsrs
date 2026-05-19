@@ -38,6 +38,41 @@ describe('FSRS model', () => {
     console.log(nextStates)
   })
 
+  test('memoryStateFromSM2', () => {
+    const f = new FSRSBinding()
+
+    let m = f.memoryStateFromSM2(2.5, 10, 0.9)
+    expect(m).toBeInstanceOf(BindingMemoryState)
+    expect(m.stability).toBeCloseTo(10.0, 3)
+    expect(m.difficulty).toBeCloseTo(6.9140563, 3)
+
+    m = f.memoryStateFromSM2(2.5, 10, 0.8)
+    expect(m.stability).toBeCloseTo(3.01572, 3)
+    expect(m.difficulty).toBeCloseTo(9.393428, 3)
+
+    m = f.memoryStateFromSM2(2.5, 10, 0.95)
+    expect(m.stability).toBeCloseTo(24.841097, 3)
+    expect(m.difficulty).toBeCloseTo(1.2974405, 3)
+
+    // clamps difficulty to D_MAX
+    m = f.memoryStateFromSM2(1.3, 20, 0.9)
+    expect(m.stability).toBeCloseTo(20.0, 3)
+    expect(m.difficulty).toBeCloseTo(10.0, 3)
+
+    // fsrs_factor consistency: next_states(good).stability / interval ≈ ease_factor
+    const interval = 15
+    const easeFactor = 2.0
+    const seed = f.memoryStateFromSM2(easeFactor, interval, 0.9)
+    const fsrsFactor =
+      f.nextStates(seed, 0.9, interval).good.memory.stability / interval
+    expect(Math.abs(fsrsFactor - easeFactor)).toBeLessThan(0.01)
+  })
+
+  test('memoryStateFromSM2 throws on invalid input', () => {
+    const f = new FSRSBinding()
+    expect(() => f.memoryStateFromSM2(2.5, 10, 1.0)).toThrow()
+  })
+
   /**
 diff --git a/src/inference.rs b/src/inference.rs
 index f5b20bf..6ff1d3b 100644

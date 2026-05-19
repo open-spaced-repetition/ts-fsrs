@@ -11,7 +11,8 @@ import {
   W17_W18_Ceiling,
 } from './constant'
 import { TypeConvert } from './convert'
-import { clamp } from './help'
+import { FSRSValidationError } from './error'
+import { clamp, roundTo } from './help'
 import { type Card, type DateInput, type FSRSParameters, State } from './models'
 
 export const clipParameters = (
@@ -19,7 +20,10 @@ export const clipParameters = (
   numRelearningSteps: number,
   enableShortTerm: boolean = default_enable_short_term
 ) => {
-  let w17_w18_ceiling = W17_W18_Ceiling
+  const clip = CLAMP_PARAMETERS(W17_W18_Ceiling, enableShortTerm).slice(
+    0,
+    parameters.length
+  )
   if (Math.max(0, numRelearningSteps) > 1) {
     // PLS = w11 * D ^ -w12 * [(S + 1) ^ w13 - 1] * e ^ (w14 * (1 - R))
     // PLS * e ^ (num_relearning_steps * w17 * w18) should be <= S
@@ -27,19 +31,18 @@ export const clipParameters = (
     // So num_relearning_steps * w17 * w18 + ln(w11) + ln(2 ^ w13 - 1) + w14 * 0.3 should be <= ln(1)
     // => num_relearning_steps * w17 * w18 <= - ln(w11) - ln(2 ^ w13 - 1) - w14 * 0.3
     // => w17 * w18 <= -[ln(w11) + ln(2 ^ w13 - 1) + w14 * 0.3] / num_relearning_steps
+    // Clamp w11/w13/w14 first so log() never receives <= 0 (otherwise NaN/-Infinity)
+    const w11 = clamp(parameters[11] || 0, clip[11][0], clip[11][1])
+    const w13 = clamp(parameters[13] || 0, clip[13][0], clip[13][1])
+    const w14 = clamp(parameters[14] || 0, clip[14][0], clip[14][1])
     const value =
-      -(
-        Math.log(parameters[11]) +
-        Math.log(Math.pow(2.0, parameters[13]) - 1.0) +
-        parameters[14] * 0.3
-      ) / numRelearningSteps
+      -(Math.log(w11) + Math.log(Math.pow(2.0, w13) - 1.0) + w14 * 0.3) /
+      numRelearningSteps
 
-    w17_w18_ceiling = clamp(+value.toFixed(8), 0.01, 2.0)
+    const w17_w18_ceiling = clamp(roundTo(value, 8), 0.01, W17_W18_Ceiling)
+    if (clip[17]) clip[17] = [clip[17][0], w17_w18_ceiling]
+    if (clip[18]) clip[18] = [clip[18][0], w17_w18_ceiling]
   }
-  const clip = CLAMP_PARAMETERS(w17_w18_ceiling, enableShortTerm).slice(
-    0,
-    parameters.length
-  )
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)
   )
@@ -57,13 +60,13 @@ export const clipParameters = (
  * }
  */
 export const checkParameters = (parameters: number[] | readonly number[]) => {
-  const invalid = parameters.find(
-    (param) => !Number.isFinite(param) && !Number.isNaN(param)
-  )
+  const invalid = parameters.find((param) => !Number.isFinite(param))
   if (invalid !== undefined) {
-    throw Error(`Non-finite or NaN value in parameters ${parameters}`)
+    throw new FSRSValidationError(
+      `Non-finite or NaN value in parameters ${parameters}`
+    )
   } else if (![17, 19, 21].includes(parameters.length)) {
-    throw Error(
+    throw new FSRSValidationError(
       `Invalid parameter length: ${parameters.length}. Must be 17, 19 or 21 for FSRSv4, 5 and 6 respectively.`
     )
   }
@@ -178,7 +181,6 @@ export function createEmptyCard<R = Card>(
     due: now ? TypeConvert.time(now) : new Date(),
     stability: 0,
     difficulty: 0,
-    elapsed_days: 0,
     scheduled_days: 0,
     reps: 0,
     lapses: 0,

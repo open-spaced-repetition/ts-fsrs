@@ -1,6 +1,7 @@
 import { FSRSAlgorithm, forgetting_curve } from './algorithm'
 import { TypeConvert } from './convert'
 import { createEmptyCard, migrateParameters } from './default'
+import { FSRSValidationError } from './error'
 import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
@@ -34,6 +35,12 @@ import type {
 type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
   Omit<A, K>
 >
+
+function applyAfterHandler<T, R>(value: T, afterHandler?: (value: T) => R): R {
+  return typeof afterHandler === 'function'
+    ? afterHandler(value)
+    : (value as unknown as R)
+}
 
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
@@ -240,11 +247,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   ): R {
     const instance = this.getScheduler(card, now)
     const recordLog = instance.preview()
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLog)
-    } else {
-      return recordLog as R
-    }
+    return applyAfterHandler(recordLog, afterHandler)
   }
 
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
@@ -317,14 +320,10 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
-      throw new Error('Cannot review a manual rating')
+      throw new FSRSValidationError('Cannot review a manual rating')
     }
     const recordLogItem = instance.review(g)
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
-    } else {
-      return recordLogItem as R
-    }
+    return applyAfterHandler(recordLogItem, afterHandler)
   }
 
   get_retrievability(
@@ -401,7 +400,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     const processedCard = TypeConvert.card(card)
     const processedLog = TypeConvert.review_log(log)
     if (processedLog.rating === Rating.Manual) {
-      throw new Error('Cannot rollback a manual rating')
+      throw new FSRSValidationError('Cannot rollback a manual rating')
     }
     let last_due: Date
     let last_review: Date | undefined
@@ -431,7 +430,6 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       due: last_due,
       stability: processedLog.stability,
       difficulty: processedLog.difficulty,
-      elapsed_days: processedLog.last_elapsed_days,
       scheduled_days: processedLog.scheduled_days,
       reps: Math.max(0, processedCard.reps - 1),
       lapses: Math.max(0, last_lapses),
@@ -439,11 +437,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       state: processedLog.state,
       last_review: last_review,
     }
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(prevCard)
-    } else {
-      return prevCard as R
-    }
+    return applyAfterHandler(prevCard, afterHandler)
   }
 
   forget(
@@ -526,8 +520,6 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       due: processedCard.due,
       stability: processedCard.stability,
       difficulty: processedCard.difficulty,
-      elapsed_days: 0,
-      last_elapsed_days: processedCard.elapsed_days,
       scheduled_days: scheduled_days,
       learning_steps: processedCard.learning_steps,
       review: now,
@@ -537,7 +529,6 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       due: now,
       stability: 0,
       difficulty: 0,
-      elapsed_days: 0,
       scheduled_days: 0,
       reps: reset_count ? 0 : processedCard.reps,
       lapses: reset_count ? 0 : processedCard.lapses,
@@ -546,11 +537,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       last_review: processedCard.last_review,
     }
     const recordLogItem: RecordLogItem = { card: forget_card, log: forget_log }
-    if (afterHandler && typeof afterHandler === 'function') {
-      return afterHandler(recordLogItem)
-    } else {
-      return recordLogItem as R
-    }
+    return applyAfterHandler(recordLogItem, afterHandler)
   }
 
   reschedule<T = RecordLogItem>(
@@ -634,15 +621,14 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       updateMemoryState
     )
 
-    if (recordLogHandler && typeof recordLogHandler === 'function') {
-      return {
-        collections: collections.map(recordLogHandler),
-        reschedule_item: manual_item ? recordLogHandler(manual_item) : null,
-      }
-    }
     return {
-      collections,
-      reschedule_item: manual_item,
+      collections:
+        typeof recordLogHandler === 'function'
+          ? collections.map(recordLogHandler)
+          : collections,
+      reschedule_item: manual_item
+        ? applyAfterHandler(manual_item, recordLogHandler)
+        : null,
     } as IReschedule<T>
   }
 }

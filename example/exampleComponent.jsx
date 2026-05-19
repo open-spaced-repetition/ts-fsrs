@@ -12,7 +12,6 @@ const ExampleCard = ({ cardRecord, f, className }) => {
           <th>stability</th>
           <th>difficulty</th>
           <th>R</th>
-          <th>elapsed_days</th>
           <th>scheduled_days</th>
           <th>reps</th>
           <th>lapses</th>
@@ -28,7 +27,6 @@ const ExampleCard = ({ cardRecord, f, className }) => {
             <td>{record.stability.toFixed(2)}</td>
             <td>{record.difficulty.toFixed(2)}</td>
             <td>{f.get_retrievability(record, record.due) || "/"}</td>
-            <td>{record.elapsed_days}</td>
             <td>{record.scheduled_days}</td>
             <td>{record.reps}</td>
             <td>{record.lapses}</td>
@@ -49,7 +47,6 @@ const ExampleLog = ({ logRecord, className }) => {
           <th>rating</th>
           <th>state</th>
           <th>due</th>
-          <th>elapsed_days</th>
           <th>scheduled_days</th>
           <th>review</th>
         </tr>
@@ -61,7 +58,6 @@ const ExampleLog = ({ logRecord, className }) => {
             <td>{`${record.rating}(${Rating[record.rating]})`}</td>
             <td>{`${record.state}(${State[record.state]})`}</td>
             <td>{record.due.toLocaleString()}</td>
-            <td>{record.elapsed_days}</td>
             <td>{record.scheduled_days}</td>
             <td>{record.review.toLocaleString()}</td>
           </tr>
