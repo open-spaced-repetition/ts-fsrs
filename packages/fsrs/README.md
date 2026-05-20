@@ -196,8 +196,9 @@ const elapsedDays = 12
 const nextState = scheduler.next_state(memoryState, elapsedDays, Rating.Good)
 const nextInterval = scheduler.next_interval(nextState.stability)
 
-// Optional: apply fuzz at the upper layer (the scheduler does this internally
-// during repeat()/next()). Supply your own seed for deterministic results.
+// If you need to manually apply fuzz, use the "withFuzzing" function
+// (the scheduler does this automatically if you use repeat()/next()).
+// Supply your own seed if you want consistent results.
 const fuzzed = withFuzzing(
   nextInterval,
   elapsedDays,
