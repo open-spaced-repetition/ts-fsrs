@@ -209,7 +209,7 @@ console.log(nextState)
 console.log(nextInterval, fuzzed)
 ```
 
-`next_interval` returns the base interval. Fuzzing now lives in the scheduler/strategy layer — call `withFuzzing` (exported from `ts-fsrs`) if you need to apply it manually. This is useful for simulations, analytics, or custom scheduling pipelines. For standard review flows, prefer `repeat()` or `next()`.
+`next_interval` returns the base interval. Fuzzing is automatically applied in the scheduler/strategy layer — call `withFuzzing` (exported from `ts-fsrs`) if you need to apply it manually. This is useful for simulations, analytics, or custom scheduling pipelines. For standard review flows, prefer `repeat()` or `next()`.
 
 ### History helpers
 
