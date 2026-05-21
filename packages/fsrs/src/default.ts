@@ -39,7 +39,13 @@ export const clipParameters = (
       -(Math.log(w11) + Math.log(Math.pow(2.0, w13) - 1.0) + w14 * 0.3) /
       numRelearningSteps
 
-    const w17_w18_ceiling = clamp(roundTo(value, 8), 0.01, W17_W18_Ceiling)
+    // sqrt converts the product constraint (w17 * w18 <= value) into per-parameter
+    // ceilings, so each individually satisfies the bound. Math.max guards against NaN.
+    const w17_w18_ceiling = clamp(
+      roundTo(Math.sqrt(Math.max(value, 0)), 8),
+      0.01,
+      W17_W18_Ceiling
+    )
     if (clip[17]) clip[17] = [clip[17][0], w17_w18_ceiling]
     if (clip[18]) clip[18] = [clip[18][0], w17_w18_ceiling]
   }
