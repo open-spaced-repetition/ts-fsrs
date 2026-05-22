@@ -174,8 +174,10 @@ describe('default params', () => {
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
     const params = clipParameters(w, 2)
-    expect(params[17]).toEqual(0.36055143)
-    expect(params[18]).toEqual(0.36055143)
+    expect(params[17]).toEqual(0.60045935)
+    expect(params[18]).toEqual(0.60045935)
+    // Verify constraint: w17 * w18 <= value (0.36055143)
+    expect(params[17] * params[18]).toBeLessThanOrEqual(0.36056)
   })
 
   it('clip w[11]/w[13]/w[14] before computing w17/w18 ceiling', () => {
@@ -192,8 +194,8 @@ describe('default params', () => {
     expect(Number.isFinite(params[17])).toBe(true)
     expect(Number.isFinite(params[18])).toBe(true)
     // Clamped inputs: w11=0.001, w13=0.001, w14=0.0
-    // value = -(ln(0.001) + ln(2^0.001 - 1) + 0) / 2 ~= 7.09, then
-    // clamped to [0, W17_W18_Ceiling=2.0] -> 2.0
+    // value = -(ln(0.001) + ln(2^0.001 - 1) + 0) / 2 ~= 7.09
+    // sqrt(7.09) ~= 2.66, clamped to [0.01, W17_W18_Ceiling=2.0] -> 2.0
     expect(params[17]).toEqual(2.0)
     expect(params[18]).toEqual(2.0)
   })
@@ -210,6 +212,50 @@ describe('default params', () => {
     expect(params).toHaveLength(17)
     // Original values are all in-range and should pass through untouched.
     expect(params).toEqual(w17)
+  })
+
+  it('single relearning step uses default ceiling of 2.0', () => {
+    const params = generatorParameters({
+      relearning_steps: ['10m'],
+      w: default_w.map((v, i) => (i === 17 || i === 18 ? 2.5 : v)),
+    })
+    expect(params.w[17]).toEqual(2.0)
+    expect(params.w[18]).toEqual(2.0)
+  })
+
+  it('negative value produces finite ceiling via sqrt guard', () => {
+    const w = [...default_w]
+    w[11] = 5.0
+    w[13] = 0.9
+    w[14] = 4.0
+    w[17] = Number.MAX_VALUE
+    w[18] = Number.MAX_VALUE
+    const params = clipParameters(w, 2)
+    // value = -(ln(5) + ln(2^0.9 - 1) + 4*0.3) / 2 ≈ -1.333
+    // sqrt(max(-1.333, 0)) = sqrt(0) = 0, clamp(0, 0.01, 2.0) = 0.01
+    expect(Number.isFinite(params[17])).toBe(true)
+    expect(Number.isFinite(params[18])).toBe(true)
+    expect(params[17]).toBeGreaterThanOrEqual(0)
+    expect(params[18]).toBeGreaterThanOrEqual(0)
+    expect(params[17]).toEqual(0.01)
+    expect(params[18]).toEqual(0.01)
+  })
+
+  it('W17/W18 ceiling with 4 relearning steps applies sqrt', () => {
+    const w = [...default_w]
+    w[11] = 0.1
+    w[13] = 0.1
+    w[14] = 0.5
+    w[17] = 2.0
+    w[18] = 2.0
+    const params = clipParameters(w, 4)
+    // value = -(ln(0.1) + ln(2^0.1 - 1) + 0.5*0.3) / 4 ≈ 1.1967
+    // ceiling = sqrt(value) ≈ 1.0939
+    const expectedCeiling = 1.09394076
+    expect(Math.abs(params[17] - expectedCeiling)).toBeLessThan(1e-5)
+    expect(Math.abs(params[18] - expectedCeiling)).toBeLessThan(1e-5)
+    // Verify constraint: w17 * w18 <= value
+    expect(params[17] * params[18]).toBeLessThanOrEqual(1.19671)
   })
 })
 
