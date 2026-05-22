@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 5.4.1
+
+### Patch Changes
+
+- [#368](https://github.com/open-spaced-repetition/ts-fsrs/pull/368) [`c392245`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c3922456e07aac536570e5aeb3598f7090202c7d) Thanks [@cantalupo555](https://github.com/cantalupo555)! - fix(clipParameters): apply sqrt ceiling to w[17]/w[18] to prevent constraint violation during relearning
+
 ## 5.4.0
 
 ### Minor Changes
