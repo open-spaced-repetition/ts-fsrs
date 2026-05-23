@@ -1,4 +1,3 @@
-import { alea } from './alea'
 import { S_MIN } from './constant'
 import { generatorParameters, migrateParameters } from './default'
 import { FSRSValidationError } from './error'
@@ -57,7 +56,6 @@ export function forgetting_curve(
 export class FSRSAlgorithm {
   protected param!: FSRSParameters
   protected intervalModifier!: number
-  protected _seed?: string
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
@@ -72,10 +70,6 @@ export class FSRSAlgorithm {
 
   get interval_modifier(): number {
     return this.intervalModifier
-  }
-
-  set seed(seed: string) {
-    this._seed = seed
   }
 
   /**
@@ -176,34 +170,18 @@ export class FSRSAlgorithm {
   }
 
   /**
-   * If fuzzing is disabled or ivl is less than 2.5, it returns the original interval.
-   * @param {number} ivl - The interval to be fuzzed.
-   * @param {number} elapsed_days t days since the last review
-   * @return {number} - The fuzzed interval.
-   **/
-  apply_fuzz(ivl: number, elapsed_days: number): int {
-    if (!this.param.enable_fuzz || ivl < 2.5) return Math.round(ivl) as int
-    const generator = alea(this._seed) // I do not want others to directly access the seed externally.
-    const fuzz_factor = generator()
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      ivl,
-      elapsed_days,
-      this.param.maximum_interval
-    )
-    return Math.floor(fuzz_factor * (max_ivl - min_ivl + 1) + min_ivl) as int
-  }
-
-  /**
+   *   Computes the base interval (no fuzzing). Fuzzing is applied by the scheduler
+   *   layer via the `withFuzzing` strategy helper.
+   *
    *   @see The formula used is : {@link FSRSAlgorithm.calculate_interval_modifier}
    *   @param {number} s - Stability (interval when R=90%)
-   *   @param {number} elapsed_days t days since the last review
    */
-  next_interval(s: number, elapsed_days: number): int {
-    const newInterval = Math.min(
-      Math.max(1, Math.round(s * this.intervalModifier)),
+  next_interval(s: number): int {
+    return clamp(
+      Math.round(s * this.intervalModifier),
+      1,
       this.param.maximum_interval
     ) as int
-    return this.apply_fuzz(newInterval, elapsed_days)
   }
 
   /**

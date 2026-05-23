@@ -28,6 +28,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected algorithm: FSRSAlgorithm
   protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
   protected elapsed_days: number = 0 // init
+  protected _seed?: string
 
   constructor(
     card: CardInput | Card,
@@ -67,7 +68,7 @@ export abstract class AbstractScheduler implements IScheduler {
         seed_strategy = custom_strategy as TSeedStrategy
       }
     }
-    this.algorithm.seed = (<TSeedStrategy>seed_strategy).call(this)
+    this._seed = (<TSeedStrategy>seed_strategy).call(this)
   }
 
   public preview(): IPreview {
