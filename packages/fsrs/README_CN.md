@@ -175,7 +175,7 @@ console.log(retrievability)
 如果你直接基于记忆状态做推导，可以把 `next_state()` 和 `next_interval()` 组合使用：
 
 ```ts
-import { fsrs, Rating, type FSRSState } from 'ts-fsrs'
+import { fsrs, Rating, withFuzzing, type FSRSState } from 'ts-fsrs'
 
 const scheduler = fsrs({ enable_fuzz: false })
 
@@ -186,13 +186,22 @@ const memoryState: FSRSState = {
 
 const elapsedDays = 12
 const nextState = scheduler.next_state(memoryState, elapsedDays, Rating.Good)
-const nextInterval = scheduler.next_interval(nextState.stability, elapsedDays)
+const nextInterval = scheduler.next_interval(nextState.stability)
+
+// 如需手动叠加 fuzz，可以调用 withFuzzing；
+// repeat() / next() 内部已经在调度层自动应用过 fuzz。
+const fuzzed = withFuzzing(
+  nextInterval,
+  elapsedDays,
+  scheduler.parameters,
+  'my-seed'
+)
 
 console.log(nextState)
-console.log(nextInterval)
+console.log(nextInterval, fuzzed)
 ```
 
-这种写法适合做模拟、分析，或者你自己维护 `{ stability, difficulty }` 的自定义调度流程。对于普通复习流程，优先使用 `repeat()` 或 `next()`。
+`next_interval` 现在只返回基线区间。Fuzzing 已经被抽到调度/策略层；如需手动应用，请使用从 `ts-fsrs` 导出的 `withFuzzing`。这种写法适合做模拟、分析，或者你自己维护 `{ stability, difficulty }` 的自定义调度流程。对于普通复习流程，优先使用 `repeat()` 或 `next()`。
 
 ### 历史辅助能力
 

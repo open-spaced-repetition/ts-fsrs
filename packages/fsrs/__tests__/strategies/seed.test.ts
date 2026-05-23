@@ -37,7 +37,7 @@ describe('seed strategy', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed', seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
   })
 })
 
@@ -88,7 +88,7 @@ describe('seed strategy with card ID', () => {
     const basic_seed = DefaultInitSeedStrategy.bind(scheduler)()
     console.debug('basic_seed with card_id=555', basic_seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(basic_seed)
+    expect(scheduler['_seed']).toBe(basic_seed)
 
     expect(seed_with_card_id).not.toBe(basic_seed)
   })
@@ -116,7 +116,7 @@ describe('seed strategy with card ID', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=555', seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
   })
 
   it('not exist card_id', () => {
@@ -139,7 +139,7 @@ describe('seed strategy with card ID', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('seed with card_id=undefined(default)', seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
   })
 
   it('card_id = -1', () => {
@@ -165,9 +165,9 @@ describe('seed strategy with card ID', () => {
     const seed = seedStrategy.bind(scheduler)()
     console.debug('with card_id=-1', seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe('0')
+    expect(scheduler['_seed']).toBe('0')
   })
 
   it('card_id is undefined', () => {
@@ -194,9 +194,9 @@ describe('seed strategy with card ID', () => {
     console.debug('seed with card_id=undefined', seed)
 
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(`${item.card.reps}`)
+    expect(scheduler['_seed']).toBe(`${item.card.reps}`)
   })
 
   it('card_id is null', () => {
@@ -224,8 +224,8 @@ describe('seed strategy with card ID', () => {
     console.debug('seed with card_id=null', seed)
 
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(seed)
+    expect(scheduler['_seed']).toBe(seed)
     // biome-ignore lint/complexity/useLiteralKeys: access private variables
-    expect(f['_seed']).toBe(`${item.card.reps}`)
+    expect(scheduler['_seed']).toBe(`${item.card.reps}`)
   })
 })
