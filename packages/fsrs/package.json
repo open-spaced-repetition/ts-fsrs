@@ -27,15 +27,13 @@
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
     "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "test::publish": "yalc publish",
-    "prebuild": "rimraf ./dist",
     "build": "tsdown",
-    "build:types": "tsc --project ./tsconfig.json --declaration true",
     "predocs": "rimraf ../../docs",
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
     "decimal.js": "^10.5.0",
-    "tsdown": "^0.21.9",
+    "tsdown": "0.22.0",
     "typedoc": "0.28.18",
     "typedoc-plugin-extras": "4.0.1"
   },
