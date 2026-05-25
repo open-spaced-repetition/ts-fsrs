@@ -8,23 +8,23 @@ assignees: ''
 
 **Describe the bug**
 
-A clear and concise description of what the bug is.
+<!-- A clear and concise description of what the bug is. -->
 
 **To Reproduce**
 
-Steps to reproduce the behavior:
+<!-- Steps to reproduce the behavior:
 
 1. Install or import ...
 2. Run ...
-3. See error ...
+3. See error ... -->
 
 **Expected behavior**
 
-A clear and concise description of what you expected to happen.
+<!-- A clear and concise description of what you expected to happen. -->
 
 **Actual behavior**
 
-What happened instead? Include error messages, stack traces, logs, or screenshots when useful.
+<!-- What happened instead? Include error messages, stack traces, logs, or screenshots when useful. -->
 
 **Environment**
 
@@ -37,4 +37,4 @@ What happened instead? Include error messages, stack traces, logs, or screenshot
 
 **Additional context**
 
-Add any other context about the problem here.
+<!-- Add any other context about the problem here. -->
