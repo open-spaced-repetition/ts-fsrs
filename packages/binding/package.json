@@ -51,9 +51,9 @@
     "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
     "emnapi": "^1.10.0",
-    "npm-run-all2": "^8.0.4",
+    "npm-run-all2": "^9.0.1",
     "papaparse": "^5.5.3",
-    "tinybench": "^6.0.1"
+    "tinybench": "^6.0.2"
   },
   "keywords": [
     "napi-rs",
