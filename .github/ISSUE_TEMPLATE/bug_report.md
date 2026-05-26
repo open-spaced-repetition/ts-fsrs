@@ -16,17 +16,12 @@ assignees: ''
 
 1. Install or import ...
 2. Run ...
-3. See error ... -->
+3. See error ... 
+4. A happens instead of B
+-->
 
-**Expected behavior**
 
-<!-- A clear and concise description of what you expected to happen. -->
-
-**Actual behavior**
-
-<!-- What happened instead? Include error messages, stack traces, logs, or screenshots when useful. -->
-
-**Environment**
+**Environment** (Optional but helpful)
 
 - Package version:
 - Node.js version:
