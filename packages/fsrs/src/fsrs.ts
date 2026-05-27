@@ -31,11 +31,6 @@ import type {
   RescheduleOptions,
 } from './types'
 
-// A utility type to require only K properties of A
-type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
-  Omit<A, K>
->
-
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
     mode: T,
@@ -67,16 +62,11 @@ export interface IFSRS {
     reset_count?: boolean
   ): RecordLogItem
 
-  reschedule<T = RecordLogItem>(
-    current_card: CardInput | Card,
-    reviews?: FSRSHistory[],
-    options?: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
-  ): IReschedule<T>
   reschedule(
     current_card: CardInput | Card,
     reviews?: FSRSHistory[],
-    options?: Partial<RescheduleOptions<RecordLogItem>>
-  ): IReschedule<RecordLogItem>
+    options?: Partial<RescheduleOptions>
+  ): IReschedule
 }
 
 export class FSRS extends FSRSAlgorithm implements IFSRS {
@@ -330,24 +320,13 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     return recordLogItem
   }
 
-  reschedule<T = RecordLogItem>(
-    current_card: CardInput | Card,
-    reviews: FSRSHistory[] | undefined,
-    options: RequireOnly<RescheduleOptions<T>, 'recordLogHandler'>
-  ): IReschedule<T>
-  reschedule(
-    current_card: CardInput | Card,
-    reviews?: FSRSHistory[],
-    options?: Partial<RescheduleOptions<RecordLogItem>>
-  ): IReschedule<RecordLogItem>
   /**
    * Reschedules the current card and returns the rescheduled collections and reschedule item.
    *
-   * @template T - The type of the record log item.
    * @param {CardInput | Card} current_card - The current card to be rescheduled.
    * @param {Array<FSRSHistory>} reviews - The array of FSRSHistory objects representing the reviews.
-   * @param {Partial<RescheduleOptions<T>>} options - The optional reschedule options.
-   * @returns {IReschedule<T>} - The rescheduled collections and reschedule item.
+   * @param {Partial<RescheduleOptions>} options - The optional reschedule options.
+   * @returns {IReschedule} - The rescheduled collections and reschedule item.
    *
    * @example
    * ```typescript
@@ -378,13 +357,12 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * console.log(results_short)
    * ```
    */
-  reschedule<T = RecordLogItem>(
+  reschedule(
     current_card: CardInput | Card,
     reviews: FSRSHistory[] = [],
-    options: Partial<RescheduleOptions<T>> = {}
-  ): IReschedule<T> {
+    options: Partial<RescheduleOptions> = {}
+  ): IReschedule {
     const {
-      recordLogHandler,
       reviewsOrderBy,
       skipManual = true,
       now = new Date(),
@@ -412,16 +390,9 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     )
 
     return {
-      collections:
-        typeof recordLogHandler === 'function'
-          ? collections.map(recordLogHandler)
-          : collections,
-      reschedule_item: manual_item
-        ? typeof recordLogHandler === 'function'
-          ? recordLogHandler(manual_item)
-          : (manual_item as unknown as T)
-        : null,
-    } as IReschedule<T>
+      collections,
+      reschedule_item: manual_item ?? null,
+    }
   }
 }
 
