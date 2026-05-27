@@ -152,37 +152,12 @@ export const generatorParameters = (
 /**
  * Create an empty card
  * @param now Current time
- * @param afterHandler Convert the result to another type. (Optional)
  * @example
  * ```typescript
  * const card: Card = createEmptyCard(new Date());
  * ```
- * @example
- * ```typescript
- * interface CardUnChecked
- *   extends Omit<Card, "due" | "last_review" | "state"> {
- *   cid: string;
- *   due: Date | number;
- *   last_review: Date | null | number;
- *   state: StateType;
- * }
- *
- * function cardAfterHandler(card: Card) {
- *      return {
- *       ...card,
- *       cid: "test001",
- *       state: State[card.state],
- *       last_review: card.last_review ?? null,
- *     } as CardUnChecked;
- * }
- *
- * const card: CardUnChecked = createEmptyCard(new Date(), cardAfterHandler);
- * ```
  */
-export function createEmptyCard<R = Card>(
-  now?: DateInput,
-  afterHandler?: (card: Card) => R
-): R {
+export function createEmptyCard(now?: DateInput): Card {
   const emptyCard: Card = {
     due: now ? TypeConvert.time(now) : new Date(),
     stability: 0,
@@ -194,9 +169,5 @@ export function createEmptyCard<R = Card>(
     state: State.New,
     last_review: undefined,
   }
-  if (afterHandler && typeof afterHandler === 'function') {
-    return afterHandler(emptyCard)
-  } else {
-    return emptyCard as R
-  }
+  return emptyCard
 }

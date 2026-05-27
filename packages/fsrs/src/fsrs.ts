@@ -36,12 +36,6 @@ type RequireOnly<A, K extends keyof A> = { [P in K]-?: A[P] } & Partial<
   Omit<A, K>
 >
 
-function applyAfterHandler<T, R>(value: T, afterHandler?: (value: T) => R): R {
-  return typeof afterHandler === 'function'
-    ? afterHandler(value)
-    : (value as unknown as R)
-}
-
 export interface IFSRS {
   useStrategy<T extends StrategyMode>(
     mode: T,
@@ -51,19 +45,8 @@ export interface IFSRS {
   clearStrategy(mode?: StrategyMode): this
 
   repeat(card: CardInput | Card, now: DateInput): IPreview
-  repeat<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    afterHandler: (recordLog: IPreview) => R
-  ): R
 
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
-  next<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    grade: Grade,
-    afterHandler: (recordLog: RecordLogItem) => R
-  ): R
 
   get_retrievability(
     card: CardInput | Card,
@@ -77,23 +60,12 @@ export interface IFSRS {
   ): number
 
   rollback(card: CardInput | Card, log: ReviewLogInput): Card
-  rollback<R>(
-    card: CardInput | Card,
-    log: ReviewLogInput,
-    afterHandler: (prevCard: Card) => R
-  ): R
 
   forget(
     card: CardInput | Card,
     now: DateInput,
     reset_count?: boolean
   ): RecordLogItem
-  forget<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    reset_count: boolean | undefined,
-    afterHandler: (recordLogItem: RecordLogItem) => R
-  ): R
 
   reschedule<T = RecordLogItem>(
     current_card: CardInput | Card,
@@ -176,154 +148,45 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     return instance
   }
 
-  repeat(card: CardInput | Card, now: DateInput): IPreview
-  repeat<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    afterHandler: (recordLog: IPreview) => R
-  ): R
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
    * @param now Current time or scheduled time
-   * @param afterHandler Convert the result to another type. (Optional)
    * @example
    * ```typescript
    * const card: Card = createEmptyCard(new Date());
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date());
    * ```
-   * @example
-   * ```typescript
-   * interface RevLogUnchecked
-   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
-   *   cid: string;
-   *   due: Date | number;
-   *   state: StateType;
-   *   review: Date | number;
-   *   rating: RatingType;
-   * }
-   *
-   * interface RepeatRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked;
-   * }
-   *
-   * function repeatAfterHandler(recordLog: RecordLog) {
-   *     const record: { [key in Grade]: RepeatRecordLog } = {} as {
-   *       [key in Grade]: RepeatRecordLog;
-   *     };
-   *     for (const grade of Grades) {
-   *       record[grade] = {
-   *         card: {
-   *           ...(recordLog[grade].card as Card & { cid: string }),
-   *           due: recordLog[grade].card.due.getTime(),
-   *           state: State[recordLog[grade].card.state] as StateType,
-   *           last_review: recordLog[grade].card.last_review
-   *             ? recordLog[grade].card.last_review!.getTime()
-   *             : null,
-   *         },
-   *         log: {
-   *           ...recordLog[grade].log,
-   *           cid: (recordLog[grade].card as Card & { cid: string }).cid,
-   *           due: recordLog[grade].log.due.getTime(),
-   *           review: recordLog[grade].log.review.getTime(),
-   *           state: State[recordLog[grade].log.state] as StateType,
-   *           rating: Rating[recordLog[grade].log.rating] as RatingType,
-   *         },
-   *       };
-   *     }
-   *     return record;
-   * }
-   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
-   * const f = fsrs();
-   * const recordLog = f.repeat(card, new Date(), repeatAfterHandler);
-   * ```
    */
-  repeat<R = IPreview>(
-    card: CardInput | Card,
-    now: DateInput,
-    afterHandler?: (recordLog: IPreview) => R
-  ): R {
+  repeat(card: CardInput | Card, now: DateInput): IPreview {
     const instance = this.getScheduler(card, now)
-    const recordLog = instance.preview()
-    return applyAfterHandler(recordLog, afterHandler)
+    return instance.preview()
   }
 
-  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
-  next<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    grade: Grade,
-    afterHandler: (recordLog: RecordLogItem) => R
-  ): R
   /**
-   * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
-   * @param card Card to be processed
-   * @param now Current time or scheduled time
-   * @param grade Rating of the review (Again, Hard, Good, Easy)
-   * @param afterHandler Convert the result to another type. (Optional)
-   * @example
-   * ```typescript
-   * const card: Card = createEmptyCard(new Date());
-   * const f = fsrs();
-   * const recordLogItem = f.next(card, new Date(), Rating.Again);
-   * ```
-   * @example
-   * ```typescript
-   * interface RevLogUnchecked
-   *   extends Omit<ReviewLog, "due" | "review" | "state" | "rating"> {
-   *   cid: string;
-   *   due: Date | number;
-   *   state: StateType;
-   *   review: Date | number;
-   *   rating: RatingType;
-   * }
-   *
-   * interface NextRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked;
-   * }
-   *
-  function nextAfterHandler(recordLogItem: RecordLogItem) {
-    const recordItem = {
-      card: {
-        ...(recordLogItem.card as Card & { cid: string }),
-        due: recordLogItem.card.due.getTime(),
-        state: State[recordLogItem.card.state] as StateType,
-        last_review: recordLogItem.card.last_review
-          ? recordLogItem.card.last_review!.getTime()
-          : null,
-      },
-      log: {
-        ...recordLogItem.log,
-        cid: (recordLogItem.card as Card & { cid: string }).cid,
-        due: recordLogItem.log.due.getTime(),
-        review: recordLogItem.log.review.getTime(),
-        state: State[recordLogItem.log.state] as StateType,
-        rating: Rating[recordLogItem.log.rating] as RatingType,
-      },
-    };
-    return recordItem
-  }
-   * const card: Card = createEmptyCard(new Date(), cardAfterHandler); //see method:  createEmptyCard
-   * const f = fsrs();
-   * const recordLogItem = f.repeat(card, new Date(), Rating.Again, nextAfterHandler);
-   * ```
-   */
-  next<R = RecordLogItem>(
-    card: CardInput | Card,
-    now: DateInput,
-    grade: Grade,
-    afterHandler?: (recordLog: RecordLogItem) => R
-  ): R {
-    const instance = this.getScheduler(card, now)
-    const g = TypeConvert.rating(grade)
-    if (g === Rating.Manual) {
-      throw new FSRSValidationError('Cannot review a manual rating')
-    }
-    const recordLogItem = instance.review(g)
-    return applyAfterHandler(recordLogItem, afterHandler)
+  * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
+  * @param card Card to be processed
+  * @param now Current time or scheduled time
+  * @param grade Rating of the review (Again, Hard, Good, Easy)
+  * @example
+  * ```typescript
+  * const card: Card = createEmptyCard(new Date());
+  * const f = fsrs();
+  * const recordLogItem = f.next(card, new Date(), Rating.Again);
+  * ```
+  */
+  next(
+   card: CardInput | Card,
+   now: DateInput,
+   grade: Grade
+  ): RecordLogItem {
+   const instance = this.getScheduler(card, now)
+   const g = TypeConvert.rating(grade)
+   if (g === Rating.Manual) {
+     throw new FSRSValidationError('Cannot review a manual rating')
+   }
+   return instance.review(g)
   }
 
   get_retrievability(
@@ -361,42 +224,24 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     return format ? `${(r * 100).toFixed(2)}%` : r
   }
 
-  rollback(card: CardInput | Card, log: ReviewLogInput): Card
-  rollback<R>(
-    card: CardInput | Card,
-    log: ReviewLogInput,
-    afterHandler: (prevCard: Card) => R
-  ): R
   /**
    *
    * @param card Card to be processed
    * @param log last review log
-   * @param afterHandler Convert the result to another type. (Optional)
    * @example
    * ```typescript
    * const now = new Date();
    * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now);
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now);
-   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
-   * const rollbackFromAfterHandler = f.rollback(card, log);
-   * ```
-   *
-   * @example
-   * ```typescript
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler);  //see method: createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
-   * const { card, log } = repeatFormAfterHandler[Rating.Hard];
-   * const rollbackFromAfterHandler = f.rollback(card, log, cardAfterHandler);
+   * const emptyCard = createEmptyCard(now);
+   * const repeat = f.repeat(emptyCard, now);
+   * const { card, log } = repeat[Rating.Hard];
+   * const rollbackCard = f.rollback(card, log);
    * ```
    */
-  rollback<R = Card>(
+  rollback(
     card: CardInput | Card,
-    log: ReviewLogInput,
-    afterHandler?: (prevCard: Card) => R
-  ): R {
+    log: ReviewLogInput
+  ): Card {
     const processedCard = TypeConvert.card(card)
     const processedLog = TypeConvert.review_log(log)
     if (processedLog.rating === Rating.Manual) {
@@ -437,26 +282,14 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       state: processedLog.state,
       last_review: last_review,
     }
-    return applyAfterHandler(prevCard, afterHandler)
+    return prevCard
   }
 
-  forget(
-    card: CardInput | Card,
-    now: DateInput,
-    reset_count?: boolean
-  ): RecordLogItem
-  forget<R>(
-    card: CardInput | Card,
-    now: DateInput,
-    reset_count: boolean | undefined,
-    afterHandler: (recordLogItem: RecordLogItem) => R
-  ): R
   /**
    *
    * @param card Card to be processed
    * @param now Current time or scheduled time
    * @param reset_count Should the review count information(reps,lapses) be reset. (Optional)
-   * @param afterHandler Convert the result to another type. (Optional)
    * @example
    * ```typescript
    * const now = new Date();
@@ -466,48 +299,12 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * const { card, log } = scheduling_cards[Rating.Hard];
    * const forgetCard = f.forget(card, new Date(), true);
    * ```
-   *
-   * @example
-   * ```typescript
-   * interface RepeatRecordLog {
-   *   card: CardUnChecked; //see method: createEmptyCard
-   *   log: RevLogUnchecked; //see method: fsrs.repeat()
-   * }
-   *
-   * function forgetAfterHandler(recordLogItem: RecordLogItem): RepeatRecordLog {
-   *     return {
-   *       card: {
-   *         ...(recordLogItem.card as Card & { cid: string }),
-   *         due: recordLogItem.card.due.getTime(),
-   *         state: State[recordLogItem.card.state] as StateType,
-   *         last_review: recordLogItem.card.last_review
-   *           ? recordLogItem.card.last_review!.getTime()
-   *           : null,
-   *       },
-   *       log: {
-   *         ...recordLogItem.log,
-   *         cid: (recordLogItem.card as Card & { cid: string }).cid,
-   *         due: recordLogItem.log.due.getTime(),
-   *         review: recordLogItem.log.review.getTime(),
-   *         state: State[recordLogItem.log.state] as StateType,
-   *         rating: Rating[recordLogItem.log.rating] as RatingType,
-   *       },
-   *     };
-   * }
-   * const now = new Date();
-   * const f = fsrs();
-   * const emptyCardFormAfterHandler = createEmptyCard(now, cardAfterHandler); //see method:  createEmptyCard
-   * const repeatFormAfterHandler = f.repeat(emptyCardFormAfterHandler, now, repeatAfterHandler); //see method: fsrs.repeat()
-   * const { card } = repeatFormAfterHandler[Rating.Hard];
-   * const forgetFromAfterHandler = f.forget(card, date_scheduler(now, 1, true), false, forgetAfterHandler);
-   * ```
    */
-  forget<R = RecordLogItem>(
+  forget(
     card: CardInput | Card,
     now: DateInput,
-    reset_count: boolean = false,
-    afterHandler?: (recordLogItem: RecordLogItem) => R
-  ): R {
+    reset_count: boolean = false
+  ): RecordLogItem {
     const processedCard = TypeConvert.card(card)
     now = TypeConvert.time(now)
     const scheduled_days =
@@ -537,7 +334,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
       last_review: processedCard.last_review,
     }
     const recordLogItem: RecordLogItem = { card: forget_card, log: forget_log }
-    return applyAfterHandler(recordLogItem, afterHandler)
+    return recordLogItem
   }
 
   reschedule<T = RecordLogItem>(
@@ -627,7 +424,9 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
           ? collections.map(recordLogHandler)
           : collections,
       reschedule_item: manual_item
-        ? applyAfterHandler(manual_item, recordLogHandler)
+        ? typeof recordLogHandler === 'function'
+          ? recordLogHandler(manual_item)
+          : (manual_item as unknown as T)
         : null,
     } as IReschedule<T>
   }
