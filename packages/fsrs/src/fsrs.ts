@@ -165,28 +165,24 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
   }
 
   /**
-  * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
-  * @param card Card to be processed
-  * @param now Current time or scheduled time
-  * @param grade Rating of the review (Again, Hard, Good, Easy)
-  * @example
-  * ```typescript
-  * const card: Card = createEmptyCard(new Date());
-  * const f = fsrs();
-  * const recordLogItem = f.next(card, new Date(), Rating.Again);
-  * ```
-  */
-  next(
-   card: CardInput | Card,
-   now: DateInput,
-   grade: Grade
-  ): RecordLogItem {
-   const instance = this.getScheduler(card, now)
-   const g = TypeConvert.rating(grade)
-   if (g === Rating.Manual) {
-     throw new FSRSValidationError('Cannot review a manual rating')
-   }
-   return instance.review(g)
+   * Display the collection of cards and logs for the card scheduled at the current time, after applying a specific grade rating.
+   * @param card Card to be processed
+   * @param now Current time or scheduled time
+   * @param grade Rating of the review (Again, Hard, Good, Easy)
+   * @example
+   * ```typescript
+   * const card: Card = createEmptyCard(new Date());
+   * const f = fsrs();
+   * const recordLogItem = f.next(card, new Date(), Rating.Again);
+   * ```
+   */
+  next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem {
+    const instance = this.getScheduler(card, now)
+    const g = TypeConvert.rating(grade)
+    if (g === Rating.Manual) {
+      throw new FSRSValidationError('Cannot review a manual rating')
+    }
+    return instance.review(g)
   }
 
   get_retrievability(
@@ -238,10 +234,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
    * const rollbackCard = f.rollback(card, log);
    * ```
    */
-  rollback(
-    card: CardInput | Card,
-    log: ReviewLogInput
-  ): Card {
+  rollback(card: CardInput | Card, log: ReviewLogInput): Card {
     const processedCard = TypeConvert.card(card)
     const processedLog = TypeConvert.review_log(log)
     if (processedLog.rating === Rating.Manual) {

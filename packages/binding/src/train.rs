@@ -2,9 +2,9 @@ use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
 use napi_derive::napi;
 use std::sync::{Arc, Mutex};
 
-use crate::{ComputeParametersOptions, FSRSItem};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::progress;
+use crate::{ComputeParametersOptions, FSRSItem};
 
 pub struct ComputeParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
