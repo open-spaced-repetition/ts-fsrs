@@ -4,3 +4,4 @@
 
 
 - [Breaking Changes] Removed `afterHandler` callback parameter from `createEmptyCard()`, `repeat()`, `next()`, `rollback()`, and `forget()` methods. Transform results externally after calling these methods instead.
+- [Breaking Changes] `reschedule` no longer accepts or applies `recordLogHandler`.
