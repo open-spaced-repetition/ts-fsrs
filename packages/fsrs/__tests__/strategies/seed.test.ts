@@ -19,10 +19,7 @@ describe('seed strategy', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: 555 })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: 555 }) as ICard
 
     const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -57,10 +54,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: 555 })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: 555 }) as ICard
 
     f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -98,10 +92,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: 555 })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: 555 }) as ICard
 
     const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -124,7 +115,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now)
+    const card = createEmptyCard(now) as unknown as ICard
 
     const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -147,10 +138,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: -1 })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: -1 }) as ICard
 
     const _record = f.repeat(card, now)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -175,10 +163,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: undefined })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: undefined }) as ICard
 
     const item = f.next(card, now, Rating.Good)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -204,10 +189,7 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = createEmptyCard<ICard>(now, (card: Card) => {
-      Object.assign(card, { card_id: null })
-      return card as ICard
-    })
+    const card = Object.assign(createEmptyCard(now), { card_id: null }) as ICard
 
     const item = f.next(card, now, Rating.Good)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])

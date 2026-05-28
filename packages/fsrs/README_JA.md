@@ -143,23 +143,6 @@ const preview = scheduler.repeat(card, new Date())
 const result = scheduler.next(card, new Date(), Rating.Good)
 ```
 
-結果をそのまま自分の保存形式に変換したい場合は `afterHandler` を使えます。
-
-```ts
-const saved = scheduler.next(card, new Date(), Rating.Good, ({ card, log }) => ({
-  card: {
-    ...card,
-    due: card.due.getTime(),
-    last_review: card.last_review?.getTime() ?? null,
-  },
-  log: {
-    ...log,
-    due: log.due.getTime(),
-    review: log.review.getTime(),
-  },
-}))
-```
-
 ### 想起確率
 
 ```ts

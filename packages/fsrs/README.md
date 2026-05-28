@@ -143,23 +143,6 @@ Use `next` when you already know the selected rating.
 const result = scheduler.next(card, new Date(), Rating.Good)
 ```
 
-If you want to map the result into your own storage type, pass an `afterHandler`.
-
-```ts
-const saved = scheduler.next(card, new Date(), Rating.Good, ({ card, log }) => ({
-  card: {
-    ...card,
-    due: card.due.getTime(),
-    last_review: card.last_review?.getTime() ?? null,
-  },
-  log: {
-    ...log,
-    due: log.due.getTime(),
-    review: log.review.getTime(),
-  },
-}))
-```
-
 ### Retrievability
 
 ```ts

@@ -57,7 +57,9 @@ fn total_loss(points: &[(f64, f64)], stability: f64, factor: f64, decay: f64) ->
   let epsilon = 1e-15;
   let inv_s = 1.0 / stability;
   points.iter().fold(0.0, |acc, &(t, y)| {
-    let y_pred = (1.0 + factor * t * inv_s).powf(decay).clamp(epsilon, 1.0 - epsilon);
+    let y_pred = (1.0 + factor * t * inv_s)
+      .powf(decay)
+      .clamp(epsilon, 1.0 - epsilon);
     acc - (y * y_pred.ln() + (1.0 - y) * (1.0 - y_pred).ln())
   })
 }
@@ -305,7 +307,11 @@ pub fn compute_optimal_steps(
     .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
 
   // Sort by (card_id, review_time)
-  revlogs.sort_by(|a, b| a.card_id.cmp(&b.card_id).then(a.review_time.cmp(&b.review_time)));
+  revlogs.sort_by(|a, b| {
+    a.card_id
+      .cmp(&b.card_id)
+      .then(a.review_time.cmp(&b.review_time))
+  });
 
   // Extract step data
   let mut stats_map = extract_step_data(&revlogs);
