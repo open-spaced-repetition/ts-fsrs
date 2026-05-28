@@ -5,7 +5,7 @@ import {
   migrateParameters,
 } from './default'
 import { FSRSValidationError } from './error'
-import { clamp, get_fuzz_range, roundTo } from './help'
+import { clamp, roundTo } from './help'
 import {
   type FSRSParameters,
   type FSRSState,

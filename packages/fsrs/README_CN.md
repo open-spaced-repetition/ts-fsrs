@@ -135,23 +135,6 @@ const preview = scheduler.repeat(card, new Date())
 const result = scheduler.next(card, new Date(), Rating.Good)
 ```
 
-如果你想把结果直接映射成自己的存储结构，可以传入 `afterHandler`：
-
-```ts
-const saved = scheduler.next(card, new Date(), Rating.Good, ({ card, log }) => ({
-  card: {
-    ...card,
-    due: card.due.getTime(),
-    last_review: card.last_review?.getTime() ?? null,
-  },
-  log: {
-    ...log,
-    due: log.due.getTime(),
-    review: log.review.getTime(),
-  },
-}))
-```
-
 ### 可提取率
 
 ```ts

@@ -22,18 +22,8 @@ export interface IScheduler {
 
 /**
  * Options for rescheduling.
- *
- * @template T - The type of the result returned by the `recordLogHandler` function.
  */
-export type RescheduleOptions<T = RecordLogItem> = {
-  /**
-   * A function that handles recording the log.
-   *
-   * @param recordLog - The log to be recorded.
-   * @returns The result of recording the log.
-   */
-  recordLogHandler: (recordLog: RecordLogItem) => T
-
+export type RescheduleOptions = {
   /**
    * A function that defines the order of reviews.
    *
@@ -64,7 +54,7 @@ export type RescheduleOptions<T = RecordLogItem> = {
   first_card?: CardInput
 }
 
-export type IReschedule<T = RecordLogItem> = {
-  collections: T[]
-  reschedule_item: T | null
+export type IReschedule = {
+  collections: RecordLogItem[]
+  reschedule_item: RecordLogItem | null
 }

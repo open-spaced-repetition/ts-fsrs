@@ -77,7 +77,7 @@ export class Reschedule {
         learning_steps: card.learning_steps,
         review: <Date>reviewed,
       } satisfies ReviewLog
-      next_card = createEmptyCard<Card>(reviewed)
+      next_card = createEmptyCard(reviewed)
       next_card.last_review = reviewed
     } else {
       if (typeof due === 'undefined') {
@@ -120,7 +120,7 @@ export class Reschedule {
    */
   reschedule(current_card: CardInput, reviews: FSRSHistory[]) {
     const collections: RecordLogItem[] = []
-    let cur_card = createEmptyCard<Card>(current_card.due)
+    let cur_card = createEmptyCard(current_card.due)
     for (const review of reviews) {
       let item: RecordLogItem
       review.review = TypeConvert.time(review.review)

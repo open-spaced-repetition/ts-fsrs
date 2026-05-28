@@ -182,7 +182,6 @@ describe('FSRS reschedule', () => {
     testReschedule(scheduler, tests, {
       reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) =>
         date_diff(a.review, b.review, 'days'),
-      recordLogHandler: (recordLog) => recordLog,
     })
   })
 
@@ -216,7 +215,6 @@ describe('FSRS reschedule', () => {
     testReschedule(scheduler, tests, {
       reviewsOrderBy: (a: FSRSHistory, b: FSRSHistory) =>
         date_diff(a.review, b.review, 'days'),
-      recordLogHandler: (recordLog) => recordLog,
       skipManual: false,
     })
   })
@@ -569,9 +567,6 @@ describe('FSRS reschedule', () => {
     }
 
     const results_short = scheduler.reschedule(current_card, reviews, {
-      recordLogHandler: (recordLog) => {
-        return recordLog
-      },
       skipManual: false,
       first_card: createEmptyCard(Date.UTC(2024, 8, 13, 0, 0, 0)),
       update_memory_state: true,
