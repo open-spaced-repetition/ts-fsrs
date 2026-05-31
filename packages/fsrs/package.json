@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "decimal.js": "^10.5.0",
-    "tsdown": "0.22.0",
+    "tsdown": "0.22.1",
     "typedoc": "0.28.18",
     "typedoc-plugin-extras": "4.0.1"
   },

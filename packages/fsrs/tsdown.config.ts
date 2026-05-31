@@ -11,7 +11,7 @@ export default defineConfig([
     minify: false,
     target: 'node20',
     platform: 'node',
-    shims: true,
+    shims: false,
   },
   {
     entry: { index: 'src/index.ts' },
