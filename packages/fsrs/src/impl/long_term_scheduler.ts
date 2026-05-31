@@ -96,17 +96,17 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
-    const params = this.algorithm.parameters
-    const fuzz = (ivl: int): int =>
-      withFuzzing(ivl, interval, params, this._seed)
     let again_interval: int,
       hard_interval: int,
       good_interval: int,
       easy_interval: int
-    again_interval = fuzz(this.algorithm.next_interval(next_again.stability))
-    hard_interval = fuzz(this.algorithm.next_interval(next_hard.stability))
-    good_interval = fuzz(this.algorithm.next_interval(next_good.stability))
-    easy_interval = fuzz(this.algorithm.next_interval(next_easy.stability))
+    again_interval = this.scheduler_next_interval(
+      next_again.stability,
+      interval
+    )
+    hard_interval = this.scheduler_next_interval(next_hard.stability, interval)
+    good_interval = this.scheduler_next_interval(next_good.stability, interval)
+    easy_interval = this.scheduler_next_interval(next_easy.stability, interval)
 
     again_interval = Math.min(again_interval, hard_interval) as int
     hard_interval = Math.max(hard_interval, again_interval + 1) as int
@@ -124,6 +124,19 @@ export default class LongTermScheduler extends AbstractScheduler {
 
     next_easy.scheduled_days = easy_interval
     next_easy.due = date_scheduler(this.review_time, easy_interval, true)
+  }
+
+  private scheduler_next_interval(
+    stability: number,
+    elapsed_days: number
+  ): int {
+    const params = this.algorithm.parameters
+    const base = this.algorithm.next_interval(
+      stability,
+      params.request_retention
+    )
+    const interval = withFuzzing(base, elapsed_days, params, this._seed)
+    return Math.min(interval, params.maximum_interval) as int
   }
 
   /**

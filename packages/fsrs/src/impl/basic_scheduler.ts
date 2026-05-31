@@ -99,12 +99,9 @@ export default class BasicScheduler extends AbstractScheduler {
         nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440)
       } else {
         nextCard.learning_steps = 0
-        const base = this.algorithm.next_interval(nextCard.stability)
-        const interval = withFuzzing(
-          base,
-          this.elapsed_days,
-          this.algorithm.parameters,
-          this._seed
+        const interval = this.scheduler_next_interval(
+          nextCard.stability,
+          this.elapsed_days
         )
         nextCard.scheduled_days = interval
         nextCard.due = date_scheduler(this.review_time, interval as int, true)
@@ -220,16 +217,13 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
-    const params = this.algorithm.parameters
-    const fuzz = (ivl: int): int =>
-      withFuzzing(ivl, interval, params, this._seed)
     let hard_interval: int, good_interval: int
-    hard_interval = fuzz(this.algorithm.next_interval(next_hard.stability))
-    good_interval = fuzz(this.algorithm.next_interval(next_good.stability))
+    hard_interval = this.scheduler_next_interval(next_hard.stability, interval)
+    good_interval = this.scheduler_next_interval(next_good.stability, interval)
     hard_interval = Math.min(hard_interval, good_interval) as int
     good_interval = Math.max(good_interval, hard_interval + 1) as int
     const easy_interval = Math.max(
-      fuzz(this.algorithm.next_interval(next_easy.stability)),
+      this.scheduler_next_interval(next_easy.stability, interval),
       good_interval + 1
     ) as int
 
@@ -240,6 +234,19 @@ export default class BasicScheduler extends AbstractScheduler {
 
     next_easy.scheduled_days = easy_interval
     next_easy.due = date_scheduler(this.review_time, easy_interval, true)
+  }
+
+  private scheduler_next_interval(
+    stability: number,
+    elapsed_days: number
+  ): int {
+    const params = this.algorithm.parameters
+    const base = this.algorithm.next_interval(
+      stability,
+      params.request_retention
+    )
+    const interval = withFuzzing(base, elapsed_days, params, this._seed)
+    return Math.min(interval, params.maximum_interval) as int
   }
 
   /**
