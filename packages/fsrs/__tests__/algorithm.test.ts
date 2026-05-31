@@ -341,7 +341,7 @@ describe('next_interval', () => {
       fsrs({
         request_retention: r,
         maximum_interval: Number.MAX_VALUE,
-      }).next_interval(1.0)
+      }).next_interval(1.0, r)
     )
     // https://github.com/open-spaced-repetition/fsrs-rs/blob/78c36e6b21182c5a13f8649eafe2eb62c1dbdabe/src/inference.rs#L852
     // Result differs by +3 days compared to the reference test due to differing numeric precision: fsrs-rs uses f32, while ts-fsrs uses f64
@@ -359,8 +359,13 @@ describe('next_interval', () => {
     ])
   })
 
+  it('defaults desired_retention to parameters.request_retention', () => {
+    const f = fsrs({ request_retention: 0.8 })
+    expect(f.next_interval(1.0)).toEqual(f.next_interval(1.0, 0.8))
+  })
+
   // https://github.com/open-spaced-repetition/ts-fsrs/pull/74
-  it('next_ivl[max_limit]', () => {
+  it('next_ivl does not apply maximum_interval', () => {
     const params = generatorParameters({ maximum_interval: 365 })
     const { decay, factor } = computeDecayFactor(params.w)
     const intervalModifier =
@@ -368,12 +373,16 @@ describe('next_interval', () => {
     const f: FSRS = fsrs(params)
 
     const s = 737.47
-    const next_ivl = f.next_interval(s)
-    expect(next_ivl).toEqual(params.maximum_interval)
+    const next_ivl = f.next_interval(s, params.request_retention)
+    expect(next_ivl).toEqual(Math.round(s * intervalModifier))
+    expect(next_ivl).toBeGreaterThan(params.maximum_interval)
 
     const t_fuzz = 98
     const fuzzed_params = generatorParameters({ ...params, enable_fuzz: true })
-    const base_ivl = fsrs(fuzzed_params).next_interval(s)
+    const base_ivl = fsrs(fuzzed_params).next_interval(
+      s,
+      fuzzed_params.request_retention
+    )
     const next_ivl_fuzz = withFuzzing(base_ivl, t_fuzz, fuzzed_params)
     const { min_ivl, max_ivl } = get_fuzz_range(
       Math.round(s * intervalModifier),
@@ -429,8 +438,6 @@ describe('withFuzzing', () => {
 describe('change Params', () => {
   test('change FSRSParameters[FSRS]', () => {
     const f = fsrs()
-    // I(r,s),r=0.9 then I(r,s)=s
-    expect(f.interval_modifier).toEqual(1)
     expect(f.parameters).toEqual(generatorParameters())
 
     const request_retention = 0.8
@@ -466,14 +473,9 @@ describe('change Params', () => {
     expect(f.parameters.request_retention).toEqual(request_retention)
     expect(f.parameters.w).toEqual(update_w)
     expect(f.parameters.enable_fuzz).toEqual(true)
-    expect(f.interval_modifier).toEqual(
-      f.calculate_interval_modifier(request_retention)
-    )
 
     f.parameters.request_retention = default_request_retention
-    expect(f.interval_modifier).toEqual(
-      f.calculate_interval_modifier(default_request_retention)
-    )
+    expect(f.parameters.request_retention).toEqual(default_request_retention)
 
     f.parameters.w = default_w
     expect(f.parameters.w).toEqual(default_w)
@@ -494,8 +496,6 @@ describe('change Params', () => {
   test('change FSRSParameters[FSRSAlgorithm]', () => {
     const params = generatorParameters()
     const f = new FSRSAlgorithm(params)
-    // I(r,s),r=0.9 then I(r,s)=s
-    expect(f.interval_modifier).toEqual(1)
     expect(f.parameters).toEqual(generatorParameters())
 
     const request_retention = 0.8
@@ -531,14 +531,9 @@ describe('change Params', () => {
     expect(f.parameters.request_retention).toEqual(request_retention)
     expect(f.parameters.w).toEqual(update_w)
     expect(f.parameters.enable_fuzz).toEqual(true)
-    expect(f.interval_modifier).toEqual(
-      f.calculate_interval_modifier(request_retention)
-    )
 
     f.parameters.request_retention = default_request_retention
-    expect(f.interval_modifier).toEqual(
-      f.calculate_interval_modifier(default_request_retention)
-    )
+    expect(f.parameters.request_retention).toEqual(default_request_retention)
 
     f.parameters.w = default_w
     expect(f.parameters.w).toEqual(default_w)
@@ -556,17 +551,15 @@ describe('change Params', () => {
     expect(f.parameters.enable_short_term).toEqual(false)
   })
 
-  test('calculate_interval_modifier', () => {
+  test('next_interval validates desired_retention', () => {
     const f = new FSRSAlgorithm(generatorParameters())
-    expect(f.interval_modifier).toEqual(
-      f.calculate_interval_modifier(default_request_retention)
-    )
+    expect(f.next_interval(1, default_request_retention)).toEqual(1)
     expect(() => {
-      f.parameters.request_retention = 1.2
-    }).toThrow('Requested retention rate should be in the range (0,1]')
+      f.next_interval(1, 1.2)
+    }).toThrow('Desired retention rate should be in the range (0,1]')
     expect(() => {
-      f.parameters.request_retention = -0.2
-    }).toThrow('Requested retention rate should be in the range (0,1]')
+      f.next_interval(1, -0.2)
+    }).toThrow('Desired retention rate should be in the range (0,1]')
   })
 })
 
