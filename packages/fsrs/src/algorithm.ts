@@ -55,38 +55,13 @@ export function forgetting_curve(
  */
 export class FSRSAlgorithm {
   protected param!: FSRSParameters
-  protected intervalModifier!: number
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
       generatorParameters(params),
       this.params_handler_proxy()
     )
-    this.intervalModifier = this.calculate_interval_modifier(
-      this.param.request_retention
-    )
     this.forgetting_curve = forgetting_curve.bind(this, this.param.w)
-  }
-
-  get interval_modifier(): number {
-    return this.intervalModifier
-  }
-
-  /**
-   * @see https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-5
-   *
-   * The formula used is: $$I(r,s) = (r^{\frac{1}{DECAY}} - 1) / FACTOR \times s$$
-   * @param request_retention 0<request_retention<=1,Requested retention rate
-   * @throws {Error} Requested retention rate should be in the range (0,1]
-   */
-  calculate_interval_modifier(request_retention: number): number {
-    if (request_retention <= 0 || request_retention > 1) {
-      throw new FSRSValidationError(
-        'Requested retention rate should be in the range (0,1]'
-      )
-    }
-    const { decay, factor } = computeDecayFactor(this.param.w)
-    return roundTo((Math.pow(request_retention, 1 / decay) - 1) / factor, 8)
   }
 
   /**
@@ -112,20 +87,13 @@ export class FSRSAlgorithm {
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) {
-        if (prop === 'request_retention' && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          )
-        } else if (prop === 'w') {
+        if (prop === 'w') {
           value = migrateParameters(
             value as FSRSParameters['w'],
             target.relearning_steps.length,
             target.enable_short_term
           )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          )
         }
         Reflect.set(target, prop, value)
         return true
@@ -173,14 +141,28 @@ export class FSRSAlgorithm {
    *   Computes the base interval (no fuzzing). Fuzzing is applied by the scheduler
    *   layer via the `withFuzzing` strategy helper.
    *
-   *   @see The formula used is : {@link FSRSAlgorithm.calculate_interval_modifier}
+   *   The formula used is: $$I(r,s) = \frac{s}{FACTOR} \times (r^{\frac{1}{DECAY}} - 1)$$
    *   @param {number} s - Stability (interval when R=90%)
+   *   @param {number} desired_retention - Desired retention rate for this interval
+   *   @throws {Error} Desired retention rate should be in the range (0,1]
    */
-  next_interval(s: number): int {
-    return clamp(
-      Math.round(s * this.intervalModifier),
-      1,
-      this.param.maximum_interval
+  next_interval(
+    s: number,
+    desired_retention: number = this.param.request_retention
+  ): int {
+    if (
+      !Number.isFinite(desired_retention) ||
+      desired_retention <= 0 ||
+      desired_retention > 1
+    ) {
+      throw new FSRSValidationError(
+        'Desired retention rate should be in the range (0,1]'
+      )
+    }
+    const { decay, factor } = computeDecayFactor(this.param.w)
+    return Math.max(
+      Math.round((s / factor) * (Math.pow(desired_retention, 1 / decay) - 1)),
+      1
     ) as int
   }
 

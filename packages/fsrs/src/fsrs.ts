@@ -86,11 +86,7 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) {
-        if (prop === 'request_retention' && Number.isFinite(value)) {
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(value)
-          )
-        } else if (prop === 'enable_short_term') {
+        if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         } else if (prop === 'w') {
           value = migrateParameters(
@@ -99,9 +95,6 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
             target.enable_short_term
           )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
-          _this.intervalModifier = _this.calculate_interval_modifier(
-            Number(target.request_retention)
-          )
         }
         Reflect.set(target, prop, value)
         return true
