@@ -41,7 +41,7 @@ jobs:
       (github.event_name == 'pull_request_review' && needs.check.outputs.has-permissions == 'true')
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: 20
+      node-version: 22
     secrets: inherit
   release:
     name: Release
@@ -55,7 +55,7 @@ jobs:
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Run checks
         run: pnpm run check

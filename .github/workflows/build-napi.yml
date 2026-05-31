@@ -14,7 +14,7 @@ on:
     inputs:
       node-version:
         type: string
-        default: '20'
+        default: '22'
 
 jobs:
   build:
@@ -109,7 +109,7 @@ jobs:
         uses: actions/setup-node@v4
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         with:
-          node-version: 20
+          node-version: 22
           cache: 'pnpm'
           architecture: x86
 
