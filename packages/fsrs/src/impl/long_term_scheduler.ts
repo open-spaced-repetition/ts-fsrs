@@ -96,6 +96,7 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
+    const { maximum_interval } = this.algorithm.parameters
     let again_interval: int,
       hard_interval: int,
       good_interval: int,
@@ -109,9 +110,18 @@ export default class LongTermScheduler extends AbstractScheduler {
     easy_interval = this.scheduler_next_interval(next_easy.stability, interval)
 
     again_interval = Math.min(again_interval, hard_interval) as int
-    hard_interval = Math.max(hard_interval, again_interval + 1) as int
-    good_interval = Math.max(good_interval, hard_interval + 1) as int
-    easy_interval = Math.max(easy_interval, good_interval + 1) as int
+    hard_interval = Math.min(
+      Math.max(hard_interval, again_interval + 1),
+      maximum_interval
+    ) as int
+    good_interval = Math.min(
+      Math.max(good_interval, hard_interval + 1),
+      maximum_interval
+    ) as int
+    easy_interval = Math.min(
+      Math.max(easy_interval, good_interval + 1),
+      maximum_interval
+    ) as int
 
     next_again.scheduled_days = again_interval
     next_again.due = date_scheduler(this.review_time, again_interval, true)
@@ -136,7 +146,7 @@ export default class LongTermScheduler extends AbstractScheduler {
       params.request_retention
     )
     const interval = withFuzzing(base, elapsed_days, params, this._seed)
-    return Math.min(interval, params.maximum_interval) as int
+    return interval
   }
 
   /**

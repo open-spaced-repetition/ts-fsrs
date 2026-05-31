@@ -217,14 +217,21 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
+    const { maximum_interval } = this.algorithm.parameters
     let hard_interval: int, good_interval: int
     hard_interval = this.scheduler_next_interval(next_hard.stability, interval)
     good_interval = this.scheduler_next_interval(next_good.stability, interval)
     hard_interval = Math.min(hard_interval, good_interval) as int
-    good_interval = Math.max(good_interval, hard_interval + 1) as int
-    const easy_interval = Math.max(
-      this.scheduler_next_interval(next_easy.stability, interval),
-      good_interval + 1
+    good_interval = Math.min(
+      Math.max(good_interval, hard_interval + 1),
+      maximum_interval
+    ) as int
+    const easy_interval = Math.min(
+      Math.max(
+        this.scheduler_next_interval(next_easy.stability, interval),
+        good_interval + 1
+      ),
+      maximum_interval
     ) as int
 
     next_hard.scheduled_days = hard_interval
@@ -246,7 +253,7 @@ export default class BasicScheduler extends AbstractScheduler {
       params.request_retention
     )
     const interval = withFuzzing(base, elapsed_days, params, this._seed)
-    return Math.min(interval, params.maximum_interval) as int
+    return interval
   }
 
   /**
