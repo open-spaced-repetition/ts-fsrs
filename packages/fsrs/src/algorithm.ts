@@ -150,7 +150,11 @@ export class FSRSAlgorithm {
     s: number,
     desired_retention: number = this.param.request_retention
   ): int {
-    if (desired_retention <= 0 || desired_retention > 1) {
+    if (
+      !Number.isFinite(desired_retention) ||
+      desired_retention <= 0 ||
+      desired_retention > 1
+    ) {
       throw new FSRSValidationError(
         'Desired retention rate should be in the range (0,1]'
       )
