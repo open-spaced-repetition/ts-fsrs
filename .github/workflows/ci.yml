@@ -32,7 +32,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: 20
+      node-version: 22
     secrets: inherit
   test:
     needs: build
@@ -49,8 +49,8 @@ jobs:
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
         node:
-          - '20'
           - '22'
+          - '24'
 
     uses: ./.github/workflows/test.yml
     with:
