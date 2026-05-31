@@ -7,8 +7,8 @@ concurrency:
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
-  MACOSX_DEPLOYMENT_TARGET: "10.13"
-  CARGO_INCREMENTAL: "1"
+  MACOSX_DEPLOYMENT_TARGET: '10.13'
+  CARGO_INCREMENTAL: '1'
   TURBO_API: ${{ secrets.TURBO_API }}
   TURBO_TEAM: ${{ vars.TURBO_TEAM }}
   TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
@@ -48,8 +48,8 @@ jobs:
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
         node:
-          - "20"
-          - "22"
+          - '22'
+          - '24'
 
     uses: ./.github/workflows/test.yml
     with:
@@ -106,8 +106,8 @@ jobs:
           version: pnpm run version
           publish: pnpm run release
           createGithubReleases: false
-          commit: "chore(release): version packages"
-          title: "chore: release new versions"
+          commit: 'chore(release): version packages'
+          title: 'chore: release new versions'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
