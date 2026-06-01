@@ -3,13 +3,14 @@ use std::thread;
 use std::time::Duration;
 
 use napi::Status;
-use napi::bindgen_prelude::FnArgs;
+use napi::bindgen_prelude::{FnArgs, Function};
 use napi::threadsafe_function::{ThreadsafeFunction, ThreadsafeFunctionCallMode};
 
 type ProgressArgs = FnArgs<(u32, u32)>;
 pub type ProgressCallback =
   ThreadsafeFunction<ProgressArgs, Option<bool>, ProgressArgs, Status, false, true>;
 
+pub type ProgressFunc<'env> = Function<'env, FnArgs<(u32, u32)>, Option<bool>>;
 // ============================================================================
 // Unified progress state trait
 // ============================================================================

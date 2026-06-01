@@ -1,6 +1,7 @@
-use napi::bindgen_prelude::{FnArgs, Function};
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
+
+use crate::progress::ProgressFunc;
 
 #[napi(js_name = "FSRSBindingReview")]
 #[derive(Debug)]
@@ -251,9 +252,6 @@ pub struct StepStatsResult {
   /// Recommended relearning steps in seconds
   pub recommended_relearning_steps: Vec<i64>,
 }
-
-type ProgressFunc<'env> = Function<'env, FnArgs<(u32, u32)>, Option<bool>>;
-
 #[napi(object)]
 pub struct ComputeParametersOptions<'env> {
   /// Whether to enable short-term memory parameters
