@@ -7,6 +7,12 @@ import { initOptimizer } from '@open-spaced-repetition/binding/dynamic-wasi'
 
 const require = createRequire(import.meta.url)
 
+const defaultParameters = [
+  0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722, 0.1666,
+  0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425, 0.0912, 0.0658,
+  0.1542,
+]
+
 /**
  * Resolve wasm and worker paths.
  * In published packages, they live in @open-spaced-repetition/binding-wasm32-wasi.
@@ -71,6 +77,7 @@ describeIfWasm('initOptimizer', () => {
     expect(binding.computeParameters).toBeDefined()
     expect(binding.convertCsvToFsrsItems).toBeDefined()
     expect(binding.evaluateWithTimeSeriesSplits).toBeDefined()
+    expect(binding.trainCostAdrExperiment).toBeDefined()
   })
 
   test('initializes with Buffer wasm', async () => {
@@ -132,6 +139,34 @@ describeIfWasm('initOptimizer', () => {
     expect(parameters).toBeDefined()
     expect(Array.isArray(parameters)).toBe(true)
     expect(parameters.length).toBe(21)
+  })
+
+  test('trainCostAdrExperiment works after init', async () => {
+    const binding = await initOptimizer({
+      wasm: wasmPath!,
+      worker: workerPath!,
+    })
+    const result = await binding.trainCostAdrExperiment({
+      simulatorConfig: {
+        deckSize: 20,
+        learnSpan: 30,
+        learnLimit: 2,
+        reviewLimit: 20,
+      },
+      parameters: defaultParameters,
+      populationSize: 2,
+      generations: 1,
+      seed: 7,
+      simulationSeed: 11,
+      costWeights: [0, 4],
+      baselineDesiredRetentions: [0.8, 0.9],
+    })
+    expect(result.policy.coefficients).toHaveLength(15)
+    expect(result.policy.coefficients.every(Number.isFinite)).toBe(true)
+    expect(result.history).toHaveLength(1)
+    expect(result.bestHypervolumeDelta).toBeCloseTo(
+      result.bestHypervolume - result.baselineHypervolume
+    )
   })
 
   test('initializes with URL objects', async () => {

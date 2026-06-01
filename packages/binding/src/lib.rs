@@ -3,14 +3,18 @@
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 mod convert;
+mod cost_adr;
 mod evaluate;
 mod model;
 mod progress;
+mod simulation;
 mod steps;
 mod train;
 pub use convert::*;
+pub use cost_adr::*;
 pub use evaluate::*;
 pub use model::*;
+pub use simulation::*;
 pub use steps::*;
 pub use train::*;
 

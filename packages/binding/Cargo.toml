@@ -7,9 +7,10 @@ version = "0.0.2"
 [lib]
 crate-type = ["cdylib"]
 
+
 [dependencies]
-napi = { version = "3.4.0", default-features = true }
-napi-derive = "3.3.0"
+napi = { version = "3.9.0", default-features = true }
+napi-derive = "3.5.6"
 csv = "1.3.0"
 time = { version = "0.3", default-features = false, features = [
   "alloc",
@@ -20,10 +21,9 @@ serde_json = "1.0.143"
 itertools = "0.14.0"
 
 [dependencies.fsrs]
-git = "https://github.com/open-spaced-repetition/fsrs-rs"
-# https://github.com/open-spaced-repetition/fsrs-rs/pull/382
-rev = "b46226aae5ea03959c27cd81abb603bb6b744907"
+version = "6.1.0"
 default-features = false
+features = ["experimental_cost_adr"]
 
 [build-dependencies]
 napi-build = "2"
