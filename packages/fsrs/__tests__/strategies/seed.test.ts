@@ -10,7 +10,7 @@ import {
 } from 'ts-fsrs'
 
 interface ICard extends Card {
-  card_id: number
+  card_id: number | null | undefined
 }
 
 describe('seed strategy', () => {
@@ -27,7 +27,8 @@ describe('seed strategy', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -62,7 +63,8 @@ describe('seed strategy with card ID', () => {
     let scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -76,7 +78,8 @@ describe('seed strategy with card ID', () => {
     scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       new Map([[StrategyMode.SEED, DefaultInitSeedStrategy]])
     ) as AbstractScheduler
     const basic_seed = DefaultInitSeedStrategy.bind(scheduler)()
@@ -100,7 +103,8 @@ describe('seed strategy with card ID', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -123,7 +127,8 @@ describe('seed strategy with card ID', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -146,7 +151,8 @@ describe('seed strategy with card ID', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -163,7 +169,9 @@ describe('seed strategy with card ID', () => {
     const f = fsrs().useStrategy(StrategyMode.SEED, seedStrategy)
     const now = Date.UTC(2022, 11, 29, 12, 30, 0, 0)
 
-    const card = Object.assign(createEmptyCard(now), { card_id: undefined }) as ICard
+    const card = Object.assign(createEmptyCard(now), {
+      card_id: undefined,
+    }) as ICard
 
     const item = f.next(card, now, Rating.Good)
     const strategies = new Map([[StrategyMode.SEED, seedStrategy]])
@@ -171,7 +179,8 @@ describe('seed strategy with card ID', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 
@@ -198,7 +207,8 @@ describe('seed strategy with card ID', () => {
     const scheduler = new f['Scheduler'](
       card,
       now,
-      f,
+      f.model,
+      f.parameters,
       strategies
     ) as AbstractScheduler
 

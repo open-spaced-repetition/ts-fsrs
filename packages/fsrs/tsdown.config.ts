@@ -2,7 +2,11 @@ import { defineConfig } from 'tsdown'
 
 export default defineConfig([
   {
-    entry: ['src/index.ts'],
+    entry: {
+      index: 'src/index.ts',
+      error: 'src/error.ts',
+      'models/fsrs-6': 'src/models/fsrs-6/index.ts',
+    },
     format: ['esm', 'cjs'],
     outDir: 'dist',
     dts: true,

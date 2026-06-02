@@ -1,13 +1,15 @@
 import {
   checkParameters,
-  clipParameters,
   createEmptyCard,
   default_w,
   FSRS5_DEFAULT_DECAY,
   fsrs,
   generatorParameters,
-  migrateParameters,
 } from 'ts-fsrs'
+import {
+  clipFSRS6Parameters,
+  migrateFSRS6Parameters,
+} from 'ts-fsrs/models/fsrs-6'
 
 describe('default params', () => {
   it('convert FSRS-4.5 to FSRS-6', () => {
@@ -76,13 +78,11 @@ describe('default params', () => {
   })
 
   it('revert to default params', () => {
-    const params = generatorParameters({
-      w: [0.40255],
-    })
+    const params = generatorParameters()
     expect(params.w).toEqual(default_w)
 
     const f = fsrs(params)
-    f.parameters.w = [0]
+    f.parameters = {}
     expect(f.parameters.w).toEqual(default_w)
   })
 
@@ -102,28 +102,27 @@ describe('default params', () => {
     w[5] = Infinity
     expect(() => checkParameters(w)).toThrow(/^Non-finite/)
 
-
     w[5] = NaN
     expect(() => checkParameters(w)).toThrow()
   })
 
-  it('migrateParameters', () => {
+  it('migrate FSRS-6 parameters', () => {
     // undefined parameters
-    expect(migrateParameters()).toEqual(default_w)
+    expect(migrateFSRS6Parameters()).toEqual(default_w)
 
     // parameters with length 21
     const params21 = [...default_w]
     // enable short term = true
-    expect(migrateParameters(params21)).toEqual(params21)
+    expect(migrateFSRS6Parameters(params21)).toEqual(params21)
 
     // enable short term = false
     params21[19] = 0
-    expect(migrateParameters(params21, 0, false)).toEqual(params21)
+    expect(migrateFSRS6Parameters(params21, 0, false)).toEqual(params21)
 
     // parameters with length 19 (FSRS 5)
     const params19 = default_w.slice(0, 19)
     const expected19 = [...params19, 0.0, FSRS5_DEFAULT_DECAY]
-    expect(migrateParameters(params19)).toEqual(expected19)
+    expect(migrateFSRS6Parameters(Array.from(params19))).toEqual(expected19)
 
     // parameters with length 17 (FSRS 4/4.5)
     const params17 = [
@@ -153,19 +152,21 @@ describe('default params', () => {
       0.0,
       FSRS5_DEFAULT_DECAY,
     ]
-    expect(migrateParameters(params17)).toEqual(expected17)
+    expect(migrateFSRS6Parameters(params17)).toEqual(expected17)
 
     // parameters with invalid length
     const invalidParams = [1, 2, 3]
-    expect(migrateParameters(invalidParams)).toEqual(default_w)
+    expect(() => migrateFSRS6Parameters(invalidParams)).toThrow(
+      /^Invalid parameters length/
+    )
 
     const { w: NaNParams, relearning_steps } = generatorParameters()
     // @ts-expect-error Simulate NaN in parameters
     NaNParams[0] = NaN
     const expectedParams = [...default_w]
     expectedParams[0] = 0
-    expect(migrateParameters(NaNParams)).toEqual(
-      clipParameters(expectedParams, relearning_steps.length)
+    expect(migrateFSRS6Parameters(Array.from(NaNParams))).toEqual(
+      clipFSRS6Parameters(expectedParams, relearning_steps.length)
     )
   })
 
@@ -173,7 +174,7 @@ describe('default params', () => {
     const w = [...default_w]
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
-    const params = clipParameters(w, 2)
+    const params = clipFSRS6Parameters(w, 2)
     expect(params[17]).toEqual(0.60045935)
     expect(params[18]).toEqual(0.60045935)
     // Verify constraint: w17 * w18 <= value (0.36055143)
@@ -190,7 +191,7 @@ describe('default params', () => {
     w[14] = 0
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
-    const params = clipParameters(w, 2)
+    const params = clipFSRS6Parameters(w, 2)
     expect(Number.isFinite(params[17])).toBe(true)
     expect(Number.isFinite(params[18])).toBe(true)
     // Clamped inputs: w11=0.001, w13=0.001, w14=0.0
@@ -207,8 +208,8 @@ describe('default params', () => {
       0.4, 0.6, 2.4, 5.8, 4.93, 0.94, 0.86, 0.01, 1.49, 0.14, 0.94, 2.18, 0.05,
       0.34, 1.26, 0.29, 2.61,
     ]
-    expect(() => clipParameters(w17, 2)).not.toThrow()
-    const params = clipParameters(w17, 2)
+    expect(() => clipFSRS6Parameters(w17, 2)).not.toThrow()
+    const params = clipFSRS6Parameters(w17, 2)
     expect(params).toHaveLength(17)
     // Original values are all in-range and should pass through untouched.
     expect(params).toEqual(w17)
@@ -230,7 +231,7 @@ describe('default params', () => {
     w[14] = 4.0
     w[17] = Number.MAX_VALUE
     w[18] = Number.MAX_VALUE
-    const params = clipParameters(w, 2)
+    const params = clipFSRS6Parameters(w, 2)
     // value = -(ln(5) + ln(2^0.9 - 1) + 4*0.3) / 2 ≈ -1.333
     // sqrt(max(-1.333, 0)) = sqrt(0) = 0, clamp(0, 0.01, 2.0) = 0.01
     expect(Number.isFinite(params[17])).toBe(true)
@@ -248,7 +249,7 @@ describe('default params', () => {
     w[14] = 0.5
     w[17] = 2.0
     w[18] = 2.0
-    const params = clipParameters(w, 4)
+    const params = clipFSRS6Parameters(w, 4)
     // value = -(ln(0.1) + ln(2^0.1 - 1) + 0.5*0.3) / 4 ≈ 1.1967
     // ceiling = sqrt(value) ≈ 1.0939
     const expectedCeiling = 1.09394076

@@ -282,7 +282,7 @@ describe('Long-term  scheduler', () => {
     ])
   })
 
-  test('[Long-term]get_retrievability ', () => {
+  test('[Long-term]retrievability ', () => {
     const f = fsrs({
       w: [
         0.4072, 1.1829, 3.1262, 15.4722, 7.2102, 0.5316, 1.0651, 0.0234, 1.616,
@@ -295,7 +295,7 @@ describe('Long-term  scheduler', () => {
     const view_date = '2024-08-03T18:25:34.500Z'
     let card: CardInput = createEmptyCard(now)
     card = f.repeat(card, now)[Rating.Again].card
-    let r = f.get_retrievability(card, view_date)
+    let r = `${(f.retrievability(card, view_date) * 100).toFixed(2)}%`
     expect(r).toEqual('100.00%')
 
     card = {
@@ -313,7 +313,7 @@ describe('Long-term  scheduler', () => {
       suspended: false,
       deleted: false,
     } as CardInput
-    r = f.get_retrievability(card, view_date)
+    r = `${(f.retrievability(card, view_date) * 100).toFixed(2)}%`
     expect(r).toEqual('100.00%')
   })
 })

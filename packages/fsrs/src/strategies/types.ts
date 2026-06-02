@@ -1,5 +1,5 @@
 import type { AbstractScheduler } from '../abstract_scheduler'
-import type { FSRSAlgorithm } from '../algorithm'
+import type { IFSRSModel } from '../kit/index.js'
 import type {
   Card,
   CardInput,
@@ -21,7 +21,8 @@ export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
   new (
     card: T,
     now: DateInput,
-    algorithm: FSRSAlgorithm,
+    model: IFSRSModel,
+    parameters: FSRSParameters,
     strategies: Map<StrategyMode, TStrategyHandler>
   ) => IScheduler
 

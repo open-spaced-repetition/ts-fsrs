@@ -515,9 +515,8 @@ describe('FSRS reschedule', () => {
       2.11810397, 2.11121424, 2.1043314, 2.09745544,
     ])
 
-    // switch long-term scheduler
-    f.parameters.enable_short_term = false
-    const results = f.reschedule(createEmptyCard(), reviews, {
+    const longTermScheduler = fsrs({ enable_short_term: false })
+    const results = longTermScheduler.reschedule(createEmptyCard(), reviews, {
       skipManual: false,
     })
     const ivl_history_long = results.collections.map(

@@ -39,16 +39,15 @@ export default class LongTermScheduler extends AbstractScheduler {
     return this.next.get(grade)!
   }
 
-  private next_ds(t: number, g: Grade, r?: number): Card {
-    const next_state = this.algorithm.next_state(
-      {
+  private next_ds(t: number, g: Grade): Card {
+    const next_state = this.model.step({
+      memoryState: {
         difficulty: this.current.difficulty,
         stability: this.current.stability,
       },
-      t,
-      g,
-      r
-    )
+      elapsedDays: t,
+      rating: g,
+    })
 
     const card = TypeConvert.card(this.current)
     card.difficulty = next_state.difficulty
@@ -69,14 +68,10 @@ export default class LongTermScheduler extends AbstractScheduler {
       return exist
     }
     const interval = this.elapsed_days
-    const retrievability = this.algorithm.forgetting_curve(
-      interval,
-      this.current.stability
-    )
-    const next_again = this.next_ds(interval, Rating.Again, retrievability)
-    const next_hard = this.next_ds(interval, Rating.Hard, retrievability)
-    const next_good = this.next_ds(interval, Rating.Good, retrievability)
-    const next_easy = this.next_ds(interval, Rating.Easy, retrievability)
+    const next_again = this.next_ds(interval, Rating.Again)
+    const next_hard = this.next_ds(interval, Rating.Hard)
+    const next_good = this.next_ds(interval, Rating.Good)
+    const next_easy = this.next_ds(interval, Rating.Easy)
 
     this.next_interval(next_again, next_hard, next_good, next_easy, interval)
     this.next_state(next_again, next_hard, next_good, next_easy)
@@ -96,18 +91,15 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
-    const { maximum_interval } = this.algorithm.parameters
+    const { maximum_interval } = this.parameters
     let again_interval: int,
       hard_interval: int,
       good_interval: int,
       easy_interval: int
-    again_interval = this.scheduler_next_interval(
-      next_again.stability,
-      interval
-    )
-    hard_interval = this.scheduler_next_interval(next_hard.stability, interval)
-    good_interval = this.scheduler_next_interval(next_good.stability, interval)
-    easy_interval = this.scheduler_next_interval(next_easy.stability, interval)
+    again_interval = this.scheduler_next_interval(next_again, interval)
+    hard_interval = this.scheduler_next_interval(next_hard, interval)
+    good_interval = this.scheduler_next_interval(next_good, interval)
+    easy_interval = this.scheduler_next_interval(next_easy, interval)
 
     again_interval = Math.min(again_interval, hard_interval) as int
     hard_interval = Math.min(
@@ -136,13 +128,10 @@ export default class LongTermScheduler extends AbstractScheduler {
     next_easy.due = date_scheduler(this.review_time, easy_interval, true)
   }
 
-  private scheduler_next_interval(
-    stability: number,
-    elapsed_days: number
-  ): int {
-    const params = this.algorithm.parameters
-    const base = this.algorithm.next_interval(
-      stability,
+  private scheduler_next_interval(card: Card, elapsed_days: number): int {
+    const params = this.parameters
+    const base = this.model.nextInterval(
+      { stability: card.stability, difficulty: card.difficulty },
       params.request_retention
     )
     const interval = withFuzzing(base, elapsed_days, params, this._seed)

@@ -1,10 +1,10 @@
-import { FSRSAlgorithm, forgetting_curve } from './algorithm'
 import { TypeConvert } from './convert'
-import { createEmptyCard, migrateParameters } from './default'
+import { createEmptyCard, generatorParameters } from './default'
 import { FSRSValidationError } from './error'
 import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
+import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
   type CardInput,
@@ -18,6 +18,8 @@ import {
   type ReviewLogInput,
   State,
 } from './models'
+import { migrateFSRS6Parameters } from './models/fsrs-6/index.js'
+import { FSRS6Model } from './models/fsrs-6/model.js'
 import { Reschedule } from './reschedule'
 import {
   StrategyMode,
@@ -31,7 +33,12 @@ import type {
   RescheduleOptions,
 } from './types'
 
+/**
+ * @deprecated This interface will be removed after all tests are migrated and passing.
+ * Use Scheduler going forward.
+ */
 export interface IFSRS {
+  readonly model: IFSRSModel
   useStrategy<T extends StrategyMode>(
     mode: T,
     handler: TStrategyHandler<T>
@@ -43,16 +50,7 @@ export interface IFSRS {
 
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
 
-  get_retrievability(
-    card: CardInput | Card,
-    now?: DateInput,
-    format?: true
-  ): string
-  get_retrievability(
-    card: CardInput | Card,
-    now?: DateInput,
-    format?: false
-  ): number
+  retrievability(card: CardInput | Card, now?: DateInput): number
 
   rollback(card: CardInput | Card, log: ReviewLogInput): Card
 
@@ -69,34 +67,66 @@ export interface IFSRS {
   ): IReschedule
 }
 
-export class FSRS extends FSRSAlgorithm implements IFSRS {
+/**
+ * @deprecated This class will be removed after all tests are migrated and passing.
+ * Use Scheduler going forward.
+ */
+export class FSRS implements IFSRS {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
-  private Scheduler: TSchedulerStrategy
-  constructor(param: Partial<FSRSParameters>) {
-    super(param)
-    const { enable_short_term } = this.parameters
-    this.Scheduler = enable_short_term ? BasicScheduler : LongTermScheduler
+  private Scheduler!: TSchedulerStrategy
+  #parameters!: FSRSParameters
+  #model!: IFSRSModel
+
+  constructor(parameters: Partial<FSRSParameters> = {}) {
+    this.parameters = parameters
   }
 
-  protected override params_handler_proxy(): ProxyHandler<FSRSParameters> {
+  get model(): IFSRSModel {
+    return this.#model
+  }
+
+  get parameters(): FSRSParameters {
+    return this.#parameters
+  }
+
+  set parameters(parameters: Partial<FSRSParameters>) {
+    const normalized = generatorParameters(parameters)
+    this.#parameters = new Proxy(normalized, this.params_handler_proxy())
+    this.rebuildModel()
+    this.Scheduler = normalized.enable_short_term
+      ? BasicScheduler
+      : LongTermScheduler
+  }
+
+  private rebuildModel(): void {
+    this.#model = FSRS6Model({
+      weights: this.#parameters.w as number[],
+      enableShortTerm: this.#parameters.enable_short_term,
+      numRelearningSteps: this.#parameters.relearning_steps.length,
+    })
+  }
+
+  protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRS
     return {
-      set: function (
+      set: (
         target: FSRSParameters,
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
-      ) {
+      ) => {
         if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         } else if (prop === 'w') {
-          value = migrateParameters(
-            value as FSRSParameters['w'],
+          value = migrateFSRS6Parameters(
+            value as number[],
             target.relearning_steps.length,
             target.enable_short_term
           )
-          _this.forgetting_curve = forgetting_curve.bind(this, value)
         }
         Reflect.set(target, prop, value)
+        if (prop === 'enable_short_term' || prop === 'w') {
+          _this.rebuildModel()
+        }
         return true
       },
     }
@@ -126,7 +156,13 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     ) as TSchedulerStrategy | undefined
 
     const Scheduler = schedulerStrategy || this.Scheduler
-    const instance = new Scheduler(card, now, this, this.strategyHandler)
+    const instance = new Scheduler(
+      card,
+      now,
+      this.#model,
+      this.#parameters,
+      this.strategyHandler
+    )
 
     return instance
   }
@@ -168,28 +204,13 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
     return instance.review(g)
   }
 
-  get_retrievability(
-    card: CardInput | Card,
-    now?: DateInput,
-    format?: true
-  ): string
-  get_retrievability(
-    card: CardInput | Card,
-    now?: DateInput,
-    format?: false
-  ): number
   /**
    * Get the retrievability of the card
    * @param card  Card to be processed
    * @param now  Current time or scheduled time
-   * @param format  default:true , Convert the result to another type. (Optional)
-   * @returns  The retrievability of the card,if format is true, the result is a string, otherwise it is a number
+   * @returns  The retrievability of the card
    */
-  get_retrievability(
-    card: CardInput | Card,
-    now?: DateInput,
-    format: boolean = true
-  ): string | number {
+  retrievability(card: CardInput | Card, now?: DateInput): number {
     const processedCard = TypeConvert.card(card)
     now = now ? TypeConvert.time(now) : new Date()
     const t =
@@ -198,9 +219,9 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
         : 0
     const r =
       processedCard.state !== State.New
-        ? this.forgetting_curve(t, +processedCard.stability.toFixed(8))
+        ? this.#model.forgettingCurve(processedCard, t)
         : 0
-    return format ? `${(r * 100).toFixed(2)}%` : r
+    return r
   }
 
   /**
@@ -391,6 +412,8 @@ export class FSRS extends FSRSAlgorithm implements IFSRS {
 
 /**
  * Create a new instance of TS-FSRS
+ * @deprecated This function will be removed after all tests are migrated and passing.
+ * Use Scheduler going forward.
  * @param params FSRSParameters
  * @example
  * ```typescript
