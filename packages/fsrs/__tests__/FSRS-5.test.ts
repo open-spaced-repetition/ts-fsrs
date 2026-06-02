@@ -4,6 +4,7 @@ import {
   fsrs,
   type Grade,
   Grades,
+  generatorParameters,
   Rating,
   State,
 } from 'ts-fsrs'
@@ -134,38 +135,32 @@ describe('FSRS-5', () => {
 
 describe('get retrievability', () => {
   const fsrs = new FSRS({})
-  test('return 0.00% for new cards', () => {
+  test('return 0 for new cards', () => {
     const card = createEmptyCard()
     const now = new Date()
-    const expected = '0.00%'
-    expect(fsrs.get_retrievability(card, now)).toBe(expected)
+    expect(fsrs.retrievability(card, now)).toBe(0)
   })
 
   test('return retrievability percentage for review cards', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '90.25%']
+
     const r_number = [1, 1, 1, 0.9024733]
     Grades.forEach((grade, index) => {
-      expect(fsrs.get_retrievability(sc[grade].card, sc[grade].card.due)).toBe(
-        r[index]
+      expect(fsrs.retrievability(sc[grade].card, sc[grade].card.due)).toBe(
+        r_number[index]
       )
-      expect(
-        fsrs.get_retrievability(sc[grade].card, sc[grade].card.due, false)
-      ).toBe(r_number[index])
     })
   })
 
   test('fake the current system time', () => {
     const card = createEmptyCard('2023-12-01 04:00:00')
     const sc = fsrs.repeat(card, '2023-12-01 04:05:00')
-    const r = ['100.00%', '100.00%', '100.00%', '90.25%']
     const r_number = [1, 1, 1, 0.9024733]
     vi.useFakeTimers()
     Grades.forEach((grade, index) => {
       vi.setSystemTime(sc[grade].card.due)
-      expect(fsrs.get_retrievability(sc[grade].card)).toBe(r[index])
-      expect(fsrs.get_retrievability(sc[grade].card, undefined, false)).toBe(
+      expect(fsrs.retrievability(sc[grade].card, undefined)).toBe(
         r_number[index]
       )
     })
@@ -173,7 +168,7 @@ describe('get retrievability', () => {
   })
 
   test('loop Again', () => {
-    const fsrs = new FSRS({})
+    const fsrs = new FSRS(generatorParameters())
     let card = createEmptyCard()
     let now = new Date()
     let i = 0
@@ -182,7 +177,7 @@ describe('get retrievability', () => {
       now = card.due
       i++
 
-      const r = fsrs.get_retrievability(card, now, false)
+      const r = fsrs.retrievability(card, now)
       console.debug(`Loop ${i}: s:${card.stability} r:${r} `)
 
       expect(r).not.toBeNaN()
