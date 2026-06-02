@@ -2,7 +2,6 @@ import * as fsrsExports from 'ts-fsrs'
 import {
   checkParameters,
   createEmptyCard,
-  FSRSAlgorithm,
   fsrs,
   type Grade,
   generatorParameters,
@@ -97,18 +96,18 @@ describe('FSRSError', () => {
   })
 
   test('wraps invalid memory state errors', () => {
-    const algorithm = new FSRSAlgorithm(generatorParameters())
+    const model = fsrs(generatorParameters()).model
 
     expectFSRSError(
       () =>
-        algorithm.next_state(
-          {
+        model.step({
+          memoryState: {
             difficulty: 0.5,
             stability: 0,
           },
-          0,
-          Rating.Good
-      ),
+          elapsedDays: 0,
+          rating: Rating.Good,
+        }),
       'Invalid memory state { difficulty: 0.5, stability: 0 }',
       FSRSValidationError
     )

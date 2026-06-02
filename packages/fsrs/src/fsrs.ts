@@ -412,6 +412,8 @@ export class FSRS implements IFSRS {
 
 /**
  * Create a new instance of TS-FSRS
+ * @deprecated This function will be removed after all tests are migrated and passing.
+ * Use Scheduler going forward.
  * @param params FSRSParameters
  * @example
  * ```typescript

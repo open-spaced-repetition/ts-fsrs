@@ -1,4 +1,4 @@
-import type { FSRSReview, FSRSState, Grade } from '../models'
+import type { FSRSReview, FSRSState, Rating } from '../models'
 
 export interface ModelBounds {
   sMin: number
@@ -14,7 +14,7 @@ export interface FSRSModelConfig extends Record<string, unknown> {
 
 export interface FSRSStepInput {
   memoryState: FSRSState | null
-  rating: Grade
+  rating: Rating
   elapsedDays: number
   retrievability?: number
 }
