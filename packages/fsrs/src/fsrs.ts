@@ -100,7 +100,7 @@ export class FSRS implements IFSRS {
 
   private rebuildModel(): void {
     this.#model = FSRS6Model({
-      weights: Array.from(this.#parameters.w),
+      weights: this.#parameters.w as number[],
       enableShortTerm: this.#parameters.enable_short_term,
       numRelearningSteps: this.#parameters.relearning_steps.length,
     })
@@ -160,7 +160,7 @@ export class FSRS implements IFSRS {
       card,
       now,
       this.#model,
-      this.parameters,
+      this.#parameters,
       this.strategyHandler
     )
 

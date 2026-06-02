@@ -512,6 +512,21 @@ describe('change Params', () => {
     expect(f.parameters.enable_short_term).toEqual(false)
   })
 
+  test('in-place FSRSParameters.w mutation updates model weights', () => {
+    const f = fsrs()
+    const state = { difficulty: 5, stability: 10 }
+    const elapsedDays = 1
+    const initial = f.model.forgettingCurve(state, elapsedDays)
+
+    ;(f.parameters.w as number[])[20] = 0.3
+
+    const updated = f.model.forgettingCurve(state, elapsedDays)
+    expect(updated).not.toEqual(initial)
+    expect(updated).toEqual(
+      fsrs_forgetting_curve(f.parameters.w, elapsedDays, state.stability)
+    )
+  })
+
   test('change FSRSParameters[FSRS]', () => {
     const params = generatorParameters()
     const f = fsrs(params)
