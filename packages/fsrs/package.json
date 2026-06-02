@@ -6,6 +6,7 @@
   "types": "dist/index.d.mts",
   "main": "dist/index.cjs",
   "module": "dist/index.mjs",
+  "sideEffects": false,
   "exports": {
     ".": {
       "require": {
