@@ -17,7 +17,7 @@ export const clipFSRS6Parameters = (
     enableShortTerm
   ).slice(0, parameters.length)
 
-  if (Math.max(0, numRelearningSteps) > 1) {
+  if (Math.max(0, numRelearningSteps) > 1 && parameters.length >= 19) {
     // PLS = w11 * D ^ -w12 * [(S + 1) ^ w13 - 1] * e ^ (w14 * (1 - R))
     // PLS * e ^ (num_relearning_steps * w17 * w18) should be <= S
     // Given D = 1, R = 0.7, S = 1, PLS is equal to w11 * (2 ^ w13 - 1) * e ^ (w14 * 0.3)
