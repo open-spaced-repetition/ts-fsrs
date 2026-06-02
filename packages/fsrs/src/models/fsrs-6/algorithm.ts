@@ -43,9 +43,9 @@ export class FSRS6Algorithm {
     if (!Array.isArray(weights) || weights.length !== 21) {
       throw new FSRSValidationError(
         `FSRS6Algorithm requires exactly 21 weights, but received ${weights?.length}`
-      );
+      )
     }
-    this.forgetting_curve = forgetting_curve.bind(this, this.weights);
+    this.forgetting_curve = forgetting_curve.bind(this, this.weights)
   }
 
   init_stability(g: Grade): number {
