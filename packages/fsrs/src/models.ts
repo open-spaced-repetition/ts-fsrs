@@ -103,12 +103,12 @@ export interface FSRSReview {
    * 0-4: Manual, Again, Hard, Good, Easy
    * = revlog.rating
    */
-  rating: Rating
+  rating: Grade
   /**
    * The number of days that passed
    * = round(revlog[-1].review - revlog[-2].review)
    */
-  delta_t: number
+  deltaT: number
 }
 
 export type FSRSHistory = Partial<Omit<ReviewLog, 'rating' | 'review'>> &

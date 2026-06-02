@@ -1,20 +1,24 @@
 import {
   createEmptyCard,
-  FSRSAlgorithm,
   type Grade,
   generatorParameters,
   Rating,
 } from 'ts-fsrs'
 import BasicScheduler from 'ts-fsrs/impl/basic_scheduler.js'
+import { FSRS6Model } from 'ts-fsrs/models/fsrs-6'
 
 describe('basic scheduler', () => {
   const params = generatorParameters()
-  const algorithm = new FSRSAlgorithm(params)
+  const model = FSRS6Model({
+    weights: Array.from(params.w),
+    enableShortTerm: params.enable_short_term,
+    numRelearningSteps: params.relearning_steps.length,
+  })
   const now = new Date()
 
   it('[State.New]exist', () => {
     const card = createEmptyCard(now)
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
     const preview = basicScheduler.preview()
     const again = basicScheduler.review(Rating.Again)
     const hard = basicScheduler.review(Rating.Hard)
@@ -40,7 +44,7 @@ describe('basic scheduler', () => {
   })
   it('[State.New]invalid grade', () => {
     const card = createEmptyCard(now)
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
     expect(() => basicScheduler.review('invalid' as unknown as Grade)).toThrow(
       'Invalid grade'
     )
@@ -48,10 +52,10 @@ describe('basic scheduler', () => {
 
   it('[State.Learning]exist', () => {
     const cardByNew = createEmptyCard(now)
-    const { card } = new BasicScheduler(cardByNew, now, algorithm).review(
+    const { card } = new BasicScheduler(cardByNew, now, model, params).review(
       Rating.Again
     )
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
 
     const preview = basicScheduler.preview()
     const again = basicScheduler.review(Rating.Again)
@@ -72,10 +76,10 @@ describe('basic scheduler', () => {
   })
   it('[State.Learning]invalid grade', () => {
     const cardByNew = createEmptyCard(now)
-    const { card } = new BasicScheduler(cardByNew, now, algorithm).review(
+    const { card } = new BasicScheduler(cardByNew, now, model, params).review(
       Rating.Again
     )
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
     expect(() => basicScheduler.review('invalid' as unknown as Grade)).toThrow(
       'Invalid grade'
     )
@@ -83,10 +87,10 @@ describe('basic scheduler', () => {
 
   it('[State.Review]exist', () => {
     const cardByNew = createEmptyCard(now)
-    const { card } = new BasicScheduler(cardByNew, now, algorithm).review(
+    const { card } = new BasicScheduler(cardByNew, now, model, params).review(
       Rating.Easy
     )
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
 
     const preview = basicScheduler.preview()
     const again = basicScheduler.review(Rating.Again)
@@ -107,10 +111,10 @@ describe('basic scheduler', () => {
   })
   it('[State.Review]invalid grade', () => {
     const cardByNew = createEmptyCard(now)
-    const { card } = new BasicScheduler(cardByNew, now, algorithm).review(
+    const { card } = new BasicScheduler(cardByNew, now, model, params).review(
       Rating.Easy
     )
-    const basicScheduler = new BasicScheduler(card, now, algorithm)
+    const basicScheduler = new BasicScheduler(card, now, model, params)
     expect(() => basicScheduler.review('invalid' as unknown as Grade)).toThrow(
       'Invalid grade'
     )

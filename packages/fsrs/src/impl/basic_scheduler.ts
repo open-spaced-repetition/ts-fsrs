@@ -1,11 +1,12 @@
 import { AbstractScheduler } from '../abstract_scheduler'
-import type { FSRSAlgorithm } from '../algorithm'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
+import type { IFSRSModel } from '../kit/index.js'
 import {
   type Card,
   type CardInput,
   type DateInput,
+  type FSRSParameters,
   type Grade,
   Rating,
   type RecordLogItem,
@@ -26,10 +27,11 @@ export default class BasicScheduler extends AbstractScheduler {
   constructor(
     card: CardInput | Card,
     now: DateInput,
-    algorithm: FSRSAlgorithm,
+    model: IFSRSModel,
+    parameters: FSRSParameters,
     strategies?: Map<StrategyMode, TStrategyHandler>
   ) {
-    super(card, now, algorithm, strategies)
+    super(card, now, model, parameters, strategies)
 
     // init learning steps strategy
     let learningStepStrategy = BasicLearningStepsStrategy
@@ -43,7 +45,7 @@ export default class BasicScheduler extends AbstractScheduler {
   }
 
   private getLearningInfo(card: Card, grade: Grade) {
-    const parameters = this.algorithm.parameters
+    const parameters = this.parameters
     card.learning_steps = card.learning_steps || 0
     const steps_strategy = this.learningStepsStrategy(
       parameters,
@@ -100,7 +102,7 @@ export default class BasicScheduler extends AbstractScheduler {
       } else {
         nextCard.learning_steps = 0
         const interval = this.scheduler_next_interval(
-          nextCard.stability,
+          nextCard,
           this.elapsed_days
         )
         nextCard.scheduled_days = interval
@@ -149,10 +151,7 @@ export default class BasicScheduler extends AbstractScheduler {
       return exist
     }
     const interval = this.elapsed_days
-    const retrievability = this.algorithm.forgetting_curve(
-      interval,
-      this.current.stability
-    )
+    const retrievability = this.model.forgettingCurve(this.current, interval)
     const next_again = this.next_ds(interval, Rating.Again, retrievability)
     const next_hard = this.next_ds(interval, Rating.Hard, retrievability)
     const next_good = this.next_ds(interval, Rating.Good, retrievability)
@@ -190,16 +189,13 @@ export default class BasicScheduler extends AbstractScheduler {
   /**
    * Review next_ds
    */
-  private next_ds(t: number, g: Grade, r?: number): Card {
-    const next_state = this.algorithm.next_state(
-      {
-        difficulty: this.current.difficulty,
-        stability: this.current.stability,
-      },
-      t,
-      g,
-      r
-    )
+  private next_ds(t: number, g: Grade, retrievability?: number): Card {
+    const next_state = this.model.step({
+      memoryState: this.current,
+      elapsedDays: t,
+      rating: g,
+      retrievability,
+    })
 
     const card = TypeConvert.card(this.current)
     card.difficulty = next_state.difficulty
@@ -217,10 +213,10 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy: Card,
     interval: number
   ): void {
-    const { maximum_interval } = this.algorithm.parameters
+    const { maximum_interval } = this.parameters
     let hard_interval: int, good_interval: int
-    hard_interval = this.scheduler_next_interval(next_hard.stability, interval)
-    good_interval = this.scheduler_next_interval(next_good.stability, interval)
+    hard_interval = this.scheduler_next_interval(next_hard, interval)
+    good_interval = this.scheduler_next_interval(next_good, interval)
     hard_interval = Math.min(hard_interval, good_interval) as int
     good_interval = Math.min(
       Math.max(good_interval, hard_interval + 1),
@@ -228,7 +224,7 @@ export default class BasicScheduler extends AbstractScheduler {
     ) as int
     const easy_interval = Math.min(
       Math.max(
-        this.scheduler_next_interval(next_easy.stability, interval),
+        this.scheduler_next_interval(next_easy, interval),
         good_interval + 1
       ),
       maximum_interval
@@ -243,15 +239,9 @@ export default class BasicScheduler extends AbstractScheduler {
     next_easy.due = date_scheduler(this.review_time, easy_interval, true)
   }
 
-  private scheduler_next_interval(
-    stability: number,
-    elapsed_days: number
-  ): int {
-    const params = this.algorithm.parameters
-    const base = this.algorithm.next_interval(
-      stability,
-      params.request_retention
-    )
+  private scheduler_next_interval(card: Card, elapsed_days: number): int {
+    const params = this.parameters
+    const base = this.model.nextInterval(card, params.request_retention)
     const interval = withFuzzing(base, elapsed_days, params, this._seed)
     return interval
   }

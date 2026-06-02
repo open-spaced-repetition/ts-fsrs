@@ -1,7 +1,6 @@
 import Decimal from 'decimal.js'
 import {
   clamp,
-  computeDecayFactor,
   default_enable_fuzz,
   default_maximum_interval,
   default_request_retention,
@@ -9,9 +8,8 @@ import {
   type FSRS,
   FSRS5_DEFAULT_DECAY,
   FSRS6_DEFAULT_DECAY,
-  FSRSAlgorithm,
   fsrs,
-  forgetting_curve as fsrs_forgetting_curve,
+  type Grade,
   Grades,
   generatorParameters,
   get_fuzz_range,
@@ -19,6 +17,19 @@ import {
   S_MIN,
   withFuzzing,
 } from 'ts-fsrs'
+import {
+  computeDecayFactor,
+  FSRS6_MODEL_BOUNDS,
+  FSRS6Algorithm,
+  forgettingCurve as fsrs_forgetting_curve,
+} from 'ts-fsrs/models/fsrs-6'
+
+const createAlgorithm = (params = generatorParameters()) =>
+  new FSRS6Algorithm(
+    Array.from(params.w),
+    params.enable_short_term,
+    FSRS6_MODEL_BOUNDS
+  )
 
 const _computeDecayFactor = (decay: number) => {
   const DECAY = -decay
@@ -86,8 +97,8 @@ describe('forgetting_curve', () => {
   //   0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
   //   0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
   // ];
-  const algorithm: FSRSAlgorithm = new FSRSAlgorithm(params)
-  const { DECAY, FACTOR } = _computeDecayFactor(algorithm.parameters.w[20])
+  const algorithm = createAlgorithm(params)
+  const { DECAY, FACTOR } = _computeDecayFactor(params.w[20])
   function forgetting_curve(elapsed_days: number, stability: number): number {
     return +new Decimal(
       new Decimal(1)
@@ -120,7 +131,7 @@ describe('forgetting_curve', () => {
 
 describe('init_ds', () => {
   const params = generatorParameters()
-  const algorithm: FSRSAlgorithm = new FSRSAlgorithm(params)
+  const algorithm = createAlgorithm(params)
   it('initial stability ', () => {
     const collection: number[] = []
     Grades.forEach((grade) => {
@@ -162,7 +173,7 @@ describe('next_ds', () => {
   //   0.5701, 1.4436, 4.1386, 10.9355, 5.1443, 1.2006, 0.8627, 0.0362, 1.629,
   //   0.1342, 1.0166, 2.1174, 0.0839, 0.3204, 1.4676, 0.219, 2.8237,
   // ];
-  const algorithm: FSRSAlgorithm = new FSRSAlgorithm(params)
+  const algorithm = createAlgorithm(params)
   it('next_difficulty', () => {
     function next_d(d: number, g: number) {
       function mean_reversion(init: number, current: number): number {
@@ -341,7 +352,7 @@ describe('next_interval', () => {
       fsrs({
         request_retention: r,
         maximum_interval: Number.MAX_VALUE,
-      }).next_interval(1.0, r)
+      }).model.nextInterval({ stability: 1.0, difficulty: 0 }, r)
     )
     // https://github.com/open-spaced-repetition/fsrs-rs/blob/78c36e6b21182c5a13f8649eafe2eb62c1dbdabe/src/inference.rs#L852
     // Result differs by +3 days compared to the reference test due to differing numeric precision: fsrs-rs uses f32, while ts-fsrs uses f64
@@ -361,7 +372,12 @@ describe('next_interval', () => {
 
   it('defaults desired_retention to parameters.request_retention', () => {
     const f = fsrs({ request_retention: 0.8 })
-    expect(f.next_interval(1.0)).toEqual(f.next_interval(1.0, 0.8))
+    expect(
+      f.model.nextInterval(
+        { stability: 1.0, difficulty: 0 },
+        f.parameters.request_retention
+      )
+    ).toEqual(f.model.nextInterval({ stability: 1.0, difficulty: 0 }, 0.8))
   })
 
   // https://github.com/open-spaced-repetition/ts-fsrs/pull/74
@@ -373,14 +389,17 @@ describe('next_interval', () => {
     const f: FSRS = fsrs(params)
 
     const s = 737.47
-    const next_ivl = f.next_interval(s, params.request_retention)
+    const next_ivl = f.model.nextInterval(
+      { stability: s, difficulty: 0 },
+      params.request_retention
+    )
     expect(next_ivl).toEqual(Math.round(s * intervalModifier))
     expect(next_ivl).toBeGreaterThan(params.maximum_interval)
 
     const t_fuzz = 98
     const fuzzed_params = generatorParameters({ ...params, enable_fuzz: true })
-    const base_ivl = fsrs(fuzzed_params).next_interval(
-      s,
+    const base_ivl = fsrs(fuzzed_params).model.nextInterval(
+      { stability: s, difficulty: 0 },
       fuzzed_params.request_retention
     )
     const next_ivl_fuzz = withFuzzing(base_ivl, t_fuzz, fuzzed_params)
@@ -493,9 +512,24 @@ describe('change Params', () => {
     expect(f.parameters.enable_short_term).toEqual(false)
   })
 
-  test('change FSRSParameters[FSRSAlgorithm]', () => {
+  test('in-place FSRSParameters.w mutation updates model weights', () => {
+    const f = fsrs()
+    const state = { difficulty: 5, stability: 10 }
+    const elapsedDays = 1
+    const initial = f.model.forgettingCurve(state, elapsedDays)
+
+    ;(f.parameters.w as number[])[20] = 0.3
+
+    const updated = f.model.forgettingCurve(state, elapsedDays)
+    expect(updated).not.toEqual(initial)
+    expect(updated).toEqual(
+      fsrs_forgetting_curve(f.parameters.w, elapsedDays, state.stability)
+    )
+  })
+
+  test('change FSRSParameters[FSRS]', () => {
     const params = generatorParameters()
-    const f = new FSRSAlgorithm(params)
+    const f = fsrs(params)
     expect(f.parameters).toEqual(generatorParameters())
 
     const request_retention = 0.8
@@ -552,13 +586,18 @@ describe('change Params', () => {
   })
 
   test('next_interval validates desired_retention', () => {
-    const f = new FSRSAlgorithm(generatorParameters())
-    expect(f.next_interval(1, default_request_retention)).toEqual(1)
+    const f = fsrs()
+    expect(
+      f.model.nextInterval(
+        { stability: 1, difficulty: 0 },
+        default_request_retention
+      )
+    ).toEqual(1)
     expect(() => {
-      f.next_interval(1, 1.2)
+      f.model.nextInterval({ stability: 1, difficulty: 0 }, 1.2)
     }).toThrow('Desired retention rate should be in the range (0,1]')
     expect(() => {
-      f.next_interval(1, -0.2)
+      f.model.nextInterval({ stability: 1, difficulty: 0 }, -0.2)
     }).toThrow('Desired retention rate should be in the range (0,1]')
   })
 })
@@ -566,58 +605,80 @@ describe('change Params', () => {
 describe('next_state', () => {
   it('next_state not NaN', () => {
     const f = fsrs()
-    const next_state = f.next_state(
-      { stability: 0, difficulty: 0 },
-      1,
-      1 /** Again */
-    )
+    const next_state = f.model.step({
+      memoryState: { stability: 0, difficulty: 0 },
+      elapsedDays: 1,
+      rating: 1 /** Again */,
+    })
 
     expect(Number.isNaN(next_state.stability)).toBe(false)
-    expect(next_state).toEqual(f.next_state(null, 1, 1 /** Again */))
     expect(next_state).toEqual(
-      f.next_state({ difficulty: 0, stability: 0 }, 1, 1 /** Again */)
+      f.model.step({
+        memoryState: null,
+        elapsedDays: 1,
+        rating: 1 /** Again */,
+      })
+    )
+    expect(next_state).toEqual(
+      f.model.step({
+        memoryState: { difficulty: 0, stability: 0 },
+        elapsedDays: 1,
+        rating: 1 /** Again */,
+      })
     )
   })
 
   it('invalid memory state', () => {
     const f = fsrs()
 
-    const init = f.next_state(null, 0, 3 /** Good */)
+    const init = f.model.step({
+      memoryState: null,
+      elapsedDays: 0,
+      rating: 3 /** Good */,
+    })
     // d<1
     expect(() => {
-      f.next_state(
-        { stability: init.stability, difficulty: 0 },
-        1,
-        1 /** Again */
-      )
+      f.model.step({
+        memoryState: { stability: init.stability, difficulty: 0 },
+        elapsedDays: 1,
+        rating: 1 /** Again */,
+      })
     }).toThrow(/^Invalid memory state/)
 
     // s<0.01
     expect(() => {
-      f.next_state(
-        { stability: 0, difficulty: init.stability },
-        1,
-        1 /** Again */
-      )
+      f.model.step({
+        memoryState: { stability: 0, difficulty: init.stability },
+        elapsedDays: 1,
+        rating: 1 /** Again */,
+      })
     }).toThrow(/^Invalid memory state/)
 
     // t<0
     expect(() => {
-      f.next_state(
-        { stability: 0, difficulty: 0 },
-        -1 /** invalid delta_t */,
-        1 /** Again */
-      )
+      f.model.step({
+        memoryState: { stability: 0, difficulty: 0 },
+        elapsedDays: -1 /** invalid delta_t */,
+        rating: 1 /** Again */,
+      })
     }).toThrow(/^Invalid delta_t/)
 
     // g<0
     expect(() => {
-      f.next_state(init, 1, -1 /** invalid grade */)
+      f.model.step({
+        memoryState: init,
+        elapsedDays: 1,
+        rating: -1 as Grade /** invalid grade */,
+      })
     }).toThrow(/^Invalid grade/)
 
     // g>4
     expect(() => {
-      f.next_state(init, 1, 5 /** invalid grade */)
+      f.model.step({
+        memoryState: init,
+        elapsedDays: 1,
+        rating: 5 as Grade /** invalid grade */,
+      })
     }).toThrow(/^Invalid grade/)
   })
 
@@ -625,7 +686,11 @@ describe('next_state', () => {
     const f = fsrs()
     const state = { difficulty: 9.98210112, stability: 0.00102011 }
 
-    const newState = f.next_state(state, 1, 1)
+    const newState = f.model.step({
+      memoryState: state,
+      elapsedDays: 1,
+      rating: 1,
+    })
 
     expect(newState.stability).toBeGreaterThanOrEqual(S_MIN)
   })
@@ -633,7 +698,11 @@ describe('next_state', () => {
   it('next_state with enable_short_term = false, g=Again', () => {
     const f = fsrs({ enable_short_term: false })
     const state = { difficulty: 4.0, stability: 10.0 }
-    const new_state = f.next_state(state, 1 /**days*/, Rating.Again)
+    const new_state = f.model.step({
+      memoryState: state,
+      elapsedDays: 1 /**days*/,
+      rating: Rating.Again,
+    })
     expect(new_state.stability).toBeLessThan(state.stability)
   })
 })

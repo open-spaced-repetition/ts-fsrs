@@ -1,11 +1,12 @@
-import type { FSRSAlgorithm } from './algorithm'
 import { TypeConvert } from './convert'
 import { FSRSValidationError } from './error'
 import { dateDiffInDays, Grades } from './help'
+import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
   type CardInput,
   type DateInput,
+  type FSRSParameters,
   type Grade,
   Rating,
   type RecordLogItem,
@@ -25,7 +26,8 @@ export abstract class AbstractScheduler implements IScheduler {
   protected current: Card
   protected review_time: Date
   protected next: Map<Grade, RecordLogItem> = new Map()
-  protected algorithm: FSRSAlgorithm
+  protected model: IFSRSModel
+  protected parameters: FSRSParameters
   protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
   protected elapsed_days: number = 0 // init
   protected _seed?: string
@@ -33,10 +35,12 @@ export abstract class AbstractScheduler implements IScheduler {
   constructor(
     card: CardInput | Card,
     now: DateInput,
-    algorithm: FSRSAlgorithm,
+    model: IFSRSModel,
+    parameters: FSRSParameters,
     strategies?: Map<StrategyMode, TStrategyHandler>
   ) {
-    this.algorithm = algorithm
+    this.model = model
+    this.parameters = parameters
     this.last = TypeConvert.card(card)
     this.current = TypeConvert.card(card)
     this.review_time = TypeConvert.time(now)

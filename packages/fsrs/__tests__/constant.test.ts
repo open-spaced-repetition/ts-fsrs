@@ -60,7 +60,7 @@ describe('default params', () => {
     // biome-ignore lint/suspicious/noAssignInExpressions: test modify
     const clamp_parameters1 = (CLAMP_PARAMETERS(FSRS6_DEFAULT_DECAY)[4] = [
       0.5, 0.5,
-    ])
+    ]) as number[]
     const clamp_parameters2 = CLAMP_PARAMETERS(FSRS6_DEFAULT_DECAY)
     expect(clamp_parameters1[4]).not.toEqual(clamp_parameters2)
   })

@@ -61,7 +61,11 @@ test('SSE use next_state', () => {
     const current = new Date(rids[i])
     const rating = ratings[i]
     const delta_t = dateDiffInDays(last, current)
-    const nextStates = f.next_state(memoryState, delta_t, rating)
+    const nextStates = f.model.step({
+      memoryState,
+      rating,
+      elapsedDays: delta_t,
+    })
     if (rating !== 0) {
       last = new Date(rids[i])
     }

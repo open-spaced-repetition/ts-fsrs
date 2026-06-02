@@ -1,6 +1,9 @@
 {
   "extends": "../../../tsconfig.json",
   "compilerOptions": {
+    "rootDir": "..",
+    "noEmit": true,
+    "moduleResolution": "bundler",
     "paths": {
       "ts-fsrs": ["../src/index.ts"],
       "ts-fsrs/*": ["../src/*"]
