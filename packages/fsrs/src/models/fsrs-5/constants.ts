@@ -1,7 +1,6 @@
 import type { ModelBounds } from '../../kit'
 
-export const FSRS5_DEFAULT_DECAY = 0.5
-export const FSRS5_DECAY = -FSRS5_DEFAULT_DECAY
+export const FSRS5_DECAY = 0.5
 export const FSRS5_FACTOR = 19 / 81
 export const FSRS5_W17_W18_CEILING = 2.0
 export const INIT_S_MAX = 100.0

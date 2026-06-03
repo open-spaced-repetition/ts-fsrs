@@ -9,7 +9,7 @@ export function forgetting_curve(
   stability: number
 ): number {
   return roundTo(
-    Math.pow(1 + (FSRS5_FACTOR * elapsed_days) / stability, FSRS5_DECAY),
+    Math.pow(1 + (FSRS5_FACTOR * elapsed_days) / stability, -FSRS5_DECAY),
     8
   )
 }
@@ -51,7 +51,7 @@ export class FSRS5Algorithm {
       )
     }
     const intervalModifier = roundTo(
-      (Math.pow(desired_retention, 1 / FSRS5_DECAY) - 1) / FSRS5_FACTOR,
+      (Math.pow(desired_retention, 1 / -FSRS5_DECAY) - 1) / FSRS5_FACTOR,
       8
     )
     return Math.max(Math.round(s * intervalModifier), 1)

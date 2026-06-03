@@ -16,7 +16,7 @@ describe('FSRS5Algorithm', () => {
   )
 
   it('uses the FSRS-5 forgetting curve constants', () => {
-    expect(FSRS5_DECAY).toBe(-0.5)
+    expect(FSRS5_DECAY).toBe(0.5)
     expect(FSRS5_FACTOR).toBe(19 / 81)
     expect(forgetting_curve(8, 8.2956)).toBe(0.90306221)
   })

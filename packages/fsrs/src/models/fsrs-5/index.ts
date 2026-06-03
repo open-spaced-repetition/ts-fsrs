@@ -4,7 +4,6 @@ export {
 } from './algorithm.js'
 export {
   FSRS5_DECAY,
-  FSRS5_DEFAULT_DECAY,
   FSRS5_DEFAULT_WEIGHTS,
   FSRS5_FACTOR,
   FSRS5_MODEL_BOUNDS,
