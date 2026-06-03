@@ -29,6 +29,17 @@
         "default": "./dist/models/fsrs-6.mjs"
       },
       "default": "./dist/models/fsrs-6.mjs"
+    },
+    "./models/fsrs-4dot5": {
+      "require": {
+        "types": "./dist/models/fsrs-4dot5.d.cts",
+        "default": "./dist/models/fsrs-4dot5.cjs"
+      },
+      "import": {
+        "types": "./dist/models/fsrs-4dot5.d.mts",
+        "default": "./dist/models/fsrs-4dot5.mjs"
+      },
+      "default": "./dist/models/fsrs-4dot5.mjs"
     }
   },
   "type": "module",
