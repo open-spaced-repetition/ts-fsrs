@@ -5,6 +5,7 @@ export default defineConfig([
     entry: {
       index: 'src/index.ts',
       error: 'src/error.ts',
+      'models/fsrs-4': 'src/models/fsrs-4/index.ts',
       'models/fsrs-6': 'src/models/fsrs-6/index.ts',
     },
     format: ['esm', 'cjs'],
