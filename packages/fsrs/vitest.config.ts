@@ -22,7 +22,7 @@ export default defineConfig({
     include: [
       '**/__tests__/*.ts?(x)',
       '**/__tests__/**/*.ts?(x)',
-      'src/**/*.spec.ts',
+      'src/**/*.spec.ts?(x)',
     ],
     testTimeout: 1_000 * 60 * 1,
     coverage: {

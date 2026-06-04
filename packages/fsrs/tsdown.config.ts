@@ -27,6 +27,10 @@ export default defineConfig([
     sourcemap: false,
     minify: false,
     target: 'es2017',
+    deps: {
+      alwaysBundle: ['zod', /^zod\//],
+      onlyBundle: false,
+    },
     outExtensions: () => ({ js: '.js' }),
   },
 ])
