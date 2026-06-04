@@ -35,6 +35,7 @@ impl Task for ComputeParametersTask {
     };
 
     let out = fsrs::compute_parameters(fsrs::ComputeParametersInput {
+      card_ids: None,
       train_set: std::mem::take(&mut self.train),
       progress: Some(Arc::clone(&self.state)),
       enable_short_term: self.enable_short_term,
