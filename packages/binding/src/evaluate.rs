@@ -37,6 +37,7 @@ impl Task for EvaluateParametersTask {
 
     let state = Arc::clone(&self.state);
     let input = fsrs::ComputeParametersInput {
+      card_ids: None,
       train_set: std::mem::take(&mut self.train),
       progress: None,
       enable_short_term: self.enable_short_term,

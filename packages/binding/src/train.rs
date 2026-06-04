@@ -2,9 +2,9 @@ use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
 use napi_derive::napi;
 use std::sync::{Arc, Mutex};
 
-use crate::{ComputeParametersOptions, FSRSItem};
 #[cfg(not(target_arch = "wasm32"))]
 use crate::progress;
+use crate::{ComputeParametersOptions, FSRSItem};
 
 pub struct ComputeParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
@@ -35,6 +35,7 @@ impl Task for ComputeParametersTask {
     };
 
     let out = fsrs::compute_parameters(fsrs::ComputeParametersInput {
+      card_ids: None,
       train_set: std::mem::take(&mut self.train),
       progress: Some(Arc::clone(&self.state)),
       enable_short_term: self.enable_short_term,
