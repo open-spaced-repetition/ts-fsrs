@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.4.0
+
+### Minor Changes
+
+- [#379](https://github.com/open-spaced-repetition/ts-fsrs/pull/379) [`7479e74`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7479e74cf555d7dccb31c5693c431ab7d639ad55) Thanks [@ishiko732](https://github.com/ishiko732)! - chore(binding): remove the Burn dependency. Upgrade `fsrs` to the published `6.4.0` crate (no longer requires the custom burn fork), drop the `[patch.crates-io.burn]`/`[patch.crates-io.burn-train]` workspace patches, and delete the `burn-v0.17.1-sys-metrics.wasm32` patch.
+
 ## 0.3.1
 
 ### Patch Changes
