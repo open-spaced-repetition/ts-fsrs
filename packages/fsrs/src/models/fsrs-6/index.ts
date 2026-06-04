@@ -4,7 +4,7 @@ export {
   forgetting_curve as forgettingCurve,
 } from './algorithm.js'
 export {
-  FSRS6_DEFAULT_DECAY,
+  FSRS6_DECAY,
   FSRS6_DEFAULT_WEIGHTS,
   FSRS6_MODEL_BOUNDS,
   FSRS6_W17_W18_CEILING,
