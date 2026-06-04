@@ -1,6 +1,6 @@
 import type { ModelBounds } from '../../kit'
 
-export const FSRS6_DEFAULT_DECAY = 0.1542
+export const FSRS6_DECAY = 0.1542
 export const FSRS6_W17_W18_CEILING = 2.0
 export const INIT_S_MAX = 100.0
 
@@ -32,7 +32,7 @@ export const FSRS6_DEFAULT_WEIGHTS = Object.freeze([
   0.5425,
   0.0912,
   0.0658,
-  FSRS6_DEFAULT_DECAY,
+  FSRS6_DECAY,
 ])
 
 export const FSRS6ParameterBounds = (
