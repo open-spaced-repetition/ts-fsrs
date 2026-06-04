@@ -19,7 +19,11 @@ export default defineConfig({
   },
   test: {
     globals: true,
-    include: ['**/__tests__/*.ts?(x)', '**/__tests__/**/*.ts?(x)'],
+    include: [
+      '**/__tests__/*.ts?(x)',
+      '**/__tests__/**/*.ts?(x)',
+      'src/**/*.spec.ts?(x)',
+    ],
     testTimeout: 1_000 * 60 * 1,
     coverage: {
       provider: 'istanbul',
