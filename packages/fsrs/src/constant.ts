@@ -28,7 +28,10 @@ export const FSRSVersion: string = `v${version} using FSRS-6.0`
 export const S_MIN = FSRS6_MODEL_BOUNDS.sMin
 export const S_MAX = FSRS6_MODEL_BOUNDS.sMax
 export const INIT_S_MAX = FSRS6_INIT_S_MAX
-export { FSRS5_DECAY as FSRS5_DEFAULT_DECAY, FSRS6_DECAY as FSRS6_DEFAULT_DECAY }
+export {
+  FSRS5_DECAY as FSRS5_DEFAULT_DECAY,
+  FSRS6_DECAY as FSRS6_DEFAULT_DECAY,
+}
 export const default_w = FSRS6_DEFAULT_WEIGHTS
 
 export const W17_W18_Ceiling = FSRS6_W17_W18_CEILING
