@@ -162,7 +162,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 [[package]]
 name = "fsrs"
 version = "6.3.0"
-source = "git+https://github.com/open-spaced-repetition/fsrs-rs#ea649600591088a54d82357473d72f17ab366274"
+source = "git+https://github.com/open-spaced-repetition/fsrs-rs?tag=v6.3.0#ea649600591088a54d82357473d72f17ab366274"
 dependencies = [
  "itertools",
  "log",
