@@ -1,21 +1,21 @@
-import type {
-  FSRSForwardInput,
-  FSRSModelConfig,
-  FSRSStepInput,
-  IFSRSModel,
-} from '../../kit'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
+import * as z from 'zod/mini'
+import type { FSRSForwardInput, FSRSStepInput, IFSRSModel } from '../../kit'
 import type { FSRSState } from '../../models.js'
 import { FSRS6Algorithm } from './algorithm.js'
+import {
+  type FSRS6Config,
+  type FSRS6ConfigInput,
+  FSRS6ConfigSchema,
+} from './config.js'
 import { FSRS6_MODEL_BOUNDS } from './constants.js'
 
-export type FSRS6Config = FSRSModelConfig & {
-  numRelearningSteps: number
-}
-
-export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
+export const FSRS6Model = (
+  config: z.input<typeof FSRS6ConfigSchema>
+): IFSRSModel<StandardSchemaV1<FSRS6ConfigInput, FSRS6Config>> => {
   const bounds = FSRS6_MODEL_BOUNDS
 
-  const modelConfig: FSRS6Config = Object.freeze(config)
+  const modelConfig = Object.freeze(z.parse(FSRS6ConfigSchema, config))
 
   const algo = new FSRS6Algorithm(
     modelConfig.weights,
@@ -65,6 +65,7 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
 
   return {
     config: modelConfig,
+    '~configSchema': FSRS6ConfigSchema,
     bounds,
     step,
     nextInterval,

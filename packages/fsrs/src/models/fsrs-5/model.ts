@@ -1,19 +1,21 @@
-import type {
-  FSRSForwardInput,
-  FSRSModelConfig,
-  FSRSStepInput,
-  IFSRSModel,
-} from '../../kit'
+import type { StandardSchemaV1 } from '@standard-schema/spec'
+import * as z from 'zod/mini'
+import type { FSRSForwardInput, FSRSStepInput, IFSRSModel } from '../../kit'
 import type { FSRSState } from '../../models.js'
 import { FSRS5Algorithm } from './algorithm.js'
+import {
+  type FSRS5Config,
+  type FSRS5ConfigInput,
+  FSRS5ConfigSchema,
+} from './config.js'
 import { FSRS5_MODEL_BOUNDS } from './constants.js'
 
-export type FSRS5Config = FSRSModelConfig
-
-export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
+export const FSRS5Model = (
+  config: FSRS5ConfigInput
+): IFSRSModel<StandardSchemaV1<FSRS5ConfigInput, FSRS5Config>> => {
   const bounds = FSRS5_MODEL_BOUNDS
 
-  const modelConfig: FSRS5Config = Object.freeze(config)
+  const modelConfig = Object.freeze(z.parse(FSRS5ConfigSchema, config))
 
   const algo = new FSRS5Algorithm(
     modelConfig.weights,
@@ -63,6 +65,7 @@ export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
 
   return {
     config: modelConfig,
+    '~configSchema': FSRS5ConfigSchema,
     bounds,
     step,
     nextInterval,

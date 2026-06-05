@@ -108,7 +108,31 @@ export class FSRS implements IFSRS {
 
   protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRS
+    // Wrap `w` so in-place element mutations (w[i] = x) rebuild the model.
+    let wProxy: number[] | null = null
+    let wTarget: number[] | null = null
     return {
+      get: (
+        target: FSRSParameters,
+        prop: string | symbol,
+        receiver: unknown
+      ) => {
+        if (prop === 'w') {
+          const raw = Reflect.get(target, prop, receiver) as number[]
+          if (wProxy === null || wTarget !== raw) {
+            wTarget = raw
+            wProxy = new Proxy(raw, {
+              set: (arr, index, val) => {
+                const ok = Reflect.set(arr, index, val)
+                if (ok) _this.rebuildModel()
+                return ok
+              },
+            })
+          }
+          return wProxy
+        }
+        return Reflect.get(target, prop, receiver)
+      },
       set: (
         target: FSRSParameters,
         prop: keyof FSRSParameters,

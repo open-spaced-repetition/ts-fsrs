@@ -1,4 +1,6 @@
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { FSRSReview, FSRSState, Rating } from '../models'
+import type { Prettify } from './helper-types'
 
 export interface ModelBounds {
   sMin: number
@@ -7,9 +9,10 @@ export interface ModelBounds {
   dMax: number
 }
 
+// Shared base for every model's config. Model-specific fields (e.g.
+// enableShortTerm, which FSRS-4 does not use) live in each model's own schema.
 export interface FSRSModelConfig extends Record<string, unknown> {
   weights: number[]
-  enableShortTerm: boolean
 }
 
 export interface FSRSStepInput {
@@ -24,8 +27,14 @@ export interface FSRSForwardInput {
   initialState?: FSRSState | null
 }
 
-export interface IFSRSModel<Config extends FSRSModelConfig = FSRSModelConfig> {
-  readonly config: Readonly<Config>
+export interface IFSRSModel<
+  Config extends
+    StandardSchemaV1<FSRSModelConfig> = StandardSchemaV1<FSRSModelConfig>,
+> {
+  // Validated config (the schema's output slot).
+  readonly config: Readonly<Prettify<StandardSchemaV1.InferOutput<Config>>>
+  // Vendor-neutral schema (input/output slots); consumers validate/infer themselves.
+  readonly '~configSchema': Config
   readonly bounds: Readonly<ModelBounds>
   readonly step: (input: FSRSStepInput) => FSRSState
   readonly nextInterval: (
