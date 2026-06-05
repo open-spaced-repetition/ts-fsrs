@@ -1,5 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type { Grade, State } from '../../models.js'
+import type { Grade, Rating, State } from '../../models.js'
 import type { Prettify, SchemaInput, SchemaOutput } from '../helper-types.js'
 import type { IFSRSModel } from '../types.js'
 import type { SchedulerMiddleware } from './scheduler-middleware.js'
@@ -84,7 +84,7 @@ export type SchedulerInput<
   Fields extends StandardSchemaV1 = StandardSchemaV1,
 > = {
   readonly card: Card<MemoryState, SchemaInput<Fields>>
-  readonly rating: Grade
+  readonly rating: Rating
   readonly elapsedDays: number
   readonly durationMs?: number
 }
@@ -130,7 +130,7 @@ export type SchedulerMiddlewareInput<
     MemoryState,
     MergeMiddlewareFragments<Middlewares, 'fieldSchema', 'input'>
   >
-  readonly rating: Grade
+  readonly rating: Rating
   readonly elapsedDays: number
   readonly durationMs?: number
 }
