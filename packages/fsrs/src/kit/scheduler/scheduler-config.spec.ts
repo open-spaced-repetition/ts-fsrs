@@ -1,9 +1,21 @@
+import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { z } from 'zod/mini'
 import { FSRSValidationError } from '../../error.js'
 import { FSRS6_DEFAULT_WEIGHTS } from '../../models/fsrs-6/constants.js'
 import { FSRS6Model } from '../../models/fsrs-6/model.js'
+import type { FSRSState } from '../../models.js'
 import { buildSchedulerConfig } from './scheduler-config.js'
+import type {
+  Card,
+  Revlog,
+  RevlogStats,
+  RollbackContext,
+  SchedulerContext,
+  SchedulerInput,
+  SchedulerResult,
+  SchedulerRollbackResult,
+} from './scheduler-context.js'
 import {
   defineSchedulerMiddleware,
   type SchedulerMiddleware,
@@ -12,10 +24,10 @@ import {
 describe('kit/scheduler-config buildSchedulerConfig', () => {
   const model = FSRS6Model({ weights: FSRS6_DEFAULT_WEIGHTS })
 
-  it('merges the model config (no base scheduler knobs)', () => {
-    const config = buildSchedulerConfig(model, [])
+  it('merges the model config (no base scheduler)', () => {
+    const config = buildSchedulerConfig(model)
     // Type-level: with no middleware the merged config is EXACTLY the model's
-    // output — no core knobs, no loose index signature.
+    // output — no core, no loose index signature.
     expectTypeOf(config).toEqualTypeOf<{
       weights: number[]
       enableShortTerm: boolean
@@ -40,11 +52,15 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
         next()
       },
     })
-    const mw2 = defineSchedulerMiddleware({
+    const mw2 = defineSchedulerMiddleware(model, {
       configSchema: z.object({ foo2: z._default(z.string(), '5') }),
       fieldSchema: z.object({ bar: z.string() }),
       reviewHandler: (ctx, next) => {
-        expectTypeOf(ctx.card.bar).toEqualTypeOf<string>()
+        expectTypeOf(ctx.input.card.bar).toEqualTypeOf<string>()
+        expectTypeOf(ctx.input.card.difficulty).toEqualTypeOf<number>()
+
+        expectTypeOf(ctx.result.card.stability).toEqualTypeOf<number>()
+        expectTypeOf(ctx.result.card.difficulty).toEqualTypeOf<number>()
         next()
       },
       rollbackHandler: (_, next) => {
@@ -52,8 +68,6 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
       },
     })
     const config = buildSchedulerConfig(model, [mw1, mw2])
-    // Type-level: the middleware's configSchema output is merged onto the
-    // model's output, so `foo` is part of the inferred config.
     expectTypeOf(config).toEqualTypeOf<{
       weights: number[]
       enableShortTerm: boolean
@@ -61,8 +75,6 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
       foo: number
       foo2: string
     }>()
-    expectTypeOf(config.foo).toEqualTypeOf<number>()
-    expectTypeOf(config.foo2).toEqualTypeOf<string>()
 
     expect(config.foo).toBe(5)
     expect(config.foo2).toBe('5')
@@ -90,5 +102,136 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
     expect(() => buildSchedulerConfig(model, [mw], {})).toThrow(
       FSRSValidationError
     )
+    expect(() => buildSchedulerConfig(model, [mw], { bar: 'string' })).toThrow(
+      FSRSValidationError
+    )
+  })
+
+  it('infers middleware fieldSchema through review and rollback contexts', () => {
+    const configSchema = z.object({})
+    const fieldSchema = z.object({ bar: z.string() })
+    const defaultedFieldSchema = z.object({
+      defaulted: z._default(z.string(), 'fallback'),
+    })
+    type ConfigSchema = typeof configSchema
+    type FieldSchema = typeof fieldSchema
+    type DefaultedFieldSchema = typeof defaultedFieldSchema
+    type MemoryState = { difficulty: number; stability: number }
+
+    defineSchedulerMiddleware<MemoryState, ConfigSchema, FieldSchema>({
+      configSchema,
+      fieldSchema,
+      reviewHandler: (ctx, next) => {
+        expectTypeOf(ctx.input.card).toEqualTypeOf<
+          Card<MemoryState, { bar: string }>
+        >()
+        expectTypeOf(ctx.result.card).toEqualTypeOf<
+          Card<MemoryState, { bar: string }>
+        >()
+        expectTypeOf(ctx.result.log).toEqualTypeOf<
+          Revlog<MemoryState, { bar: string }>
+        >()
+        next()
+      },
+      rollbackHandler: (ctx, next) => {
+        expectTypeOf(ctx.input.card).toEqualTypeOf<
+          Card<MemoryState, { bar: string }>
+        >()
+        expectTypeOf(ctx.input.log).toEqualTypeOf<
+          Revlog<MemoryState, { bar: string }>
+        >()
+        expectTypeOf(ctx.result.card).toEqualTypeOf<
+          Card<MemoryState, { bar: string }>
+        >()
+        next()
+      },
+    })
+
+    type InputWithDuration = SchedulerInput<MemoryState, FieldSchema> & {
+      readonly durationMs: number
+    }
+    type ContextWithDuration = SchedulerContext<
+      MemoryState,
+      FieldSchema,
+      ConfigSchema,
+      InputWithDuration
+    >
+    type RollbackWithDuration = RollbackContext<
+      MemoryState,
+      FieldSchema,
+      ConfigSchema,
+      InputWithDuration
+    >
+
+    expectTypeOf<RollbackWithDuration['input']>().toEqualTypeOf<
+      SchedulerResult<MemoryState, FieldSchema, InputWithDuration>
+    >()
+    expectTypeOf<RollbackWithDuration['result']>().toEqualTypeOf<
+      SchedulerRollbackResult<MemoryState, FieldSchema, InputWithDuration>
+    >()
+    expectTypeOf<RollbackWithDuration['result']['card']>().toEqualTypeOf<
+      Card<MemoryState, { bar: string }>
+    >()
+    expectTypeOf<
+      RollbackWithDuration['result']['durationMs']
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      ContextWithDuration['result']['log']['durationMs']
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      RollbackWithDuration['input']['log']['durationMs']
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      RollbackWithDuration['input']['log']['reps']
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      RollbackWithDuration['input']['log']['lapses']
+    >().toEqualTypeOf<number>()
+    expectTypeOf<
+      Pick<
+        RollbackWithDuration['input']['log'],
+        'state' | 'rating' | 'reps' | 'lapses'
+      >
+    >().toEqualTypeOf<RevlogStats>()
+    expectTypeOf<
+      SchedulerContext<MemoryState, FieldSchema>['result']['log']['durationMs']
+    >().toEqualTypeOf<number | undefined>()
+
+    expectTypeOf<
+      SchedulerInput<MemoryState, DefaultedFieldSchema>['card']
+    >().toEqualTypeOf<Card<MemoryState, { defaulted?: string | undefined }>>()
+    expectTypeOf<
+      SchedulerRollbackResult<MemoryState, DefaultedFieldSchema>['card']
+    >().toEqualTypeOf<Card<MemoryState, { defaulted: string }>>()
+  })
+
+  it('infers MemoryState from the model-aware middleware helper', () => {
+    const fieldSchema = z.object({ bar: z.string() })
+
+    const mw = defineSchedulerMiddleware(model, {
+      fieldSchema,
+      reviewHandler: (ctx, next) => {
+        expectTypeOf(ctx.input.card).toEqualTypeOf<
+          Card<FSRSState, { bar: string }>
+        >()
+        expectTypeOf(ctx.result.card).toEqualTypeOf<
+          Card<FSRSState, { bar: string }>
+        >()
+        next()
+      },
+      rollbackHandler: (ctx, next) => {
+        expectTypeOf(ctx.input.card).toEqualTypeOf<
+          Card<FSRSState, { bar: string }>
+        >()
+        expectTypeOf(ctx.result.card).toEqualTypeOf<
+          Card<FSRSState, { bar: string }>
+        >()
+        next()
+      },
+    })
+
+    expectTypeOf(mw).toEqualTypeOf<
+      SchedulerMiddleware<FSRSState, StandardSchemaV1, typeof fieldSchema>
+    >()
   })
 })

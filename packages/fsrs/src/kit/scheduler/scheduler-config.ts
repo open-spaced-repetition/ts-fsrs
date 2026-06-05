@@ -17,10 +17,10 @@ import type { SchedulerMiddleware } from './scheduler-middleware.js'
  */
 export function buildSchedulerConfig<
   const Model extends IFSRSModel,
-  const Middlewares extends readonly SchedulerMiddleware[],
+  const Middlewares extends readonly SchedulerMiddleware[] = [],
 >(
   model: Model,
-  middlewares: Middlewares,
+  middlewares: Middlewares = [] as unknown as Middlewares,
   options: Record<string, unknown> = {}
 ): SchedulerConfig<Model, Middlewares> {
   // model.config already supplies validated values (weights, ...).
