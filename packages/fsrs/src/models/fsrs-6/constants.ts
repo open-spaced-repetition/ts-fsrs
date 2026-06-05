@@ -33,7 +33,7 @@ export const FSRS6_DEFAULT_WEIGHTS = Object.freeze([
   0.0912,
   0.0658,
   FSRS6_DECAY,
-])
+]) as number[]
 
 export const FSRS6ParameterBounds = (
   w17W18Ceiling: number,
