@@ -1,5 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Grade } from '../../models.js'
+import type { SchemaInput, SchemaOutput } from '../helper-types.js'
 import type { FSRSModelConfig, IFSRSModel } from '../types.js'
 import type {
   SchedulerConfigInput,
@@ -11,16 +12,24 @@ import type {
 } from './scheduler-context.js'
 import type { SchedulerMiddleware } from './scheduler-middleware.js'
 
+type SchedulerModelConfig<ModelConfig extends StandardSchemaV1> =
+  StandardSchemaV1<SchemaInput<ModelConfig>, SchemaOutput<ModelConfig>>
+
+type SchedulerOptionsConfig<
+  ModelConfig extends StandardSchemaV1,
+  Middlewares extends readonly SchedulerMiddleware[],
+> = SchedulerConfigInput<SchemaInput<ModelConfig>, Middlewares>
+
 export interface SchedulerOptions<
   ModelConfig extends
     StandardSchemaV1<FSRSModelConfig> = StandardSchemaV1<FSRSModelConfig>,
   Middlewares extends readonly SchedulerMiddleware[] = [],
 > {
   readonly Model: (
-    config: SchedulerConfigInput<ModelConfig, Middlewares>
-  ) => IFSRSModel<ModelConfig>
+    config: SchedulerOptionsConfig<ModelConfig, Middlewares>
+  ) => IFSRSModel<SchedulerModelConfig<ModelConfig>>
   readonly middlewares?: Middlewares
-  readonly config: SchedulerConfigInput<ModelConfig, Middlewares>
+  readonly config: SchedulerOptionsConfig<ModelConfig, Middlewares>
 }
 
 export interface IScheduler<
