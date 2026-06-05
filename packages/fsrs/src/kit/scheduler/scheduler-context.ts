@@ -42,7 +42,7 @@ export type SchedulerConfig<
   Middlewares extends
     readonly SchedulerMiddleware[] = readonly SchedulerMiddleware[],
 > = Prettify<
-  StandardSchemaV1.InferOutput<Model['~configSchema']> &
+  SchemaOutput<Model['~configSchema']> &
     MergeMiddlewareFragments<Middlewares, 'configSchema', 'output'>
 >
 

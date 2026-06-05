@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { FSRSReview, FSRSState, Rating } from '../models'
-import type { Prettify } from './helper-types'
+import type { Prettify, SchemaOutput } from './helper-types'
 
 export interface ModelBounds {
   sMin: number
@@ -32,7 +32,7 @@ export interface IFSRSModel<
     StandardSchemaV1<FSRSModelConfig> = StandardSchemaV1<FSRSModelConfig>,
 > {
   // Validated config (the schema's output slot).
-  readonly config: Readonly<Prettify<StandardSchemaV1.InferOutput<Config>>>
+  readonly config: Readonly<Prettify<SchemaOutput<Config>>>
   // Vendor-neutral schema (input/output slots); consumers validate/infer themselves.
   readonly '~configSchema': Config
   readonly bounds: Readonly<ModelBounds>

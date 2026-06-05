@@ -2,12 +2,11 @@ import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { Middleware } from '../middleware.js'
 import type { IFSRSModel } from '../types.js'
 import type {
+  ModelMemoryState,
   ReviewContext,
   RollbackContext,
   SchedulerInput,
 } from './scheduler-context.js'
-
-type ModelMemoryState<Model extends IFSRSModel> = ReturnType<Model['step']>
 
 export type ReviewMiddlewareFn<
   MemoryState = unknown,
@@ -55,16 +54,16 @@ export interface SchedulerMiddleware<
   ConfigSchema extends StandardSchemaV1 = StandardSchemaV1,
   FieldSchema extends StandardSchemaV1 = StandardSchemaV1,
 > {
-  reviewHandler(
-    ...args: Parameters<
-      ReviewMiddlewareFn<MemoryState, ConfigSchema, FieldSchema>
-    >
-  ): void
-  rollbackHandler(
-    ...args: Parameters<
-      RollbackMiddlewareFn<MemoryState, ConfigSchema, FieldSchema>
-    >
-  ): void
+  readonly reviewHandler: ReviewMiddlewareFn<
+    MemoryState,
+    ConfigSchema,
+    FieldSchema
+  >
+  readonly rollbackHandler: RollbackMiddlewareFn<
+    MemoryState,
+    ConfigSchema,
+    FieldSchema
+  >
   // Merged into the scheduler config (see buildSchedulerConfig).
   readonly configSchema?: ConfigSchema
   // Extra per-review card input/output fields. Unused by the v6 core.

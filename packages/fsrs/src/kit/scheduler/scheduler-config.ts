@@ -1,5 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { FSRSValidationError } from '../../error.js'
+import type { SchemaOutput } from '../helper-types.js'
 import type { IFSRSModel } from '../types.js'
 import type { SchedulerConfig } from './scheduler-context.js'
 import type { SchedulerMiddleware } from './scheduler-middleware.js'
@@ -32,7 +33,7 @@ export function buildSchedulerConfig<
       .filter((s): s is StandardSchemaV1 => !!s),
   ]
 
-  const results: StandardSchemaV1.InferOutput<StandardSchemaV1>[] = []
+  const results: SchemaOutput<StandardSchemaV1>[] = []
   const issues: StandardSchemaV1.Issue[] = []
   for (const source of sources) {
     const result = source['~standard'].validate(raw)
