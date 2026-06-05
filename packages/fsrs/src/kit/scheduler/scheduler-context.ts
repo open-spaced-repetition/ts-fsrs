@@ -4,35 +4,34 @@ import type { Prettify, SchemaInput, SchemaOutput } from '../helper-types.js'
 import type { IFSRSModel } from '../types.js'
 import type { SchedulerMiddleware } from './scheduler-middleware.js'
 
-type MiddlewareConfig<M extends SchedulerMiddleware> = [
-  NonNullable<M['configSchema']>,
+type SchemaFragment<Schema, Kind extends 'input' | 'output'> = [
+  NonNullable<Schema>,
 ] extends [never]
   ? unknown
-  : NonNullable<M['configSchema']> extends StandardSchemaV1
-    ? SchemaOutput<NonNullable<M['configSchema']>>
+  : NonNullable<Schema> extends StandardSchemaV1
+    ? Kind extends 'input'
+      ? SchemaInput<NonNullable<Schema>>
+      : SchemaOutput<NonNullable<Schema>>
     : unknown
 
-/**
- * Intersection of every mounted middleware's `configSchema` output, folded over
- * the tuple so each contributor's keys compose. Intersecting directly (rather
- * than collapsing a union) keeps `unknown` neutral and never drops a concrete
- * contributor that sits next to a loosely-typed one.
- */
-export type MergeMiddlewareConfigs<
+type MergeMiddlewareFragments<
   Middlewares extends readonly SchedulerMiddleware[],
+  Key extends 'configSchema' | 'fieldSchema',
+  Kind extends 'input' | 'output',
 > = Middlewares extends readonly [infer Head, ...infer Tail]
   ? Head extends SchedulerMiddleware
     ? Tail extends readonly SchedulerMiddleware[]
-      ? MiddlewareConfig<Head> & MergeMiddlewareConfigs<Tail>
-      : MiddlewareConfig<Head>
+      ? SchemaFragment<Head[Key], Kind> &
+          MergeMiddlewareFragments<Tail, Key, Kind>
+      : SchemaFragment<Head[Key], Kind>
     : unknown
   : unknown
 
 /**
  * Fully merged, validated scheduler config — DERIVED from the model schema plus
  * every mounted middleware's `configSchema`, never hard-coded, so callers get
- * real type inference: `scheduler(model, { middlewares: [mw] }).config` carries
- * `mw`'s config keys, and the model's own config keys flow through too.
+ * real type inference: `Scheduler({ Model, middlewares: [mw], config })`
+ * carries `mw`'s config keys, and the model's own config keys flow through too.
  *
  * Runtime merge order is "later contributor wins" (see `buildSchedulerConfig`);
  * at the type level colliding keys intersect, which is exact when keys are
@@ -44,7 +43,19 @@ export type SchedulerConfig<
     readonly SchedulerMiddleware[] = readonly SchedulerMiddleware[],
 > = Prettify<
   StandardSchemaV1.InferOutput<Model['~configSchema']> &
-    MergeMiddlewareConfigs<Middlewares>
+    MergeMiddlewareFragments<Middlewares, 'configSchema', 'output'>
+>
+
+export type ModelMemoryState<Model extends IFSRSModel> = ReturnType<
+  Model['step']
+>
+
+export type SchedulerConfigInput<
+  ModelConfig,
+  Middlewares extends
+    readonly SchedulerMiddleware[] = readonly SchedulerMiddleware[],
+> = Prettify<
+  ModelConfig & MergeMiddlewareFragments<Middlewares, 'configSchema', 'input'>
 >
 
 export type Card<MemoryState, Fields = unknown> = Prettify<MemoryState & Fields>
@@ -54,6 +65,10 @@ export type RevlogStats = {
   rating: Grade
   reps: number
   lapses: number
+}
+
+export type SchedulerInterval = {
+  interval: number
 }
 
 type RevlogDuration<Input> = Input extends { readonly durationMs: number }
@@ -82,22 +97,65 @@ export type SchedulerResult<
     Fields
   >,
 > = {
-  readonly card: Card<MemoryState, SchemaOutput<Fields>>
-  readonly log: Revlog<MemoryState, SchemaOutput<Fields>, Input>
+  readonly card: Card<MemoryState, SchemaOutput<Fields> & SchedulerInterval>
+  readonly log: Revlog<
+    MemoryState,
+    SchemaOutput<Fields> & SchedulerInterval,
+    Input
+  >
 }
 
-export type SchedulerRollbackResult<
+export type SchedulerRollbackInput<
   MemoryState,
   Fields extends StandardSchemaV1 = StandardSchemaV1,
-  Input extends SchedulerInput<MemoryState, Fields> = SchedulerInput<
+  ReviewInput extends SchedulerInput<MemoryState, Fields> = SchedulerInput<
     MemoryState,
     Fields
   >,
-> = Prettify<
-  Omit<Input, 'card'> & {
-    readonly card: Card<MemoryState, SchemaOutput<Fields>>
-  }
->
+> = {
+  readonly card: Card<MemoryState, SchemaOutput<Fields> & SchedulerInterval>
+  readonly revlog: Revlog<
+    MemoryState,
+    SchemaOutput<Fields> & SchedulerInterval,
+    ReviewInput
+  >
+}
+
+export type SchedulerMiddlewareInput<
+  MemoryState,
+  Middlewares extends
+    readonly SchedulerMiddleware[] = readonly SchedulerMiddleware[],
+> = {
+  readonly card: Card<
+    MemoryState,
+    MergeMiddlewareFragments<Middlewares, 'fieldSchema', 'input'>
+  >
+  readonly rating: Grade
+  readonly elapsedDays: number
+  readonly durationMs?: number
+}
+
+export type SchedulerMiddlewareResult<
+  MemoryState,
+  Middlewares extends
+    readonly SchedulerMiddleware[] = readonly SchedulerMiddleware[],
+  Input extends SchedulerMiddlewareInput<
+    MemoryState,
+    Middlewares
+  > = SchedulerMiddlewareInput<MemoryState, Middlewares>,
+> = {
+  readonly card: Card<
+    MemoryState,
+    MergeMiddlewareFragments<Middlewares, 'fieldSchema', 'output'> &
+      SchedulerInterval
+  >
+  readonly log: Revlog<
+    MemoryState,
+    MergeMiddlewareFragments<Middlewares, 'fieldSchema', 'output'> &
+      SchedulerInterval,
+    Input
+  >
+}
 
 export type SchedulerContext<
   MemoryState,
@@ -114,7 +172,7 @@ export type SchedulerContext<
 
   // readonly store: SchemaOutput<Stores>
 
-  readonly result: SchedulerResult<MemoryState, Fields, Input>
+  result?: SchedulerResult<MemoryState, Fields, Input>
 }
 
 export type ReviewContext<
@@ -136,7 +194,7 @@ export type RollbackContext<
     Fields
   >,
 > = {
-  readonly input: SchedulerResult<MemoryState, Fields, ReviewInput>
+  readonly input: SchedulerRollbackInput<MemoryState, Fields, ReviewInput>
   readonly config: SchemaOutput<Config>
-  readonly result: SchedulerRollbackResult<MemoryState, Fields, ReviewInput>
+  result?: SchedulerResult<MemoryState, Fields, ReviewInput>['card']
 }

@@ -13,8 +13,8 @@ import type {
   RollbackContext,
   SchedulerContext,
   SchedulerInput,
-  SchedulerResult,
-  SchedulerRollbackResult,
+  SchedulerInterval,
+  SchedulerRollbackInput,
 } from './scheduler-context.js'
 import {
   defineSchedulerMiddleware,
@@ -59,9 +59,12 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
         expectTypeOf(ctx.input.card.bar).toEqualTypeOf<string>()
         expectTypeOf(ctx.input.card.difficulty).toEqualTypeOf<number>()
 
+        next()
+        if (!ctx.result) {
+          return
+        }
         expectTypeOf(ctx.result.card.stability).toEqualTypeOf<number>()
         expectTypeOf(ctx.result.card.difficulty).toEqualTypeOf<number>()
-        next()
       },
       rollbackHandler: (_, next) => {
         next()
@@ -125,25 +128,31 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
         expectTypeOf(ctx.input.card).toEqualTypeOf<
           Card<MemoryState, { bar: string }>
         >()
+        next()
+        if (!ctx.result) {
+          return
+        }
         expectTypeOf(ctx.result.card).toEqualTypeOf<
-          Card<MemoryState, { bar: string }>
+          Card<MemoryState, { bar: string } & SchedulerInterval>
         >()
         expectTypeOf(ctx.result.log).toEqualTypeOf<
-          Revlog<MemoryState, { bar: string }>
+          Revlog<MemoryState, { bar: string } & SchedulerInterval>
         >()
-        next()
       },
       rollbackHandler: (ctx, next) => {
         expectTypeOf(ctx.input.card).toEqualTypeOf<
-          Card<MemoryState, { bar: string }>
+          Card<MemoryState, { bar: string } & SchedulerInterval>
         >()
-        expectTypeOf(ctx.input.log).toEqualTypeOf<
-          Revlog<MemoryState, { bar: string }>
-        >()
-        expectTypeOf(ctx.result.card).toEqualTypeOf<
-          Card<MemoryState, { bar: string }>
+        expectTypeOf(ctx.input.revlog).toEqualTypeOf<
+          Revlog<MemoryState, { bar: string } & SchedulerInterval>
         >()
         next()
+        if (!ctx.result) {
+          return
+        }
+        expectTypeOf(ctx.result).toEqualTypeOf<
+          Card<MemoryState, { bar: string } & SchedulerInterval>
+        >()
       },
     })
 
@@ -164,45 +173,46 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
     >
 
     expectTypeOf<RollbackWithDuration['input']>().toEqualTypeOf<
-      SchedulerResult<MemoryState, FieldSchema, InputWithDuration>
+      SchedulerRollbackInput<MemoryState, FieldSchema, InputWithDuration>
     >()
-    expectTypeOf<RollbackWithDuration['result']>().toEqualTypeOf<
-      SchedulerRollbackResult<MemoryState, FieldSchema, InputWithDuration>
-    >()
-    expectTypeOf<RollbackWithDuration['result']['card']>().toEqualTypeOf<
-      Card<MemoryState, { bar: string }>
+    expectTypeOf<NonNullable<RollbackWithDuration['result']>>().toEqualTypeOf<
+      Card<MemoryState, { bar: string } & SchedulerInterval>
     >()
     expectTypeOf<
-      RollbackWithDuration['result']['durationMs']
+      NonNullable<ContextWithDuration['result']>['log']['durationMs']
     >().toEqualTypeOf<number>()
     expectTypeOf<
-      ContextWithDuration['result']['log']['durationMs']
+      RollbackWithDuration['input']['revlog']['durationMs']
     >().toEqualTypeOf<number>()
     expectTypeOf<
-      RollbackWithDuration['input']['log']['durationMs']
+      RollbackWithDuration['input']['revlog']['reps']
     >().toEqualTypeOf<number>()
     expectTypeOf<
-      RollbackWithDuration['input']['log']['reps']
+      RollbackWithDuration['input']['revlog']['lapses']
     >().toEqualTypeOf<number>()
     expectTypeOf<
-      RollbackWithDuration['input']['log']['lapses']
+      RollbackWithDuration['input']['revlog']['interval']
     >().toEqualTypeOf<number>()
     expectTypeOf<
       Pick<
-        RollbackWithDuration['input']['log'],
+        RollbackWithDuration['input']['revlog'],
         'state' | 'rating' | 'reps' | 'lapses'
       >
     >().toEqualTypeOf<RevlogStats>()
     expectTypeOf<
-      SchedulerContext<MemoryState, FieldSchema>['result']['log']['durationMs']
+      NonNullable<
+        SchedulerContext<MemoryState, FieldSchema>['result']
+      >['log']['durationMs']
     >().toEqualTypeOf<number | undefined>()
 
     expectTypeOf<
       SchedulerInput<MemoryState, DefaultedFieldSchema>['card']
     >().toEqualTypeOf<Card<MemoryState, { defaulted?: string | undefined }>>()
     expectTypeOf<
-      SchedulerRollbackResult<MemoryState, DefaultedFieldSchema>['card']
-    >().toEqualTypeOf<Card<MemoryState, { defaulted: string }>>()
+      NonNullable<RollbackContext<MemoryState, DefaultedFieldSchema>['result']>
+    >().toEqualTypeOf<
+      Card<MemoryState, { defaulted: string } & SchedulerInterval>
+    >()
   })
 
   it('infers MemoryState from the model-aware middleware helper', () => {
@@ -214,19 +224,25 @@ describe('kit/scheduler-config buildSchedulerConfig', () => {
         expectTypeOf(ctx.input.card).toEqualTypeOf<
           Card<FSRSState, { bar: string }>
         >()
-        expectTypeOf(ctx.result.card).toEqualTypeOf<
-          Card<FSRSState, { bar: string }>
-        >()
         next()
+        if (!ctx.result) {
+          return
+        }
+        expectTypeOf(ctx.result.card).toEqualTypeOf<
+          Card<FSRSState, { bar: string } & SchedulerInterval>
+        >()
       },
       rollbackHandler: (ctx, next) => {
         expectTypeOf(ctx.input.card).toEqualTypeOf<
-          Card<FSRSState, { bar: string }>
-        >()
-        expectTypeOf(ctx.result.card).toEqualTypeOf<
-          Card<FSRSState, { bar: string }>
+          Card<FSRSState, { bar: string } & SchedulerInterval>
         >()
         next()
+        if (!ctx.result) {
+          return
+        }
+        expectTypeOf(ctx.result).toEqualTypeOf<
+          Card<FSRSState, { bar: string } & SchedulerInterval>
+        >()
       },
     })
 
