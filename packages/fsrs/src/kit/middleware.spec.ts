@@ -1,4 +1,5 @@
-import { compose, type Middleware } from 'ts-fsrs/kit'
+import { describe, expect, it } from 'vitest'
+import { compose, type Middleware } from './middleware.js'
 
 interface Context {
   trace: string[]
