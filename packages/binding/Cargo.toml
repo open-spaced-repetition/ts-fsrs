@@ -21,7 +21,7 @@ itertools = "0.14.0"
 
 [dependencies.fsrs]
 git = "https://github.com/open-spaced-repetition/fsrs-rs"
-tag = "v6.4.0"
+tag = "v6.5.0"
 default-features = false
 
 [build-dependencies]
