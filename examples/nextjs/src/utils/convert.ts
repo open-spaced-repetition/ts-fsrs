@@ -1,5 +1,5 @@
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
-import { getSupportedTimezones, getTimezoneOffset } from '@/utils/timezone'
+import { getSupportedTimezones } from '@/utils/timezone'
 
 export async function convertFSRSItemByFile(
   file: File,
@@ -14,12 +14,7 @@ export async function convertFSRSItemByFile(
   }
 
   // Convert CSV to FSRS items
-  const fsrsItems = convertCsvToFsrsItems(
-    buffer,
-    nextDayStartsAt,
-    timezone,
-    getTimezoneOffset
-  )
+  const fsrsItems = convertCsvToFsrsItems(buffer, nextDayStartsAt, timezone)
 
   return fsrsItems
 }

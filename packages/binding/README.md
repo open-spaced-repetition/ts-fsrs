@@ -39,49 +39,8 @@ import {
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding'
 
-const timeZoneFormatterCache = new Map<string, Intl.DateTimeFormat>()
-
-const getTimeZoneFormatter = (timeZone: string) => {
-  let formatter = timeZoneFormatterCache.get(timeZone)
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat('ia', {
-      timeZone,
-      timeZoneName: 'shortOffset',
-    })
-    timeZoneFormatterCache.set(timeZone, formatter)
-  }
-  return formatter
-}
-
-const getTimezoneOffset = (timeZone: string, date: Date | number) => {
-  const timeZoneName = getTimeZoneFormatter(timeZone)
-    .formatToParts(date)
-    .find((part) => part.type === 'timeZoneName')?.value
-
-  if (!timeZoneName || timeZoneName === 'GMT' || timeZoneName === 'UTC') {
-    return 0
-  }
-
-  const [, sign, hours, minutes = '0'] =
-    timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/) ?? []
-
-  if (!sign || !hours) {
-    throw new Error(`Unsupported time zone offset: ${timeZoneName}`)
-  }
-
-  const totalMinutes = Number(hours) * 60 + Number(minutes)
-  return sign === '+' ? totalMinutes : -totalMinutes
-}
-
-// Creating Intl.DateTimeFormat repeatedly can be slow, so prefer hoisting or caching formatters.
-
 const csvBuffer = readFileSync('./revlog.csv')
-const items = convertCsvToFsrsItems(
-  csvBuffer,
-  4,
-  'Asia/Shanghai',
-  (ms, timeZone) => getTimezoneOffset(timeZone, ms)
-)
+const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
 
 const parameters = await computeParameters(items, {
   enableShortTerm: true,

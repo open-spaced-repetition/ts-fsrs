@@ -2,10 +2,7 @@
 
 import { readFileSync } from 'node:fs'
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
-import {
-  getTimezoneOffset,
-  parseCSVToFSRSItems,
-} from '../helpers/csv-parser.js'
+import { parseCSVToFSRSItems } from '../helpers/csv-parser.js'
 
 const csvPath = new URL('../revlog.csv', import.meta.url).pathname
 
@@ -18,9 +15,7 @@ console.log(`TS version: fsrs_items.len() = ${tsItems.length}`)
 console.log('\nTesting RS version...')
 console.time('RS parsing time')
 const csvBuffer = readFileSync(csvPath)
-const rsItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', (ms, tz) =>
-  getTimezoneOffset(tz, ms)
-)
+const rsItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
 console.timeEnd('RS parsing time')
 console.log(`RS version: fsrs_items.len() = ${rsItems.length}`)
 

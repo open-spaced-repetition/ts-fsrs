@@ -1,9 +1,13 @@
 use csv::ReaderBuilder;
 use fsrs::filter_outlier;
 use itertools::Itertools;
+use jiff::{
+  Timestamp,
+  tz::{TimeZone, TimeZoneDatabase},
+};
 use napi_derive::napi;
 
-use napi::bindgen_prelude::{FnArgs, Function, Result};
+use napi::bindgen_prelude::Result;
 use serde::{Deserialize, Serialize};
 use time::{Date, Duration, OffsetDateTime};
 
@@ -21,22 +25,14 @@ pub(crate) struct RevlogEntry {
   pub last_interval: i32,
 }
 
-fn convert_to_date(
-  timestamp: i64,
-  next_day_starts_at: i64,
-  timezone: &str,
-  offset_provider: &Function<FnArgs<(i64, String)>, i32>,
-) -> Result<Date> {
+fn convert_to_date(timestamp: i64, next_day_starts_at: i64, timezone: &TimeZone) -> Result<Date> {
   let timestamp_secs = timestamp / 1000;
   let dt = OffsetDateTime::from_unix_timestamp(timestamp_secs)
     .map_err(|e| napi::Error::from_reason(format!("Invalid timestamp: {}", e)))?;
 
-  // Compute offset minutes via JS callback if provided; fall back to fixed +8h.
-  let offset_minutes: i64 = offset_provider
-    .call(FnArgs {
-      data: (timestamp, timezone.to_string()),
-    })?
-    .into();
+  let ts = Timestamp::from_millisecond(timestamp)
+    .map_err(|e| napi::Error::from_reason(format!("Invalid timestamp: {}", e)))?;
+  let offset_minutes = i64::from(timezone.to_offset(ts).seconds() / 60);
   let adjusted_dt = dt + Duration::minutes(offset_minutes) - Duration::hours(next_day_starts_at);
   Ok(adjusted_dt.date())
 }
@@ -65,25 +61,14 @@ fn remove_revlog_before_last_first_learn(entries: Vec<RevlogEntry>) -> Vec<Revlo
 fn convert_to_fsrs_items_internal(
   mut entries: Vec<RevlogEntry>,
   next_day_starts_at: i64,
-  timezone: &str,
-  offset_provider: &Function<FnArgs<(i64, String)>, i32>,
+  timezone: &TimeZone,
 ) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
 
   if !entries.is_empty() {
-    let mut prev_date = convert_to_date(
-      entries[0].review_time,
-      next_day_starts_at,
-      timezone,
-      offset_provider,
-    )?;
+    let mut prev_date = convert_to_date(entries[0].review_time, next_day_starts_at, timezone)?;
     for item in entries.iter_mut().skip(1) {
-      let date_current = convert_to_date(
-        item.review_time,
-        next_day_starts_at,
-        timezone,
-        offset_provider,
-      )?;
+      let date_current = convert_to_date(item.review_time, next_day_starts_at, timezone)?;
       item.last_interval = (date_current - prev_date).whole_days() as i32;
       prev_date = date_current;
     }
@@ -121,11 +106,11 @@ pub fn convert_csv_to_fsrs_items(
   data: &[u8],
   next_day_starts_at: i64,
   timezone: String,
-  #[napi(ts_arg_type = "(ms: number, timezone: string) => number")] offset_provider: Function<
-    FnArgs<(i64, String)>,
-    i32,
-  >,
 ) -> Result<Vec<FSRSBindingItem>> {
+  let timezone = TimeZoneDatabase::bundled()
+    .get(&timezone)
+    .map_err(|e| napi::Error::from_reason(format!("Unsupported timezone '{}': {}", timezone, e)))?;
+
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
 
   let mut revlogs: Vec<RevlogEntry> = rdr
@@ -142,12 +127,7 @@ pub fn convert_csv_to_fsrs_items(
     .chunk_by(|r| r.card_id.clone())
     .into_iter()
     .map(|(_card_id, entries)| {
-      convert_to_fsrs_items_internal(
-        entries.collect(),
-        next_day_starts_at,
-        &timezone,
-        &offset_provider,
-      )
+      convert_to_fsrs_items_internal(entries.collect(), next_day_starts_at, &timezone)
     })
     .collect::<Result<Vec<_>>>()?
     .into_iter()
