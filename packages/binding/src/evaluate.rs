@@ -12,6 +12,7 @@ pub struct EvaluateParametersTask {
   pub(crate) state: Arc<Mutex<progress::ProgressState>>,
   pub(crate) enable_short_term: bool,
   pub(crate) num_relearning_steps: Option<usize>,
+  pub(crate) training_config: Option<fsrs::TrainingConfig>,
   #[cfg(not(target_arch = "wasm32"))]
   pub(crate) timeout_ms: u32,
   #[cfg(not(target_arch = "wasm32"))]
@@ -42,6 +43,7 @@ impl Task for EvaluateParametersTask {
       progress: None,
       enable_short_term: self.enable_short_term,
       num_relearning_steps: self.num_relearning_steps,
+      training_config: self.training_config,
     };
     let result = fsrs::evaluate_with_time_series_splits(input, move |item_progress| {
       if let Ok(mut guard) = state.lock() {
@@ -94,6 +96,10 @@ pub fn evaluate_with_time_series_splits(
     .as_ref()
     .and_then(|x| x.num_relearning_steps)
     .map(|x| x as usize);
+  let training_config = options
+    .as_ref()
+    .and_then(|x| x.training_config.as_ref())
+    .map(|x| x.to_fsrs_config());
   let timeout = options.as_ref().and_then(|x| x.timeout).unwrap_or(500);
 
   let state = Arc::new(Mutex::new(ProgressState::default()));
@@ -120,6 +126,7 @@ pub fn evaluate_with_time_series_splits(
     progress_cb: progress_tsfn_for_task,
     enable_short_term,
     num_relearning_steps,
+    training_config,
     #[cfg(target_arch = "wasm32")]
     progress_thread: Some(progress_thread_handle),
   })

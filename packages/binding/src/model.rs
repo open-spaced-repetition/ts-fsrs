@@ -255,11 +255,42 @@ pub struct StepStatsResult {
 type ProgressFunc<'env> = Function<'env, FnArgs<(u32, u32)>, Option<bool>>;
 
 #[napi(object)]
+pub struct TrainingConfig {
+  /// Number of training epochs
+  pub num_epochs: u32,
+  /// Number of items per training batch
+  pub batch_size: u32,
+  /// Random seed used for batch shuffling
+  pub seed: u32,
+  /// Maximum review sequence length retained for training
+  pub max_seq_len: u32,
+  /// Optimizer learning rate
+  pub learning_rate: f64,
+  /// L2 regularization strength
+  pub gamma: f64,
+}
+
+impl TrainingConfig {
+  pub(crate) fn to_fsrs_config(&self) -> fsrs::TrainingConfig {
+    fsrs::TrainingConfig {
+      num_epochs: self.num_epochs as usize,
+      batch_size: self.batch_size as usize,
+      seed: self.seed as u64,
+      max_seq_len: self.max_seq_len as usize,
+      learning_rate: self.learning_rate,
+      gamma: self.gamma,
+    }
+  }
+}
+
+#[napi(object)]
 pub struct ComputeParametersOptions<'env> {
   /// Whether to enable short-term memory parameters
   pub enable_short_term: bool,
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
+  /// Training hyperparameters. Omitted fields use fsrs-rs defaults.
+  pub training_config: Option<TrainingConfig>,
   // Progress callback temporarily disabled for v3 migration
   #[napi(ts_type = "(current: number, total: number) => boolean | undefined | void")]
   pub progress: Option<ProgressFunc<'env>>,
