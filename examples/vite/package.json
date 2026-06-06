@@ -11,7 +11,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@open-spaced-repetition/binding": "^0.3.0",
+    "@open-spaced-repetition/binding": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding@17b92769e5f25577f27c785f12b2a4e13c7594ad",
     "@tailwindcss/postcss": "^4.1.17",
     "autoprefixer": "^10.4.22",
     "postcss": "^8.5.10",

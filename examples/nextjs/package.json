@@ -10,7 +10,7 @@
     "lint:fix": "biome format ./src --write"
   },
   "dependencies": {
-    "@open-spaced-repetition/binding": "^0.2.1",
+    "@open-spaced-repetition/binding": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding@17b92769e5f25577f27c785f12b2a4e13c7594ad",
     "hono": "^4.12.18",
     "next": "16.2.6",
     "react": "19.2.0",
