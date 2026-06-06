@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.5.0
+
+### Minor Changes
+
+- [#381](https://github.com/open-spaced-repetition/ts-fsrs/pull/381) [`18562c4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/18562c426a4288ff0722b737fd06fe2746a5716f) Thanks [@ishiko732](https://github.com/ishiko732)! - chore(binding): upgrade fsrs to the published 6.5.0 crate and support passing trainingConfig to parameter training APIs
+
 ## 0.4.0
 
 ### Minor Changes
