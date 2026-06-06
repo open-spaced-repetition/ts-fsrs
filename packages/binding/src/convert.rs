@@ -9,9 +9,16 @@ use napi_derive::napi;
 
 use napi::bindgen_prelude::Result;
 use serde::{Deserialize, Serialize};
+use std::sync::OnceLock;
 use time::{Date, Duration, OffsetDateTime};
 
 use crate::FSRSItem as FSRSBindingItem;
+
+static BUNDLED_TIMEZONE_DATABASE: OnceLock<TimeZoneDatabase> = OnceLock::new();
+
+fn bundled_timezone_database() -> &'static TimeZoneDatabase {
+  BUNDLED_TIMEZONE_DATABASE.get_or_init(TimeZoneDatabase::bundled)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct RevlogEntry {
@@ -107,7 +114,7 @@ pub fn convert_csv_to_fsrs_items(
   next_day_starts_at: i64,
   timezone: String,
 ) -> Result<Vec<FSRSBindingItem>> {
-  let timezone = TimeZoneDatabase::bundled()
+  let timezone = bundled_timezone_database()
     .get(&timezone)
     .map_err(|e| napi::Error::from_reason(format!("Unsupported timezone '{}': {}", timezone, e)))?;
 
