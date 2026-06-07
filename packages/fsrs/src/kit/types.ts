@@ -1,6 +1,5 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec'
 import type { FSRSReview, FSRSState, Rating } from '../models'
-import type { Prettify, SchemaOutput } from './helper-types'
+import type { Prettify } from './helper-types'
 
 export interface ModelBounds {
   sMin: number
@@ -15,35 +14,32 @@ export interface FSRSModelConfig extends Record<string, unknown> {
   weights: number[]
 }
 
-export interface FSRSStepInput {
-  memoryState: FSRSState | null
+export interface FSRSStepInput<MemoryState extends FSRSState = FSRSState> {
+  memoryState: MemoryState | null
   rating: Rating
   elapsedDays: number
   retrievability?: number
 }
 
-export interface FSRSForwardInput {
+export interface FSRSForwardInput<MemoryState extends FSRSState = FSRSState> {
   history: FSRSReview[]
-  initialState?: FSRSState | null
+  initialState?: MemoryState | null
 }
 
 export interface IFSRSModel<
-  Config extends
-    StandardSchemaV1<FSRSModelConfig> = StandardSchemaV1<FSRSModelConfig>,
+  Config extends object = FSRSModelConfig,
+  MemoryState extends FSRSState = FSRSState,
 > {
-  // Validated config (the schema's output slot).
-  readonly config: Readonly<Prettify<SchemaOutput<Config>>>
-  // Vendor-neutral schema (input/output slots); consumers validate/infer themselves.
-  readonly '~configSchema': Config
+  readonly config: Readonly<Prettify<Config>>
   readonly bounds: Readonly<ModelBounds>
-  readonly step: (input: FSRSStepInput) => FSRSState
+  readonly step: (input: FSRSStepInput<MemoryState>) => MemoryState
   readonly nextInterval: (
-    memoryState: FSRSState,
+    memoryState: MemoryState,
     desiredRetention: number
   ) => number
   readonly forgettingCurve: (
-    memoryState: FSRSState,
+    memoryState: MemoryState,
     elapsedDays: number
   ) => number
-  readonly forward: (input: FSRSForwardInput) => FSRSState[]
+  readonly forward: (input: FSRSForwardInput<MemoryState>) => MemoryState[]
 }

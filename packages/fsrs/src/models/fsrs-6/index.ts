@@ -4,6 +4,7 @@ export {
   forgetting_curve as forgettingCurve,
 } from './algorithm.js'
 export type { FSRS6Config, FSRS6ConfigInput } from './config.js'
+export { FSRS6ConfigSchema } from './config.js'
 export {
   FSRS6_DECAY,
   FSRS6_DEFAULT_WEIGHTS,

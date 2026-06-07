@@ -29,7 +29,7 @@ export const ConvertStepUnitToMinutes = (step: StepUnit): number => {
 }
 
 export const BasicLearningStepsStrategy: TLearningStepsStrategy = (
-  params: FSRSParameters,
+  params: Pick<FSRSParameters, 'learning_steps' | 'relearning_steps'>,
   state: State,
   cur_step: number
 ) => {

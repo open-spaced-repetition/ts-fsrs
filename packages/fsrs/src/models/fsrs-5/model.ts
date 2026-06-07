@@ -1,7 +1,10 @@
-import type { StandardSchemaV1 } from '@standard-schema/spec'
 import * as z from 'zod/mini'
 import type { FSRSForwardInput, FSRSStepInput, IFSRSModel } from '../../kit'
 import type { FSRSState } from '../../models.js'
+import {
+  FSRSMemoryStateSchema,
+  type SchedulerModelFactory,
+} from '../../scheduler/model.js'
 import { FSRS5Algorithm } from './algorithm.js'
 import {
   type FSRS5Config,
@@ -10,9 +13,9 @@ import {
 } from './config.js'
 import { FSRS5_MODEL_BOUNDS } from './constants.js'
 
-export const FSRS5Model = (
+const createFSRS5Model = (
   config: FSRS5ConfigInput
-): IFSRSModel<StandardSchemaV1<FSRS5ConfigInput, FSRS5Config>> => {
+): IFSRSModel<FSRS5Config> => {
   const bounds = FSRS5_MODEL_BOUNDS
 
   const modelConfig = Object.freeze(z.parse(FSRS5ConfigSchema, config))
@@ -65,7 +68,6 @@ export const FSRS5Model = (
 
   return {
     config: modelConfig,
-    '~configSchema': FSRS5ConfigSchema,
     bounds,
     step,
     nextInterval,
@@ -73,3 +75,12 @@ export const FSRS5Model = (
     forward,
   }
 }
+
+export const FSRS5Model = {
+  configSchema: FSRS5ConfigSchema,
+  memoryStateSchema: FSRSMemoryStateSchema,
+  create: createFSRS5Model,
+} satisfies SchedulerModelFactory<
+  typeof FSRS5ConfigSchema,
+  typeof FSRSMemoryStateSchema
+>

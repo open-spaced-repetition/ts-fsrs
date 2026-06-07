@@ -30,7 +30,7 @@ export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
  * When enable_short_term = false, the learning steps strategy will not take effect.
  */
 export type TLearningStepsStrategy = (
-  params: FSRSParameters,
+  params: Pick<FSRSParameters, 'learning_steps' | 'relearning_steps'>,
   state: State,
   cur_step: number
 ) => {

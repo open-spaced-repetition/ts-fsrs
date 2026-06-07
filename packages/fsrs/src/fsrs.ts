@@ -99,7 +99,7 @@ export class FSRS implements IFSRS {
   }
 
   private rebuildModel(): void {
-    this.#model = FSRS6Model({
+    this.#model = FSRS6Model.create({
       weights: this.#parameters.w as number[],
       enableShortTerm: this.#parameters.enable_short_term,
       numRelearningSteps: this.#parameters.relearning_steps.length,

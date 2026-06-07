@@ -27,5 +27,13 @@ export type {
   TimeUnit,
 } from './models'
 export { Rating, State } from './models'
+export * from './scheduler'
 export * from './strategies'
-export type * from './types'
+export type {
+  double,
+  IPreview,
+  IReschedule,
+  int,
+  RescheduleOptions,
+  unit,
+} from './types'

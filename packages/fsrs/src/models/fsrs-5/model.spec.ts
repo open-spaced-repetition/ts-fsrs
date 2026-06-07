@@ -5,7 +5,7 @@ import { FSRS5Model } from './model.js'
 
 describe('FSRS5Model', () => {
   it('binds step, forgetting curve, interval, and forward to FSRS-5 algorithm', () => {
-    const model = FSRS5Model({
+    const model = FSRS5Model.create({
       weights: FSRS5_DEFAULT_WEIGHTS,
       enableShortTerm: true,
     })
