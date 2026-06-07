@@ -11,18 +11,17 @@ export const statsFieldSchema = z.object({
 export const statsMiddleware = defineSchedulerMiddleware({
   fieldSchema: statsFieldSchema,
   review(ctx, next) {
-    const result = next()
-    result.card.reps = ctx.input.card.reps + 1
+    ctx.result.card.reps = ctx.input.card.reps + 1
 
     if (
       ctx.input.card.state === State.Review &&
       ctx.input.rating < Rating.Again
     ) {
-      result.card.lapses = ctx.input.card.lapses + 1
+      ctx.result.card.lapses = ctx.input.card.lapses + 1
     }
-    result.card.state = State.Review
+    ctx.result.card.state = State.Review
 
-    return result
+    return next()
   },
   rollback(_ctx, next) {
     return next()

@@ -193,6 +193,96 @@ describe('scheduler runtime', () => {
     expect(order).toEqual(['outer.in', 'inner.in', 'inner.out', 'outer.out'])
   })
 
+  it('allows middleware to write ctx.result before next()', () => {
+    const { factory } = createMockModelFactory()
+    const order: string[] = []
+    const outer = defineSchedulerMiddleware({
+      review(ctx, next) {
+        ctx.result.card = {
+          ...ctx.result.card,
+          interval: 41,
+        }
+        order.push(`outer.before:${ctx.result.card.interval}`)
+        const result = next()
+        order.push(`outer.after:${result.card.interval}`)
+        return result
+      },
+    })
+    const inner = defineSchedulerMiddleware({
+      review(ctx, next) {
+        order.push(`inner.before:${ctx.result.card.interval}`)
+        ctx.result.card.interval += 1
+        return next()
+      },
+    })
+
+    const result = configureScheduler({
+      model: factory,
+      middlewares: [outer, inner],
+    })({}).review({
+      card: {
+        difficulty: 1,
+        stability: 2,
+      },
+      rating: Rating.Good,
+      elapsedDays: 1,
+    })
+
+    expect(order).toEqual([
+      'outer.before:41',
+      'inner.before:41',
+      'outer.after:42',
+    ])
+    expect(result.card.interval).toBe(42)
+    expect(result.card.difficulty).toBe(1.3)
+    expect(result.card.stability).toBe(6)
+  })
+
+  it('does not step the model before a middleware calls next()', () => {
+    const { factory, getStepCalls } = createMockModelFactory()
+    const shortCircuit = defineSchedulerMiddleware({
+      review(ctx) {
+        const memoryState = {
+          difficulty: 9,
+          stability: 99,
+        }
+        ctx.result.card = {
+          ...ctx.result.card,
+          ...memoryState,
+          interval: 7,
+        }
+
+        return {
+          memoryState,
+          card: ctx.result.card,
+          log: {
+            ...ctx.input.card,
+            rating: ctx.input.rating,
+          },
+        }
+      },
+    })
+
+    const result = configureScheduler({
+      model: factory,
+      middlewares: [shortCircuit],
+    })({}).review({
+      card: {
+        difficulty: 1,
+        stability: 2,
+      },
+      rating: Rating.Good,
+      elapsedDays: 1,
+    })
+
+    expect(getStepCalls()).toBe(0)
+    expect(result.card).toEqual({
+      difficulty: 9,
+      stability: 99,
+      interval: 7,
+    })
+  })
+
   it('captures middleware handlers when scheduler is configured', () => {
     const { factory } = createMockModelFactory()
     const calls: string[] = []

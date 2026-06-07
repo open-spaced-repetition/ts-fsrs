@@ -183,6 +183,7 @@ export interface ReviewContext<
     SchemaOutput<Model['memoryStateSchema']>
   >
   readonly store: SchedulerStoreAccessor<SchedulerStoreData<Middlewares>>
+  readonly result: ReviewResult<Model, Middlewares>
 }
 
 export interface ReviewResult<
@@ -190,8 +191,8 @@ export interface ReviewResult<
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly memoryState: SchemaOutput<Model['memoryStateSchema']>
-  readonly card: ReviewCard<Model, Middlewares>
-  readonly log: SchedulerRevlog<ReviewCard<Model, Middlewares>>
+  card: ReviewCard<Model, Middlewares>
+  log: SchedulerRevlog<ReviewCard<Model, Middlewares>>
 }
 
 export type PreviewResult<
@@ -240,12 +241,13 @@ export type MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema> = {
   readonly store: SchedulerStoreAccessor<
     SchemaOutputOrEmpty<StoreSchema> & SchedulerRuntimeStore
   >
+  readonly result: MiddlewareReviewResult<FieldSchema>
 }
 
 export type MiddlewareReviewResult<FieldSchema> = {
   readonly memoryState: FSRSMemoryState
-  readonly card: MiddlewareCard<FieldSchema>
-  readonly log: SchedulerRevlog<MiddlewareCard<FieldSchema>>
+  card: MiddlewareCard<FieldSchema>
+  log: SchedulerRevlog<MiddlewareCard<FieldSchema>>
 }
 
 export type MiddlewareRollbackContext<ConfigSchema, FieldSchema, StoreSchema> =

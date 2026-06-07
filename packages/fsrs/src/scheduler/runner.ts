@@ -182,6 +182,7 @@ export class Runner<
       model: this.options.model,
       candidates: session.candidates,
       store: createRuntimeStore<Middlewares>(),
+      result: createReviewResult(session, rating),
     }
 
     return this.reviewHandler(ctx)
@@ -208,21 +209,38 @@ function createReviewTerminal<
   ctx: ReviewContext<Model, Middlewares>
 ) => ReviewResult<Model, Middlewares> {
   return (ctx) => {
-    const memoryState = ctx.candidates(ctx.input.rating)
-    const card = {
-      ...ctx.input.card,
-      ...memoryState,
-    } as ReviewCard<Model, Middlewares>
-    const log = {
-      ...ctx.input.card,
-      rating: ctx.input.rating,
-    }
+    Object.assign(ctx.result.card, ctx.result.memoryState)
+    return ctx.result
+  }
+}
 
-    return {
-      memoryState,
-      card,
-      log,
-    }
+function createReviewResult<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(
+  session: ReviewSession<Model, Middlewares>,
+  rating: Grade
+): ReviewResult<Model, Middlewares> {
+  const card = {
+    ...session.card,
+  } as ReviewCard<Model, Middlewares>
+  const log = {
+    ...session.card,
+    rating,
+  } as ReviewResult<Model, Middlewares>['log']
+  let memoryState: SchemaOutput<Model['memoryStateSchema']> | undefined
+
+  return {
+    get memoryState() {
+      if (memoryState) {
+        return memoryState
+      }
+
+      memoryState = session.candidates(rating)
+      return memoryState
+    },
+    card,
+    log,
   }
 }
 

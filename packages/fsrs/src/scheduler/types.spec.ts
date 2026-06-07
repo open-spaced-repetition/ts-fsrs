@@ -40,6 +40,22 @@ describe('scheduler public types', () => {
       ).toEqualTypeOf<number>()
       ctx.store.set('touched', true)
       ctx.store.set<{ desiredRetention: number }>('desiredRetention', 0.9)
+      expectTypeOf(ctx.result.card.sourceId).toEqualTypeOf<string>()
+      ctx.result.card.sourceId = ctx.input.card.sourceId
+      ctx.result.card = {
+        difficulty: ctx.result.card.difficulty,
+        stability: ctx.result.card.stability,
+        interval: ctx.result.card.interval,
+        sourceId: ctx.input.card.sourceId,
+        state: ctx.input.card.state,
+        defaultedField: ctx.input.card.defaultedField,
+      }
+      expectTypeOf(ctx.result.log.sourceId).toEqualTypeOf<string>()
+      ctx.result.log.rating = ctx.input.rating
+      ctx.result.log = {
+        ...ctx.input.card,
+        rating: ctx.input.rating,
+      }
       const compileOnly = () => {
         // @ts-expect-error middleware model only exposes scheduler operations.
         void ctx.model.config

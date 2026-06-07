@@ -30,7 +30,6 @@ export const intervalMiddleware = defineSchedulerMiddleware({
   configSchema: intervalConfigSchema,
   storeSchema: intervalStoreSchema,
   review(ctx, next) {
-    const result = next()
     const desiredRetention = ctx.store.get('desiredRetention')
     const maximumInterval = ctx.config.maximumInterval
 
@@ -49,7 +48,8 @@ export const intervalMiddleware = defineSchedulerMiddleware({
 
       previousInterval = targetInterval
     }
-    result.card.interval = previousInterval
-    return result
+
+    ctx.result.card.interval = previousInterval
+    return next()
   },
 })
