@@ -27,9 +27,9 @@ const modelBounds = {
 } as const
 
 export const defaultSchedulerMiddlewares = [
+  statsMiddleware,
   desiredRetentionMiddleware,
   learningStepMiddleware,
-  statsMiddleware,
   intervalMiddleware,
 ] as const
 
@@ -314,6 +314,7 @@ describe('scheduler runtime', () => {
       stability: 2,
       interval: 0,
       reps: 0,
+      lapses: 0,
       state: State.New,
     })
   })

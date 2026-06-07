@@ -20,6 +20,7 @@ export const statsMiddleware = defineSchedulerMiddleware({
     ) {
       result.card.lapses = ctx.input.card.lapses + 1
     }
+    result.card.state = State.Review
 
     return result
   },
