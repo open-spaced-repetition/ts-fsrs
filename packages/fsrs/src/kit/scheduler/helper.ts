@@ -1,6 +1,6 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { FSRSValidationError } from '../../error.js'
-import type { SchemaFragmentObject } from './standard-schema.js'
+import type { SchemaFragmentObject } from '../standard-schema.js'
 
 export function parseFragments(
   sources: readonly StandardSchemaV1[],

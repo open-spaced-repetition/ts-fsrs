@@ -1,8 +1,5 @@
 import { z } from 'zod/mini'
 import type { Grade } from '../../models.js'
-import type { IFSRSModel } from '../types.js'
-import type { SchedulerMiddleware } from './middleware.js'
-import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
 import type {
   EmptyObject,
   Prettify,
@@ -10,7 +7,10 @@ import type {
   SchemaInputOrEmpty,
   SchemaOutput,
   SchemaOutputOrEmpty,
-} from './standard-schema.js'
+} from '../standard-schema.js'
+import type { IFSRSModel } from '../types.js'
+import type { SchedulerMiddleware } from './middleware.js'
+import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
 
 export const schedulerCoreFieldSchema = z.object({
   interval: z._default(z.number(), 0),

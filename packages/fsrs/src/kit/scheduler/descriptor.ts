@@ -1,5 +1,9 @@
 import { defineMiddleware, type Middleware } from '../middleware.js'
 import type {
+  SchemaFragmentObject,
+  StandardSchemaV1,
+} from '../standard-schema.js'
+import type {
   ReviewCard,
   ReviewContext,
   ReviewResult,
@@ -14,10 +18,6 @@ import {
 import { parseFragments } from './helper.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { SchedulerModelDefinition } from './model.js'
-import type {
-  SchemaFragmentObject,
-  StandardSchemaV1,
-} from './standard-schema.js'
 
 /**
  * A reset-fragment contribution collected from a middleware (or the scheduler

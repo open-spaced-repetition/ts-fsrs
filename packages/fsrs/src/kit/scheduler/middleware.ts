@@ -1,14 +1,14 @@
 import type { Middleware } from '../middleware.js'
 import type {
+  SchemaOutputOrEmpty,
+  StandardSchemaV1Contract,
+} from '../standard-schema.js'
+import type {
   MiddlewareReviewContext,
   MiddlewareReviewResult,
   MiddlewareRollbackContext,
   MiddlewareRollbackResult,
 } from './context.js'
-import type {
-  SchemaOutputOrEmpty,
-  StandardSchemaV1Contract,
-} from './standard-schema.js'
 
 export interface SchedulerMiddleware<
   ConfigSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,

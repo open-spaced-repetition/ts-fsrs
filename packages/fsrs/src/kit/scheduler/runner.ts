@@ -2,6 +2,7 @@ import { FSRSValidationError } from '../../error.js'
 import { Grades } from '../../help.js'
 import { type FSRSState, type Grade, Rating } from '../../models.js'
 import { compose } from '../middleware.js'
+import type { SchemaOutput } from '../standard-schema.js'
 import type { IFSRSModel } from '../types.js'
 import type {
   NormalizedSchedulerReviewInput,
@@ -22,7 +23,6 @@ import type {
 import type { SchedulerDescriptor } from './descriptor.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { SchedulerModelDefinition } from './model.js'
-import type { SchemaOutput } from './standard-schema.js'
 
 export interface SchedulerRunnerOptions<
   Model extends SchedulerModelDefinition,

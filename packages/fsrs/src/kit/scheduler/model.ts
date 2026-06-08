@@ -1,10 +1,10 @@
 import { z } from 'zod/mini'
-import type { IFSRSModel } from '../types.js'
 import type {
   SchemaInput,
   SchemaOutput,
   StandardSchemaV1Contract,
-} from './standard-schema.js'
+} from '../standard-schema.js'
+import type { IFSRSModel } from '../types.js'
 
 export const FSRSMemoryStateSchema = z.object({
   difficulty: z.number(),
