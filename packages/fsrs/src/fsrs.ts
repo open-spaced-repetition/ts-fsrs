@@ -1,8 +1,9 @@
-import { z } from 'zod/mini'
 import { TypeConvert } from './convert'
 import { createEmptyCard, generatorParameters } from './default'
 import { FSRSValidationError } from './error'
-import { date_diff, dateDiffInDays, Grades } from './help'
+import { date_diff } from './help'
+import BasicScheduler from './impl/basic_scheduler'
+import LongTermScheduler from './impl/long_term_scheduler'
 import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
@@ -12,7 +13,6 @@ import {
   type FSRSParameters,
   type Grade,
   Rating,
-  type RecordLog,
   type RecordLogItem,
   type ReviewLog,
   type ReviewLogInput,
@@ -22,133 +22,16 @@ import { migrateFSRS6Parameters } from './models/fsrs-6/index.js'
 import { FSRS6Model } from './models/fsrs-6/model.js'
 import { Reschedule } from './reschedule'
 import {
-  configureScheduler,
-  defineSchedulerMiddleware,
-  desiredRetentionMiddleware,
-  intervalMiddleware,
-  learningStepMiddleware,
-  monotonicIntervalMiddleware,
-  type SchedulerCreator,
-  statsMiddleware,
-} from './scheduler/index.js'
-import { withFuzzing } from './strategies/fuzz.js'
-import type { IPreview, IReschedule, RescheduleOptions } from './types'
-
-const legacyFuzzConfigSchema = z.object({
-  enableFuzz: z._default(z.boolean(), false),
-  maximumInterval: z._default(z.number(), 36500),
-})
-const legacyFuzzFieldSchema = z.object({
-  seed: z._default(z.string(), ''),
-})
-
-/**
- * @deprecated Compatibility shim for the legacy {@link FSRS} facade only. It
- * reproduces the historical fuzz seed (`<review_ms>_<reps>_<difficulty*stability>`,
- * supplied via the `seed` field) instead of the new `fuzzMiddleware`'s
- * `cardId:reps`. Placed inside `learningStepMiddleware` so that (re)learning
- * steps — which override the interval afterwards — are never fuzzed/rounded.
- */
-const fuzzingMiddleware = defineSchedulerMiddleware({
-  configSchema: legacyFuzzConfigSchema,
-  fieldSchema: legacyFuzzFieldSchema,
-  review(ctx, next) {
-    const result = next()
-    result.card.interval = withFuzzing(
-      result.card.interval,
-      ctx.input.elapsedDays,
-      {
-        enable_fuzz: ctx.config.enableFuzz,
-        maximum_interval: ctx.config.maximumInterval,
-      },
-      ctx.input.card.seed
-    )
-    return result
-  },
-})
-
-// `as const` keeps the tuple shape so the scheduler config/field generics
-// (desiredRetention, learningSteps, maximumInterval …) survive on the field types.
-const FSRS_MIDDLEWARES = [
-  statsMiddleware,
-  desiredRetentionMiddleware,
-  learningStepMiddleware,
-  fuzzingMiddleware,
-  monotonicIntervalMiddleware,
-  intervalMiddleware,
-] as const
-
-type FSRSSchedulerCreator = SchedulerCreator<
-  typeof FSRS6Model,
-  typeof FSRS_MIDDLEWARES
->
-type FSRSScheduler = ReturnType<FSRSSchedulerCreator>
-type FSRSReviewResult = ReturnType<FSRSScheduler['review']>
-
-const MS_PER_DAY = 24 * 60 * 60 * 1000
-
-/** Days elapsed since the card's last review (0 for new cards). */
-function computeElapsedDays(previous: Card, now: Date): number {
-  return previous.state !== State.New && previous.last_review
-    ? dateDiffInDays(previous.last_review, now)
-    : 0
-}
-
-/**
- * Project a legacy `Card` onto the scheduler review input (`learning_steps` →
- * `steps`) and attach the legacy fuzz seed (`<review_ms>_<reps>_<d*s>`), matching
- * the old `DefaultInitSeedStrategy` (reps counts the in-progress review).
- */
-function toSchedulerInput(previous: Card, reviewTime: Date) {
-  return {
-    difficulty: previous.difficulty,
-    stability: previous.stability,
-    state: previous.state,
-    reps: previous.reps,
-    lapses: previous.lapses,
-    steps: previous.learning_steps,
-    seed: `${reviewTime.getTime()}_${previous.reps + 1}_${
-      previous.difficulty * previous.stability
-    }`,
-  }
-}
-
-/**
- * Convert a scheduler {@link FSRSReviewResult} back into a legacy `RecordLogItem`:
- * the `interval` (days) becomes `due` + `scheduled_days`, `steps` becomes
- * `learning_steps`, custom fields are carried over from `previous`, and the log
- * captures the pre-review snapshot (matching the legacy review log).
- */
-function toRecordLogItem(
-  previous: Card,
-  result: FSRSReviewResult,
-  reviewTime: Date
-): RecordLogItem {
-  const { interval } = result.card
-  const card: Card = {
-    ...previous,
-    due: new Date(reviewTime.getTime() + Math.round(interval * MS_PER_DAY)),
-    stability: result.card.stability,
-    difficulty: result.card.difficulty,
-    scheduled_days: Math.floor(interval),
-    learning_steps: result.card.steps,
-    reps: result.card.reps,
-    lapses: result.card.lapses,
-    state: result.card.state,
-    last_review: reviewTime,
-  }
-  const log: ReviewLog = {
-    rating: result.log.rating,
-    state: previous.state,
-    due: previous.last_review ?? previous.due,
-    stability: previous.stability,
-    difficulty: previous.difficulty,
-    scheduled_days: previous.scheduled_days,
-    learning_steps: previous.learning_steps,
-    review: reviewTime,
-  }
-  return { card, log }
-}
+  StrategyMode,
+  type TSchedulerStrategy,
+  type TStrategyHandler,
+} from './strategies/types'
+import type {
+  IPreview,
+  IReschedule,
+  IScheduler,
+  RescheduleOptions,
+} from './types'
 
 /**
  * @deprecated This interface will be removed after all tests are migrated and passing.
@@ -156,6 +39,13 @@ function toRecordLogItem(
  */
 export interface IFSRS {
   readonly model: IFSRSModel
+  useStrategy<T extends StrategyMode>(
+    mode: T,
+    handler: TStrategyHandler<T>
+  ): this
+
+  clearStrategy(mode?: StrategyMode): this
+
   repeat(card: CardInput | Card, now: DateInput): IPreview
 
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
@@ -182,21 +72,19 @@ export interface IFSRS {
  * Use Scheduler going forward.
  */
 export class FSRS implements IFSRS {
-  private Scheduler: FSRSSchedulerCreator
-  private scheduler!: FSRSScheduler
+  private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
+  private Scheduler!: TSchedulerStrategy
   #parameters!: FSRSParameters
+  #model!: IFSRSModel
 
   constructor(parameters: Partial<FSRSParameters> = {}) {
-    this.Scheduler = configureScheduler({
-      model: FSRS6Model,
-      middlewares: FSRS_MIDDLEWARES,
-    })
     this.parameters = parameters
   }
 
   get model(): IFSRSModel {
-    return this.scheduler.model
+    return this.#model
   }
+
   get parameters(): FSRSParameters {
     return this.#parameters
   }
@@ -205,30 +93,28 @@ export class FSRS implements IFSRS {
     const normalized = generatorParameters(parameters)
     this.#parameters = new Proxy(normalized, this.params_handler_proxy())
     this.rebuildModel()
+    this.Scheduler = normalized.enable_short_term
+      ? BasicScheduler
+      : LongTermScheduler
   }
 
   private rebuildModel(): void {
-    this.scheduler = this.Scheduler({
+    this.#model = FSRS6Model.create({
       weights: this.#parameters.w as number[],
-      learningSteps: this.#parameters.learning_steps,
-      relearningSteps: this.#parameters.relearning_steps,
       enableShortTerm: this.#parameters.enable_short_term,
-      desiredRetention: this.#parameters.request_retention,
-      maximumInterval: this.#parameters.maximum_interval,
-      enableFuzz: this.#parameters.enable_fuzz,
+      relearningSteps: this.#parameters.relearning_steps,
     })
   }
 
   protected params_handler_proxy(): ProxyHandler<FSRSParameters> {
     const _this = this satisfies FSRS
-    // Wrap `w` so in-place element mutations (w[i] = x) rebuild the model.
     let wProxy: number[] | null = null
     let wTarget: number[] | null = null
     return {
       get: (
         target: FSRSParameters,
-        prop: string | symbol,
-        receiver: unknown
+        prop: keyof FSRSParameters,
+        receiver: FSRSParameters
       ) => {
         if (prop === 'w') {
           const raw = Reflect.get(target, prop, receiver) as number[]
@@ -237,7 +123,9 @@ export class FSRS implements IFSRS {
             wProxy = new Proxy(raw, {
               set: (arr, index, val) => {
                 const ok = Reflect.set(arr, index, val)
-                if (ok) _this.rebuildModel()
+                if (ok) {
+                  _this.rebuildModel()
+                }
                 return ok
               },
             })
@@ -251,7 +139,9 @@ export class FSRS implements IFSRS {
         prop: keyof FSRSParameters,
         value: FSRSParameters[keyof FSRSParameters]
       ) => {
-        if (prop === 'w') {
+        if (prop === 'enable_short_term') {
+          _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
+        } else if (prop === 'w') {
           value = migrateFSRS6Parameters(
             value as number[],
             target.relearning_steps.length,
@@ -267,6 +157,41 @@ export class FSRS implements IFSRS {
     }
   }
 
+  useStrategy<T extends StrategyMode>(
+    mode: T,
+    handler: TStrategyHandler<T>
+  ): this {
+    this.strategyHandler.set(mode, handler)
+    return this
+  }
+
+  clearStrategy(mode?: StrategyMode): this {
+    if (mode) {
+      this.strategyHandler.delete(mode)
+    } else {
+      this.strategyHandler.clear()
+    }
+    return this
+  }
+
+  private getScheduler(card: CardInput | Card, now: DateInput): IScheduler {
+    // Strategy scheduler
+    const schedulerStrategy = this.strategyHandler.get(
+      StrategyMode.SCHEDULER
+    ) as TSchedulerStrategy | undefined
+
+    const Scheduler = schedulerStrategy || this.Scheduler
+    const instance = new Scheduler(
+      card,
+      now,
+      this.#model,
+      this.#parameters,
+      this.strategyHandler
+    )
+
+    return instance
+  }
+
   /**
    * Display the collection of cards and logs for the four scenarios after scheduling the card at the current time.
    * @param card Card to be processed
@@ -279,26 +204,8 @@ export class FSRS implements IFSRS {
    * ```
    */
   repeat(card: CardInput | Card, now: DateInput): IPreview {
-    const previous = TypeConvert.card(card)
-    const reviewTime = TypeConvert.time(now)
-    const preview = this.scheduler.preview({
-      card: toSchedulerInput(previous, reviewTime),
-      elapsedDays: computeElapsedDays(previous, reviewTime),
-    })
-
-    const records = {} as RecordLog
-    for (const grade of Grades) {
-      records[grade] = toRecordLogItem(previous, preview[grade], reviewTime)
-    }
-
-    return {
-      ...records,
-      *[Symbol.iterator]() {
-        for (const grade of Grades) {
-          yield records[grade]
-        }
-      },
-    } satisfies IPreview
+    const instance = this.getScheduler(card, now)
+    return instance.preview()
   }
 
   /**
@@ -314,20 +221,12 @@ export class FSRS implements IFSRS {
    * ```
    */
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem {
-    const previous = TypeConvert.card(card)
-    const reviewTime = TypeConvert.time(now)
+    const instance = this.getScheduler(card, now)
     const g = TypeConvert.rating(grade)
     if (g === Rating.Manual) {
       throw new FSRSValidationError('Cannot review a manual rating')
     }
-
-    const result = this.scheduler.review({
-      card: toSchedulerInput(previous, reviewTime),
-      elapsedDays: computeElapsedDays(previous, reviewTime),
-      rating: g,
-    })
-
-    return toRecordLogItem(previous, result, reviewTime)
+    return instance.review(g)
   }
 
   /**
@@ -345,9 +244,8 @@ export class FSRS implements IFSRS {
         : 0
     const r =
       processedCard.state !== State.New
-        ? this.scheduler.model.forgettingCurve(processedCard, t)
+        ? this.#model.forgettingCurve(processedCard, t)
         : 0
-
     return r
   }
 
