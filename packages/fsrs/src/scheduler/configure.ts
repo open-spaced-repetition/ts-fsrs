@@ -60,9 +60,8 @@ export function configureScheduler<
   ) => {
     const model = options.model.create(config) as ReturnType<Model['create']>
     const schedulerConfig = Object.assign(
-      {},
-      model.config,
-      descriptor.parseConfig(config)
+      descriptor.parseConfig(config),
+      model.config
     ) as SchedulerConfig<Model, Middlewares>
 
     const optionsWithConfig = {
