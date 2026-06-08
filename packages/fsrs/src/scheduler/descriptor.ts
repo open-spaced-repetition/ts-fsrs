@@ -7,7 +7,7 @@ import type {
   SchedulerMiddlewareConfig,
 } from './context.js'
 import { schedulerCoreFieldSchema } from './context.js'
-import { parseFragments } from './helper.js'
+import { parseDefaultFragments, parseFragments } from './helper.js'
 import type {
   ReviewMiddleware,
   RollbackMiddleware,
@@ -24,6 +24,7 @@ export interface SchedulerDescriptor<
     config: SchedulerConfigInput<Model, Middlewares>
   ): SchedulerMiddlewareConfig<Middlewares>
   parseCard(card: object): ReviewCard<Model, Middlewares>
+  resetCard(card: object): ReviewCard<Model, Middlewares>
   reviewHandlers: ReviewMiddleware<
     ReviewContext<Model, Middlewares>,
     ReviewResult<Model, Middlewares>
@@ -90,6 +91,18 @@ export function buildSchedulerDescriptor<
       const fragments = parseFragments(fieldsSchema, card)
 
       return Object.assign({}, ...fragments) as ReviewCard<Model, Middlewares>
+    },
+    resetCard: (card) => {
+      const parsedCard = Object.assign(
+        {},
+        ...parseFragments(fieldsSchema, card)
+      ) as ReviewCard<Model, Middlewares>
+      const defaults = parseDefaultFragments(fieldsSchema, parsedCard)
+
+      return Object.assign({}, parsedCard, ...defaults) as ReviewCard<
+        Model,
+        Middlewares
+      >
     },
     reviewHandlers,
     rollbackHandlers,

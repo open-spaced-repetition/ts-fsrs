@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
 import type { IFSRSModel } from '../kit/types.js'
-import type { Grade } from '../models.js'
+import type { Grade, Rating } from '../models.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { FSRSMemoryState, SchedulerModelFactory } from './model.js'
 import type {
@@ -142,6 +142,12 @@ export type SchedulerRevlog<PreviousCard> = Prettify<
   }
 >
 
+export type SchedulerForgetRevlog<PreviousCard> = Prettify<
+  Omit<PreviousCard, 'rating'> & {
+    rating: Rating.Manual
+  }
+>
+
 export interface SchedulerReviewInput<
   Model extends SchedulerModelFactory,
   Middlewares extends readonly SchedulerMiddleware[],
@@ -166,6 +172,33 @@ export interface SchedulerPreviewInput<
 > {
   readonly card: ReviewCardInput<Model, Middlewares>
   readonly elapsedDays: number
+}
+
+export interface SchedulerResetInput<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+> {
+  readonly card: ReviewCardInput<Model, Middlewares>
+}
+
+export type SchedulerResetResult<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+> = ReviewCard<Model, Middlewares>
+
+export interface SchedulerForgetInput<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+> {
+  readonly card: ReviewCardInput<Model, Middlewares>
+}
+
+export interface SchedulerForgetResult<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+> {
+  readonly card: ReviewCard<Model, Middlewares>
+  readonly log: SchedulerForgetRevlog<ReviewCard<Model, Middlewares>>
 }
 
 export type RatingCandidateStore<MemoryState extends FSRSMemoryState> = (

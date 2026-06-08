@@ -1,7 +1,8 @@
+import { FSRSValidationError } from '../error.js'
 import { Grades } from '../help.js'
 import { compose } from '../kit/middleware.js'
 import type { IFSRSModel } from '../kit/types.js'
-import type { FSRSState, Grade } from '../models.js'
+import { type FSRSState, type Grade, Rating } from '../models.js'
 import type {
   NormalizedSchedulerReviewInput,
   PreviewResult,
@@ -11,7 +12,11 @@ import type {
   ReviewResult,
   RollbackContext,
   SchedulerConfig,
+  SchedulerForgetInput,
+  SchedulerForgetResult,
   SchedulerPreviewInput,
+  SchedulerResetInput,
+  SchedulerResetResult,
   SchedulerReviewInput,
   SchedulerRollbackInput,
   SchedulerStoreAccessor,
@@ -97,6 +102,26 @@ export function runRollback<
   input: SchedulerRollbackInput<Model, Middlewares>
 ): ReviewCard<Model, Middlewares> {
   return new Runner(options).rollback(input)
+}
+
+export function runReset<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(
+  options: SchedulerRunnerOptions<Model, Middlewares>,
+  input: SchedulerResetInput<Model, Middlewares>
+): SchedulerResetResult<Model, Middlewares> {
+  return new Runner(options).reset(input)
+}
+
+export function runForget<
+  Model extends SchedulerModelFactory,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(
+  options: SchedulerRunnerOptions<Model, Middlewares>,
+  input: SchedulerForgetInput<Model, Middlewares>
+): SchedulerForgetResult<Model, Middlewares> {
+  return new Runner(options).forget(input)
 }
 
 export class Runner<
@@ -191,6 +216,10 @@ export class Runner<
   rollback(
     input: SchedulerRollbackInput<Model, Middlewares>
   ): ReviewCard<Model, Middlewares> {
+    if ((input.revlog.rating as Rating) === Rating.Manual) {
+      throw new FSRSValidationError('Cannot rollback a manual rating')
+    }
+
     const ctx: RollbackContext<Model, Middlewares> = {
       input,
       config: this.options.config,
@@ -199,6 +228,26 @@ export class Runner<
     }
 
     return this.rollbackHandler(ctx)
+  }
+
+  reset(
+    input: SchedulerResetInput<Model, Middlewares>
+  ): ReviewCard<Model, Middlewares> {
+    return this.options.descriptor.resetCard(input.card)
+  }
+
+  forget(
+    input: SchedulerForgetInput<Model, Middlewares>
+  ): SchedulerForgetResult<Model, Middlewares> {
+    const previousCard = this.options.descriptor.parseCard(input.card)
+
+    return {
+      card: this.options.descriptor.resetCard(previousCard),
+      log: {
+        ...previousCard,
+        rating: Rating.Manual,
+      },
+    }
   }
 }
 

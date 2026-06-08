@@ -3,9 +3,9 @@ import { Rating, State } from '../models.js'
 import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 
 export const statsFieldSchema = z.object({
-  reps: z.number(),
-  state: z.enum(State),
-  lapses: z.number(),
+  reps: z._default(z.number(), 0),
+  state: z._default(z.enum(State), State.New),
+  lapses: z._default(z.number(), 0),
 })
 
 export const statsMiddleware = defineSchedulerMiddleware({

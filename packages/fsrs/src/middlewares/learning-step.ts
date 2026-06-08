@@ -13,7 +13,7 @@ export const learningStepConfigSchema = z.object({
 
 export const learningStepFieldSchema = z.object({
   steps: z._default(z.number(), 0),
-  state: z.number(),
+  state: z._default(z.number(), State.New),
 })
 
 export const learningStepMiddleware = defineSchedulerMiddleware({

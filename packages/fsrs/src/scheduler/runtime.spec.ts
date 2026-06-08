@@ -409,6 +409,134 @@ describe('scheduler runtime', () => {
     })
   })
 
+  it('resets card fields from schema defaults without middleware handlers', () => {
+    const { factory } = createMockModelFactory()
+    const fieldSchema = z.object({
+      sourceId: z.string(),
+      label: z.string(),
+      defaultedLabel: z._default(z.string(), 'default-label'),
+      defaultedCount: z._default(z.number(), 0),
+    })
+    const middleware = defineSchedulerMiddleware({
+      fieldSchema,
+      rollback() {
+        throw new Error('reset should not use rollback middleware')
+      },
+    })
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [middleware],
+    })({})
+
+    const reset = scheduler.reset({
+      card: {
+        difficulty: 5,
+        stability: 10,
+        interval: 30,
+        sourceId: 'card-1',
+        label: 'preserved',
+        defaultedLabel: 'changed',
+        defaultedCount: 99,
+      },
+    })
+
+    expect(reset).toEqual({
+      difficulty: 5,
+      stability: 10,
+      interval: 0,
+      sourceId: 'card-1',
+      label: 'preserved',
+      defaultedLabel: 'default-label',
+      defaultedCount: 0,
+    })
+  })
+
+  it('forgets with a manual snapshot log and schema-driven reset', () => {
+    const { factory, getStepCalls } = createMockModelFactory()
+    const fieldSchema = z.object({
+      sourceId: z.string(),
+      counter: z._default(z.number(), 0),
+    })
+    const middleware = defineSchedulerMiddleware({
+      fieldSchema,
+      review() {
+        throw new Error('forget should not use review middleware')
+      },
+      rollback() {
+        throw new Error('forget should not use rollback middleware')
+      },
+    })
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [middleware],
+    })({})
+
+    const forgotten = scheduler.forget({
+      card: {
+        difficulty: 3,
+        stability: 4,
+        interval: 9,
+        sourceId: 'card-1',
+        counter: 5,
+      },
+    })
+
+    expect(getStepCalls()).toBe(0)
+    expect(forgotten.log).toEqual({
+      difficulty: 3,
+      stability: 4,
+      interval: 9,
+      sourceId: 'card-1',
+      counter: 5,
+      rating: Rating.Manual,
+    })
+    expect(forgotten.card).toEqual({
+      difficulty: 3,
+      stability: 4,
+      interval: 0,
+      sourceId: 'card-1',
+      counter: 0,
+    })
+    expect(() =>
+      scheduler.rollback({
+        card: forgotten.card,
+        revlog: forgotten.log as Parameters<
+          typeof scheduler.rollback
+        >[0]['revlog'],
+      })
+    ).toThrow(FSRSValidationError)
+  })
+
+  it('resets built-in scheduler fields from their field schema defaults', () => {
+    const { factory } = createMockModelFactory()
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [statsMiddleware, learningStepMiddleware],
+    })({})
+
+    const reset = scheduler.reset({
+      card: {
+        difficulty: 5,
+        stability: 10,
+        interval: 30,
+        reps: 8,
+        lapses: 2,
+        state: State.Review,
+        steps: 3,
+      },
+    })
+
+    expect(reset).toEqual({
+      difficulty: 5,
+      stability: 10,
+      interval: 0,
+      reps: 0,
+      lapses: 0,
+      state: State.New,
+      steps: 0,
+    })
+  })
+
   it('converts learning steps to day-level intervals', () => {
     const { factory } = createMockModelFactory()
     const scheduler = configureScheduler({

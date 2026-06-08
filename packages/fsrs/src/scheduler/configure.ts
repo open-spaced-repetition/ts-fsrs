@@ -4,7 +4,11 @@ import type {
   ReviewResult,
   SchedulerConfig,
   SchedulerConfigInput,
+  SchedulerForgetInput,
+  SchedulerForgetResult,
   SchedulerPreviewInput,
+  SchedulerResetInput,
+  SchedulerResetResult,
   SchedulerReviewInput,
   SchedulerRollbackInput,
 } from './context.js'
@@ -29,6 +33,12 @@ export interface IScheduler<
   rollback(
     input: SchedulerRollbackInput<Model, Middlewares>
   ): ReviewCard<Model, Middlewares>
+  reset(
+    input: SchedulerResetInput<Model, Middlewares>
+  ): SchedulerResetResult<Model, Middlewares>
+  forget(
+    input: SchedulerForgetInput<Model, Middlewares>
+  ): SchedulerForgetResult<Model, Middlewares>
 }
 
 export type SchedulerCreator<
@@ -76,6 +86,12 @@ export function configureScheduler<
       },
       rollback(input) {
         return runner.rollback(input)
+      },
+      reset(input) {
+        return runner.reset(input)
+      },
+      forget(input) {
+        return runner.forget(input)
       },
     } as IScheduler<Model, Middlewares>
   }

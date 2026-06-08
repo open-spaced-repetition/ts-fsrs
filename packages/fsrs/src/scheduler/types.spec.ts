@@ -9,6 +9,10 @@ import {
   type MiddlewareSchedulerModel,
   type ReviewResult,
   type SchedulerConfigInput,
+  type SchedulerForgetInput,
+  type SchedulerForgetResult,
+  type SchedulerResetInput,
+  type SchedulerResetResult,
   type SchedulerReviewInput,
 } from './index.js'
 
@@ -119,7 +123,7 @@ describe('scheduler public types', () => {
     >()
   })
 
-  it('types preview and rollback from the configured middleware tuple', () => {
+  it('types preview, rollback, reset, and forget from the configured middleware tuple', () => {
     const preview = scheduler.preview({
       card: {
         difficulty: 5,
@@ -143,9 +147,52 @@ describe('scheduler public types', () => {
       card: reviewed.card,
       revlog: reviewed.log,
     })
+    const reset = scheduler.reset({
+      card: {
+        difficulty: 5,
+        stability: 10,
+        sourceId: 'card-1',
+        state: 0,
+      },
+    })
+    const forgotten = scheduler.forget({
+      card: {
+        difficulty: 5,
+        stability: 10,
+        sourceId: 'card-1',
+        state: 0,
+      },
+    })
 
     expectTypeOf(preview[Rating.Again]).toEqualTypeOf<typeof reviewed>()
     expectTypeOf(rollback).toEqualTypeOf<typeof reviewed.card>()
+    expectTypeOf(reset).toEqualTypeOf<typeof reviewed.card>()
+    expectTypeOf<Parameters<typeof scheduler.reset>[0]>().toEqualTypeOf<
+      SchedulerResetInput<typeof FSRS6Model, readonly [typeof middleware]>
+    >()
+    expectTypeOf(reset).toEqualTypeOf<
+      SchedulerResetResult<typeof FSRS6Model, readonly [typeof middleware]>
+    >()
+    expectTypeOf(forgotten).toEqualTypeOf<
+      SchedulerForgetResult<typeof FSRS6Model, readonly [typeof middleware]>
+    >()
+    expectTypeOf(forgotten.log.rating).toEqualTypeOf<Rating.Manual>()
+    expectTypeOf<Parameters<typeof scheduler.forget>[0]>().toEqualTypeOf<
+      SchedulerForgetInput<typeof FSRS6Model, readonly [typeof middleware]>
+    >()
+
+    const compileOnly = () => {
+      scheduler.rollback({
+        card: reviewed.card,
+        revlog: reviewed.log,
+      })
+      // @ts-expect-error forget uses Rating.Manual and cannot be rollback input.
+      scheduler.rollback({
+        card: forgotten.card,
+        revlog: forgotten.log,
+      })
+    }
+    expectTypeOf(compileOnly).returns.toEqualTypeOf<void>()
   })
 
   it('does not widen cards when a middleware has no field schema', () => {
