@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 
 export const desiredRetentionConfigSchema = z.object({
   desiredRetention: z._default(z.number(), 0.9),

@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 import { stepsSchema } from '../kit/steps.js'
 import { type FSRSParameters, State } from '../models.js'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 import { BasicLearningStepsStrategy } from '../strategies/learning_steps.js'
 
 export const learningStepConfigSchema = z.object({

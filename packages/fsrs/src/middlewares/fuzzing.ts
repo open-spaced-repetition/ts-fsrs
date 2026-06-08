@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 import { withFuzzing } from '../strategies/fuzz.js'
 
 export const fuzzConfigSchema = z.object({

@@ -25,7 +25,6 @@ export type {
   TimeUnit,
 } from './models'
 export { Rating, State } from './models'
-export * from './scheduler'
 export * from './strategies'
 export type {
   double,

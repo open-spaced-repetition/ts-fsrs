@@ -1,4 +1,4 @@
-export * from '../middlewares/index.js'
+export * from '../../middlewares/index.js'
 export * from './configure.js'
 export * from './context.js'
 export * from './descriptor.js'

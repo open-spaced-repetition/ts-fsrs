@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 
 const intervalConfigSchema = z.object({
   maximumInterval: z._default(z.number(), 36500),

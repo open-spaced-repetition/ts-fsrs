@@ -40,17 +40,6 @@
         "default": "./dist/models/fsrs-6.mjs"
       },
       "default": "./dist/models/fsrs-6.mjs"
-    },
-    "./scheduler": {
-      "require": {
-        "types": "./dist/scheduler.d.cts",
-        "default": "./dist/scheduler.cjs"
-      },
-      "import": {
-        "types": "./dist/scheduler.d.mts",
-        "default": "./dist/scheduler.mjs"
-      },
-      "default": "./dist/scheduler.mjs"
     }
   },
   "type": "module",

@@ -1,9 +1,5 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
-import type {
-  EmptyObject,
-  SchemaInput,
-  SchemaOutput,
-} from '../kit/helper-types.js'
+import type { EmptyObject, SchemaInput, SchemaOutput } from '../helper-types.js'
 
 export type { StandardSchemaV1 } from '@standard-schema/spec'
 export type {
@@ -11,7 +7,7 @@ export type {
   Prettify,
   SchemaInput,
   SchemaOutput,
-} from '../kit/helper-types.js'
+} from '../helper-types.js'
 
 export type StandardSchemaV1Contract<
   Input extends object = EmptyObject,

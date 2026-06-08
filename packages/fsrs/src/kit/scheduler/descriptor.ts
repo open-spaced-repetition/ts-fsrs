@@ -1,4 +1,4 @@
-import { defineMiddleware, type Middleware } from '../kit/middleware.js'
+import { defineMiddleware, type Middleware } from '../middleware.js'
 import type {
   ReviewCard,
   ReviewContext,

@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 import { Rating, State } from '../models.js'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 
 export const statsFieldSchema = z.object({
   reps: z._default(z.number(), 0),

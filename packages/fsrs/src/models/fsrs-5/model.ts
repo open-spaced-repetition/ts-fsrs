@@ -1,10 +1,10 @@
 import * as z from 'zod/mini'
 import type { FSRSForwardInput, FSRSStepInput, IFSRSModel } from '../../kit'
-import type { FSRSState } from '../../models.js'
 import {
   FSRSMemoryStateSchema,
   type SchedulerModelDefinition,
-} from '../../scheduler/model.js'
+} from '../../kit/scheduler/model.js'
+import type { FSRSState } from '../../models.js'
 import { FSRS5Algorithm } from './algorithm.js'
 import {
   type FSRS5Config,

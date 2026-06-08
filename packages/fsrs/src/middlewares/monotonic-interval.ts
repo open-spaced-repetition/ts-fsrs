@@ -1,7 +1,7 @@
 import { z } from 'zod/mini'
+import { defineSchedulerMiddleware } from '../kit/scheduler/middleware.js'
 import type { Grade } from '../models.js'
 import { Rating, State } from '../models.js'
-import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 
 const monotonicIntervalConfigSchema = z.object({
   maximumInterval: z._default(z.number(), 36500),

@@ -1,4 +1,4 @@
-import type { Middleware } from '../kit/middleware.js'
+import type { Middleware } from '../middleware.js'
 import type {
   MiddlewareReviewContext,
   MiddlewareReviewResult,

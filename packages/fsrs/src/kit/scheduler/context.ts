@@ -1,6 +1,6 @@
 import { z } from 'zod/mini'
-import type { IFSRSModel } from '../kit/types.js'
-import type { Grade } from '../models.js'
+import type { Grade } from '../../models.js'
+import type { IFSRSModel } from '../types.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
 import type {

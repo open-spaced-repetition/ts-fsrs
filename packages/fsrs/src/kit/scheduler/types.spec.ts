@@ -1,8 +1,8 @@
 import { describe, expectTypeOf, it } from 'vitest'
 import { z } from 'zod/mini'
-import { FSRS6_DEFAULT_WEIGHTS } from '../models/fsrs-6/constants.js'
-import { FSRS6Model } from '../models/fsrs-6/model.js'
-import { Rating, type Steps } from '../models.js'
+import { FSRS6_DEFAULT_WEIGHTS } from '../../models/fsrs-6/constants.js'
+import { FSRS6Model } from '../../models/fsrs-6/model.js'
+import { Rating, type Steps } from '../../models.js'
 import {
   configureScheduler,
   defineSchedulerMiddleware,

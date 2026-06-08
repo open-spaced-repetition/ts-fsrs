@@ -1,8 +1,8 @@
 import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod/mini'
-import { FSRSValidationError } from '../error.js'
-import { Rating, State } from '../models.js'
+import { FSRSValidationError } from '../../error.js'
+import { Rating, State } from '../../models.js'
 import {
   configureScheduler,
   defineSchedulerMiddleware,

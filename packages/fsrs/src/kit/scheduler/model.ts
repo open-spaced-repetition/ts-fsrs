@@ -1,5 +1,5 @@
 import { z } from 'zod/mini'
-import type { IFSRSModel } from '../kit/types.js'
+import type { IFSRSModel } from '../types.js'
 import type {
   SchemaInput,
   SchemaOutput,

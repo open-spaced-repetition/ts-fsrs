@@ -7,7 +7,6 @@ export default defineConfig([
       error: 'src/error.ts',
       'models/fsrs-5': 'src/models/fsrs-5/index.ts',
       'models/fsrs-6': 'src/models/fsrs-6/index.ts',
-      scheduler: 'src/scheduler/index.ts',
     },
     format: ['esm', 'cjs'],
     outDir: 'dist',
