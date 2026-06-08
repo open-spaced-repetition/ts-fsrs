@@ -6,7 +6,6 @@ import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
 import type {
   EmptyObject,
   Prettify,
-  SchemaFragmentValue,
   SchemaInput,
   SchemaInputOrEmpty,
   SchemaOutput,
@@ -95,28 +94,19 @@ export type SchedulerMiddlewareConfig<
 export type SchedulerStore<Middlewares extends readonly SchedulerMiddleware[]> =
   Prettify<MergeMiddlewareOutputs<Middlewares, 'store'>>
 
-export type SchedulerStoreValue = SchemaFragmentValue<
-  Map<Grade, number> | ReadonlyMap<Grade, number>
->
-
-export type SchedulerRuntimeStore = {
-  readonly [key: symbol]: SchedulerStoreValue
-}
-
-export interface SchedulerStoreAccessor<Store extends object> {
-  get<
-    Refinement extends object = Store,
-    Key extends keyof Refinement = keyof Refinement,
-  >(key: Key): Refinement[Key]
-  set<
-    Refinement extends object = Store,
-    Key extends keyof Refinement = keyof Refinement,
-  >(key: Key, value: Refinement[Key]): void
+export interface SchedulerStoreAccessor<Store> {
+  get<Refinement = Store, Key extends keyof Refinement = keyof Refinement>(
+    key: Key
+  ): Refinement[Key]
+  set<Refinement = Store, Key extends keyof Refinement = keyof Refinement>(
+    key: Key,
+    value: Refinement[Key]
+  ): void
 }
 
 export type SchedulerStoreData<
   Middlewares extends readonly SchedulerMiddleware[],
-> = SchedulerStore<Middlewares> & SchedulerRuntimeStore
+> = SchedulerStore<Middlewares>
 
 export type ReviewCardInput<
   Model extends SchedulerModelDefinition,
@@ -242,7 +232,7 @@ type MiddlewareCard<FieldSchema> = Prettify<
 >
 
 type MiddlewareStore<StoreSchema> = SchedulerStoreAccessor<
-  SchemaOutputOrEmpty<StoreSchema> & SchedulerRuntimeStore
+  SchemaOutputOrEmpty<StoreSchema>
 >
 
 export type MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema> = {

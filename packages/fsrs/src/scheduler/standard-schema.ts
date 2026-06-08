@@ -26,14 +26,4 @@ export type SchemaOutputOrEmpty<Schema> = Schema extends StandardSchemaV1
   ? SchemaOutput<Schema>
   : EmptyObject
 
-export type SchemaFragmentValue<Extension = never> =
-  | string
-  | number
-  | boolean
-  | null
-  | undefined
-  | Extension
-  | readonly SchemaFragmentValue<Extension>[]
-  | { readonly [key: string]: SchemaFragmentValue<Extension> }
-
-export type SchemaFragmentObject = Record<string, SchemaFragmentValue>
+export type SchemaFragmentObject = Record<string, unknown>

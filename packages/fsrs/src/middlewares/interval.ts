@@ -3,12 +3,6 @@ import type { Grade } from '../models.js'
 import { Rating } from '../models.js'
 import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 
-export const ratingIntervalsStoreKey = Symbol('scheduler.ratingIntervals')
-
-export type RatingIntervalsStore = {
-  readonly [ratingIntervalsStoreKey]?: Map<Grade, number>
-}
-
 export const intervalConfigSchema = z.object({
   maximumInterval: z._default(z.number(), 36500),
 })
