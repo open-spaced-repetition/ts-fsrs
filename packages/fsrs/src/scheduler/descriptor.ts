@@ -1,3 +1,4 @@
+import { defineMiddleware, type Middleware } from '../kit/middleware.js'
 import type {
   ReviewCard,
   ReviewContext,
@@ -8,11 +9,7 @@ import type {
 } from './context.js'
 import { schedulerCoreFieldSchema } from './context.js'
 import { parseDefaultFragments, parseFragments } from './helper.js'
-import type {
-  ReviewMiddleware,
-  RollbackMiddleware,
-  SchedulerMiddleware,
-} from './middleware.js'
+import type { SchedulerMiddleware } from './middleware.js'
 import type { SchedulerModelDefinition } from './model.js'
 import type { StandardSchemaV1 } from './standard-schema.js'
 
@@ -25,11 +22,11 @@ export interface SchedulerDescriptor<
   ): SchedulerMiddlewareConfig<Middlewares>
   parseCard(card: object): ReviewCard<Model, Middlewares>
   resetCard(card: object): ReviewCard<Model, Middlewares>
-  reviewHandlers: ReviewMiddleware<
+  reviewHandlers: Middleware<
     ReviewContext<Model, Middlewares>,
     ReviewResult<Model, Middlewares>
   >[]
-  rollbackHandlers: RollbackMiddleware<
+  rollbackHandlers: Middleware<
     RollbackContext<Model, Middlewares>,
     ReviewCard<Model, Middlewares>
   >[]
@@ -44,11 +41,11 @@ export function buildSchedulerDescriptor<
 ): SchedulerDescriptor<Model, Middlewares> {
   const configSchema: StandardSchemaV1[] = []
   const fieldsSchema: StandardSchemaV1[] = []
-  const reviewHandlers: ReviewMiddleware<
+  const reviewHandlers: Middleware<
     ReviewContext<Model, Middlewares>,
     ReviewResult<Model, Middlewares>
   >[] = []
-  const rollbackHandlers: RollbackMiddleware<
+  const rollbackHandlers: Middleware<
     RollbackContext<Model, Middlewares>,
     ReviewCard<Model, Middlewares>
   >[] = []
@@ -64,16 +61,12 @@ export function buildSchedulerDescriptor<
 
     const review = middleware.review
     if (review) {
-      reviewHandlers.push((ctx, next) => {
-        return review(ctx, next) as ReviewResult<Model, Middlewares>
-      })
+      reviewHandlers.push(defineMiddleware(review))
     }
 
     const rollback = middleware.rollback
     if (rollback) {
-      rollbackHandlers.push((ctx, next) => {
-        return rollback(ctx, next) as ReviewCard<Model, Middlewares>
-      })
+      rollbackHandlers.push(defineMiddleware(rollback))
     }
   }
   fieldsSchema.push(schedulerCoreFieldSchema, model.memoryStateSchema)

@@ -5,7 +5,7 @@
  * return it (optionally transformed). Returning without calling `next()`
  * short-circuits the remaining middleware.
  */
-export type Middleware<T, R> = (ctx: T, next: () => R) => R
+export type Middleware<T = unknown, R = unknown> = (ctx: T, next: () => R) => R
 
 /**
  * Composes middleware around a terminal `handler`, running them in registration
@@ -30,4 +30,17 @@ export function compose<T, R>(
     }
     return dispatch(0)
   }
+}
+
+/**
+ * Reinterpret a middleware as one operating on a wider context/result. The
+ * input must be a middleware (so non-middleware values are rejected), while the
+ * returned `T`/`R` are inferred from the call site — defaulting to the input's
+ * own types when no wider context is expected. The reinterpretation itself is
+ * unchecked: callers are responsible for the runtime context being compatible.
+ */
+export function defineMiddleware<In, Out, T = In, R = Out>(
+  middleware: Middleware<In, Out>
+): Middleware<T, R> {
+  return middleware as unknown as Middleware<T, R>
 }

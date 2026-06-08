@@ -18,8 +18,6 @@ export type StandardSchemaV1Contract<
   Output extends object = Input,
 > = StandardSchemaV1<Input, Output>
 
-export type OptionalStandardSchema = StandardSchemaV1Contract | undefined
-
 export type SchemaInputOrEmpty<Schema> = Schema extends StandardSchemaV1
   ? SchemaInput<Schema>
   : EmptyObject

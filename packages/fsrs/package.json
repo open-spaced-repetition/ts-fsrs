@@ -63,6 +63,8 @@
     "test::publish": "yalc publish",
     "build": "tsdown",
     "predocs": "rimraf ../../docs",
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --noEmit --watch",
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
