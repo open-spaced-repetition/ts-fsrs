@@ -4,10 +4,13 @@ import {
   createEmptyCard,
   dateDiffInDays,
   default_w,
+  type FSRSParameters,
   fsrs,
   generatorParameters,
   Rating,
   State,
+  StrategyMode,
+  type TLearningStepsStrategy,
 } from 'ts-fsrs'
 
 describe('ConvertStepUnitToMinutes', () => {
@@ -208,47 +211,149 @@ describe('integrated into FSRS', () => {
     )
   })
 
-  // A learning step that spans a full day or more graduates the card to Review
-  // with day-level scheduled_days (see `learningStepMiddleware`). Custom
-  // per-rating step strategies are no longer injectable, so the step lengths are
-  // driven through `learning_steps`.
-  describe('If a learning step’s delay exceeds 1 day', () => {
-    it('graduates day-level steps to Review', () => {
-      const f = fsrs({ learning_steps: ['5m', '1d', '3d'] })
-      const now = new Date(2022, 11, 29, 12, 30, 0, 0)
-      const card = createEmptyCard(now)
-      const record = f.repeat(card, now)
+  describe('Hardcoded learning steps', () => {
+    const learningStepsStrategy: TLearningStepsStrategy = (
+      _params: Pick<FSRSParameters, 'learning_steps' | 'relearning_steps'>,
+      _state: State,
+      cur_step: number
+    ) => {
+      if (cur_step >= 1) {
+        return {
+          [Rating.Again]: { scheduled_minutes: 5, next_step: 1 },
+          [Rating.Hard]: { scheduled_minutes: 10, next_step: 1 },
+        }
+      } else {
+        return {
+          [Rating.Again]: { scheduled_minutes: 1, next_step: 1 },
+          [Rating.Hard]: { scheduled_minutes: 5, next_step: 1 },
+          [Rating.Good]: { scheduled_minutes: 10, next_step: 1 },
+        }
+      }
+    }
+    it('use LearningStepsStrategy', () => {
+      const f = fsrs().useStrategy(
+        StrategyMode.LEARNING_STEPS,
+        learningStepsStrategy
+      )
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
+      expect(f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)).toBe(
+        learningStepsStrategy
+      )
 
-      // Again: 5m sub-day step → stays in Learning.
-      expect(record[Rating.Again].card.state).toEqual(State.Learning)
-      expect(record[Rating.Again].card.learning_steps).toEqual(0)
-      expect(record[Rating.Again].card.scheduled_days).toEqual(0)
+      f.clearStrategy()
+      expect(
+        // biome-ignore lint/complexity/useLiteralKeys: access private variables
+        f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
+      ).toBeUndefined()
+    })
+
+    it('learning step', () => {
+      const f = fsrs({}).useStrategy(
+        StrategyMode.LEARNING_STEPS,
+        learningStepsStrategy
+      )
+      let now = new Date(2022, 11, 29, 12, 30, 0, 0)
+      let card = createEmptyCard(now)
+      let record = f.repeat(card, now)
+      // new
+      expect(record[Rating.Again].card.learning_steps).toEqual(1)
+      expect(record[Rating.Again].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 1 // 1m
+      )
+
+      expect(record[Rating.Hard].card.learning_steps).toEqual(1)
+      expect(record[Rating.Hard].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 5 // 5m
+      )
+
+      expect(record[Rating.Good].card.learning_steps).toEqual(1)
+      expect(record[Rating.Good].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 10 // 10m
+      )
+      expect(record[Rating.Easy].card.learning_steps).toEqual(0)
+      expect(dateDiffInDays(now, record[Rating.Easy].card.due)).toBe(
+        Math.floor(default_w[3])
+      )
+      // learning
+      card = record[Rating.Good].card
+      now = card.due
+      record = f.repeat(card, now)
+      expect(record[Rating.Again].card.learning_steps).toEqual(1)
       expect(record[Rating.Again].card.due.getTime() - now.getTime()).toEqual(
         1000 * 60 * 5 // 5m
       )
 
-      // Good: next step is '1d' (1440m) → graduates to Review, 1 scheduled day.
-      expect(record[Rating.Good].card.state).toEqual(State.Review)
-      expect(record[Rating.Good].card.learning_steps).toEqual(1)
-      expect(record[Rating.Good].card.scheduled_days).toEqual(1)
-      expect(record[Rating.Good].card.due.getTime() - now.getTime()).toEqual(
-        1000 * 60 * 1440 // 1d
+      expect(record[Rating.Hard].card.learning_steps).toEqual(1)
+      expect(record[Rating.Hard].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 10 // 10m
+      )
+
+      expect(record[Rating.Good].card.learning_steps).toEqual(0)
+      expect(
+        record[Rating.Good].card.due.getTime() - now.getTime()
+      ).toBeGreaterThanOrEqual(
+        1000 * 60 * 1440 // 24h
+      )
+
+      expect(record[Rating.Easy].card.learning_steps).toEqual(0)
+      expect(
+        record[Rating.Easy].card.due.getTime() - now.getTime()
+      ).toBeGreaterThanOrEqual(
+        1000 * 60 * 1440 // 24h
       )
     })
+  })
 
-    it('graduates multi-day steps to Review', () => {
-      const f = fsrs({ learning_steps: ['5m', '3d'] })
+  describe('If a learning step’s delay exceeds 1 day', () => {
+    const learningStepsStrategy: TLearningStepsStrategy = () => {
+      return {
+        [Rating.Again]: { scheduled_minutes: 5, next_step: 1 },
+        [Rating.Hard]: { scheduled_minutes: 1440, next_step: 1 },
+        [Rating.Good]: { scheduled_minutes: 1440 * 3, next_step: 1 },
+      }
+    }
+    it('use LearningStepsStrategy', () => {
+      const f = fsrs().useStrategy(
+        StrategyMode.LEARNING_STEPS,
+        learningStepsStrategy
+      )
+      // biome-ignore lint/complexity/useLiteralKeys: access private variables
+      expect(f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)).toBe(
+        learningStepsStrategy
+      )
+
+      f.clearStrategy()
+      expect(
+        // biome-ignore lint/complexity/useLiteralKeys: access private variables
+        f['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
+      ).toBeUndefined()
+    })
+
+    it('delay exceeds 1 day', () => {
+      const f = fsrs({}).useStrategy(
+        StrategyMode.LEARNING_STEPS,
+        learningStepsStrategy
+      )
       const now = new Date(2022, 11, 29, 12, 30, 0, 0)
       const card = createEmptyCard(now)
       const record = f.repeat(card, now)
+      expect(record[Rating.Again].card.learning_steps).toEqual(1)
+      expect(record[Rating.Again].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 5 // 5m
+      )
+      expect(record[Rating.Again].card.scheduled_days).toEqual(0)
 
-      // Good: next step is '3d' (4320m) → graduates to Review, 3 scheduled days.
-      expect(record[Rating.Good].card.state).toEqual(State.Review)
+      expect(record[Rating.Hard].card.learning_steps).toEqual(1)
+      expect(record[Rating.Hard].card.due.getTime() - now.getTime()).toEqual(
+        1000 * 60 * 1440 // 1d
+      )
+      expect(record[Rating.Hard].card.scheduled_days).toEqual(1)
+
       expect(record[Rating.Good].card.learning_steps).toEqual(1)
-      expect(record[Rating.Good].card.scheduled_days).toEqual(3)
       expect(record[Rating.Good].card.due.getTime() - now.getTime()).toEqual(
         1000 * 60 * 1440 * 3 // 3d
       )
+      expect(record[Rating.Good].card.scheduled_days).toEqual(3)
     })
   })
 })
