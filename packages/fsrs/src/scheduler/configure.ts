@@ -4,8 +4,6 @@ import type {
   ReviewResult,
   SchedulerConfig,
   SchedulerConfigInput,
-  SchedulerForgetInput,
-  SchedulerForgetResult,
   SchedulerPreviewInput,
   SchedulerResetInput,
   SchedulerResetResult,
@@ -36,9 +34,6 @@ export interface IScheduler<
   reset(
     input: SchedulerResetInput<Model, Middlewares>
   ): SchedulerResetResult<Model, Middlewares>
-  forget(
-    input: SchedulerForgetInput<Model, Middlewares>
-  ): SchedulerForgetResult<Model, Middlewares>
 }
 
 export type SchedulerCreator<
@@ -89,9 +84,6 @@ export function configureScheduler<
       },
       reset(input) {
         return runner.reset(input)
-      },
-      forget(input) {
-        return runner.forget(input)
       },
     } as IScheduler<Model, Middlewares>
   }

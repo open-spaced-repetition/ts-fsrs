@@ -9,8 +9,6 @@ import {
   type MiddlewareSchedulerModel,
   type ReviewResult,
   type SchedulerConfigInput,
-  type SchedulerForgetInput,
-  type SchedulerForgetResult,
   type SchedulerResetInput,
   type SchedulerResetResult,
   type SchedulerReviewInput,
@@ -155,14 +153,6 @@ describe('scheduler public types', () => {
         state: 0,
       },
     })
-    const forgotten = scheduler.forget({
-      card: {
-        difficulty: 5,
-        stability: 10,
-        sourceId: 'card-1',
-        state: 0,
-      },
-    })
 
     expectTypeOf(preview[Rating.Again]).toEqualTypeOf<typeof reviewed>()
     expectTypeOf(rollback).toEqualTypeOf<typeof reviewed.card>()
@@ -173,23 +163,11 @@ describe('scheduler public types', () => {
     expectTypeOf(reset).toEqualTypeOf<
       SchedulerResetResult<typeof FSRS6Model, readonly [typeof middleware]>
     >()
-    expectTypeOf(forgotten).toEqualTypeOf<
-      SchedulerForgetResult<typeof FSRS6Model, readonly [typeof middleware]>
-    >()
-    expectTypeOf(forgotten.log.rating).toEqualTypeOf<Rating.Manual>()
-    expectTypeOf<Parameters<typeof scheduler.forget>[0]>().toEqualTypeOf<
-      SchedulerForgetInput<typeof FSRS6Model, readonly [typeof middleware]>
-    >()
 
     const compileOnly = () => {
       scheduler.rollback({
         card: reviewed.card,
         revlog: reviewed.log,
-      })
-      // @ts-expect-error forget uses Rating.Manual and cannot be rollback input.
-      scheduler.rollback({
-        card: forgotten.card,
-        revlog: forgotten.log,
       })
     }
     expectTypeOf(compileOnly).returns.toEqualTypeOf<void>()

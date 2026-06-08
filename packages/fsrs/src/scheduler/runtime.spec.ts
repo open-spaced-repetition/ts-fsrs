@@ -2,7 +2,7 @@ import type { StandardSchemaV1 } from '@standard-schema/spec'
 import { describe, expect, it } from 'vitest'
 import { z } from 'zod/mini'
 import { FSRSValidationError } from '../error.js'
-import { type Grade, Rating, State } from '../models.js'
+import { Rating, State } from '../models.js'
 import {
   configureScheduler,
   defineSchedulerMiddleware,
@@ -471,40 +471,7 @@ describe('scheduler runtime', () => {
       middlewares: [middleware],
     })({})
 
-    const forgotten = scheduler.forget({
-      card: {
-        difficulty: 3,
-        stability: 4,
-        interval: 9,
-        sourceId: 'card-1',
-        counter: 5,
-      },
-    })
-
     expect(getStepCalls()).toBe(0)
-    expect(forgotten.log).toEqual({
-      difficulty: 3,
-      stability: 4,
-      interval: 9,
-      sourceId: 'card-1',
-      counter: 5,
-      rating: Rating.Manual,
-    })
-    expect(forgotten.card).toEqual({
-      difficulty: 3,
-      stability: 4,
-      interval: 0,
-      sourceId: 'card-1',
-      counter: 0,
-    })
-    expect(() =>
-      scheduler.rollback({
-        card: forgotten.card,
-        revlog: forgotten.log as Parameters<
-          typeof scheduler.rollback
-        >[0]['revlog'],
-      })
-    ).toThrow(FSRSValidationError)
   })
 
   it('resets built-in scheduler fields from their field schema defaults', () => {
@@ -672,7 +639,3 @@ function createNonMonotonicModelFactory() {
     },
   } satisfies SchedulerModelFactory<typeof modelConfigSchema>
 }
-
-function expectGrade(_grade: Grade) {}
-
-expectGrade(Rating.Good)

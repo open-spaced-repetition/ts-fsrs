@@ -12,8 +12,6 @@ import type {
   ReviewResult,
   RollbackContext,
   SchedulerConfig,
-  SchedulerForgetInput,
-  SchedulerForgetResult,
   SchedulerPreviewInput,
   SchedulerResetInput,
   SchedulerResetResult,
@@ -112,16 +110,6 @@ export function runReset<
   input: SchedulerResetInput<Model, Middlewares>
 ): SchedulerResetResult<Model, Middlewares> {
   return new Runner(options).reset(input)
-}
-
-export function runForget<
-  Model extends SchedulerModelFactory,
-  Middlewares extends readonly SchedulerMiddleware[],
->(
-  options: SchedulerRunnerOptions<Model, Middlewares>,
-  input: SchedulerForgetInput<Model, Middlewares>
-): SchedulerForgetResult<Model, Middlewares> {
-  return new Runner(options).forget(input)
 }
 
 export class Runner<
@@ -234,20 +222,6 @@ export class Runner<
     input: SchedulerResetInput<Model, Middlewares>
   ): ReviewCard<Model, Middlewares> {
     return this.options.descriptor.resetCard(input.card)
-  }
-
-  forget(
-    input: SchedulerForgetInput<Model, Middlewares>
-  ): SchedulerForgetResult<Model, Middlewares> {
-    const previousCard = this.options.descriptor.parseCard(input.card)
-
-    return {
-      card: this.options.descriptor.resetCard(previousCard),
-      log: {
-        ...previousCard,
-        rating: Rating.Manual,
-      },
-    }
   }
 }
 
