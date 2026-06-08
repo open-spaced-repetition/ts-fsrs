@@ -15,11 +15,11 @@ import {
   defineSchedulerMiddlewares,
   type SchedulerMiddleware,
 } from './middleware.js'
-import type { SchedulerModelFactory } from './model.js'
+import type { SchedulerModelDefinition } from './model.js'
 import { Runner } from './runner.js'
 
 export interface IScheduler<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   review(
@@ -37,14 +37,14 @@ export interface IScheduler<
 }
 
 export type SchedulerCreator<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = (
   config: SchedulerConfigInput<Model, Middlewares>
 ) => IScheduler<Model, Middlewares>
 
 export function configureScheduler<
-  const Model extends SchedulerModelFactory,
+  const Model extends SchedulerModelDefinition,
   const Middlewares extends readonly SchedulerMiddleware[] = readonly [],
 >(options: {
   readonly model: Model

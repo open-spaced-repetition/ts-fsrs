@@ -13,7 +13,7 @@ export const FSRSMemoryStateSchema = z.object({
 
 export type FSRSMemoryState = z.infer<typeof FSRSMemoryStateSchema>
 
-export interface SchedulerModelFactory<
+export interface SchedulerModelDefinition<
   ConfigSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
   MemoryStateSchema extends StandardSchemaV1Contract<
     FSRSMemoryState,

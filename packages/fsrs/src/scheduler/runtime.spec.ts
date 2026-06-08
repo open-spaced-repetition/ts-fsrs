@@ -11,7 +11,7 @@ import {
   fuzzMiddleware,
   intervalMiddleware,
   learningStepMiddleware,
-  type SchedulerModelFactory,
+  type SchedulerModelDefinition,
   statsMiddleware,
 } from './index.js'
 
@@ -77,7 +77,7 @@ function createMockModelFactory() {
         },
       }
     },
-  } satisfies SchedulerModelFactory<typeof modelConfigSchema>
+  } satisfies SchedulerModelDefinition<typeof modelConfigSchema>
 
   return {
     factory,
@@ -637,5 +637,5 @@ function createNonMonotonicModelFactory() {
         },
       }
     },
-  } satisfies SchedulerModelFactory<typeof modelConfigSchema>
+  } satisfies SchedulerModelDefinition<typeof modelConfigSchema>
 }

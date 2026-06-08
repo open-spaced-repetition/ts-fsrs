@@ -21,11 +21,11 @@ import type {
 } from './context.js'
 import type { SchedulerDescriptor } from './descriptor.js'
 import type { SchedulerMiddleware } from './middleware.js'
-import type { SchedulerModelFactory } from './model.js'
+import type { SchedulerModelDefinition } from './model.js'
 import type { SchemaOutput } from './standard-schema.js'
 
 export interface SchedulerRunnerOptions<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly model: ReturnType<Model['create']>
@@ -34,7 +34,7 @@ export interface SchedulerRunnerOptions<
 }
 
 export interface ReviewSession<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCard<Model, Middlewares>
@@ -71,7 +71,7 @@ export function createRatingCandidates<
 }
 
 export class Runner<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   private readonly reviewHandler: (
@@ -181,7 +181,7 @@ export class Runner<
 }
 
 function createReviewTerminal<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 >(): (
   ctx: ReviewContext<Model, Middlewares>
@@ -193,7 +193,7 @@ function createReviewTerminal<
 }
 
 function createReviewResult<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 >(
   session: ReviewSession<Model, Middlewares>,
@@ -223,7 +223,7 @@ function createReviewResult<
 }
 
 function createRollbackTerminal<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 >(): (
   ctx: RollbackContext<Model, Middlewares>

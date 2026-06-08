@@ -13,11 +13,11 @@ import type {
   RollbackMiddleware,
   SchedulerMiddleware,
 } from './middleware.js'
-import type { SchedulerModelFactory } from './model.js'
+import type { SchedulerModelDefinition } from './model.js'
 import type { StandardSchemaV1 } from './standard-schema.js'
 
 export interface SchedulerDescriptor<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   parseConfig(
@@ -36,7 +36,7 @@ export interface SchedulerDescriptor<
 }
 
 export function buildSchedulerDescriptor<
-  const Model extends SchedulerModelFactory,
+  const Model extends SchedulerModelDefinition,
   const Middlewares extends readonly SchedulerMiddleware[],
 >(
   model: Model,

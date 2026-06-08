@@ -2,7 +2,7 @@ import { z } from 'zod/mini'
 import type { IFSRSModel } from '../kit/types.js'
 import type { Grade } from '../models.js'
 import type { SchedulerMiddleware } from './middleware.js'
-import type { FSRSMemoryState, SchedulerModelFactory } from './model.js'
+import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
 import type {
   EmptyObject,
   Prettify,
@@ -67,7 +67,7 @@ type MergeMiddlewareOutputs<
 > = MergeMiddlewareSchemas<Middlewares, Part, 'output'>
 
 export type SchedulerConfigInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = Prettify<
   SchemaInput<Model['configSchema']> &
@@ -75,7 +75,7 @@ export type SchedulerConfigInput<
 >
 
 export type SchedulerConfig<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = Prettify<
   SchemaOutput<Model['configSchema']> &
@@ -113,7 +113,7 @@ export type SchedulerStoreData<
 > = SchedulerStore<Middlewares> & SchedulerRuntimeStore
 
 export type ReviewCardInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = Prettify<
   SchemaInput<Model['memoryStateSchema']> &
@@ -122,7 +122,7 @@ export type ReviewCardInput<
 >
 
 export type ReviewCard<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = Prettify<
   SchemaOutput<Model['memoryStateSchema']> &
@@ -137,7 +137,7 @@ export type SchedulerRevlog<PreviousCard> = Prettify<
 >
 
 export interface SchedulerReviewInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCardInput<Model, Middlewares>
@@ -146,7 +146,7 @@ export interface SchedulerReviewInput<
 }
 
 export interface NormalizedSchedulerReviewInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCard<Model, Middlewares>
@@ -155,7 +155,7 @@ export interface NormalizedSchedulerReviewInput<
 }
 
 export interface SchedulerPreviewInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCardInput<Model, Middlewares>
@@ -163,14 +163,14 @@ export interface SchedulerPreviewInput<
 }
 
 export interface SchedulerResetInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCardInput<Model, Middlewares>
 }
 
 export type SchedulerResetResult<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = ReviewCard<Model, Middlewares>
 
@@ -179,7 +179,7 @@ export type RatingCandidateStore<MemoryState extends FSRSMemoryState> = (
 ) => MemoryState
 
 export interface ReviewContext<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly input: NormalizedSchedulerReviewInput<Model, Middlewares>
@@ -193,7 +193,7 @@ export interface ReviewContext<
 }
 
 export interface ReviewResult<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly memoryState: SchemaOutput<Model['memoryStateSchema']>
@@ -202,14 +202,14 @@ export interface ReviewResult<
 }
 
 export type PreviewResult<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > = {
   readonly [Rating in Grade]: ReviewResult<Model, Middlewares>
 }
 
 export interface SchedulerRollbackInput<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCard<Model, Middlewares>
@@ -217,7 +217,7 @@ export interface SchedulerRollbackInput<
 }
 
 export interface RollbackContext<
-  Model extends SchedulerModelFactory,
+  Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly input: SchedulerRollbackInput<Model, Middlewares>

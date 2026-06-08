@@ -3,7 +3,7 @@ import type { FSRSForwardInput, FSRSStepInput, IFSRSModel } from '../../kit'
 import type { FSRSState } from '../../models.js'
 import {
   FSRSMemoryStateSchema,
-  type SchedulerModelFactory,
+  type SchedulerModelDefinition,
 } from '../../scheduler/model.js'
 import { FSRS6Algorithm } from './algorithm.js'
 import { type FSRS6Config, FSRS6ConfigSchema } from './config.js'
@@ -72,7 +72,7 @@ const createFSRS6Model = (
   }
 }
 
-export const FSRS6Model: SchedulerModelFactory<
+export const FSRS6Model: SchedulerModelDefinition<
   typeof FSRS6ConfigSchema,
   typeof FSRSMemoryStateSchema
 > = {
