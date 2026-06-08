@@ -14,12 +14,10 @@ import type {
   SchedulerConfig,
   SchedulerPreviewInput,
   SchedulerResetInput,
-  SchedulerResetResult,
   SchedulerReviewInput,
   SchedulerRollbackInput,
   SchedulerStoreAccessor,
   SchedulerStoreData,
-  SchedulerStoreValue,
 } from './context.js'
 import type { SchedulerDescriptor } from './descriptor.js'
 import type { SchedulerMiddleware } from './middleware.js'
@@ -70,46 +68,6 @@ export function createRatingCandidates<
     cache.set(rating, memoryState)
     return memoryState
   }
-}
-
-export function runReview<
-  Model extends SchedulerModelFactory,
-  Middlewares extends readonly SchedulerMiddleware[],
->(
-  options: SchedulerRunnerOptions<Model, Middlewares>,
-  input: SchedulerReviewInput<Model, Middlewares>
-): ReviewResult<Model, Middlewares> {
-  return new Runner(options).review(input)
-}
-
-export function runPreview<
-  Model extends SchedulerModelFactory,
-  Middlewares extends readonly SchedulerMiddleware[],
->(
-  options: SchedulerRunnerOptions<Model, Middlewares>,
-  input: SchedulerPreviewInput<Model, Middlewares>
-): PreviewResult<Model, Middlewares> {
-  return new Runner(options).preview(input)
-}
-
-export function runRollback<
-  Model extends SchedulerModelFactory,
-  Middlewares extends readonly SchedulerMiddleware[],
->(
-  options: SchedulerRunnerOptions<Model, Middlewares>,
-  input: SchedulerRollbackInput<Model, Middlewares>
-): ReviewCard<Model, Middlewares> {
-  return new Runner(options).rollback(input)
-}
-
-export function runReset<
-  Model extends SchedulerModelFactory,
-  Middlewares extends readonly SchedulerMiddleware[],
->(
-  options: SchedulerRunnerOptions<Model, Middlewares>,
-  input: SchedulerResetInput<Model, Middlewares>
-): SchedulerResetResult<Model, Middlewares> {
-  return new Runner(options).reset(input)
 }
 
 export class Runner<
@@ -167,10 +125,7 @@ export class Runner<
     input: SchedulerPreviewInput<Model, Middlewares>
   ): PreviewResult<Model, Middlewares> {
     const session = this.createReviewSession(input)
-    const results = {} as Record<
-      keyof PreviewResult<Model, Middlewares>,
-      PreviewResult<Model, Middlewares>[keyof PreviewResult<Model, Middlewares>]
-    >
+    const results = {} as Record<Grade, ReviewResult<Model, Middlewares>>
 
     for (const rating of Grades) {
       results[rating] = this.reviewFromSession(session, rating)
@@ -286,13 +241,13 @@ function createRollbackTerminal<
 function createRuntimeStore<
   Middlewares extends readonly SchedulerMiddleware[],
 >(): SchedulerStoreAccessor<SchedulerStoreData<Middlewares>> {
-  const store = new Map<PropertyKey, SchedulerStoreValue>()
+  const store = new Map<PropertyKey, unknown>()
 
   return {
     get(key: PropertyKey) {
       return store.get(key) as never
     },
-    set(key: PropertyKey, value: SchedulerStoreValue) {
+    set(key: PropertyKey, value: unknown) {
       store.set(key, value)
     },
   }
