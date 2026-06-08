@@ -1,25 +1,19 @@
 import { z } from 'zod/mini'
-import type { Grade } from '../models.js'
-import { Rating } from '../models.js'
 import { defineSchedulerMiddleware } from '../scheduler/middleware.js'
 
-export const intervalConfigSchema = z.object({
+const intervalConfigSchema = z.object({
   maximumInterval: z._default(z.number(), 36500),
 })
 
-export const intervalStoreSchema = z.object({
-  intervalDays: z.number(),
+const intervalStoreSchema = z.object({
   desiredRetention: z.number(),
-  maximumInterval: z.number(),
 })
 
-const getRequiredIntervalRatings: Record<Grade, readonly Grade[]> = {
-  [Rating.Again]: [Rating.Again],
-  [Rating.Hard]: [Rating.Again, Rating.Hard],
-  [Rating.Good]: [Rating.Again, Rating.Hard, Rating.Good],
-  [Rating.Easy]: [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy],
-}
-
+/**
+ * Computes the base interval for the reviewed rating: the model's next interval
+ * clamped into `[1, maximumInterval]`. Cross-rating uniqueness (Again < Hard <
+ * Good < Easy) is layered on top by {@link monotonicIntervalMiddleware}.
+ */
 export const intervalMiddleware = defineSchedulerMiddleware({
   configSchema: intervalConfigSchema,
   storeSchema: intervalStoreSchema,
@@ -27,23 +21,12 @@ export const intervalMiddleware = defineSchedulerMiddleware({
     const desiredRetention = ctx.store.get('desiredRetention')
     const maximumInterval = ctx.config.maximumInterval
 
-    const ratings = getRequiredIntervalRatings[ctx.input.rating]
-    let previousInterval = -1
-
-    for (let i = 0; i < ratings.length; i++) {
-      const rating = ratings[i]
-      const memoryState = ctx.candidates(rating)
-      const nextInterval = ctx.model.nextInterval(memoryState, desiredRetention)
-
-      const targetInterval = Math.min(
-        Math.max(previousInterval + 1, nextInterval),
-        maximumInterval
-      )
-
-      previousInterval = targetInterval
-    }
-
-    ctx.result.card.interval = previousInterval
+    const memoryState = ctx.candidates(ctx.input.rating)
+    const nextInterval = ctx.model.nextInterval(memoryState, desiredRetention)
+    ctx.result.card.interval = Math.min(
+      Math.max(nextInterval, 1),
+      maximumInterval
+    )
     return next()
   },
 })

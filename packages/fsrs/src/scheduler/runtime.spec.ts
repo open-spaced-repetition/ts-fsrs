@@ -11,6 +11,7 @@ import {
   fuzzMiddleware,
   intervalMiddleware,
   learningStepMiddleware,
+  monotonicIntervalMiddleware,
   type SchedulerModelDefinition,
   statsMiddleware,
 } from './index.js'
@@ -30,6 +31,7 @@ export const defaultSchedulerMiddlewares = [
   statsMiddleware,
   desiredRetentionMiddleware,
   learningStepMiddleware,
+  monotonicIntervalMiddleware,
   intervalMiddleware,
 ] as const
 
@@ -90,7 +92,11 @@ describe('scheduler runtime', () => {
     const { factory, getStepCalls } = createMockModelFactory()
     const scheduler = configureScheduler({
       model: factory,
-      middlewares: [desiredRetentionMiddleware, intervalMiddleware],
+      middlewares: [
+        desiredRetentionMiddleware,
+        monotonicIntervalMiddleware,
+        intervalMiddleware,
+      ],
     })({
       modelScale: 2,
     })
@@ -143,7 +149,11 @@ describe('scheduler runtime', () => {
     const { factory, getStepCalls } = createMockModelFactory()
     const scheduler = configureScheduler({
       model: factory,
-      middlewares: [desiredRetentionMiddleware, intervalMiddleware],
+      middlewares: [
+        desiredRetentionMiddleware,
+        monotonicIntervalMiddleware,
+        intervalMiddleware,
+      ],
     })({})
 
     scheduler.review({
@@ -601,7 +611,7 @@ describe('scheduler runtime', () => {
     const nonMonotonicFactory = createNonMonotonicModelFactory()
     const scheduler = configureScheduler({
       model: nonMonotonicFactory,
-      middlewares: [intervalMiddleware],
+      middlewares: [monotonicIntervalMiddleware, intervalMiddleware],
     })({
       maximumInterval: 100,
     })

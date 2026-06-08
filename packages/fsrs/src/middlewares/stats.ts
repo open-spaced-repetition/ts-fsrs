@@ -20,7 +20,7 @@ export const statsMiddleware = defineSchedulerMiddleware({
 
     if (
       ctx.input.card.state === State.Review &&
-      ctx.input.rating < Rating.Again
+      ctx.input.rating === Rating.Again
     ) {
       ctx.result.card.lapses = ctx.input.card.lapses + 1
     }

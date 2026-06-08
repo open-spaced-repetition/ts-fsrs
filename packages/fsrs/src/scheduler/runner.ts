@@ -139,7 +139,13 @@ export class Runner<
       results[rating] = this.reviewFromSession(session, rating)
     }
 
-    return results as PreviewResult<Model, Middlewares>
+    return Object.assign(results, {
+      *[Symbol.iterator]() {
+        for (const rating of Grades) {
+          yield results[rating]
+        }
+      },
+    }) as PreviewResult<Model, Middlewares>
   }
 
   reviewFromSession(

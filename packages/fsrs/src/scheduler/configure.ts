@@ -22,6 +22,7 @@ export interface IScheduler<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
+  readonly model: ReturnType<Model['create']>
   review(
     input: SchedulerReviewInput<Model, Middlewares>
   ): ReviewResult<Model, Middlewares>
@@ -38,7 +39,7 @@ export interface IScheduler<
 
 export type SchedulerCreator<
   Model extends SchedulerModelDefinition,
-  Middlewares extends readonly SchedulerMiddleware[],
+  Middlewares extends readonly SchedulerMiddleware[] = readonly [],
 > = (
   config: SchedulerConfigInput<Model, Middlewares>
 ) => IScheduler<Model, Middlewares>
@@ -72,16 +73,17 @@ export function configureScheduler<
     const runner = new Runner<Model, Middlewares>(optionsWithConfig)
 
     return {
-      review(input) {
+      model,
+      review: (input) => {
         return runner.review(input)
       },
-      preview(input) {
+      preview: (input) => {
         return runner.preview(input)
       },
-      rollback(input) {
+      rollback: (input) => {
         return runner.rollback(input)
       },
-      reset(input) {
+      reset: (input) => {
         return runner.reset(input)
       },
     } as IScheduler<Model, Middlewares>

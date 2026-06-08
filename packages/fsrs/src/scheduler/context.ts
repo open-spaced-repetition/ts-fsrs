@@ -202,6 +202,8 @@ export type PreviewResult<
   Middlewares extends readonly SchedulerMiddleware[],
 > = {
   readonly [Rating in Grade]: ReviewResult<Model, Middlewares>
+} & {
+  [Symbol.iterator](): IterableIterator<ReviewResult<Model, Middlewares>>
 }
 
 export interface SchedulerRollbackInput<

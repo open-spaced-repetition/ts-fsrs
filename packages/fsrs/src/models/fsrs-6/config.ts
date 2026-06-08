@@ -1,9 +1,10 @@
 import { z } from 'zod/mini'
+import { stepsSchema } from '../../kit/steps.js'
 
 export const FSRS6ConfigSchema = z.object({
   weights: z.array(z.number()).check(z.length(21)),
   enableShortTerm: z._default(z.boolean(), true),
-  numRelearningSteps: z._default(z.number(), 0),
+  relearningSteps: z._default(stepsSchema, ['10m']),
 })
 
 // Input (numRelearningSteps optional) / output (defaulted) derived from the schema.
