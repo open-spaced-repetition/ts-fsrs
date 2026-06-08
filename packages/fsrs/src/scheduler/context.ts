@@ -17,6 +17,12 @@ export const schedulerCoreFieldSchema = z.object({
   interval: z._default(z.number(), 0),
 })
 
+// Reset values for the scheduler core fields, declared explicitly rather than
+// recovered from the schema defaults above.
+export const schedulerCoreFieldDefaults = {
+  interval: 0,
+} satisfies SchedulerCoreFieldOutput
+
 type SchedulerCoreFieldInput = SchemaInput<typeof schedulerCoreFieldSchema>
 
 type SchedulerCoreFieldOutput = SchemaOutput<typeof schedulerCoreFieldSchema>

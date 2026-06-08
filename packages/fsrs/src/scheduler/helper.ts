@@ -38,62 +38,6 @@ export function parseFragments(
   return fragments
 }
 
-export function parseDefaultFragments(
-  sources: readonly StandardSchemaV1[],
-  input: object
-): readonly SchemaFragmentObject[] {
-  const fragments: SchemaFragmentObject[] = []
-
-  for (const source of sources) {
-    const current = parseFragment(source, input)
-    const defaults: SchemaFragmentObject = {}
-
-    for (const key of Object.keys(current)) {
-      const result = source['~standard'].validate({
-        ...input,
-        [key]: undefined,
-      })
-
-      if (result instanceof Promise) {
-        throw new FSRSValidationError(`async schema is not supported`)
-      }
-
-      if (result.issues || !isFragmentObject(result.value)) {
-        continue
-      }
-
-      if (Object.hasOwn(result.value, key)) {
-        defaults[key] = result.value[key]
-      }
-    }
-
-    fragments.push(defaults)
-  }
-
-  return fragments
-}
-
-function parseFragment(
-  source: StandardSchemaV1,
-  input: object
-): SchemaFragmentObject {
-  const result = source['~standard'].validate(input)
-
-  if (result instanceof Promise) {
-    throw new FSRSValidationError(`async schema is not supported`)
-  }
-
-  if (result.issues) {
-    throw new FSRSValidationError(`invalid : ${JSON.stringify(result.issues)}`)
-  }
-
-  if (!isFragmentObject(result.value)) {
-    throw new FSRSValidationError(`invalid : schema output must be an object`)
-  }
-
-  return result.value
-}
-
 function isFragmentObject(value: unknown): value is SchemaFragmentObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
 }

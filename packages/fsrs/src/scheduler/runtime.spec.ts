@@ -409,7 +409,7 @@ describe('scheduler runtime', () => {
     })
   })
 
-  it('resets card fields from schema defaults without middleware handlers', () => {
+  it('resets card fields from declared fieldDefaults without middleware handlers', () => {
     const { factory } = createMockModelFactory()
     const fieldSchema = z.object({
       sourceId: z.string(),
@@ -419,6 +419,10 @@ describe('scheduler runtime', () => {
     })
     const middleware = defineSchedulerMiddleware({
       fieldSchema,
+      fieldDefaults: {
+        defaultedLabel: 'default-label',
+        defaultedCount: 0,
+      },
       rollback() {
         throw new Error('reset should not use rollback middleware')
       },
@@ -451,7 +455,7 @@ describe('scheduler runtime', () => {
     })
   })
 
-  it('forgets with a manual snapshot log and schema-driven reset', () => {
+  it('resets declared fieldDefaults without running model step or middleware handlers', () => {
     const { factory, getStepCalls } = createMockModelFactory()
     const fieldSchema = z.object({
       sourceId: z.string(),
@@ -459,11 +463,14 @@ describe('scheduler runtime', () => {
     })
     const middleware = defineSchedulerMiddleware({
       fieldSchema,
+      fieldDefaults: {
+        counter: 0,
+      },
       review() {
-        throw new Error('forget should not use review middleware')
+        throw new Error('reset should not use review middleware')
       },
       rollback() {
-        throw new Error('forget should not use rollback middleware')
+        throw new Error('reset should not use rollback middleware')
       },
     })
     const scheduler = configureScheduler({
@@ -471,10 +478,64 @@ describe('scheduler runtime', () => {
       middlewares: [middleware],
     })({})
 
+    const reset = scheduler.reset({
+      card: {
+        difficulty: 3,
+        stability: 7,
+        interval: 12,
+        sourceId: 'abc',
+        counter: 5,
+      },
+    })
+
+    expect(reset).toEqual({
+      difficulty: 3,
+      stability: 7,
+      interval: 0,
+      sourceId: 'abc',
+      counter: 0,
+    })
     expect(getStepCalls()).toBe(0)
   })
 
-  it('resets built-in scheduler fields from their field schema defaults', () => {
+  it('resets fields from a config-derived fieldDefaults factory', () => {
+    const { factory } = createMockModelFactory()
+    const configSchema = z.object({
+      defaultPriority: z._default(z.number(), 0),
+    })
+    const fieldSchema = z.object({
+      priority: z._default(z.number(), 0),
+    })
+    const middleware = defineSchedulerMiddleware({
+      configSchema,
+      fieldSchema,
+      fieldDefaults: (config) => ({
+        priority: config.defaultPriority,
+      }),
+    })
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [middleware],
+    })({ defaultPriority: 7 })
+
+    const reset = scheduler.reset({
+      card: {
+        difficulty: 1,
+        stability: 2,
+        interval: 30,
+        priority: 99,
+      },
+    })
+
+    expect(reset).toEqual({
+      difficulty: 1,
+      stability: 2,
+      interval: 0,
+      priority: 7,
+    })
+  })
+
+  it('resets built-in scheduler fields from their declared field defaults', () => {
     const { factory } = createMockModelFactory()
     const scheduler = configureScheduler({
       model: factory,

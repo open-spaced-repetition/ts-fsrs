@@ -82,6 +82,8 @@ export class Runner<
     ctx: RollbackContext<Model, Middlewares>
   ) => ReviewCard<Model, Middlewares>
 
+  private readonly resetFragment: Partial<ReviewCard<Model, Middlewares>>
+
   constructor(
     private readonly options: SchedulerRunnerOptions<Model, Middlewares>
   ) {
@@ -93,6 +95,12 @@ export class Runner<
       options.descriptor.rollbackHandlers,
       createRollbackTerminal<Model, Middlewares>()
     )
+    this.resetFragment = Object.assign(
+      {},
+      ...options.descriptor.fieldDefaults.map((source) =>
+        typeof source === 'function' ? source(options.config) : source
+      )
+    ) as Partial<ReviewCard<Model, Middlewares>>
   }
 
   createReviewSession(
@@ -176,7 +184,11 @@ export class Runner<
   reset(
     input: SchedulerResetInput<Model, Middlewares>
   ): ReviewCard<Model, Middlewares> {
-    return this.options.descriptor.resetCard(input.card)
+    return Object.assign(
+      {},
+      this.options.descriptor.parseCard(input.card),
+      this.resetFragment
+    ) as ReviewCard<Model, Middlewares>
   }
 }
 

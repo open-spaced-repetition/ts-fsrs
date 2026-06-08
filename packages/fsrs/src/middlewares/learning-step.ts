@@ -19,6 +19,10 @@ export const learningStepFieldSchema = z.object({
 export const learningStepMiddleware = defineSchedulerMiddleware({
   configSchema: learningStepConfigSchema,
   fieldSchema: learningStepFieldSchema,
+  fieldDefaults: {
+    steps: 0,
+    state: State.New,
+  },
   review(ctx, next) {
     const result = next()
     const state = ctx.input.card.state

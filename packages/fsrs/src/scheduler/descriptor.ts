@@ -7,11 +7,26 @@ import type {
   SchedulerConfigInput,
   SchedulerMiddlewareConfig,
 } from './context.js'
-import { schedulerCoreFieldSchema } from './context.js'
-import { parseDefaultFragments, parseFragments } from './helper.js'
+import {
+  schedulerCoreFieldDefaults,
+  schedulerCoreFieldSchema,
+} from './context.js'
+import { parseFragments } from './helper.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { SchedulerModelDefinition } from './model.js'
-import type { StandardSchemaV1 } from './standard-schema.js'
+import type {
+  SchemaFragmentObject,
+  StandardSchemaV1,
+} from './standard-schema.js'
+
+/**
+ * A reset-fragment contribution collected from a middleware (or the scheduler
+ * core). Either a literal fragment, or a `(config) => fragment` factory resolved
+ * once with the fixed config when the runner is built.
+ */
+export type ResetFragmentSource =
+  | SchemaFragmentObject
+  | ((config: object) => SchemaFragmentObject)
 
 export interface SchedulerDescriptor<
   Model extends SchedulerModelDefinition,
@@ -21,7 +36,7 @@ export interface SchedulerDescriptor<
     config: SchedulerConfigInput<Model, Middlewares>
   ): SchedulerMiddlewareConfig<Middlewares>
   parseCard(card: object): ReviewCard<Model, Middlewares>
-  resetCard(card: object): ReviewCard<Model, Middlewares>
+  fieldDefaults: ResetFragmentSource[]
   reviewHandlers: Middleware<
     ReviewContext<Model, Middlewares>,
     ReviewResult<Model, Middlewares>
@@ -41,6 +56,7 @@ export function buildSchedulerDescriptor<
 ): SchedulerDescriptor<Model, Middlewares> {
   const configSchema: StandardSchemaV1[] = []
   const fieldsSchema: StandardSchemaV1[] = []
+  const fieldDefaults: ResetFragmentSource[] = []
   const reviewHandlers: Middleware<
     ReviewContext<Model, Middlewares>,
     ReviewResult<Model, Middlewares>
@@ -59,6 +75,10 @@ export function buildSchedulerDescriptor<
       fieldsSchema.push(middleware.fieldSchema)
     }
 
+    if (middleware.fieldDefaults) {
+      fieldDefaults.push(middleware.fieldDefaults)
+    }
+
     const review = middleware.review
     if (review) {
       reviewHandlers.push(defineMiddleware(review))
@@ -70,6 +90,7 @@ export function buildSchedulerDescriptor<
     }
   }
   fieldsSchema.push(schedulerCoreFieldSchema, model.memoryStateSchema)
+  fieldDefaults.push(schedulerCoreFieldDefaults)
 
   return {
     parseConfig: (config) => {
@@ -85,18 +106,7 @@ export function buildSchedulerDescriptor<
 
       return Object.assign({}, ...fragments) as ReviewCard<Model, Middlewares>
     },
-    resetCard: (card) => {
-      const parsedCard = Object.assign(
-        {},
-        ...parseFragments(fieldsSchema, card)
-      ) as ReviewCard<Model, Middlewares>
-      const defaults = parseDefaultFragments(fieldsSchema, parsedCard)
-
-      return Object.assign({}, parsedCard, ...defaults) as ReviewCard<
-        Model,
-        Middlewares
-      >
-    },
+    fieldDefaults,
     reviewHandlers,
     rollbackHandlers,
   }

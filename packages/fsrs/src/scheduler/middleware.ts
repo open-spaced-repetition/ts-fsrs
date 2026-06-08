@@ -5,7 +5,10 @@ import type {
   MiddlewareRollbackContext,
   MiddlewareRollbackResult,
 } from './context.js'
-import type { StandardSchemaV1Contract } from './standard-schema.js'
+import type {
+  SchemaOutputOrEmpty,
+  StandardSchemaV1Contract,
+} from './standard-schema.js'
 
 export interface SchedulerMiddleware<
   ConfigSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
@@ -14,6 +17,20 @@ export interface SchedulerMiddleware<
 > {
   readonly configSchema?: ConfigSchema
   readonly fieldSchema?: FieldSchema
+  /**
+   * Reset values for this middleware's own fields. Used by `scheduler.reset` to
+   * restore the declared fields; any field omitted here is preserved as-is.
+   *
+   * Either a literal fragment, or a `(config) => fragment` factory when the
+   * reset values depend on the resolved config. Factories are evaluated once,
+   * when the scheduler is created (config already fixed), so reset stays
+   * allocation-light at call time.
+   */
+  readonly fieldDefaults?:
+    | Partial<SchemaOutputOrEmpty<FieldSchema>>
+    | ((
+        config: SchemaOutputOrEmpty<ConfigSchema>
+      ) => Partial<SchemaOutputOrEmpty<FieldSchema>>)
   readonly storeSchema?: StoreSchema
   readonly review?: Middleware<
     MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema>,

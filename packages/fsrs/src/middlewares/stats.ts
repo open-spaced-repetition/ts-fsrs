@@ -10,6 +10,11 @@ export const statsFieldSchema = z.object({
 
 export const statsMiddleware = defineSchedulerMiddleware({
   fieldSchema: statsFieldSchema,
+  fieldDefaults: {
+    reps: 0,
+    state: State.New,
+    lapses: 0,
+  },
   review(ctx, next) {
     ctx.result.card.reps = ctx.input.card.reps + 1
 
