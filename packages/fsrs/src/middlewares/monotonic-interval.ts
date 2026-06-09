@@ -14,11 +14,21 @@ const monotonicIntervalStoreSchema = z.object({
 
 // Each grade requires its own candidate plus every lower grade's, so the chain
 // can keep the resulting intervals strictly increasing across ratings.
-const getRequiredIntervalRatings: Record<Grade, readonly Grade[]> = {
+const getLongTermRequiredIntervalRatings: Record<Grade, readonly Grade[]> = {
   [Rating.Again]: [Rating.Again],
   [Rating.Hard]: [Rating.Again, Rating.Hard],
   [Rating.Good]: [Rating.Again, Rating.Hard, Rating.Good],
   [Rating.Easy]: [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy],
+}
+
+const getShortTermReviewRequiredIntervalRatings: Record<
+  Grade,
+  readonly Grade[]
+> = {
+  [Rating.Again]: [Rating.Again],
+  [Rating.Hard]: [Rating.Hard],
+  [Rating.Good]: [Rating.Hard, Rating.Good],
+  [Rating.Easy]: [Rating.Hard, Rating.Good, Rating.Easy],
 }
 
 /**
@@ -48,7 +58,10 @@ export const monotonicIntervalMiddleware = defineSchedulerMiddleware({
 
     const desiredRetention = ctx.store.get('desiredRetention')
     const maximumInterval = ctx.config.maximumInterval
-    const ratings = getRequiredIntervalRatings[ctx.input.rating]
+    const ratings =
+      ctx.config.enableShortTerm && state === State.Review
+        ? getShortTermReviewRequiredIntervalRatings[ctx.input.rating]
+        : getLongTermRequiredIntervalRatings[ctx.input.rating]
     let previousInterval = -1
 
     for (let i = 0; i < ratings.length; i++) {
