@@ -145,7 +145,7 @@ describe('scheduler runtime', () => {
     expect(getStepCalls()).toBe(7)
   })
 
-  it('computes only required interval candidates for a review rating', () => {
+  it('computes only required model states for a review rating', () => {
     const { factory, getStepCalls } = createMockModelFactory()
     const scheduler = configureScheduler({
       model: factory,
@@ -607,7 +607,7 @@ describe('scheduler runtime', () => {
     expect(result.card.interval).toBe(600 / 86400)
   })
 
-  it('enforces monotonic intervals over all rating candidates', () => {
+  it('enforces monotonic intervals over all ratings', () => {
     const nonMonotonicFactory = createNonMonotonicModelFactory()
     const scheduler = configureScheduler({
       model: nonMonotonicFactory,

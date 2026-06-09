@@ -1,13 +1,12 @@
 import { FSRSValidationError } from '../../error.js'
 import { Grades } from '../../help.js'
-import { type FSRSState, type Grade, Rating } from '../../models.js'
+import { type Grade, Rating } from '../../models.js'
+import { withCache } from '../cache.js'
 import { compose } from '../middleware.js'
 import type { SchemaOutput } from '../standard-schema.js'
-import type { IFSRSModel } from '../types.js'
 import type {
   NormalizedSchedulerReviewInput,
   PreviewResult,
-  RatingCandidateStore,
   ReviewCard,
   ReviewContext,
   ReviewResult,
@@ -39,35 +38,6 @@ export interface ReviewSession<
 > {
   readonly card: ReviewCard<Model, Middlewares>
   readonly elapsedDays: number
-  readonly candidates: RatingCandidateStore<
-    SchemaOutput<Model['memoryStateSchema']>
-  >
-}
-
-export function createRatingCandidates<
-  Config extends object,
-  MemoryState extends FSRSState = FSRSState,
->(
-  model: IFSRSModel<Config, MemoryState>,
-  previousMemoryState: MemoryState,
-  elapsedDays: number
-): RatingCandidateStore<MemoryState> {
-  const cache = new Map<Grade, MemoryState>()
-
-  return (rating) => {
-    const cached = cache.get(rating)
-    if (cached) {
-      return cached
-    }
-
-    const memoryState = model.step({
-      memoryState: previousMemoryState,
-      rating,
-      elapsedDays,
-    })
-    cache.set(rating, memoryState)
-    return memoryState
-  }
 }
 
 export class Runner<
@@ -114,38 +84,37 @@ export class Runner<
     return {
       card,
       elapsedDays: input.elapsedDays,
-      candidates: createRatingCandidates(
-        this.options.model,
-        card,
-        input.elapsedDays
-      ),
     }
   }
 
   review(
     input: SchedulerReviewInput<Model, Middlewares>
   ): ReviewResult<Model, Middlewares> {
-    const session = this.createReviewSession(input)
-    return this.reviewFromSession(session, input.rating)
+    return withCache(() => {
+      const session = this.createReviewSession(input)
+      return this.reviewFromSession(session, input.rating)
+    })
   }
 
   preview(
     input: SchedulerPreviewInput<Model, Middlewares>
   ): PreviewResult<Model, Middlewares> {
-    const session = this.createReviewSession(input)
-    const results = {} as Record<Grade, ReviewResult<Model, Middlewares>>
+    return withCache(() => {
+      const session = this.createReviewSession(input)
+      const results = {} as Record<Grade, ReviewResult<Model, Middlewares>>
 
-    for (const rating of Grades) {
-      results[rating] = this.reviewFromSession(session, rating)
-    }
+      for (const rating of Grades) {
+        results[rating] = this.reviewFromSession(session, rating)
+      }
 
-    return Object.assign(results, {
-      *[Symbol.iterator]() {
-        for (const rating of Grades) {
-          yield results[rating]
-        }
-      },
-    }) as PreviewResult<Model, Middlewares>
+      return Object.assign(results, {
+        *[Symbol.iterator]() {
+          for (const rating of Grades) {
+            yield results[rating]
+          }
+        },
+      }) as PreviewResult<Model, Middlewares>
+    })
   }
 
   reviewFromSession(
@@ -162,9 +131,8 @@ export class Runner<
       input: normalizedInput,
       config: this.options.config,
       model: this.options.model,
-      candidates: session.candidates,
       store: createRuntimeStore<Middlewares>(),
-      result: createReviewResult(session, rating),
+      result: createReviewResult(session, rating, this.options.model),
     }
 
     return this.reviewHandler(ctx)
@@ -215,7 +183,8 @@ function createReviewResult<
   Middlewares extends readonly SchedulerMiddleware[],
 >(
   session: ReviewSession<Model, Middlewares>,
-  rating: Grade
+  rating: Grade,
+  model: ReturnType<Model['create']>
 ): ReviewResult<Model, Middlewares> {
   const card = {
     ...session.card,
@@ -232,7 +201,11 @@ function createReviewResult<
         return memoryState
       }
 
-      memoryState = session.candidates(rating)
+      memoryState = model.step({
+        memoryState: session.card,
+        rating,
+        elapsedDays: session.elapsedDays,
+      })
       return memoryState
     },
     card,

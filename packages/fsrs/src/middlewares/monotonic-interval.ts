@@ -66,7 +66,11 @@ export const monotonicIntervalMiddleware = defineSchedulerMiddleware({
 
     for (let i = 0; i < ratings.length; i++) {
       const rating = ratings[i]
-      const memoryState = ctx.candidates(rating)
+      const memoryState = ctx.model.step({
+        memoryState: ctx.input.card,
+        rating,
+        elapsedDays: ctx.input.elapsedDays,
+      })
       const nextInterval = ctx.model.nextInterval(memoryState, desiredRetention)
 
       previousInterval = Math.min(

@@ -1,3 +1,4 @@
+import { createCachedProxy } from '../cache.js'
 import type {
   PreviewResult,
   ReviewCard,
@@ -59,7 +60,8 @@ export function configureScheduler<
   const createScheduler = (
     config: SchedulerConfigInput<Model, Middlewares>
   ) => {
-    const model = options.model.create(config) as ReturnType<Model['create']>
+    const rawModel = options.model.create(config) as ReturnType<Model['create']>
+    const model = createCachedProxy(rawModel)
     const schedulerConfig = Object.assign(
       descriptor.parseConfig(config),
       model.config

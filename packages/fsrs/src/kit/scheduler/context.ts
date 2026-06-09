@@ -170,10 +170,6 @@ export type SchedulerResetResult<
   Middlewares extends readonly SchedulerMiddleware[],
 > = ReviewCard<Model, Middlewares>
 
-export type RatingCandidateStore<MemoryState extends FSRSMemoryState> = (
-  rating: Grade
-) => MemoryState
-
 export interface ReviewContext<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
@@ -181,9 +177,6 @@ export interface ReviewContext<
   readonly input: NormalizedSchedulerReviewInput<Model, Middlewares>
   readonly config: SchedulerConfig<Model, Middlewares>
   readonly model: ReturnType<Model['create']>
-  readonly candidates: RatingCandidateStore<
-    SchemaOutput<Model['memoryStateSchema']>
-  >
   readonly store: SchedulerStoreAccessor<SchedulerStoreData<Middlewares>>
   readonly result: ReviewResult<Model, Middlewares>
 }
@@ -245,7 +238,6 @@ export type MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema> = {
   }
   readonly config: SchemaOutputOrEmpty<ConfigSchema>
   readonly model: MiddlewareSchedulerModel
-  readonly candidates: RatingCandidateStore<FSRSMemoryState>
   readonly store: MiddlewareStore<StoreSchema>
   readonly result: MiddlewareReviewResult<FieldSchema>
 }
