@@ -43,7 +43,7 @@ export const monotonicIntervalMiddleware = defineSchedulerMiddleware({
   configSchema: monotonicIntervalConfigSchema,
   storeSchema: monotonicIntervalStoreSchema,
   review(ctx, next) {
-    const result = next()
+    next()
 
     // Short-term (re)learning graduations keep each grade's own interval.
     const state = (ctx.input.card as { state?: State }).state
@@ -53,7 +53,7 @@ export const monotonicIntervalMiddleware = defineSchedulerMiddleware({
         state === State.Learning ||
         state === State.Relearning)
     ) {
-      return result
+      return
     }
 
     const desiredRetention = ctx.store.get('desiredRetention')
@@ -79,7 +79,6 @@ export const monotonicIntervalMiddleware = defineSchedulerMiddleware({
       )
     }
 
-    result.card.interval = previousInterval
-    return result
+    ctx.result.card.interval = previousInterval
   },
 })

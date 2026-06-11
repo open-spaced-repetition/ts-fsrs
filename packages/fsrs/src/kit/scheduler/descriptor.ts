@@ -1,3 +1,4 @@
+import type { Grade } from '../../models.js'
 import { defineMiddleware, type Middleware } from '../middleware.js'
 import type {
   SchemaFragmentObject,
@@ -6,10 +7,10 @@ import type {
 import type {
   ReviewCard,
   ReviewContext,
-  ReviewResult,
   RollbackContext,
   SchedulerConfigInput,
   SchedulerMiddlewareConfig,
+  SchedulerRevlog,
 } from './context.js'
 import {
   schedulerCoreFieldDefaults,
@@ -26,7 +27,7 @@ import type { SchedulerModelDefinition } from './model.js'
  */
 export type ResetFragmentSource =
   | SchemaFragmentObject
-  | ((config: object) => SchemaFragmentObject)
+  | ((config: never) => SchemaFragmentObject)
 
 export interface SchedulerDescriptor<
   Model extends SchedulerModelDefinition,
@@ -36,15 +37,10 @@ export interface SchedulerDescriptor<
     config: SchedulerConfigInput<Model, Middlewares>
   ): SchedulerMiddlewareConfig<Middlewares>
   parseCard(card: object): ReviewCard<Model, Middlewares>
-  fieldDefaults: ResetFragmentSource[]
-  reviewHandlers: Middleware<
-    ReviewContext<Model, Middlewares>,
-    ReviewResult<Model, Middlewares>
-  >[]
-  rollbackHandlers: Middleware<
-    RollbackContext<Model, Middlewares>,
-    ReviewCard<Model, Middlewares>
-  >[]
+  parseRevlog(card: object, rating: Grade): SchedulerRevlog<Model, Middlewares>
+  resetFragments: ResetFragmentSource[]
+  reviewHandlers: Middleware<ReviewContext<Model, Middlewares>>[]
+  rollbackHandlers: Middleware<RollbackContext<Model, Middlewares>>[]
 }
 
 export function buildSchedulerDescriptor<
@@ -55,42 +51,42 @@ export function buildSchedulerDescriptor<
   middlewares: Middlewares
 ): SchedulerDescriptor<Model, Middlewares> {
   const configSchema: StandardSchemaV1[] = []
-  const fieldsSchema: StandardSchemaV1[] = []
-  const fieldDefaults: ResetFragmentSource[] = []
-  const reviewHandlers: Middleware<
-    ReviewContext<Model, Middlewares>,
-    ReviewResult<Model, Middlewares>
-  >[] = []
-  const rollbackHandlers: Middleware<
-    RollbackContext<Model, Middlewares>,
-    ReviewCard<Model, Middlewares>
-  >[] = []
+  const cardFieldsSchema: StandardSchemaV1[] = []
+  const revlogFieldsSchema: StandardSchemaV1[] = []
+  const resetFragments: ResetFragmentSource[] = []
+  const reviewHandlers: Middleware<ReviewContext<Model, Middlewares>>[] = []
+  const rollbackHandlers: Middleware<RollbackContext<Model, Middlewares>>[] = []
 
   for (const middleware of middlewares) {
     if (middleware.configSchema) {
       configSchema.push(middleware.configSchema)
     }
 
-    if (middleware.fieldSchema) {
-      fieldsSchema.push(middleware.fieldSchema)
+    const fieldsSchema = middleware.fieldsSchema
+    if (fieldsSchema?.card) {
+      cardFieldsSchema.push(fieldsSchema.card)
+      revlogFieldsSchema.push(fieldsSchema.revlog ?? fieldsSchema.card)
+    } else if (fieldsSchema?.revlog) {
+      revlogFieldsSchema.push(fieldsSchema.revlog)
     }
 
-    if (middleware.fieldDefaults) {
-      fieldDefaults.push(middleware.fieldDefaults)
+    if (fieldsSchema?.default) {
+      resetFragments.push(fieldsSchema.default)
     }
 
-    const review = middleware.review
+    const review = getReviewMiddleware<Model, Middlewares>(middleware)
     if (review) {
       reviewHandlers.push(defineMiddleware(review))
     }
 
-    const rollback = middleware.rollback
+    const rollback = getRollbackMiddleware<Model, Middlewares>(middleware)
     if (rollback) {
       rollbackHandlers.push(defineMiddleware(rollback))
     }
   }
-  fieldsSchema.push(schedulerCoreFieldSchema, model.memoryStateSchema)
-  fieldDefaults.push(schedulerCoreFieldDefaults)
+  cardFieldsSchema.push(schedulerCoreFieldSchema, model.memoryStateSchema)
+  revlogFieldsSchema.push(schedulerCoreFieldSchema, model.memoryStateSchema)
+  resetFragments.push(schedulerCoreFieldDefaults)
 
   return {
     parseConfig: (config) => {
@@ -102,12 +98,46 @@ export function buildSchedulerDescriptor<
       ) as SchedulerMiddlewareConfig<Middlewares>
     },
     parseCard: (card) => {
-      const fragments = parseFragments(fieldsSchema, card)
+      const fragments = parseFragments(cardFieldsSchema, card)
 
       return Object.assign({}, ...fragments) as ReviewCard<Model, Middlewares>
     },
-    fieldDefaults,
+    parseRevlog: (card, rating) => {
+      const fragments = parseFragments(revlogFieldsSchema, card)
+
+      return Object.assign({}, ...fragments, { rating }) as SchedulerRevlog<
+        Model,
+        Middlewares
+      >
+    },
+    resetFragments,
     reviewHandlers,
     rollbackHandlers,
   }
+}
+
+function getReviewMiddleware<
+  Model extends SchedulerModelDefinition,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(
+  middleware: SchedulerMiddleware
+): Middleware<ReviewContext<Model, Middlewares>> | undefined {
+  return (
+    middleware as {
+      readonly review?: Middleware<ReviewContext<Model, Middlewares>>
+    }
+  ).review
+}
+
+function getRollbackMiddleware<
+  Model extends SchedulerModelDefinition,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(
+  middleware: SchedulerMiddleware
+): Middleware<RollbackContext<Model, Middlewares>> | undefined {
+  return (
+    middleware as {
+      readonly rollback?: Middleware<RollbackContext<Model, Middlewares>>
+    }
+  ).rollback
 }

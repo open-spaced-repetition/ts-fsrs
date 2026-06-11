@@ -13,10 +13,13 @@ export const fuzzFieldSchema = z.object({
 
 export const fuzzMiddleware = defineSchedulerMiddleware({
   configSchema: fuzzConfigSchema,
-  fieldSchema: fuzzFieldSchema,
+  fieldsSchema: {
+    card: fuzzFieldSchema,
+    revlog: fuzzFieldSchema,
+  },
   review(ctx, next) {
-    const result = next()
-    const sourceInterval = result.card.interval
+    next()
+    const sourceInterval = ctx.result.card.interval
     const maximumInterval =
       ctx.store.get<{ maximumInterval?: number }>('maximumInterval') ?? 36500
 
@@ -31,10 +34,12 @@ export const fuzzMiddleware = defineSchedulerMiddleware({
       seed
     )
 
-    result.card.interval = interval
-    return result
+    ctx.result.card.interval = interval
   },
-  rollback(_ctx, next) {
-    return next()
+  rollback(ctx, next) {
+    next()
+
+    ctx.result.cardId = ctx.input.card.cardId
+    ctx.result.reps = ctx.input.card.reps
   },
 })

@@ -60,8 +60,8 @@ export function configureScheduler<
   const createScheduler = (
     config: SchedulerConfigInput<Model, Middlewares>
   ) => {
-    const rawModel = options.model.create(config) as ReturnType<Model['create']>
-    const model = createCachedProxy(rawModel)
+    const model = options.model.create(config) as ReturnType<Model['create']>
+    const schedulerModel = createCachedProxy(model)
     const schedulerConfig = Object.assign(
       descriptor.parseConfig(config),
       model.config
@@ -69,7 +69,7 @@ export function configureScheduler<
 
     const optionsWithConfig = {
       descriptor,
-      model,
+      model: schedulerModel,
       config: schedulerConfig,
     }
     const runner = new Runner<Model, Middlewares>(optionsWithConfig)

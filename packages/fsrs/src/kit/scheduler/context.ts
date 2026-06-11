@@ -7,10 +7,11 @@ import type {
   SchemaInputOrEmpty,
   SchemaOutput,
   SchemaOutputOrEmpty,
+  StandardSchemaV1Contract,
 } from '../standard-schema.js'
-import type { IFSRSModel } from '../types.js'
+import type { IFSRSModelOperations } from '../types.js'
 import type { SchedulerMiddleware } from './middleware.js'
-import type { FSRSMemoryState, SchedulerModelDefinition } from './model.js'
+import type { SchedulerModelDefinition } from './model.js'
 
 export const schedulerCoreFieldSchema = z.object({
   interval: z._default(z.number(), 0),
@@ -26,22 +27,25 @@ type SchedulerCoreFieldInput = SchemaInput<typeof schedulerCoreFieldSchema>
 
 type SchedulerCoreFieldOutput = SchemaOutput<typeof schedulerCoreFieldSchema>
 
-type MiddlewareSchemaPart = 'config' | 'field' | 'store'
+type MiddlewareSchemaPart = 'config' | 'card' | 'revlog' | 'store'
 
 type MiddlewareSchemas<Middleware> =
   Middleware extends SchedulerMiddleware<
     infer ConfigSchema,
-    infer FieldSchema,
+    infer CardFieldSchema,
+    infer RevlogFieldSchema,
     infer StoreSchema
   >
     ? {
         config: ConfigSchema
-        field: FieldSchema
+        card: CardFieldSchema
+        revlog: RevlogFieldSchema
         store: StoreSchema
       }
     : {
         config: undefined
-        field: undefined
+        card: undefined
+        revlog: undefined
         store: undefined
       }
 
@@ -63,13 +67,57 @@ type MergeMiddlewareSchemas<
 
 type MergeMiddlewareInputs<
   Middlewares extends readonly SchedulerMiddleware[],
-  Part extends Extract<MiddlewareSchemaPart, 'config' | 'field'>,
+  Part extends Extract<MiddlewareSchemaPart, 'config' | 'card'>,
 > = MergeMiddlewareSchemas<Middlewares, Part, 'input'>
 
 type MergeMiddlewareOutputs<
   Middlewares extends readonly SchedulerMiddleware[],
   Part extends MiddlewareSchemaPart,
 > = MergeMiddlewareSchemas<Middlewares, Part, 'output'>
+
+type SchedulerModelMemoryState<Model extends SchedulerModelDefinition> =
+  Model extends SchedulerModelDefinition<
+    infer _ConfigSchema,
+    infer MemoryStateSchema
+  >
+    ? SchemaOutput<MemoryStateSchema>
+    : never
+
+type SchedulerSnapshot<
+  MemoryState extends object,
+  CoreFields extends object,
+  Fields extends object,
+> = Prettify<
+  {
+    [Key in keyof Fields]: Fields[Key]
+  } & {
+    [Key in keyof CoreFields as Key extends keyof Fields
+      ? never
+      : Key]: CoreFields[Key]
+  } & {
+    [Key in keyof MemoryState as Key extends keyof Fields | keyof CoreFields
+      ? never
+      : Key]: MemoryState[Key]
+  }
+>
+
+type SchedulerRatedSnapshot<
+  MemoryState extends object,
+  CoreFields extends object,
+  Fields extends object,
+> = Prettify<{
+  [Key in
+    | 'rating'
+    | keyof SchedulerSnapshot<
+        MemoryState,
+        CoreFields,
+        Fields
+      >]: Key extends 'rating'
+    ? Grade
+    : Key extends keyof SchedulerSnapshot<MemoryState, CoreFields, Fields>
+      ? SchedulerSnapshot<MemoryState, CoreFields, Fields>[Key]
+      : never
+}>
 
 export type SchedulerConfigInput<
   Model extends SchedulerModelDefinition,
@@ -111,25 +159,28 @@ export type SchedulerStoreData<
 export type ReviewCardInput<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
-> = Prettify<
-  SchemaInput<Model['memoryStateSchema']> &
-    SchedulerCoreFieldInput &
-    MergeMiddlewareInputs<Middlewares, 'field'>
+> = SchedulerSnapshot<
+  SchemaInput<Model['memoryStateSchema']>,
+  SchedulerCoreFieldInput,
+  MergeMiddlewareInputs<Middlewares, 'card'>
 >
 
 export type ReviewCard<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
-> = Prettify<
-  SchemaOutput<Model['memoryStateSchema']> &
-    SchedulerCoreFieldOutput &
-    MergeMiddlewareOutputs<Middlewares, 'field'>
+> = SchedulerSnapshot<
+  SchedulerModelMemoryState<Model>,
+  SchedulerCoreFieldOutput,
+  MergeMiddlewareOutputs<Middlewares, 'card'>
 >
 
-export type SchedulerRevlog<PreviousCard> = Prettify<
-  Omit<PreviousCard, 'rating'> & {
-    rating: Grade
-  }
+export type SchedulerRevlog<
+  Model extends SchedulerModelDefinition,
+  Middlewares extends readonly SchedulerMiddleware[],
+> = SchedulerRatedSnapshot<
+  SchedulerModelMemoryState<Model>,
+  SchedulerCoreFieldOutput,
+  MergeMiddlewareOutputs<Middlewares, 'revlog'>
 >
 
 export interface SchedulerReviewInput<
@@ -185,9 +236,9 @@ export interface ReviewResult<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
 > {
-  readonly memoryState: SchemaOutput<Model['memoryStateSchema']>
+  readonly memoryState: SchedulerModelMemoryState<Model>
   card: ReviewCard<Model, Middlewares>
-  log: SchedulerRevlog<ReviewCard<Model, Middlewares>>
+  log: SchedulerRevlog<Model, Middlewares>
 }
 
 export type PreviewResult<
@@ -204,7 +255,7 @@ export interface SchedulerRollbackInput<
   Middlewares extends readonly SchedulerMiddleware[],
 > {
   readonly card: ReviewCard<Model, Middlewares>
-  readonly revlog: SchedulerRevlog<ReviewCard<Model, Middlewares>>
+  readonly revlog: SchedulerRevlog<Model, Middlewares>
 }
 
 export interface RollbackContext<
@@ -215,48 +266,90 @@ export interface RollbackContext<
   readonly config: SchedulerConfig<Model, Middlewares>
   readonly model: ReturnType<Model['create']>
   readonly store: SchedulerStoreAccessor<SchedulerStoreData<Middlewares>>
+  readonly result: ReviewCard<Model, Middlewares>
 }
 
-export type MiddlewareSchedulerModel = Pick<
-  IFSRSModel<object, FSRSMemoryState>,
-  'step' | 'nextInterval' | 'forgettingCurve'
->
-
-type MiddlewareCard<FieldSchema> = Prettify<
-  FSRSMemoryState & SchedulerCoreFieldOutput & SchemaOutputOrEmpty<FieldSchema>
->
+export type MiddlewareSchedulerModel<
+  Model extends SchedulerModelDefinition = SchedulerModelDefinition,
+> = IFSRSModelOperations<SchedulerModelMemoryState<Model>>
 
 type MiddlewareStore<StoreSchema> = SchedulerStoreAccessor<
   SchemaOutputOrEmpty<StoreSchema>
 >
 
-export type MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema> = {
+export type MiddlewareReviewContext<
+  Model extends SchedulerModelDefinition,
+  ConfigSchema extends StandardSchemaV1Contract,
+  CardFieldSchema extends StandardSchemaV1Contract,
+  RevlogFieldSchema extends StandardSchemaV1Contract,
+  StoreSchema extends StandardSchemaV1Contract,
+> = {
   readonly input: {
-    readonly card: MiddlewareCard<FieldSchema>
+    readonly card: SchedulerSnapshot<
+      SchedulerModelMemoryState<Model>,
+      SchedulerCoreFieldOutput,
+      SchemaOutputOrEmpty<CardFieldSchema>
+    >
     readonly rating: Grade
     readonly elapsedDays: number
   }
   readonly config: SchemaOutputOrEmpty<ConfigSchema>
-  readonly model: MiddlewareSchedulerModel
+  readonly model: MiddlewareSchedulerModel<Model>
   readonly store: MiddlewareStore<StoreSchema>
-  readonly result: MiddlewareReviewResult<FieldSchema>
+  readonly result: MiddlewareReviewResult<
+    Model,
+    ConfigSchema,
+    CardFieldSchema,
+    RevlogFieldSchema,
+    StoreSchema
+  >
 }
 
-export type MiddlewareReviewResult<FieldSchema> = {
-  readonly memoryState: FSRSMemoryState
-  card: MiddlewareCard<FieldSchema>
-  log: SchedulerRevlog<MiddlewareCard<FieldSchema>>
+export type MiddlewareReviewResult<
+  Model extends SchedulerModelDefinition,
+  _ConfigSchema extends StandardSchemaV1Contract,
+  CardFieldSchema extends StandardSchemaV1Contract,
+  RevlogFieldSchema extends StandardSchemaV1Contract,
+  _StoreSchema extends StandardSchemaV1Contract,
+> = {
+  readonly memoryState: SchedulerModelMemoryState<Model>
+  card: SchedulerSnapshot<
+    SchedulerModelMemoryState<Model>,
+    SchedulerCoreFieldOutput,
+    SchemaOutputOrEmpty<CardFieldSchema>
+  >
+  log: SchedulerRatedSnapshot<
+    SchedulerModelMemoryState<Model>,
+    SchedulerCoreFieldOutput,
+    SchemaOutputOrEmpty<RevlogFieldSchema>
+  >
 }
 
-export type MiddlewareRollbackContext<ConfigSchema, FieldSchema, StoreSchema> =
-  {
-    readonly input: {
-      readonly card: MiddlewareCard<FieldSchema>
-      readonly revlog: SchedulerRevlog<MiddlewareCard<FieldSchema>>
-    }
-    readonly config: SchemaOutputOrEmpty<ConfigSchema>
-    readonly model: MiddlewareSchedulerModel
-    readonly store: MiddlewareStore<StoreSchema>
+export type MiddlewareRollbackContext<
+  Model extends SchedulerModelDefinition,
+  ConfigSchema extends StandardSchemaV1Contract,
+  CardFieldSchema extends StandardSchemaV1Contract,
+  RevlogFieldSchema extends StandardSchemaV1Contract,
+  StoreSchema extends StandardSchemaV1Contract,
+> = {
+  readonly input: {
+    readonly card: SchedulerSnapshot<
+      SchedulerModelMemoryState<Model>,
+      SchedulerCoreFieldOutput,
+      SchemaOutputOrEmpty<CardFieldSchema>
+    >
+    readonly revlog: SchedulerRatedSnapshot<
+      SchedulerModelMemoryState<Model>,
+      SchedulerCoreFieldOutput,
+      SchemaOutputOrEmpty<RevlogFieldSchema>
+    >
   }
-
-export type MiddlewareRollbackResult<FieldSchema> = MiddlewareCard<FieldSchema>
+  readonly config: SchemaOutputOrEmpty<ConfigSchema>
+  readonly model: MiddlewareSchedulerModel<Model>
+  readonly store: MiddlewareStore<StoreSchema>
+  readonly result: SchedulerSnapshot<
+    SchedulerModelMemoryState<Model>,
+    SchedulerCoreFieldOutput,
+    SchemaOutputOrEmpty<CardFieldSchema>
+  >
+}

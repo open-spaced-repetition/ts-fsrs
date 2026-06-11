@@ -37,6 +37,7 @@ export const defaultSchedulerMiddlewares = [
 
 function createMockModelFactory() {
   let stepCalls = 0
+  let nextIntervalCalls = 0
   const factory = {
     configSchema: modelConfigSchema,
     memoryStateSchema: FSRSMemoryStateSchema,
@@ -57,6 +58,7 @@ function createMockModelFactory() {
           }
         },
         nextInterval(memoryState, desiredRetention) {
+          nextIntervalCalls += 1
           return Math.max(
             1,
             Math.round(
@@ -84,6 +86,7 @@ function createMockModelFactory() {
   return {
     factory,
     getStepCalls: () => stepCalls,
+    getNextIntervalCalls: () => nextIntervalCalls,
   }
 }
 
@@ -168,23 +171,54 @@ describe('scheduler runtime', () => {
     expect(getStepCalls()).toBe(2)
   })
 
+  it('runs preview middleware per rating while caching model calculations', () => {
+    const { factory, getNextIntervalCalls, getStepCalls } =
+      createMockModelFactory()
+    let middlewareCalls = 0
+    const countingMiddleware = defineSchedulerMiddleware({
+      review(_ctx, next) {
+        middlewareCalls += 1
+        next()
+      },
+    })
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [
+        countingMiddleware,
+        desiredRetentionMiddleware,
+        monotonicIntervalMiddleware,
+        intervalMiddleware,
+      ],
+    })({})
+
+    scheduler.preview({
+      card: {
+        difficulty: 1,
+        stability: 10,
+      },
+      elapsedDays: 3,
+    })
+
+    expect(middlewareCalls).toBe(4)
+    expect(getStepCalls()).toBe(4)
+    expect(getNextIntervalCalls()).toBe(4)
+  })
+
   it('preserves middleware onion order', () => {
     const { factory } = createMockModelFactory()
     const order: string[] = []
     const outer = defineSchedulerMiddleware({
       review(_ctx, next) {
         order.push('outer.in')
-        const result = next()
+        next()
         order.push('outer.out')
-        return result
       },
     })
     const inner = defineSchedulerMiddleware({
       review(_ctx, next) {
         order.push('inner.in')
-        const result = next()
+        next()
         order.push('inner.out')
-        return result
       },
     })
 
@@ -213,16 +247,15 @@ describe('scheduler runtime', () => {
           interval: 41,
         }
         order.push(`outer.before:${ctx.result.card.interval}`)
-        const result = next()
-        order.push(`outer.after:${result.card.interval}`)
-        return result
+        next()
+        order.push(`outer.after:${ctx.result.card.interval}`)
       },
     })
     const inner = defineSchedulerMiddleware({
       review(ctx, next) {
         order.push(`inner.before:${ctx.result.card.interval}`)
         ctx.result.card.interval += 1
-        return next()
+        next()
       },
     })
 
@@ -261,14 +294,9 @@ describe('scheduler runtime', () => {
           ...memoryState,
           interval: 7,
         }
-
-        return {
-          memoryState,
-          card: ctx.result.card,
-          log: {
-            ...ctx.input.card,
-            rating: ctx.input.rating,
-          },
+        ctx.result.log = {
+          ...ctx.input.card,
+          rating: ctx.input.rating,
         }
       },
     })
@@ -299,7 +327,7 @@ describe('scheduler runtime', () => {
     const middleware = defineSchedulerMiddleware({
       review(_ctx, next) {
         calls.push('captured')
-        return next()
+        next()
       },
     })
     const createScheduler = configureScheduler({
@@ -313,7 +341,7 @@ describe('scheduler runtime', () => {
         next: Parameters<NonNullable<typeof middleware.review>>[1]
       ) {
         calls.push('mutated')
-        return next()
+        next()
       },
     })
 
@@ -405,7 +433,8 @@ describe('scheduler runtime', () => {
 
     expect(result.card.reps).toBe(1)
     expect(result.card.state).toBe(State.Review)
-    expect(result.log.reps).toBe(0)
+    expect(result.log).not.toHaveProperty('reps')
+    expect(result.log).not.toHaveProperty('lapses')
     expect(result.log.state).toBe(State.New)
     expect(
       scheduler.rollback({ card: result.card, revlog: result.log })
@@ -419,7 +448,63 @@ describe('scheduler runtime', () => {
     })
   })
 
-  it('resets card fields from declared fieldDefaults without middleware handlers', () => {
+  it('passes rollback input through without reparsing snapshots', () => {
+    const { factory } = createMockModelFactory()
+    const observed: unknown[] = []
+    const observer = defineSchedulerMiddleware({
+      rollback(ctx, next) {
+        observed.push(
+          ctx.store.get<{ desiredRetention: number }>('desiredRetention')
+        )
+        observed.push(ctx.input.revlog.interval)
+        next()
+      },
+    })
+    const scheduler = configureScheduler({
+      model: factory,
+      middlewares: [
+        desiredRetentionMiddleware,
+        statsMiddleware,
+        learningStepMiddleware,
+        observer,
+      ],
+    })({
+      desiredRetention: 0.85,
+    })
+
+    expect(
+      scheduler.rollback({
+        card: {
+          difficulty: 9,
+          stability: 9,
+          interval: 3,
+          reps: 4,
+          lapses: 1,
+          state: State.Learning,
+          steps: 1,
+        },
+        revlog: {
+          difficulty: 1,
+          stability: 2,
+          interval: 4,
+          state: State.Review,
+          steps: 2,
+          rating: Rating.Good,
+        },
+      })
+    ).toEqual({
+      difficulty: 1,
+      stability: 2,
+      interval: 4,
+      reps: 3,
+      lapses: 1,
+      state: State.Review,
+      steps: 2,
+    })
+    expect(observed).toEqual([0.85, 4])
+  })
+
+  it('resets card fields from declared fieldsSchema.default without middleware handlers', () => {
     const { factory } = createMockModelFactory()
     const fieldSchema = z.object({
       sourceId: z.string(),
@@ -428,10 +513,12 @@ describe('scheduler runtime', () => {
       defaultedCount: z._default(z.number(), 0),
     })
     const middleware = defineSchedulerMiddleware({
-      fieldSchema,
-      fieldDefaults: {
-        defaultedLabel: 'default-label',
-        defaultedCount: 0,
+      fieldsSchema: {
+        card: fieldSchema,
+        default: {
+          defaultedLabel: 'default-label',
+          defaultedCount: 0,
+        },
       },
       rollback() {
         throw new Error('reset should not use rollback middleware')
@@ -465,16 +552,18 @@ describe('scheduler runtime', () => {
     })
   })
 
-  it('resets declared fieldDefaults without running model step or middleware handlers', () => {
+  it('resets declared fieldsSchema.default without running model step or middleware handlers', () => {
     const { factory, getStepCalls } = createMockModelFactory()
     const fieldSchema = z.object({
       sourceId: z.string(),
       counter: z._default(z.number(), 0),
     })
     const middleware = defineSchedulerMiddleware({
-      fieldSchema,
-      fieldDefaults: {
-        counter: 0,
+      fieldsSchema: {
+        card: fieldSchema,
+        default: {
+          counter: 0,
+        },
       },
       review() {
         throw new Error('reset should not use review middleware')
@@ -518,10 +607,12 @@ describe('scheduler runtime', () => {
     })
     const middleware = defineSchedulerMiddleware({
       configSchema,
-      fieldSchema,
-      fieldDefaults: (config) => ({
-        priority: config.defaultPriority,
-      }),
+      fieldsSchema: {
+        card: fieldSchema,
+        default: (config) => ({
+          priority: config.defaultPriority,
+        }),
+      },
     })
     const scheduler = configureScheduler({
       model: factory,

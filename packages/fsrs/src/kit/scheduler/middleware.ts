@@ -5,51 +5,104 @@ import type {
 } from '../standard-schema.js'
 import type {
   MiddlewareReviewContext,
-  MiddlewareReviewResult,
   MiddlewareRollbackContext,
-  MiddlewareRollbackResult,
 } from './context.js'
+import type { SchedulerModelDefinition } from './model.js'
 
-export interface SchedulerMiddleware<
-  ConfigSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
-  FieldSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
-  StoreSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+// biome-ignore lint/suspicious/noExplicitAny: bare SchedulerMiddleware means an arbitrary middleware; defineSchedulerMiddleware keeps precise schema inference.
+type SchedulerMiddlewareSchema = StandardSchemaV1Contract<any, any>
+
+export interface SchedulerFieldsSchema<
+  ConfigSchema extends StandardSchemaV1Contract,
+  CardFieldSchema extends StandardSchemaV1Contract,
+  RevlogFieldSchema extends StandardSchemaV1Contract,
 > {
-  readonly configSchema?: ConfigSchema
-  readonly fieldSchema?: FieldSchema
+  readonly card?: CardFieldSchema
+  readonly revlog?: RevlogFieldSchema
   /**
-   * Reset values for this middleware's own fields. Used by `scheduler.reset` to
-   * restore the declared fields; any field omitted here is preserved as-is.
+   * Reset values for this middleware's card fields. Used by `scheduler.reset`
+   * to restore declared fields; omitted fields are preserved as-is.
    *
-   * Either a literal fragment, or a `(config) => fragment` factory when the
-   * reset values depend on the resolved config. Factories are evaluated once,
-   * when the scheduler is created (config already fixed), so reset stays
-   * allocation-light at call time.
+   * Either a literal fragment, or a `(config) => fragment` factory when reset
+   * values depend on resolved config.
    */
-  readonly fieldDefaults?:
-    | Partial<SchemaOutputOrEmpty<FieldSchema>>
+  readonly default?:
+    | Partial<SchemaOutputOrEmpty<CardFieldSchema>>
     | ((
         config: SchemaOutputOrEmpty<ConfigSchema>
-      ) => Partial<SchemaOutputOrEmpty<FieldSchema>>)
+      ) => Partial<SchemaOutputOrEmpty<CardFieldSchema>>)
+}
+
+export interface SchedulerMiddleware<
+  ConfigSchema extends StandardSchemaV1Contract = SchedulerMiddlewareSchema,
+  CardFieldSchema extends StandardSchemaV1Contract = SchedulerMiddlewareSchema,
+  RevlogFieldSchema extends StandardSchemaV1Contract = CardFieldSchema,
+  StoreSchema extends StandardSchemaV1Contract = SchedulerMiddlewareSchema,
+> {
+  readonly configSchema?: ConfigSchema
+  readonly fieldsSchema?: SchedulerFieldsSchema<
+    ConfigSchema,
+    CardFieldSchema,
+    RevlogFieldSchema
+  >
   readonly storeSchema?: StoreSchema
+}
+
+export type SchedulerMiddlewareDefinition<
+  ConfigSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+  CardFieldSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+  RevlogFieldSchema extends StandardSchemaV1Contract = CardFieldSchema,
+  StoreSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+  Model extends SchedulerModelDefinition = SchedulerModelDefinition,
+> = SchedulerMiddleware<
+  ConfigSchema,
+  CardFieldSchema,
+  RevlogFieldSchema,
+  StoreSchema
+> & {
   readonly review?: Middleware<
-    MiddlewareReviewContext<ConfigSchema, FieldSchema, StoreSchema>,
-    MiddlewareReviewResult<FieldSchema>
+    MiddlewareReviewContext<
+      Model,
+      ConfigSchema,
+      CardFieldSchema,
+      RevlogFieldSchema,
+      StoreSchema
+    >
   >
   readonly rollback?: Middleware<
-    MiddlewareRollbackContext<ConfigSchema, FieldSchema, StoreSchema>,
-    MiddlewareRollbackResult<FieldSchema>
+    MiddlewareRollbackContext<
+      Model,
+      ConfigSchema,
+      CardFieldSchema,
+      RevlogFieldSchema,
+      StoreSchema
+    >
   >
 }
 
 export function defineSchedulerMiddleware<
   const ConfigSchema extends
     StandardSchemaV1Contract = StandardSchemaV1Contract,
-  const FieldSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+  const CardFieldSchema extends
+    StandardSchemaV1Contract = StandardSchemaV1Contract,
+  const RevlogFieldSchema extends StandardSchemaV1Contract = CardFieldSchema,
   const StoreSchema extends StandardSchemaV1Contract = StandardSchemaV1Contract,
+  const Model extends SchedulerModelDefinition = SchedulerModelDefinition,
 >(
-  middleware: SchedulerMiddleware<ConfigSchema, FieldSchema, StoreSchema>
-): SchedulerMiddleware<ConfigSchema, FieldSchema, StoreSchema> {
+  middleware: SchedulerMiddlewareDefinition<
+    ConfigSchema,
+    CardFieldSchema,
+    RevlogFieldSchema,
+    StoreSchema,
+    Model
+  >
+): SchedulerMiddlewareDefinition<
+  ConfigSchema,
+  CardFieldSchema,
+  RevlogFieldSchema,
+  StoreSchema,
+  Model
+> {
   return middleware
 }
 

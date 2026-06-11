@@ -15,6 +15,10 @@ export const desiredRetentionMiddleware = defineSchedulerMiddleware({
   review(ctx, next) {
     // TODO cost ADR
     ctx.store.set('desiredRetention', ctx.config.desiredRetention)
-    return next()
+    next()
+  },
+  rollback(ctx, next) {
+    ctx.store.set('desiredRetention', ctx.config.desiredRetention)
+    next()
   },
 })

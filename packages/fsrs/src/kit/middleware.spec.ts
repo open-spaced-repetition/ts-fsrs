@@ -6,26 +6,24 @@ interface Context {
 }
 
 describe('kit/middleware compose', () => {
-  it('runs middleware in onion order and returns the handler result', () => {
-    const a: Middleware<Context, number> = (ctx, next) => {
+  it('runs default void middleware in onion order', () => {
+    const a: Middleware<Context> = (ctx, next) => {
       ctx.trace.push('a:in')
-      const r = next()
+      const result = next()
+      expect(result).toBeUndefined()
       ctx.trace.push('a:out')
-      return r
     }
-    const b: Middleware<Context, number> = (ctx, next) => {
+    const b: Middleware<Context> = (ctx, next) => {
       ctx.trace.push('b:in')
-      const r = next()
+      next()
       ctx.trace.push('b:out')
-      return r
     }
-    const run = compose<Context, number>([a, b], (ctx) => {
+    const run = compose<Context, void>([a, b], (ctx) => {
       ctx.trace.push('handler')
-      return 42
     })
 
     const ctx: Context = { trace: [] }
-    expect(run(ctx)).toBe(42)
+    expect(run(ctx)).toBeUndefined()
     expect(ctx.trace).toEqual(['a:in', 'b:in', 'handler', 'b:out', 'a:out'])
   })
 
@@ -60,24 +58,28 @@ describe('kit/middleware compose', () => {
     expect(ctx.trace).toEqual([])
   })
 
-  it('throws when next() is called multiple times', () => {
-    const bad: Middleware<Context, number> = (_ctx, next) => {
+  it('throws when next() is called multiple times with default void middleware', () => {
+    const bad: Middleware<Context> = (_ctx, next) => {
       next()
-      return next()
+      next()
     }
-    const run = compose<Context, number>([bad], () => 0)
+    const run = compose<Context, void>([bad], () => {})
     expect(() => run({ trace: [] })).toThrow('next() called multiple times')
   })
 
-  it('shares the same context across the chain', () => {
+  it('shares the same context across default void middleware', () => {
     interface Counter {
       value: number
     }
-    const inc: Middleware<Counter, number> = (ctx, next) => {
+    const inc: Middleware<Counter> = (ctx, next) => {
       ctx.value += 1
-      return next()
+      next()
     }
-    const run = compose<Counter, number>([inc, inc, inc], (ctx) => ctx.value)
-    expect(run({ value: 0 })).toBe(3)
+    const counter = { value: 0 }
+    const run = compose<Counter, void>([inc, inc, inc], () => {})
+
+    run(counter)
+
+    expect(counter.value).toBe(3)
   })
 })

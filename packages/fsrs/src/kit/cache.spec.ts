@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createCachedProxy, LRUMap, withCache } from './cache.js'
+import { createCachedProxy, LRUMap } from './cache.js'
 
 describe('LRUMap', () => {
   it('evicts the least recently used entry', () => {
@@ -41,7 +41,7 @@ describe('createCachedProxy', () => {
     expect(cached.value).toBe(cached.value)
   })
 
-  it('passes through method calls outside a cache scope', () => {
+  it('caches method results by argument value', () => {
     let calls = 0
     const model = {
       calculate(value: number) {
@@ -53,10 +53,10 @@ describe('createCachedProxy', () => {
 
     expect(cached.calculate(3)).toBe(6)
     expect(cached.calculate(3)).toBe(6)
-    expect(calls).toBe(2)
+    expect(calls).toBe(1)
   })
 
-  it('caches method results by argument value inside a cache scope', () => {
+  it('uses argument values as cache keys', () => {
     let calls = 0
     const model = {
       scale: 2,
@@ -69,10 +69,8 @@ describe('createCachedProxy', () => {
     }
     const cached = createCachedProxy(model)
 
-    const [first, second] = withCache(() => [
-      cached.calculate({ value: 3 }),
-      cached.calculate({ value: 3 }),
-    ])
+    const first = cached.calculate({ value: 3 })
+    const second = cached.calculate({ value: 3 })
 
     expect(first).toBe(second)
     expect(first).toEqual({ result: 6 })
@@ -89,11 +87,9 @@ describe('createCachedProxy', () => {
     }
     const cached = createCachedProxy(model)
 
-    withCache(() => {
-      expect(cached.calculate(2)).toBe(4)
-      expect(cached.calculate(3)).toBe(6)
-      expect(cached.calculate(2)).toBe(4)
-    })
+    expect(cached.calculate(2)).toBe(4)
+    expect(cached.calculate(3)).toBe(6)
+    expect(cached.calculate(2)).toBe(4)
     expect(calls).toBe(2)
   })
 
@@ -107,12 +103,10 @@ describe('createCachedProxy', () => {
     }
     const cached = createCachedProxy(model)
 
-    withCache(() => {
-      for (let value = 0; value < 17; value++) {
-        cached.calculate(value)
-      }
-      cached.calculate(0)
-    })
+    for (let value = 0; value < 17; value++) {
+      cached.calculate(value)
+    }
+    cached.calculate(0)
 
     expect(calls).toBe(18)
   })

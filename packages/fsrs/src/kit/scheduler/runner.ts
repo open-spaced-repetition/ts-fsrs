@@ -1,9 +1,7 @@
 import { FSRSValidationError } from '../../error.js'
 import { Grades } from '../../help.js'
 import { type Grade, Rating } from '../../models.js'
-import { withCache } from '../cache.js'
 import { compose } from '../middleware.js'
-import type { SchemaOutput } from '../standard-schema.js'
 import type {
   NormalizedSchedulerReviewInput,
   PreviewResult,
@@ -19,7 +17,7 @@ import type {
   SchedulerStoreAccessor,
   SchedulerStoreData,
 } from './context.js'
-import type { SchedulerDescriptor } from './descriptor.js'
+import type { ResetFragmentSource, SchedulerDescriptor } from './descriptor.js'
 import type { SchedulerMiddleware } from './middleware.js'
 import type { SchedulerModelDefinition } from './model.js'
 
@@ -46,11 +44,11 @@ export class Runner<
 > {
   private readonly reviewHandler: (
     ctx: ReviewContext<Model, Middlewares>
-  ) => ReviewResult<Model, Middlewares>
+  ) => void
 
   private readonly rollbackHandler: (
     ctx: RollbackContext<Model, Middlewares>
-  ) => ReviewCard<Model, Middlewares>
+  ) => void
 
   private readonly resetFragment: Partial<ReviewCard<Model, Middlewares>>
 
@@ -67,8 +65,8 @@ export class Runner<
     )
     this.resetFragment = Object.assign(
       {},
-      ...options.descriptor.fieldDefaults.map((source) =>
-        typeof source === 'function' ? source(options.config) : source
+      ...options.descriptor.resetFragments.map((source) =>
+        resolveResetFragment(source, options.config)
       )
     ) as Partial<ReviewCard<Model, Middlewares>>
   }
@@ -90,31 +88,27 @@ export class Runner<
   review(
     input: SchedulerReviewInput<Model, Middlewares>
   ): ReviewResult<Model, Middlewares> {
-    return withCache(() => {
-      const session = this.createReviewSession(input)
-      return this.reviewFromSession(session, input.rating)
-    })
+    const session = this.createReviewSession(input)
+    return this.reviewFromSession(session, input.rating)
   }
 
   preview(
     input: SchedulerPreviewInput<Model, Middlewares>
   ): PreviewResult<Model, Middlewares> {
-    return withCache(() => {
-      const session = this.createReviewSession(input)
-      const results = {} as Record<Grade, ReviewResult<Model, Middlewares>>
+    const session = this.createReviewSession(input)
+    const results = {} as Record<Grade, ReviewResult<Model, Middlewares>>
 
-      for (const rating of Grades) {
-        results[rating] = this.reviewFromSession(session, rating)
-      }
+    for (const rating of Grades) {
+      results[rating] = this.reviewFromSession(session, rating)
+    }
 
-      return Object.assign(results, {
-        *[Symbol.iterator]() {
-          for (const rating of Grades) {
-            yield results[rating]
-          }
-        },
-      }) as PreviewResult<Model, Middlewares>
-    })
+    return Object.assign(results, {
+      *[Symbol.iterator]() {
+        for (const rating of Grades) {
+          yield results[rating]
+        }
+      },
+    }) as PreviewResult<Model, Middlewares>
   }
 
   reviewFromSession(
@@ -132,10 +126,16 @@ export class Runner<
       config: this.options.config,
       model: this.options.model,
       store: createRuntimeStore<Middlewares>(),
-      result: createReviewResult(session, rating, this.options.model),
+      result: createReviewResult(
+        session,
+        rating,
+        this.options.model,
+        this.options.descriptor.parseRevlog(session.card, rating)
+      ),
     }
 
-    return this.reviewHandler(ctx)
+    this.reviewHandler(ctx)
+    return ctx.result
   }
 
   rollback(
@@ -150,9 +150,11 @@ export class Runner<
       config: this.options.config,
       model: this.options.model,
       store: createRuntimeStore<Middlewares>(),
+      result: createRollbackResult<Model, Middlewares>(input.revlog),
     }
 
-    return this.rollbackHandler(ctx)
+    this.rollbackHandler(ctx)
+    return ctx.result
   }
 
   reset(
@@ -166,15 +168,25 @@ export class Runner<
   }
 }
 
+function resolveResetFragment<
+  Model extends SchedulerModelDefinition,
+  Middlewares extends readonly SchedulerMiddleware[],
+>(source: ResetFragmentSource, config: SchedulerConfig<Model, Middlewares>) {
+  if (typeof source !== 'function') {
+    return source
+  }
+
+  return (source as (config: SchedulerConfig<Model, Middlewares>) => object)(
+    config
+  )
+}
+
 function createReviewTerminal<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
->(): (
-  ctx: ReviewContext<Model, Middlewares>
-) => ReviewResult<Model, Middlewares> {
+>(): (ctx: ReviewContext<Model, Middlewares>) => void {
   return (ctx) => {
     Object.assign(ctx.result.card, ctx.result.memoryState)
-    return ctx.result
   }
 }
 
@@ -184,28 +196,28 @@ function createReviewResult<
 >(
   session: ReviewSession<Model, Middlewares>,
   rating: Grade,
-  model: ReturnType<Model['create']>
+  model: ReturnType<Model['create']>,
+  log: ReviewResult<Model, Middlewares>['log']
 ): ReviewResult<Model, Middlewares> {
   const card = {
     ...session.card,
   } as ReviewCard<Model, Middlewares>
-  const log = {
-    ...session.card,
-    rating,
-  } as ReviewResult<Model, Middlewares>['log']
-  let memoryState: SchemaOutput<Model['memoryStateSchema']> | undefined
+  let memoryState: ReviewResult<Model, Middlewares>['memoryState'] | undefined
 
   return {
-    get memoryState() {
+    get memoryState(): ReviewResult<Model, Middlewares>['memoryState'] {
       if (memoryState) {
         return memoryState
       }
 
       memoryState = model.step({
-        memoryState: session.card,
+        memoryState: session.card as unknown as ReviewResult<
+          Model,
+          Middlewares
+        >['memoryState'],
         rating,
         elapsedDays: session.elapsedDays,
-      })
+      }) as ReviewResult<Model, Middlewares>['memoryState']
       return memoryState
     },
     card,
@@ -216,17 +228,21 @@ function createReviewResult<
 function createRollbackTerminal<
   Model extends SchedulerModelDefinition,
   Middlewares extends readonly SchedulerMiddleware[],
->(): (
-  ctx: RollbackContext<Model, Middlewares>
-) => ReviewCard<Model, Middlewares> {
-  return (ctx) => {
-    const previousCard = Object.assign({}, ctx.input.revlog) as ReviewCard<
-      Model,
-      Middlewares
-    > & { rating?: Grade }
-    delete previousCard.rating
-    return previousCard
-  }
+>(): (ctx: RollbackContext<Model, Middlewares>) => void {
+  return () => {}
+}
+
+function createRollbackResult<
+  Model extends SchedulerModelDefinition,
+  Middlewares extends readonly SchedulerMiddleware[],
+>({
+  rating: _rating,
+  ...previousCard
+}: SchedulerRollbackInput<Model, Middlewares>['revlog']): ReviewCard<
+  Model,
+  Middlewares
+> {
+  return previousCard as ReviewCard<Model, Middlewares>
 }
 
 function createRuntimeStore<

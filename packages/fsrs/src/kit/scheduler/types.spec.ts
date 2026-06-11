@@ -2,7 +2,7 @@ import { describe, expectTypeOf, it } from 'vitest'
 import { z } from 'zod/mini'
 import { FSRS6_DEFAULT_WEIGHTS } from '../../models/fsrs-6/constants.js'
 import { FSRS6Model } from '../../models/fsrs-6/model.js'
-import { Rating, type Steps } from '../../models.js'
+import { Rating, State, type Steps } from '../../models.js'
 import {
   configureScheduler,
   defineSchedulerMiddleware,
@@ -12,6 +12,7 @@ import {
   type SchedulerResetInput,
   type SchedulerResetResult,
   type SchedulerReviewInput,
+  statsMiddleware,
 } from './index.js'
 
 describe('scheduler public types', () => {
@@ -29,7 +30,9 @@ describe('scheduler public types', () => {
   })
   const middleware = defineSchedulerMiddleware({
     configSchema,
-    fieldSchema,
+    fieldsSchema: {
+      card: fieldSchema,
+    },
     storeSchema,
     review(ctx, next) {
       expectTypeOf(ctx.config.requiredMiddlewareValue).toEqualTypeOf<number>()
@@ -63,12 +66,11 @@ describe('scheduler public types', () => {
         void ctx.model.config
       }
       expectTypeOf(compileOnly).returns.toEqualTypeOf<void>()
-      const result = next()
-      expectTypeOf(result.card.sourceId).toEqualTypeOf<string>()
-      return result
+      expectTypeOf(next()).toEqualTypeOf<void>()
+      expectTypeOf(ctx.result.card.sourceId).toEqualTypeOf<string>()
     },
     rollback(_ctx, next) {
-      return next()
+      next()
     },
   })
 
@@ -96,7 +98,7 @@ describe('scheduler public types', () => {
     >()
   })
 
-  it('uses field schema input for review card and output for result card/log', () => {
+  it('uses fieldsSchema.card for review card and defaults revlog to card schema', () => {
     type ReviewInput = Parameters<typeof scheduler.review>[0]
     type Result = ReturnType<typeof scheduler.review>
 
@@ -119,6 +121,43 @@ describe('scheduler public types', () => {
     expectTypeOf<Result['log']['rating']>().toEqualTypeOf<
       Rating.Again | Rating.Hard | Rating.Good | Rating.Easy
     >()
+  })
+
+  it('derives revlog omitted fields from middleware metadata', () => {
+    const createStatsScheduler = configureScheduler({
+      model: FSRS6Model,
+      middlewares: [statsMiddleware],
+    })
+    const statsScheduler = createStatsScheduler({
+      weights: FSRS6_DEFAULT_WEIGHTS,
+    })
+    const reviewed = statsScheduler.review({
+      card: {
+        difficulty: 1,
+        stability: 2,
+        reps: 0,
+        lapses: 0,
+        state: State.New,
+      },
+      rating: Rating.Good,
+      elapsedDays: 0,
+    })
+
+    expectTypeOf(reviewed.log.difficulty).toEqualTypeOf<number>()
+    expectTypeOf(reviewed.log.stability).toEqualTypeOf<number>()
+    expectTypeOf(reviewed.log.interval).toEqualTypeOf<number>()
+    expectTypeOf(reviewed.log.state).toEqualTypeOf<State>()
+    expectTypeOf(reviewed.log.rating).toEqualTypeOf<
+      Rating.Again | Rating.Hard | Rating.Good | Rating.Easy
+    >()
+
+    const compileOnly = () => {
+      // @ts-expect-error stats middleware omits reps from revlog.
+      void reviewed.log.reps
+      // @ts-expect-error stats middleware omits lapses from revlog.
+      void reviewed.log.lapses
+    }
+    expectTypeOf(compileOnly).returns.toEqualTypeOf<void>()
   })
 
   it('types preview, rollback, reset, and forget from the configured middleware tuple', () => {
@@ -177,7 +216,7 @@ describe('scheduler public types', () => {
     const noFieldMiddleware = defineSchedulerMiddleware({
       review(ctx, next) {
         expectTypeOf(ctx.input.card.difficulty).toEqualTypeOf<number>()
-        return next()
+        next()
       },
     })
     const createNoFieldScheduler = configureScheduler({

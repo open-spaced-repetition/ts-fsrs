@@ -18,15 +18,17 @@ export const learningStepFieldSchema = z.object({
 
 export const learningStepMiddleware = defineSchedulerMiddleware({
   configSchema: learningStepConfigSchema,
-  fieldSchema: learningStepFieldSchema,
-  fieldDefaults: {
-    steps: 0,
-    state: State.New,
+  fieldsSchema: {
+    card: learningStepFieldSchema,
+    default: {
+      steps: 0,
+      state: State.New,
+    },
   },
   review(ctx, next) {
-    const result = next()
+    next()
     if (!ctx.config.enableShortTerm) {
-      return result
+      return
     }
     const state = ctx.input.card.state
     const params: Pick<FSRSParameters, 'learning_steps' | 'relearning_steps'> =
@@ -41,26 +43,21 @@ export const learningStepMiddleware = defineSchedulerMiddleware({
     )[ctx.input.rating]
 
     if (!schedule) {
-      result.card.steps = 0
-      return result
+      ctx.result.card.steps = 0
+      return
     }
 
     const scheduledMinutes = schedule.scheduled_minutes
-    result.card.steps = schedule.next_step
-    result.card.interval = (scheduledMinutes * 60) / ctx.config.daySeconds
+    ctx.result.card.steps = schedule.next_step
+    ctx.result.card.interval = (scheduledMinutes * 60) / ctx.config.daySeconds
 
     // A step that spans a full day or more graduates the card to Review (legacy
     // `applyLearningSteps`); shorter steps stay in (Re)learning.
-    result.card.state =
+    ctx.result.card.state =
       scheduledMinutes >= ctx.config.daySeconds / 60
         ? State.Review
         : state === State.Review || state === State.Relearning
           ? State.Relearning
           : State.Learning
-
-    return result
-  },
-  rollback(_ctx, next) {
-    return next()
   },
 })

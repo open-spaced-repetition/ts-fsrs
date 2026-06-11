@@ -1,11 +1,10 @@
 /**
  * A middleware operating on a shared context `T` and producing a result `R`.
  *
- * Follows the onion model: call `next()` to obtain the downstream result, then
- * return it (optionally transformed). Returning without calling `next()`
- * short-circuits the remaining middleware.
+ * Follows the onion model: call `next()` to continue to downstream middleware.
+ * Returning without calling `next()` short-circuits the remaining middleware.
  */
-export type Middleware<T = unknown, R = unknown> = (ctx: T, next: () => R) => R
+export type Middleware<T = unknown, R = void> = (ctx: T, next: () => R) => R
 
 /**
  * Composes middleware around a terminal `handler`, running them in registration

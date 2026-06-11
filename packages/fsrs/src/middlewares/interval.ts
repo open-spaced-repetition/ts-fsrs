@@ -21,16 +21,14 @@ export const intervalMiddleware = defineSchedulerMiddleware({
     const desiredRetention = ctx.store.get('desiredRetention')
     const maximumInterval = ctx.config.maximumInterval
 
-    const memoryState = ctx.model.step({
-      memoryState: ctx.input.card,
-      rating: ctx.input.rating,
-      elapsedDays: ctx.input.elapsedDays,
-    })
-    const nextInterval = ctx.model.nextInterval(memoryState, desiredRetention)
+    const nextInterval = ctx.model.nextInterval(
+      ctx.result.memoryState,
+      desiredRetention
+    )
     ctx.result.card.interval = Math.min(
       Math.max(nextInterval, 1),
       maximumInterval
     )
-    return next()
+    next()
   },
 })

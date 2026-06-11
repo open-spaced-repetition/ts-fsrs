@@ -26,12 +26,9 @@ export interface FSRSForwardInput<MemoryState extends FSRSState = FSRSState> {
   initialState?: MemoryState | null
 }
 
-export interface IFSRSModel<
-  Config extends object = FSRSModelConfig,
+export interface IFSRSModelOperations<
   MemoryState extends FSRSState = FSRSState,
 > {
-  readonly config: Readonly<Prettify<Config>>
-  readonly bounds: Readonly<ModelBounds>
   readonly step: (input: FSRSStepInput<MemoryState>) => MemoryState
   readonly nextInterval: (
     memoryState: MemoryState,
@@ -42,4 +39,12 @@ export interface IFSRSModel<
     elapsedDays: number
   ) => number
   readonly forward: (input: FSRSForwardInput<MemoryState>) => MemoryState[]
+}
+
+export interface IFSRSModel<
+  Config extends object = FSRSModelConfig,
+  MemoryState extends FSRSState = FSRSState,
+> extends IFSRSModelOperations<MemoryState> {
+  readonly config: Readonly<Prettify<Config>>
+  readonly bounds: Readonly<ModelBounds>
 }

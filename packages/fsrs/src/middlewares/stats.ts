@@ -8,12 +8,19 @@ export const statsFieldSchema = z.object({
   lapses: z._default(z.number(), 0),
 })
 
+export const statsRevlogSchema = z.object({
+  state: z.enum(State),
+})
+
 export const statsMiddleware = defineSchedulerMiddleware({
-  fieldSchema: statsFieldSchema,
-  fieldDefaults: {
-    reps: 0,
-    state: State.New,
-    lapses: 0,
+  fieldsSchema: {
+    card: statsFieldSchema,
+    revlog: statsRevlogSchema,
+    default: {
+      reps: 0,
+      state: State.New,
+      lapses: 0,
+    },
   },
   review(ctx, next) {
     ctx.result.card.reps = ctx.input.card.reps + 1
@@ -26,9 +33,19 @@ export const statsMiddleware = defineSchedulerMiddleware({
     }
     ctx.result.card.state = State.Review
 
-    return next()
+    next()
   },
-  rollback(_ctx, next) {
-    return next()
+  rollback(ctx, next) {
+    next()
+
+    ctx.result.reps = Math.max(0, ctx.input.card.reps - 1)
+    ctx.result.lapses = Math.max(
+      0,
+      ctx.input.card.lapses -
+        (ctx.input.revlog.state === State.Review &&
+        ctx.input.revlog.rating === Rating.Again
+          ? 1
+          : 0)
+    )
   },
 })
