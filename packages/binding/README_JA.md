@@ -54,6 +54,18 @@ const parameters = await computeParameters(items, {
 console.log(parameters)
 ```
 
+### CSV のタイムゾーン入力
+
+`convertCsvToFsrsItems` の 3 番目の引数は `timezoneOrOffset` です。
+
+- `'Asia/Shanghai'` や `'America/New_York'` のような IANA タイムゾーン名を渡すと、各レビュー時刻ごとに正しい UTC オフセットを解決し、夏時間の変化も反映します。
+- `480` を UTC+08:00、`-300` を UTC-05:00 とする固定 UTC オフセット分数を渡すと、すべてのレビュー時刻に同じ固定オフセットを使います。
+
+```ts
+const itemsWithTimezone = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const itemsWithFixedOffset = convertCsvToFsrsItems(csvBuffer, 4, 480)
+```
+
 ## 学習ステップの推奨
 
 ```ts

@@ -46,6 +46,26 @@ describe('CSV Parser', () => {
     expect(items[0].current?.deltaT).toBeGreaterThan(0)
   })
 
+  test('should accept fixed timezone offset minutes in Rust implementation', () => {
+    const csvBuffer = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        '1,1704067200000,3,0,1000',
+        '1,1704153600000,3,2,1000',
+      ].join('\n')
+    )
+
+    const timezoneItems = convertCsvToFsrsItems(
+      csvBuffer,
+      nextDayStartsAt,
+      'Asia/Tokyo'
+    )
+    const offsetItems = convertCsvToFsrsItems(csvBuffer, nextDayStartsAt, 540)
+
+    expect(offsetItems).toHaveLength(timezoneItems.length)
+    expect(offsetItems).toEqual(timezoneItems)
+  })
+
   test('should throw for unsupported timezone', () => {
     const csvBuffer = Buffer.from(
       [

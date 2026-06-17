@@ -54,6 +54,18 @@ const parameters = await computeParameters(items, {
 console.log(parameters)
 ```
 
+### CSV Timezone Input
+
+The third `convertCsvToFsrsItems` argument is `timezoneOrOffset`.
+
+- Pass an IANA timezone name, such as `'Asia/Shanghai'` or `'America/New_York'`, when the conversion should apply the correct offset for each review timestamp, including daylight saving time changes.
+- Pass a fixed UTC offset in minutes, such as `480` for UTC+08:00 or `-300` for UTC-05:00, when the source data should use the same offset for every review timestamp.
+
+```ts
+const itemsWithTimezone = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const itemsWithFixedOffset = convertCsvToFsrsItems(csvBuffer, 4, 480)
+```
+
 ## Recommend Learning Steps
 
 ```ts

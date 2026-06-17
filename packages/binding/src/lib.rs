@@ -7,11 +7,13 @@ mod evaluate;
 mod model;
 mod progress;
 mod steps;
+mod timezone;
 mod train;
 pub use convert::*;
 pub use evaluate::*;
 pub use model::*;
 pub use steps::*;
+pub use timezone::TimezoneOrOffset;
 pub use train::*;
 
 #[napi(js_name = "FSRSBinding")]

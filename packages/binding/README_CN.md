@@ -54,6 +54,18 @@ const parameters = await computeParameters(items, {
 console.log(parameters)
 ```
 
+### CSV 时区参数
+
+`convertCsvToFsrsItems` 的第三个参数是 `timezoneOrOffset`。
+
+- 传入 IANA 时区名称，例如 `'Asia/Shanghai'` 或 `'America/New_York'`，转换时会按每条复习记录的时间解析对应 UTC 偏移，也会处理夏令时变化。
+- 传入固定 UTC 偏移分钟数，例如 `480` 表示 UTC+08:00，`-300` 表示 UTC-05:00。此时所有复习记录都会使用同一个固定偏移。
+
+```ts
+const itemsWithTimezone = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const itemsWithFixedOffset = convertCsvToFsrsItems(csvBuffer, 4, 480)
+```
+
 ## 推荐学习步骤
 
 ```ts
