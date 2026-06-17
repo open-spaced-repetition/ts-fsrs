@@ -58,7 +58,7 @@ console.log(parameters)
 
 The third `convertCsvToFsrsItems` argument is `timezoneOrOffset`.
 
-- Pass an IANA timezone name, such as `'Asia/Shanghai'` or `'America/New_York'`, when the conversion should apply the correct offset for each review timestamp, including daylight saving time changes.
+- Pass an IANA timezone name, such as `'Asia/Shanghai'` or `'America/New_York'`, when you want the conversion to account for DST for each review at the time it was reviewed.
 - Pass a fixed UTC offset in minutes, such as `480` for UTC+08:00 or `-300` for UTC-05:00, when the source data should use the same offset for every review timestamp.
 
 ```ts
