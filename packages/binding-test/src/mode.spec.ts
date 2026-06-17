@@ -134,10 +134,7 @@ index f5b20bf..6ff1d3b 100644
     expect(() => f.universalMetrics([])).toThrow()
 
     const csvBuffer = readFileSync(new URL('./revlog.csv', import.meta.url))
-    const offset = 480 // UTC+8
-    const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', () =>
-      offset
-    )
+    const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
     const metrics = f.evaluate(items)
     console.debug('metrics', metrics)
     expect(metrics.logLoss).toBeCloseTo(0.3340487, 4)

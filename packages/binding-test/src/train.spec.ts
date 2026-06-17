@@ -6,7 +6,6 @@ import {
   FSRSBindingItem,
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
-import { getTimezoneOffset } from './helpers/csv-parser.js'
 
 describe('FSRS compute_parameters', () => {
   function createMinimalTestItem(): FSRSBindingItem {
@@ -19,9 +18,7 @@ describe('FSRS compute_parameters', () => {
   let allItems: FSRSBindingItem[] = []
   beforeAll(() => {
     const csvBuffer = fs.readFileSync(new URL('./revlog.csv', import.meta.url))
-    allItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', (ms, tz) =>
-      getTimezoneOffset(tz, ms)
-    )
+    allItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
   })
   for (const shortTerm of [true, false]) {
     test(`compute_parameters with test data ${shortTerm ? 'enabled' : 'disabled'}`, async () => {

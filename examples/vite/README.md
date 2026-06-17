@@ -107,7 +107,7 @@ This allows pnpm to install the WebAssembly binaries alongside native bindings.
 
 ### Timezone Handling
 
-This example uses the local system timezone automatically. The timezone offset is calculated using JavaScript's `Date.getTimezoneOffset()` method, which returns the offset in minutes between UTC and the local time.
+This example uses the local system timezone automatically. The binding resolves the IANA timezone in Rust and applies the correct offset for each review timestamp, including DST changes.
 
 ### WASM Loading
 

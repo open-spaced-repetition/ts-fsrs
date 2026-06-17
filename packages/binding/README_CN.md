@@ -39,49 +39,8 @@ import {
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding'
 
-const timeZoneFormatterCache = new Map<string, Intl.DateTimeFormat>()
-
-const getTimeZoneFormatter = (timeZone: string) => {
-  let formatter = timeZoneFormatterCache.get(timeZone)
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat('ia', {
-      timeZone,
-      timeZoneName: 'shortOffset',
-    })
-    timeZoneFormatterCache.set(timeZone, formatter)
-  }
-  return formatter
-}
-
-const getTimezoneOffset = (timeZone: string, date: Date | number) => {
-  const timeZoneName = getTimeZoneFormatter(timeZone)
-    .formatToParts(date)
-    .find((part) => part.type === 'timeZoneName')?.value
-
-  if (!timeZoneName || timeZoneName === 'GMT' || timeZoneName === 'UTC') {
-    return 0
-  }
-
-  const [, sign, hours, minutes = '0'] =
-    timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/) ?? []
-
-  if (!sign || !hours) {
-    throw new Error(`Unsupported time zone offset: ${timeZoneName}`)
-  }
-
-  const totalMinutes = Number(hours) * 60 + Number(minutes)
-  return sign === '+' ? totalMinutes : -totalMinutes
-}
-
-// 反复创建 Intl.DateTimeFormat 会有明显性能开销，建议把 formatter 提取出来或做缓存。
-
 const csvBuffer = readFileSync('./revlog.csv')
-const items = convertCsvToFsrsItems(
-  csvBuffer,
-  4,
-  'Asia/Shanghai',
-  (ms, timeZone) => getTimezoneOffset(timeZone, ms)
-)
+const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
 
 const parameters = await computeParameters(items, {
   enableShortTerm: true,
@@ -93,6 +52,18 @@ const parameters = await computeParameters(items, {
 })
 
 console.log(parameters)
+```
+
+### CSV 时区参数
+
+`convertCsvToFsrsItems` 的第三个参数是 `timezoneOrOffset`。
+
+- 传入 IANA 时区名称，例如 `'Asia/Shanghai'` 或 `'America/New_York'`，转换时会按每条复习记录的时间解析对应 UTC 偏移，也会处理夏令时变化。
+- 传入固定 UTC 偏移分钟数，例如 `480` 表示 UTC+08:00，`-300` 表示 UTC-05:00。此时所有复习记录都会使用同一个固定偏移。
+
+```ts
+const itemsWithTimezone = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const itemsWithFixedOffset = convertCsvToFsrsItems(csvBuffer, 4, 480)
 ```
 
 ## 推荐学习步骤
