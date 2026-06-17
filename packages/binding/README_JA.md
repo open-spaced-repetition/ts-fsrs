@@ -39,49 +39,8 @@ import {
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding'
 
-const timeZoneFormatterCache = new Map<string, Intl.DateTimeFormat>()
-
-const getTimeZoneFormatter = (timeZone: string) => {
-  let formatter = timeZoneFormatterCache.get(timeZone)
-  if (!formatter) {
-    formatter = new Intl.DateTimeFormat('ia', {
-      timeZone,
-      timeZoneName: 'shortOffset',
-    })
-    timeZoneFormatterCache.set(timeZone, formatter)
-  }
-  return formatter
-}
-
-const getTimezoneOffset = (timeZone: string, date: Date | number) => {
-  const timeZoneName = getTimeZoneFormatter(timeZone)
-    .formatToParts(date)
-    .find((part) => part.type === 'timeZoneName')?.value
-
-  if (!timeZoneName || timeZoneName === 'GMT' || timeZoneName === 'UTC') {
-    return 0
-  }
-
-  const [, sign, hours, minutes = '0'] =
-    timeZoneName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/) ?? []
-
-  if (!sign || !hours) {
-    throw new Error(`Unsupported time zone offset: ${timeZoneName}`)
-  }
-
-  const totalMinutes = Number(hours) * 60 + Number(minutes)
-  return sign === '+' ? totalMinutes : -totalMinutes
-}
-
-// Intl.DateTimeFormat を毎回 new すると遅くなりやすいため、formatter は外に出すかキャッシュすることを推奨します。
-
 const csvBuffer = readFileSync('./revlog.csv')
-const items = convertCsvToFsrsItems(
-  csvBuffer,
-  4,
-  'Asia/Shanghai',
-  (ms, timeZone) => getTimezoneOffset(timeZone, ms)
-)
+const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
 
 const parameters = await computeParameters(items, {
   enableShortTerm: true,
@@ -93,6 +52,18 @@ const parameters = await computeParameters(items, {
 })
 
 console.log(parameters)
+```
+
+### CSV のタイムゾーン入力
+
+`convertCsvToFsrsItems` の 3 番目の引数は `timezoneOrOffset` です。
+
+- `'Asia/Shanghai'` や `'America/New_York'` のような IANA タイムゾーン名を渡すと、各レビュー時刻ごとに正しい UTC オフセットを解決し、夏時間の変化も反映します。
+- `480` を UTC+08:00、`-300` を UTC-05:00 とする固定 UTC オフセット分数を渡すと、すべてのレビュー時刻に同じ固定オフセットを使います。
+
+```ts
+const itemsWithTimezone = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const itemsWithFixedOffset = convertCsvToFsrsItems(csvBuffer, 4, 480)
 ```
 
 ## 学習ステップの推奨

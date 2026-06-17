@@ -18,18 +18,66 @@ describe('CSV Parser', () => {
 
     // RS version
     const csvBuffer = fs.readFileSync(testDataPath)
-    const rsItems = convertCsvToFsrsItems(
-      csvBuffer,
-      nextDayStartsAt,
-      timezone,
-      (ms, tz) => getTimezoneOffset(tz, ms)
-    )
+    const rsItems = convertCsvToFsrsItems(csvBuffer, nextDayStartsAt, timezone)
 
     // This count should match the Rust implementation
     expect(tsItems.length).toBe(rsItems.length)
     console.log(
       `✅ TS version (${tsItems.length}) matches RS version (${rsItems.length})`
     )
+  })
+
+  test('should support DST timezone in Rust implementation', () => {
+    const csvBuffer = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        '1,1704067200000,3,0,1000',
+        '1,1719878400000,3,2,1000',
+      ].join('\n')
+    )
+
+    const items = convertCsvToFsrsItems(
+      csvBuffer,
+      nextDayStartsAt,
+      'America/New_York'
+    )
+
+    expect(items).toHaveLength(1)
+    expect(items[0].current?.deltaT).toBeGreaterThan(0)
+  })
+
+  test('should accept fixed timezone offset minutes in Rust implementation', () => {
+    const csvBuffer = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        '1,1704067200000,3,0,1000',
+        '1,1704153600000,3,2,1000',
+      ].join('\n')
+    )
+
+    const timezoneItems = convertCsvToFsrsItems(
+      csvBuffer,
+      nextDayStartsAt,
+      'Asia/Tokyo'
+    )
+    const offsetItems = convertCsvToFsrsItems(csvBuffer, nextDayStartsAt, 540)
+
+    expect(offsetItems).toHaveLength(timezoneItems.length)
+    expect(offsetItems).toEqual(timezoneItems)
+  })
+
+  test('should throw for unsupported timezone', () => {
+    const csvBuffer = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        '1,1704067200000,3,0,1000',
+        '1,1704153600000,3,2,1000',
+      ].join('\n')
+    )
+
+    expect(() =>
+      convertCsvToFsrsItems(csvBuffer, nextDayStartsAt, 'Mars/Base')
+    ).toThrow('Unsupported timezone')
   })
 
   describe('getTimezoneOffset', () => {
