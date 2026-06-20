@@ -1,5 +1,5 @@
 import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help'
+import { clamp, roundTo } from '../../help.js'
 import { FSRS5_DEFAULT_WEIGHTS, FSRS5ParameterBounds } from './constants.js'
 
 export const clipFSRS5Parameters = (parameters: number[]): number[] => {

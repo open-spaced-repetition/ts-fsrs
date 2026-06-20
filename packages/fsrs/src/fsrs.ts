@@ -1,16 +1,17 @@
+import type { IModel } from '@open-spaced-repetition/srs-kit/model'
 import { TypeConvert } from './convert'
 import { createEmptyCard, generatorParameters } from './default'
 import { FSRSValidationError } from './error'
 import { date_diff } from './help'
 import BasicScheduler from './impl/basic_scheduler'
 import LongTermScheduler from './impl/long_term_scheduler'
-import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
   type CardInput,
   type DateInput,
   type FSRSHistory,
   type FSRSParameters,
+  type FSRSState,
   type Grade,
   Rating,
   type RecordLogItem,
@@ -38,7 +39,7 @@ import type {
  * Use Scheduler going forward.
  */
 export interface IFSRS {
-  readonly model: IFSRSModel
+  readonly model: IModel<FSRSState>
   useStrategy<T extends StrategyMode>(
     mode: T,
     handler: TStrategyHandler<T>
@@ -75,13 +76,13 @@ export class FSRS implements IFSRS {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
   private Scheduler!: TSchedulerStrategy
   #parameters!: FSRSParameters
-  #model!: IFSRSModel
+  #model!: IModel<FSRSState>
 
   constructor(parameters: Partial<FSRSParameters> = {}) {
     this.parameters = parameters
   }
 
-  get model(): IFSRSModel {
+  get model(): IModel<FSRSState> {
     return this.#model
   }
 
@@ -99,10 +100,12 @@ export class FSRS implements IFSRS {
   }
 
   private rebuildModel(): void {
-    this.#model = FSRS6Model({
-      weights: this.#parameters.w as number[],
-      enableShortTerm: this.#parameters.enable_short_term,
-      numRelearningSteps: this.#parameters.relearning_steps.length,
+    this.#model = FSRS6Model.create({
+      config: {
+        weights: this.#parameters.w as number[],
+        enableShortTerm: this.#parameters.enable_short_term,
+        numRelearningSteps: this.#parameters.relearning_steps.length,
+      },
     })
   }
 

@@ -1,18 +1,33 @@
+import { defineModel } from '@open-spaced-repetition/srs-kit'
 import type {
-  FSRSForwardInput,
-  FSRSModelConfig,
-  FSRSStepInput,
-  IFSRSModel,
-} from '../../kit'
+  IModel,
+  ModelDefinition,
+  ModelForwardInput,
+  ModelStepInput,
+} from '@open-spaced-repetition/srs-kit/model'
+import * as z from 'zod/mini'
 import type { FSRSState } from '../../models.js'
 import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_MODEL_BOUNDS } from './constants.js'
 
-export type FSRS6Config = FSRSModelConfig & {
-  numRelearningSteps: number
-}
+const fsrs6ConfigSchema = z.object({
+  weights: z.array(z.number()),
+  enableShortTerm: z.boolean(),
+  numRelearningSteps: z.number(),
+})
 
-export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
+const fsrs6MemoryStateSchema = z.object({
+  stability: z.number(),
+  difficulty: z.number(),
+})
+
+export type FSRS6Config = z.output<typeof fsrs6ConfigSchema>
+
+type FSRS6ModelCreate = (context: {
+  readonly config: FSRS6Config
+}) => IModel<FSRSState>
+
+const createFSRS6Model = (config: FSRS6Config): IModel<FSRSState> => {
   const bounds = FSRS6_MODEL_BOUNDS
 
   const modelConfig: FSRS6Config = Object.freeze(config)
@@ -28,7 +43,7 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
     rating,
     elapsedDays,
     retrievability,
-  }: FSRSStepInput): FSRSState => {
+  }: ModelStepInput<FSRSState>): FSRSState => {
     return algo.next_state(memoryState, elapsedDays, rating, retrievability)
   }
 
@@ -49,7 +64,7 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
   const forward = ({
     history,
     initialState,
-  }: FSRSForwardInput): FSRSState[] => {
+  }: ModelForwardInput<FSRSState>): FSRSState[] => {
     const states: FSRSState[] = []
     let memoryState = initialState || null
     for (const review of history) {
@@ -64,7 +79,6 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
   }
 
   return {
-    config: modelConfig,
     bounds,
     step,
     nextInterval,
@@ -72,3 +86,28 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
     forward,
   }
 }
+
+export const FSRS6Model: ModelDefinition<
+  typeof fsrs6ConfigSchema,
+  typeof fsrs6MemoryStateSchema,
+  FSRS6ModelCreate
+> = defineModel({
+  name: 'fsrs-6',
+  schema: {
+    config: fsrs6ConfigSchema,
+    memoryState: {
+      schema: fsrs6MemoryStateSchema,
+      default() {
+        return { stability: 0, difficulty: 0 }
+      },
+    },
+  },
+  create({ config }) {
+    const result = fsrs6ConfigSchema.safeParse(config)
+    if (!result.success) {
+      throw result.error
+    }
+
+    return createFSRS6Model(config)
+  },
+})

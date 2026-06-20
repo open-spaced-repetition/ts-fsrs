@@ -1,10 +1,11 @@
+import type { IModel } from '@open-spaced-repetition/srs-kit/model'
 import type { AbstractScheduler } from '../abstract_scheduler'
-import type { IFSRSModel } from '../kit/index.js'
 import type {
   Card,
   CardInput,
   DateInput,
   FSRSParameters,
+  FSRSState,
   Grade,
   State,
 } from '../models'
@@ -21,7 +22,7 @@ export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
   new (
     card: T,
     now: DateInput,
-    model: IFSRSModel,
+    model: IModel<FSRSState>,
     parameters: FSRSParameters,
     strategies: Map<StrategyMode, TStrategyHandler>
   ) => IScheduler

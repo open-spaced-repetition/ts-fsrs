@@ -1,15 +1,16 @@
-import type { ModelBounds } from '../../kit'
+import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
+import type { FSRSState } from '../../models.js'
 
 export const FSRS5_DECAY = 0.5
 export const FSRS5_FACTOR = 19 / 81
 export const FSRS5_W17_W18_CEILING = 2.0
 export const INIT_S_MAX = 100.0
 
-export const FSRS5_MODEL_BOUNDS: ModelBounds = Object.freeze({
-  sMin: 0.01,
-  sMax: 36500.0,
-  dMin: 1.0,
-  dMax: 10.0,
+export const FSRS5_MODEL_BOUNDS: ModelBounds<FSRSState> = Object.freeze({
+  stabilityMin: 0.01,
+  stabilityMax: 36500.0,
+  difficultyMin: 1.0,
+  difficultyMax: 10.0,
 })
 
 export const FSRS5_DEFAULT_WEIGHTS = Object.freeze([
@@ -19,11 +20,11 @@ export const FSRS5_DEFAULT_WEIGHTS = Object.freeze([
 ]) as number[]
 
 export const FSRS5ParameterBounds = (): [number, number][] => [
-  [FSRS5_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS5_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS5_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS5_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS5_MODEL_BOUNDS.dMin, FSRS5_MODEL_BOUNDS.dMax],
+  [FSRS5_MODEL_BOUNDS.stabilityMin, INIT_S_MAX],
+  [FSRS5_MODEL_BOUNDS.stabilityMin, INIT_S_MAX],
+  [FSRS5_MODEL_BOUNDS.stabilityMin, INIT_S_MAX],
+  [FSRS5_MODEL_BOUNDS.stabilityMin, INIT_S_MAX],
+  [FSRS5_MODEL_BOUNDS.difficultyMin, FSRS5_MODEL_BOUNDS.difficultyMax],
   [0.001, 4.0],
   [0.001, 4.0],
   [0.001, 0.75],

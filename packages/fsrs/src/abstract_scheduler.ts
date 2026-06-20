@@ -1,12 +1,13 @@
+import type { IModel } from '@open-spaced-repetition/srs-kit/model'
 import { TypeConvert } from './convert'
 import { FSRSValidationError } from './error'
 import { dateDiffInDays, Grades } from './help'
-import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
   type CardInput,
   type DateInput,
   type FSRSParameters,
+  type FSRSState,
   type Grade,
   Rating,
   type RecordLogItem,
@@ -26,7 +27,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected current: Card
   protected review_time: Date
   protected next: Map<Grade, RecordLogItem> = new Map()
-  protected model: IFSRSModel
+  protected model: IModel<FSRSState>
   protected parameters: FSRSParameters
   protected strategies: Map<StrategyMode, TStrategyHandler> | undefined
   protected elapsed_days: number = 0 // init
@@ -35,7 +36,7 @@ export abstract class AbstractScheduler implements IScheduler {
   constructor(
     card: CardInput | Card,
     now: DateInput,
-    model: IFSRSModel,
+    model: IModel<FSRSState>,
     parameters: FSRSParameters,
     strategies?: Map<StrategyMode, TStrategyHandler>
   ) {

@@ -1,11 +1,11 @@
-import { FSRS5_DEFAULT_DECAY } from '../../constant'
+import { FSRS5_DEFAULT_DECAY } from '../../constant.js'
 import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help'
+import { clamp, roundTo } from '../../help.js'
 import {
   FSRS6_DEFAULT_WEIGHTS,
   FSRS6_W17_W18_CEILING,
   FSRS6ParameterBounds,
-} from './constants'
+} from './constants.js'
 
 export const clipFSRS6Parameters = (
   parameters: number[],

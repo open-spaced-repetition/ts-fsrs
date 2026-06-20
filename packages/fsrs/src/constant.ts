@@ -25,8 +25,8 @@ export const default_relearning_steps: readonly StepUnit[] = Object.freeze([
 
 export const FSRSVersion: string = `v${version} using FSRS-6.0`
 
-export const S_MIN = FSRS6_MODEL_BOUNDS.sMin
-export const S_MAX = FSRS6_MODEL_BOUNDS.sMax
+export const S_MIN = FSRS6_MODEL_BOUNDS.stabilityMin
+export const S_MAX = FSRS6_MODEL_BOUNDS.stabilityMax
 export const INIT_S_MAX = FSRS6_INIT_S_MAX
 export {
   FSRS5_DECAY as FSRS5_DEFAULT_DECAY,

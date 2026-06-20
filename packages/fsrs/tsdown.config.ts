@@ -10,8 +10,16 @@ export default defineConfig([
     },
     format: ['esm', 'cjs'],
     outDir: 'dist',
-    dts: true,
+    dts: {
+      resolver: 'tsc',
+    },
     clean: true,
+    deps: {
+      alwaysBundle: ['@open-spaced-repetition/srs-kit'],
+      dts: {
+        neverBundle: ['@open-spaced-repetition/srs-kit/model'],
+      },
+    },
     sourcemap: false,
     minify: false,
     target: 'node20',
@@ -24,6 +32,13 @@ export default defineConfig([
     outDir: 'dist',
     globalName: 'FSRS',
     platform: 'browser',
+    deps: {
+      alwaysBundle: ['@open-spaced-repetition/srs-kit', 'zod', 'zod/mini'],
+      onlyBundle: [/^zod(\/.*)?$/],
+      dts: {
+        neverBundle: ['@open-spaced-repetition/srs-kit/model'],
+      },
+    },
     sourcemap: false,
     minify: false,
     target: 'es2017',

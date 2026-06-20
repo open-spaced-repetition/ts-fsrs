@@ -1,6 +1,6 @@
+import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSValidationError } from '../../error.js'
 import { clamp, roundTo } from '../../help.js'
-import type { ModelBounds } from '../../kit/types.js'
 import { type FSRSState, type Grade, Rating } from '../../models.js'
 
 export const computeDecayFactor = (
@@ -38,7 +38,7 @@ export class FSRS6Algorithm {
   constructor(
     private weights: number[],
     private enableShortTerm: boolean,
-    private bounds: ModelBounds
+    private bounds: ModelBounds<FSRSState>
   ) {
     if (!Array.isArray(weights) || weights.length !== 21) {
       throw new FSRSValidationError(
@@ -111,8 +111,8 @@ export class FSRS6Algorithm {
               (Math.exp((1 - r) * w[10]) - 1) *
               hard_penalty *
               easy_bound),
-        this.bounds.sMin,
-        this.bounds.sMax
+        this.bounds.stabilityMin,
+        this.bounds.stabilityMax
       ),
       8
     )
@@ -126,8 +126,8 @@ export class FSRS6Algorithm {
           Math.pow(d, -w[12]) *
           (Math.pow(s + 1, w[13]) - 1) *
           Math.exp((1 - r) * w[14]),
-        this.bounds.sMin,
-        this.bounds.sMax
+        this.bounds.stabilityMin,
+        this.bounds.stabilityMax
       ),
       8
     )
@@ -138,7 +138,10 @@ export class FSRS6Algorithm {
     const sinc = Math.pow(s, -w[19]) * Math.exp(w[17] * (g - 3 + w[18]))
 
     const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
-    return roundTo(clamp(s * maskedSinc, this.bounds.sMin, this.bounds.sMax), 8)
+    return roundTo(
+      clamp(s * maskedSinc, this.bounds.stabilityMin, this.bounds.stabilityMax),
+      8
+    )
   }
 
   forgetting_curve: (elapsed_days: number, stability: number) => number
@@ -171,7 +174,7 @@ export class FSRS6Algorithm {
         stability: s,
       }
     }
-    if (d < 1 || s < this.bounds.sMin) {
+    if (d < 1 || s < this.bounds.stabilityMin) {
       throw new FSRSValidationError(
         `Invalid memory state { difficulty: ${d}, stability: ${s} }`
       )
@@ -189,7 +192,11 @@ export class FSRS6Algorithm {
         w_18 = w[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
-      new_s = clamp(roundTo(next_s_min, 8), this.bounds.sMin, s_after_fail)
+      new_s = clamp(
+        roundTo(next_s_min, 8),
+        this.bounds.stabilityMin,
+        s_after_fail
+      )
     } else {
       new_s = this.next_recall_stability(d, s, r, g)
     }

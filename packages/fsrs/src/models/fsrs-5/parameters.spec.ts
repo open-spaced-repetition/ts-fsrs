@@ -19,7 +19,7 @@ describe('FSRS-5 parameters', () => {
       100,
       100,
       100,
-      FSRS5_MODEL_BOUNDS.dMax,
+      FSRS5_MODEL_BOUNDS.difficultyMax,
       4,
       4,
       0.75,

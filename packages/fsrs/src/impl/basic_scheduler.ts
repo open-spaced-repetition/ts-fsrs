@@ -1,12 +1,13 @@
+import type { IModel } from '@open-spaced-repetition/srs-kit/model'
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
-import type { IFSRSModel } from '../kit/index.js'
 import {
   type Card,
   type CardInput,
   type DateInput,
   type FSRSParameters,
+  type FSRSState,
   type Grade,
   Rating,
   type RecordLogItem,
@@ -27,7 +28,7 @@ export default class BasicScheduler extends AbstractScheduler {
   constructor(
     card: CardInput | Card,
     now: DateInput,
-    model: IFSRSModel,
+    model: IModel<FSRSState>,
     parameters: FSRSParameters,
     strategies?: Map<StrategyMode, TStrategyHandler>
   ) {
