@@ -37,11 +37,7 @@ export class FSRS5Algorithm {
   init_difficulty(g: Grade): number {
     const w = this.weights
     const d = w[4] - Math.exp((g - 1) * w[5]) + 1
-    return clamp(
-      roundTo(d, 8),
-      this.bounds.dMin,
-      this.bounds.dMax
-    )
+    return clamp(roundTo(d, 8), this.bounds.dMin, this.bounds.dMax)
   }
 
   next_interval(s: number, desired_retention: number): number {
@@ -178,11 +174,7 @@ export class FSRS5Algorithm {
         w_18 = this.weights[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
-      new_s = clamp(
-        roundTo(next_s_min, 8),
-        this.bounds.sMin,
-        s_after_fail
-      )
+      new_s = clamp(roundTo(next_s_min, 8), this.bounds.sMin, s_after_fail)
     } else {
       new_s = this.next_recall_stability(d, s, r, g)
     }

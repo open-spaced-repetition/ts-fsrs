@@ -10,9 +10,7 @@ export default defineConfig([
     },
     format: ['esm', 'cjs'],
     outDir: 'dist',
-    dts: {
-      resolver: 'tsc',
-    },
+    dts: true,
     clean: true,
     deps: {
       alwaysBundle: ['@open-spaced-repetition/srs-kit'],
@@ -34,9 +32,6 @@ export default defineConfig([
     platform: 'browser',
     deps: {
       alwaysBundle: ['@open-spaced-repetition/srs-kit'],
-      dts: {
-        neverBundle: [/^@open-spaced-repetition\/srs-kit(\/.*)?$/],
-      },
     },
     sourcemap: false,
     minify: false,

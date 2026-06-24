@@ -1,9 +1,9 @@
-import { defineModel } from '@open-spaced-repetition/srs-kit'
 import type {
   ModelCore,
   ModelForwardInput,
   ModelStepInput,
 } from '@open-spaced-repetition/srs-kit/model'
+import { defineModel } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSMemoryStateSchema } from '../../kit/index.js'
 import type { FSRSState } from '../../models.js'
 import { FSRS5Algorithm } from './algorithm.js'

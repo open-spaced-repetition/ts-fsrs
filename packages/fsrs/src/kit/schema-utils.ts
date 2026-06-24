@@ -4,7 +4,6 @@ export function isObject(
   return typeof value === 'object' && value !== null
 }
 
-
 export function isNumberArray(value: unknown): value is number[] {
   if (!Array.isArray(value)) {
     return false

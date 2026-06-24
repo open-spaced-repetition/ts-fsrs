@@ -168,10 +168,7 @@ export class FSRS6Algorithm {
     const sinc = Math.pow(s, -w[19]) * Math.exp(w[17] * (g - 3 + w[18]))
 
     const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
-    return roundTo(
-      clamp(s * maskedSinc, this.bounds.sMin, this.bounds.sMax),
-      8
-    )
+    return roundTo(clamp(s * maskedSinc, this.bounds.sMin, this.bounds.sMax), 8)
   }
 
   next_state(
@@ -220,11 +217,7 @@ export class FSRS6Algorithm {
         w_18 = w[18]
       }
       const next_s_min = s / Math.exp(w_17 * w_18)
-      new_s = clamp(
-        roundTo(next_s_min, 8),
-        this.bounds.sMin,
-        s_after_fail
-      )
+      new_s = clamp(roundTo(next_s_min, 8), this.bounds.sMin, s_after_fail)
     } else {
       new_s = this.next_recall_stability(d, s, r, g)
     }

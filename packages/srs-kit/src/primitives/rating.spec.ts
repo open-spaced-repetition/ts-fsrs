@@ -26,9 +26,7 @@ describe('Rating', () => {
     expect(ratingSchema.parse(Rating.Good)).toBe(Rating.Good)
     expect(() => ratingSchema.parse(5)).toThrow(SRSSchemaError)
     expect(gradeSchema.parse(Rating.Good)).toBe(Rating.Good)
-    expect(() => gradeSchema.parse(Rating.Manual)).toThrow(
-      SRSSchemaError
-    )
+    expect(() => gradeSchema.parse(Rating.Manual)).toThrow(SRSSchemaError)
     expectTypeOf<RatingValue>().toEqualTypeOf<0 | 1 | 2 | 3 | 4>()
     expectTypeOf<Grade>().toEqualTypeOf<1 | 2 | 3 | 4>()
   })

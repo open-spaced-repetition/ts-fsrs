@@ -50,10 +50,7 @@ export type FirstChar<S extends string> = S extends `${infer C}${string}`
   ? C
   : never
 
-export type NumericKeysWithPrefix<
-  C extends string,
-  T extends object,
-> = {
+export type NumericKeysWithPrefix<C extends string, T extends object> = {
   [K in string & keyof T]: T[K] extends number
     ? K extends `${C}${string}`
       ? K
