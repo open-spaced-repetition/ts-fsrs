@@ -22,9 +22,13 @@ export type SafeParseFailure = {
 
 export type SafeParseResult<T> = SafeParseSuccess<T> | SafeParseFailure
 
-export interface SRSSchema<Input, Output = Input>
-  extends StandardSchemaV1<Input, Output> {
-  parse(input: unknown): Output
-  safeParse(input: unknown): SafeParseResult<Output>
+export type SRSSchemaTypes<Input = unknown, Output = Input> = {
+  input: Input
+  output: Output
 }
 
+export interface SRSSchema<Definition extends SRSSchemaTypes>
+  extends StandardSchemaV1<Definition['input'], Definition['output']> {
+  parse(input: unknown): Definition['output']
+  safeParse(input: unknown): SafeParseResult<Definition['output']>
+}

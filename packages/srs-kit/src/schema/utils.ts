@@ -46,6 +46,24 @@ export type Constrain<T, TConstraint, TDefault = TConstraint> =
   | (T extends TConstraint ? T : never)
   | TDefault
 
+export type FirstChar<S extends string> = S extends `${infer C}${string}`
+  ? C
+  : never
+
+export type NumericKeysWithPrefix<
+  C extends string,
+  T extends object,
+> = {
+  [K in string & keyof T]: T[K] extends number
+    ? K extends `${C}${string}`
+      ? K
+      : never
+    : never
+}[string & keyof T]
+
+export type BoundsPrefix<Key extends string, T extends object> =
+  NumericKeysWithPrefix<FirstChar<Key>, T> extends Key ? FirstChar<Key> : string
+
 export type DeepPartial<T> = T extends object
   ? {
       [P in keyof T]?: DeepPartial<T[P]>

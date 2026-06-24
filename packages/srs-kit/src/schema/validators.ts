@@ -1,9 +1,10 @@
-import type { StandardSchemaV1 } from '@vendor/standard-schema.js'
-import type { AnySchema, SchemaOutput, SRSSchema } from './standard.js'
+import type { StandardSchemaV1 } from '@vendor/standard-schema.js';
+import type { Prettify } from '@/schema/index.js';
+import type { AnySchema, SchemaOutput, SRSSchema } from './standard.js';
 
 export function defineSchema<Output, Input = Output>(
   validate: (value: unknown) => StandardSchemaV1.Result<Output>
-): SRSSchema<Input, Output> {
+): SRSSchema<{ input: Prettify<Input>; output: Prettify<Output> }> {
   return {
     '~standard': {
       version: 1,
