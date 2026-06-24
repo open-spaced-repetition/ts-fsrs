@@ -5,3 +5,4 @@ export type {
 export * from './infer.js'
 export * from './standard.js'
 export * from './utils.js'
+export * from './validators.js'

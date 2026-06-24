@@ -1,5 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { defineSchema, type SchemaOutput, SRSSchemaError } from './standard.js'
+import type { SchemaOutput } from './standard.js'
+import { defineSchema, SRSSchemaError } from './validators.js'
 
 const sizeSchema = defineSchema<'small' | 'large'>((value) =>
   value === 'small' || value === 'large'

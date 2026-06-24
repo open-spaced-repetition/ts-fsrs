@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: wildcard constraint for generic bounds */
 export type Prettify<T> = { [K in keyof T]: T[K] } & {}
 
 export type EmptyObject = Record<PropertyKey, never>
@@ -9,7 +10,79 @@ export type Unset = 'unset' & {
   __brand: 'srs-kit'
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: wildcard constraint for generic bounds
+// ---------------------------------------------------------------------------
+// Override / field-merge utilities
+// ---------------------------------------------------------------------------
+
+export type IsNonEmptyObject<T> = T extends object
+  ? keyof T extends never
+    ? false
+    : true
+  : false
+
+export type Assign<TLeft, TRight> = TLeft extends any
+  ? TRight extends any
+    ? IsNonEmptyObject<TLeft> extends false
+      ? TRight
+      : IsNonEmptyObject<TRight> extends false
+        ? TLeft
+        : keyof TLeft & keyof TRight extends never
+          ? TLeft & TRight
+          : Omit<TLeft, keyof TRight> & TRight
+    : never
+  : never
+
+export type IntersectAssign<TLeft, TRight> = TLeft extends any
+  ? TRight extends any
+    ? IsNonEmptyObject<TLeft> extends false
+      ? TRight
+      : IsNonEmptyObject<TRight> extends false
+        ? TLeft
+        : TRight & TLeft
+    : never
+  : never
+
+export type Constrain<T, TConstraint, TDefault = TConstraint> =
+  | (T extends TConstraint ? T : never)
+  | TDefault
+
+export type DeepPartial<T> = T extends object
+  ? {
+      [P in keyof T]?: DeepPartial<T[P]>
+    }
+  : T
+
+export type UnionToIntersection<T> = (
+  T extends any
+    ? (arg: T) => any
+    : never
+) extends (arg: infer U) => any
+  ? U
+  : never
+
+type ExtractObjects<TUnion> = TUnion extends
+  | ReadonlyArray<any>
+  | number
+  | string
+  | bigint
+  | boolean
+  | symbol
+  | undefined
+  | null
+  ? never
+  : TUnion
+
+export type MergeAllObjects<
+  TUnion,
+  TIntersected = UnionToIntersection<ExtractObjects<TUnion>>,
+> = [keyof TIntersected] extends [never]
+  ? never
+  : {
+      [TKey in keyof TIntersected]: TUnion extends any
+        ? TUnion[TKey & keyof TUnion]
+        : never
+    }
+
 type AnyFn = ((...args: any[]) => unknown) & Record<keyof any, unknown>
 
 export function isObject(value: unknown): value is Record<string, unknown> {
