@@ -3,29 +3,53 @@
   "version": "0.1.0",
   "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
   "type": "module",
-  "main": "dist/index.js",
-  "module": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "default": "./dist/esm/index.js"
     },
     "./schema": {
-      "types": "./dist/schema/index.d.ts",
-      "import": "./dist/schema/index.js",
-      "default": "./dist/schema/index.js"
+      "require": {
+        "types": "./dist/cjs/schema/index.d.ts",
+        "default": "./dist/cjs/schema/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/schema/index.d.ts",
+        "default": "./dist/esm/schema/index.js"
+      },
+      "default": "./dist/esm/schema/index.js"
     },
     "./primitives": {
-      "types": "./dist/primitives/index.d.ts",
-      "import": "./dist/primitives/index.js",
-      "default": "./dist/primitives/index.js"
+      "require": {
+        "types": "./dist/cjs/primitives/index.d.ts",
+        "default": "./dist/cjs/primitives/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/primitives/index.d.ts",
+        "default": "./dist/esm/primitives/index.js"
+      },
+      "default": "./dist/esm/primitives/index.js"
     },
     "./model": {
-      "types": "./dist/model/index.d.ts",
-      "import": "./dist/model/index.js",
-      "default": "./dist/model/index.js"
+      "require": {
+        "types": "./dist/cjs/model/index.d.ts",
+        "default": "./dist/cjs/model/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/model/index.d.ts",
+        "default": "./dist/esm/model/index.js"
+      },
+      "default": "./dist/esm/model/index.js"
     }
   },
   "sideEffects": false,
