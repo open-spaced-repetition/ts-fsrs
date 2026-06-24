@@ -12,12 +12,6 @@ export default defineConfig([
     outDir: 'dist',
     dts: true,
     clean: true,
-    deps: {
-      alwaysBundle: ['@open-spaced-repetition/srs-kit'],
-      dts: {
-        neverBundle: [/^@open-spaced-repetition\/srs-kit(\/.*)?$/],
-      },
-    },
     sourcemap: false,
     minify: false,
     target: 'node20',

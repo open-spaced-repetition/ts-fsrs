@@ -1,7 +1,6 @@
 {
   "name": "@open-spaced-repetition/srs-kit",
-  "private": true,
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
   "type": "module",
   "main": "dist/index.js",
@@ -42,5 +41,18 @@
   },
   "devDependencies": {
     "tsdown": "0.22.1"
+  },
+  "author": "ishiko",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/srs-kit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
   }
 }

@@ -54,8 +54,10 @@
     "predocs": "rimraf ../../docs",
     "docs": "tsx ./typedoc.ts"
   },
+  "dependencies": {
+    "@open-spaced-repetition/srs-kit": "workspace:*"
+  },
   "devDependencies": {
-    "@open-spaced-repetition/srs-kit": "workspace:*",
     "zod": "^4.4.3",
     "decimal.js": "^10.5.0",
     "tsdown": "0.22.1",

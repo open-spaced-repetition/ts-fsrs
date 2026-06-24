@@ -43,8 +43,9 @@ export class SRSSchemaError extends Error {
   readonly issues: ReadonlyArray<StandardSchemaV1.Issue>
 
   constructor(issues: ReadonlyArray<StandardSchemaV1.Issue>) {
-    super()
+    super(issues.map((issue) => issue.message).join('\n'))
     this.name = 'SRSSchemaError'
     this.issues = issues
+    Error?.captureStackTrace?.(this, SRSSchemaError)
   }
 }
