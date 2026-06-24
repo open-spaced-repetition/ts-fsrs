@@ -99,16 +99,14 @@ export const fsrs6ConfigSchema = defineSchema<FSRS6Config>((value) => {
   if (
     isObject(value) &&
     isNumberArray(value.weights) &&
+    typeof value.enableShortTerm === 'boolean' &&
     typeof value.numRelearningSteps === 'number' &&
     Number.isFinite(value.numRelearningSteps)
   ) {
     return {
       value: {
         weights: value.weights,
-        enableShortTerm:
-          typeof value.enableShortTerm === 'boolean'
-            ? value.enableShortTerm
-            : true,
+        enableShortTerm: value.enableShortTerm,
         numRelearningSteps: value.numRelearningSteps,
       },
     }
