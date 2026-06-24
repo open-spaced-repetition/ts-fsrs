@@ -37,6 +37,7 @@
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest run --config=vitest.config.ts",
     "test:coverage": "vitest run --config=vitest.config.ts --coverage",
+    "bench": "vitest bench --run --config=vitest.config.ts",
     "build": "tsdown"
   },
   "devDependencies": {

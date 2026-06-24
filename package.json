@@ -10,6 +10,7 @@
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",
+    "bench": "turbo run bench",
     "build": "turbo run build",
     "docs": "turbo run docs --filter=ts-fsrs",
     "changeset": "changeset",

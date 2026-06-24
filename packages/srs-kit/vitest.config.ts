@@ -1,9 +1,19 @@
+import path from 'node:path'
 import { defineConfig } from 'vitest/config'
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      '@': path.resolve(import.meta.dirname, 'src'),
+      '@vendor': path.resolve(import.meta.dirname, 'vendor'),
+    },
+  },
   test: {
     globals: true,
     include: ['src/**/*.spec.ts'],
+    benchmark: {
+      include: ['bench/**/*.bench.ts'],
+    },
     coverage: {
       provider: 'istanbul',
       include: ['src/**/*.ts'],
