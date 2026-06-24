@@ -1,0 +1,82 @@
+{
+  "name": "@open-spaced-repetition/srs-kit",
+  "version": "0.1.0",
+  "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
+  "type": "module",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/esm/index.d.ts",
+  "exports": {
+    ".": {
+      "require": {
+        "types": "./dist/cjs/index.d.ts",
+        "default": "./dist/cjs/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/index.d.ts",
+        "default": "./dist/esm/index.js"
+      },
+      "default": "./dist/esm/index.js"
+    },
+    "./schema": {
+      "require": {
+        "types": "./dist/cjs/schema/index.d.ts",
+        "default": "./dist/cjs/schema/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/schema/index.d.ts",
+        "default": "./dist/esm/schema/index.js"
+      },
+      "default": "./dist/esm/schema/index.js"
+    },
+    "./primitives": {
+      "require": {
+        "types": "./dist/cjs/primitives/index.d.ts",
+        "default": "./dist/cjs/primitives/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/primitives/index.d.ts",
+        "default": "./dist/esm/primitives/index.js"
+      },
+      "default": "./dist/esm/primitives/index.js"
+    },
+    "./model": {
+      "require": {
+        "types": "./dist/cjs/model/index.d.ts",
+        "default": "./dist/cjs/model/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/model/index.d.ts",
+        "default": "./dist/esm/model/index.js"
+      },
+      "default": "./dist/esm/model/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "check": "biome check ./src && tsc --noEmit --pretty false",
+    "check:fix": "biome check --write ./src",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run --config=vitest.config.ts",
+    "test:coverage": "vitest run --config=vitest.config.ts --coverage",
+    "bench": "vitest bench --run --config=vitest.config.ts",
+    "build": "tsdown"
+  },
+  "devDependencies": {
+    "tsdown": "0.22.1"
+  },
+  "author": "ishiko",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/srs-kit"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

@@ -1,6 +1,6 @@
+import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSValidationError } from '../../error.js'
 import { clamp, roundTo } from '../../help.js'
-import type { ModelBounds } from '../../kit/types.js'
 import { type FSRSState, type Grade, Rating } from '../../models.js'
 import { FSRS5_DECAY, FSRS5_FACTOR } from './constants.js'
 
@@ -21,7 +21,7 @@ export class FSRS5Algorithm {
   constructor(
     private weights: number[],
     private enableShortTerm: boolean,
-    private bounds: ModelBounds
+    private bounds: ModelBounds<FSRSState>
   ) {
     if (!Array.isArray(weights) || weights.length !== 19) {
       throw new FSRSValidationError(

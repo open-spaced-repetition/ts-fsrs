@@ -1,6 +1,6 @@
+import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSValidationError } from '../../error.js'
 import { clamp, roundTo } from '../../help.js'
-import type { ModelBounds } from '../../kit/types.js'
 import { type FSRSState, type Grade, Rating } from '../../models.js'
 
 export const computeDecayFactor = (
@@ -35,17 +35,47 @@ export function forgetting_curve(
  * @see https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-6
  */
 export class FSRS6Algorithm {
+  private decayWeight = Number.NaN
+  private decay = 0
+  private factor = 0
+
+  forgetting_curve: (elapsed_days: number, stability: number) => number
+
   constructor(
     private weights: number[],
     private enableShortTerm: boolean,
-    private bounds: ModelBounds
+    private bounds: ModelBounds<FSRSState>
   ) {
     if (!Array.isArray(weights) || weights.length !== 21) {
       throw new FSRSValidationError(
         `FSRS6Algorithm requires exactly 21 weights, but received ${weights?.length}`
       )
     }
-    this.forgetting_curve = forgetting_curve.bind(this, this.weights)
+    this.forgetting_curve = (elapsed_days, stability) => {
+      const { decay, factor } = this.getDecayFactor()
+      return roundTo(
+        Math.pow(1 + (factor * elapsed_days) / stability, decay),
+        8
+      )
+    }
+  }
+
+  private getDecayFactor(): {
+    readonly decay: number
+    readonly factor: number
+  } {
+    const decayWeight = this.weights[20]
+    if (decayWeight !== this.decayWeight) {
+      const { decay, factor } = computeDecayFactor(decayWeight)
+      this.decayWeight = decayWeight
+      this.decay = decay
+      this.factor = factor
+    }
+
+    return {
+      decay: this.decay,
+      factor: this.factor,
+    }
   }
 
   init_stability(g: Grade): number {
@@ -68,7 +98,7 @@ export class FSRS6Algorithm {
         'Desired retention rate should be in the range (0,1]'
       )
     }
-    const { decay, factor } = computeDecayFactor(this.weights)
+    const { decay, factor } = this.getDecayFactor()
     return Math.max(
       Math.round((s / factor) * (Math.pow(desired_retention, 1 / decay) - 1)),
       1
@@ -140,8 +170,6 @@ export class FSRS6Algorithm {
     const maskedSinc = g >= Rating.Hard ? Math.max(sinc, 1.0) : sinc
     return roundTo(clamp(s * maskedSinc, this.bounds.sMin, this.bounds.sMax), 8)
   }
-
-  forgetting_curve: (elapsed_days: number, stability: number) => number
 
   next_state(
     memory_state: FSRSState | null,

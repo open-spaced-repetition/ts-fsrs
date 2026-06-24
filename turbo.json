@@ -50,6 +50,10 @@
       "outputs": ["coverage/**"],
       "env": ["TURBO_PLATFORM"]
     },
+    "bench": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
     "@open-spaced-repetition/binding-test#test:coverage": {
       "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
       "outputs": ["coverage/**"]
