@@ -24,6 +24,9 @@ export default defineConfig([
     outDir: 'dist',
     globalName: 'FSRS',
     platform: 'browser',
+    deps: {
+      alwaysBundle: ['@open-spaced-repetition/srs-kit'],
+    },
     sourcemap: false,
     minify: false,
     target: 'es2017',

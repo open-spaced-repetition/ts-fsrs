@@ -13,7 +13,8 @@
       "!index.d.ts",
       "!__tests__",
       "!coverage",
-      "!npm"
+      "!npm",
+      "!dist"
     ]
   }
 }

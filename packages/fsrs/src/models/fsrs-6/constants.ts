@@ -1,10 +1,11 @@
-import type { ModelBounds } from '../../kit'
+import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
+import type { FSRSState } from '../../models.js'
 
 export const FSRS6_DECAY = 0.1542
 export const FSRS6_W17_W18_CEILING = 2.0
 export const INIT_S_MAX = 100.0
 
-export const FSRS6_MODEL_BOUNDS: ModelBounds = Object.freeze({
+export const FSRS6_MODEL_BOUNDS: ModelBounds<FSRSState> = Object.freeze({
   sMin: 0.001,
   sMax: 36500.0,
   dMin: 1.0,

@@ -34,7 +34,8 @@ export default class BasicScheduler extends AbstractScheduler {
     super(card, now, model, parameters, strategies)
 
     // init learning steps strategy
-    let learningStepStrategy = BasicLearningStepsStrategy
+    let learningStepStrategy: TLearningStepsStrategy =
+      BasicLearningStepsStrategy
     if (this.strategies) {
       const custom_strategy = this.strategies.get(StrategyMode.LEARNING_STEPS)
       if (custom_strategy) {

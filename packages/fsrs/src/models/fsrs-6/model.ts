@@ -1,18 +1,21 @@
+import { defineModel } from '@open-spaced-repetition/srs-kit'
 import type {
-  FSRSForwardInput,
-  FSRSModelConfig,
-  FSRSStepInput,
-  IFSRSModel,
-} from '../../kit'
+  ModelCore,
+  ModelForwardInput,
+  ModelStepInput,
+} from '@open-spaced-repetition/srs-kit/model'
+import { FSRSMemoryStateSchema } from '../../kit/index.js'
 import type { FSRSState } from '../../models.js'
 import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_MODEL_BOUNDS } from './constants.js'
+import { type FSRS6Config, fsrs6ConfigSchema } from './parameters.js'
 
-export type FSRS6Config = FSRSModelConfig & {
-  numRelearningSteps: number
-}
-
-export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
+const createFSRS6Model = (
+  config: FSRS6Config
+): ModelCore<{
+  readonly config: FSRS6Config
+  readonly memoryState: FSRSState
+}> => {
   const bounds = FSRS6_MODEL_BOUNDS
 
   const modelConfig: FSRS6Config = Object.freeze(config)
@@ -28,7 +31,7 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
     rating,
     elapsedDays,
     retrievability,
-  }: FSRSStepInput): FSRSState => {
+  }: ModelStepInput<FSRSState>): FSRSState => {
     return algo.next_state(memoryState, elapsedDays, rating, retrievability)
   }
 
@@ -49,7 +52,7 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
   const forward = ({
     history,
     initialState,
-  }: FSRSForwardInput): FSRSState[] => {
+  }: ModelForwardInput<FSRSState>): FSRSState[] => {
     const states: FSRSState[] = []
     let memoryState = initialState || null
     for (const review of history) {
@@ -72,3 +75,19 @@ export const FSRS6Model = (config: FSRS6Config): IFSRSModel<FSRS6Config> => {
     forward,
   }
 }
+
+export const FSRS6Model = defineModel({
+  name: 'fsrs-6',
+  schema: {
+    config: fsrs6ConfigSchema,
+    memoryState: FSRSMemoryStateSchema,
+  },
+  defaultValue: {
+    memoryState() {
+      return { stability: 0, difficulty: 0 }
+    },
+  },
+  create({ config }) {
+    return createFSRS6Model(fsrs6ConfigSchema.parse(config))
+  },
+})

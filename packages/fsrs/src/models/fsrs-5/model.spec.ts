@@ -5,9 +5,11 @@ import { FSRS5Model } from './model.js'
 
 describe('FSRS5Model', () => {
   it('binds step, forgetting curve, interval, and forward to FSRS-5 algorithm', () => {
-    const model = FSRS5Model({
-      weights: FSRS5_DEFAULT_WEIGHTS,
-      enableShortTerm: true,
+    const model = FSRS5Model.create({
+      config: {
+        weights: FSRS5_DEFAULT_WEIGHTS,
+        enableShortTerm: true,
+      },
     })
 
     const initial = model.step({
@@ -41,5 +43,16 @@ describe('FSRS5Model', () => {
         elapsedDays: 1,
       })
     )
+  })
+
+  it('validates config with schema before creating model runtime', () => {
+    expect(() =>
+      FSRS5Model.create({
+        config: {
+          weights: FSRS5_DEFAULT_WEIGHTS,
+          enableShortTerm: 'yes',
+        } as never,
+      })
+    ).toThrow()
   })
 })
