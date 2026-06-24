@@ -1,16 +1,21 @@
+import { defineModel } from '@open-spaced-repetition/srs-kit'
 import type {
-  FSRSForwardInput,
-  FSRSModelConfig,
-  FSRSStepInput,
-  IFSRSModel,
-} from '../../kit'
+  ModelCore,
+  ModelForwardInput,
+  ModelStepInput,
+} from '@open-spaced-repetition/srs-kit/model'
+import { FSRSMemoryStateSchema } from '../../kit/index.js'
 import type { FSRSState } from '../../models.js'
 import { FSRS5Algorithm } from './algorithm.js'
 import { FSRS5_MODEL_BOUNDS } from './constants.js'
+import { type FSRS5Config, fsrs5ConfigSchema } from './parameters.js'
 
-export type FSRS5Config = FSRSModelConfig
-
-export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
+const createFSRS5Model = (
+  config: FSRS5Config
+): ModelCore<{
+  readonly config: FSRS5Config
+  readonly memoryState: FSRSState
+}> => {
   const bounds = FSRS5_MODEL_BOUNDS
 
   const modelConfig: FSRS5Config = Object.freeze(config)
@@ -26,7 +31,7 @@ export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
     rating,
     elapsedDays,
     retrievability,
-  }: FSRSStepInput): FSRSState => {
+  }: ModelStepInput<FSRSState>): FSRSState => {
     return algo.next_state(memoryState, elapsedDays, rating, retrievability)
   }
 
@@ -47,7 +52,7 @@ export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
   const forward = ({
     history,
     initialState,
-  }: FSRSForwardInput): FSRSState[] => {
+  }: ModelForwardInput<FSRSState>): FSRSState[] => {
     const states: FSRSState[] = []
     let memoryState = initialState || null
     for (const review of history) {
@@ -70,3 +75,19 @@ export const FSRS5Model = (config: FSRS5Config): IFSRSModel<FSRS5Config> => {
     forward,
   }
 }
+
+export const FSRS5Model = defineModel({
+  name: 'fsrs-5',
+  schema: {
+    config: fsrs5ConfigSchema,
+    memoryState: FSRSMemoryStateSchema,
+  },
+  defaultValue: {
+    memoryState() {
+      return { stability: 0, difficulty: 0 }
+    },
+  },
+  create({ config }) {
+    return createFSRS5Model(fsrs5ConfigSchema.parse(config))
+  },
+})

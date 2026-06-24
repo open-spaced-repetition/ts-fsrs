@@ -1,5 +1,7 @@
+import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
 import { FSRSValidationError } from '../../error.js'
 import { clamp, roundTo } from '../../help'
+import { isNumberArray } from '../../kit/schema-utils.js'
 import { FSRS5_DEFAULT_WEIGHTS, FSRS5ParameterBounds } from './constants.js'
 
 export const clipFSRS5Parameters = (parameters: number[]): number[] => {
@@ -32,3 +34,25 @@ export const migrateFSRS5Parameters = (parameters?: number[]): number[] => {
       )
   }
 }
+
+export type FSRS5Config = {
+  readonly weights: number[]
+  readonly enableShortTerm: boolean
+}
+
+export const fsrs5ConfigSchema = defineSchema<FSRS5Config>((value) => {
+  if (
+    isObject(value) &&
+    isNumberArray(value.weights) &&
+    typeof value.enableShortTerm === 'boolean'
+  ) {
+    return {
+      value: {
+        weights: value.weights,
+        enableShortTerm: value.enableShortTerm,
+      },
+    }
+  }
+
+  return { issues: [{ message: 'Expected FSRS5 config' }] }
+})

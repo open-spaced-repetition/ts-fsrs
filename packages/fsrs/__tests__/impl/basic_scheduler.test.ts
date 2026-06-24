@@ -9,10 +9,12 @@ import { FSRS6Model } from 'ts-fsrs/models/fsrs-6'
 
 describe('basic scheduler', () => {
   const params = generatorParameters()
-  const model = FSRS6Model({
-    weights: Array.from(params.w),
-    enableShortTerm: params.enable_short_term,
-    numRelearningSteps: params.relearning_steps.length,
+  const model = FSRS6Model.create({
+    config: {
+      weights: Array.from(params.w),
+      enableShortTerm: params.enable_short_term,
+      numRelearningSteps: params.relearning_steps.length,
+    },
   })
   const now = new Date()
 

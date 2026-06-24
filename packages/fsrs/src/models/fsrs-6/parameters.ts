@@ -1,6 +1,8 @@
+import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
 import { FSRS5_DEFAULT_DECAY } from '../../constant'
 import { FSRSValidationError } from '../../error.js'
 import { clamp, roundTo } from '../../help'
+import { isNumberArray } from '../../kit/schema-utils.js'
 import {
   FSRS6_DEFAULT_WEIGHTS,
   FSRS6_W17_W18_CEILING,
@@ -86,3 +88,31 @@ export const migrateFSRS6Parameters = (
       )
   }
 }
+
+export type FSRS6Config = {
+  readonly weights: number[]
+  readonly enableShortTerm: boolean
+  readonly numRelearningSteps: number
+}
+
+export const fsrs6ConfigSchema = defineSchema<FSRS6Config>((value) => {
+  if (
+    isObject(value) &&
+    isNumberArray(value.weights) &&
+    typeof value.numRelearningSteps === 'number' &&
+    Number.isFinite(value.numRelearningSteps)
+  ) {
+    return {
+      value: {
+        weights: value.weights,
+        enableShortTerm:
+          typeof value.enableShortTerm === 'boolean'
+            ? value.enableShortTerm
+            : true,
+        numRelearningSteps: value.numRelearningSteps,
+      },
+    }
+  }
+
+  return { issues: [{ message: 'Expected FSRS6 config' }] }
+})
