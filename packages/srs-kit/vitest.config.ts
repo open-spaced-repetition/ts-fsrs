@@ -17,7 +17,7 @@ export default defineConfig({
     coverage: {
       provider: 'istanbul',
       include: ['src/**/*.ts'],
-      exclude: ['src/**/*.spec.ts', 'src/**/index.ts'],
+      exclude: ['src/**/*.spec.ts', 'src/**/*.test.ts', 'src/**/index.ts'],
       reporter: ['text', 'cobertura', 'html'],
       thresholds: {
         lines: 100,

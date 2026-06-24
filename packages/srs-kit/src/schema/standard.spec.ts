@@ -1,6 +1,6 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { SchemaOutput } from './standard.js'
-import { defineSchema, SRSSchemaError } from './validators.js'
+import { defineSchema, parse, SRSSchemaError } from './validators.js'
 
 const sizeSchema = defineSchema<'small' | 'large'>((value) =>
   value === 'small' || value === 'large'
@@ -35,5 +35,13 @@ describe('standard schema helpers', () => {
         issues: [{ message: 'Expected size' }],
       })
     )
+  })
+
+  it('parse() validates via ~standard and returns value', () => {
+    expect(parse(sizeSchema, 'small')).toBe('small')
+  })
+
+  it('parse() throws SRSSchemaError on invalid input', () => {
+    expect(() => parse(sizeSchema, 'medium')).toThrow(SRSSchemaError)
   })
 })
