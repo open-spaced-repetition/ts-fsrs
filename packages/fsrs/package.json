@@ -55,6 +55,8 @@
     "docs": "tsx ./typedoc.ts"
   },
   "devDependencies": {
+    "@open-spaced-repetition/srs-kit": "workspace:*",
+    "zod": "^4.4.3",
     "decimal.js": "^10.5.0",
     "tsdown": "0.22.1",
     "typedoc": "0.28.18",

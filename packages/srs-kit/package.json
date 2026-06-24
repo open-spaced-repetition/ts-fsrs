@@ -1,0 +1,45 @@
+{
+  "name": "@open-spaced-repetition/srs-kit",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js",
+      "default": "./dist/schema/index.js"
+    },
+    "./primitives": {
+      "types": "./dist/primitives/index.d.ts",
+      "import": "./dist/primitives/index.js",
+      "default": "./dist/primitives/index.js"
+    },
+    "./model": {
+      "types": "./dist/model/index.d.ts",
+      "import": "./dist/model/index.js",
+      "default": "./dist/model/index.js"
+    }
+  },
+  "sideEffects": false,
+  "scripts": {
+    "check": "biome check ./src && tsc --noEmit --pretty false",
+    "check:fix": "biome check --write ./src",
+    "dev": "tsdown --watch",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test": "vitest run --config=vitest.config.ts",
+    "test:coverage": "vitest run --config=vitest.config.ts --coverage",
+    "build": "tsdown"
+  },
+  "devDependencies": {
+    "tsdown": "0.22.1"
+  }
+}
