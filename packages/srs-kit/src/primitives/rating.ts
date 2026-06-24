@@ -1,4 +1,4 @@
-import type { StandardSchemaV1 } from '@/schema/index.js'
+import { defineSchema } from '@/schema/index.js'
 
 export const Rating = Object.freeze({
   Manual: 0,
@@ -27,33 +27,21 @@ export const grades = Object.freeze([
 
 export type Grade = (typeof grades)[number]
 
-export const ratingSchema: StandardSchemaV1<Rating, Rating> = {
-  '~standard': {
-    version: 1,
-    vendor: '@open-spaced-repetition/srs-kit',
-    validate(value) {
-      return value === Rating.Manual ||
-        value === Rating.Again ||
-        value === Rating.Hard ||
-        value === Rating.Good ||
-        value === Rating.Easy
-        ? { value }
-        : { issues: [{ message: 'Expected rating' }] }
-    },
-  },
-}
+export const ratingSchema = defineSchema<Rating>((value) =>
+  value === Rating.Manual ||
+  value === Rating.Again ||
+  value === Rating.Hard ||
+  value === Rating.Good ||
+  value === Rating.Easy
+    ? { value }
+    : { issues: [{ message: 'Expected rating' }] }
+)
 
-export const gradeSchema: StandardSchemaV1<Grade, Grade> = {
-  '~standard': {
-    version: 1,
-    vendor: '@open-spaced-repetition/srs-kit',
-    validate(value) {
-      return value === Rating.Again ||
-        value === Rating.Hard ||
-        value === Rating.Good ||
-        value === Rating.Easy
-        ? { value }
-        : { issues: [{ message: 'Expected grade' }] }
-    },
-  },
-}
+export const gradeSchema = defineSchema<Grade>((value) =>
+  value === Rating.Again ||
+  value === Rating.Hard ||
+  value === Rating.Good ||
+  value === Rating.Easy
+    ? { value }
+    : { issues: [{ message: 'Expected grade' }] }
+)

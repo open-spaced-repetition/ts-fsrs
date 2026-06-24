@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { parse, SRSSchemaError } from '@/schema/index.js'
+import { SRSSchemaError } from '@/schema/index.js'
 import {
   type Grade,
   gradeSchema,
@@ -22,11 +22,11 @@ describe('Rating', () => {
       Easy: 4,
     })
 
-    expect(parse(ratingSchema, Rating.Manual)).toBe(Rating.Manual)
-    expect(parse(ratingSchema, Rating.Good)).toBe(Rating.Good)
-    expect(() => parse(ratingSchema, 5)).toThrow(SRSSchemaError)
-    expect(parse(gradeSchema, Rating.Good)).toBe(Rating.Good)
-    expect(() => parse(gradeSchema, Rating.Manual)).toThrow(
+    expect(ratingSchema.parse(Rating.Manual)).toBe(Rating.Manual)
+    expect(ratingSchema.parse(Rating.Good)).toBe(Rating.Good)
+    expect(() => ratingSchema.parse(5)).toThrow(SRSSchemaError)
+    expect(gradeSchema.parse(Rating.Good)).toBe(Rating.Good)
+    expect(() => gradeSchema.parse(Rating.Manual)).toThrow(
       SRSSchemaError
     )
     expectTypeOf<RatingValue>().toEqualTypeOf<0 | 1 | 2 | 3 | 4>()

@@ -1,4 +1,4 @@
-import type { StandardSchemaV1 } from '@/schema/index.js'
+import { defineSchema } from '@/schema/index.js'
 
 export const State = Object.freeze({
   New: 0,
@@ -16,17 +16,11 @@ export const states = Object.freeze([
   State.Relearning,
 ] as const) satisfies readonly State[]
 
-export const stateSchema: StandardSchemaV1<State, State> = {
-  '~standard': {
-    version: 1,
-    vendor: '@open-spaced-repetition/srs-kit',
-    validate(value) {
-      return value === State.New ||
-        value === State.Learning ||
-        value === State.Review ||
-        value === State.Relearning
-        ? { value }
-        : { issues: [{ message: 'Expected state' }] }
-    },
-  },
-}
+export const stateSchema = defineSchema<State>((value) =>
+  value === State.New ||
+  value === State.Learning ||
+  value === State.Review ||
+  value === State.Relearning
+    ? { value }
+    : { issues: [{ message: 'Expected state' }] }
+)

@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { parse, SRSSchemaError } from '@/schema/index.js'
+import { SRSSchemaError } from '@/schema/index.js'
 import {
   State,
   type State as StateValue,
@@ -17,8 +17,8 @@ describe('State', () => {
       Relearning: 3,
     })
 
-    expect(parse(stateSchema, State.Review)).toBe(State.Review)
-    expect(() => parse(stateSchema, 4)).toThrow(SRSSchemaError)
+    expect(stateSchema.parse(State.Review)).toBe(State.Review)
+    expect(() => stateSchema.parse(4)).toThrow(SRSSchemaError)
     expectTypeOf<StateValue>().toEqualTypeOf<0 | 1 | 2 | 3>()
   })
 
