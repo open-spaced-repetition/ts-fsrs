@@ -42,12 +42,18 @@ export type ModelBounds<MemoryState extends object> = Prettify<
 >
 
 export type BlankModelCoreEnv = {
-  readonly config: unknown
+  readonly config?: unknown
   readonly memoryState: object
 }
 
+type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
+  readonly config: infer Config
+}
+  ? Config
+  : unknown
+
 export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
-  readonly config: Env['config']
+  readonly config: ModelCoreConfig<Env>
   readonly bounds: ModelBounds<Env['memoryState']>
   readonly step: (
     input: ModelStepInput<Env['memoryState']>
