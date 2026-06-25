@@ -1,6 +1,7 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { parse } from '@/schema/index.js'
 import {
+  getTemporalZonedDateTimeConstructor,
   temporalZonedDateTimeCardFieldsSchema,
   temporalZonedDateTimeConfigSchema,
   temporalZonedDateTimeRevlogFieldsSchema,
@@ -49,6 +50,7 @@ export const temporalZonedDateTimeChrono = defineChrono({
     },
   },
   create({ config }) {
+    getTemporalZonedDateTimeConstructor()
     const { fractionalDays, timezone } = parse(
       temporalZonedDateTimeConfigSchema,
       config
@@ -105,20 +107,21 @@ function addDays(
   days: number,
   timezone: string
 ): Temporal.ZonedDateTime {
-  const wholeDays = Math.trunc(days)
-  const fractionalDays = days - wholeDays
-  const zoned = from.withTimeZone(timezone).add({ days: wholeDays })
+  const whole = Math.trunc(days)
+  const fraction = days - whole
+  const zdt = from.withTimeZone(timezone)
+  const afterDays = zdt.add({ days: whole })
 
-  if (fractionalDays === 0) {
-    return zoned
+  if (fraction === 0) {
+    return afterDays
   }
 
-  const direction = fractionalDays > 0 ? 1 : -1
-  const neighbor = zoned.add({ days: direction })
+  const direction = fraction > 0 ? 1 : -1
+  const neighbor = afterDays.add({ days: direction })
   const dayLength = Number(
-    (neighbor.epochNanoseconds - zoned.epochNanoseconds) * BigInt(direction)
+    (neighbor.epochNanoseconds - afterDays.epochNanoseconds) * BigInt(direction)
   )
-  const nanoseconds = Math.round(fractionalDays * dayLength)
+  const nanoseconds = Math.round(fraction * dayLength)
 
-  return zoned.add({ nanoseconds })
+  return afterDays.add({ nanoseconds })
 }

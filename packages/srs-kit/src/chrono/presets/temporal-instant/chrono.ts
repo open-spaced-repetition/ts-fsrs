@@ -50,7 +50,7 @@ export const temporalInstantChrono = defineChrono({
     },
   },
   create({ config }) {
-    const TemporalInstant = getTemporalInstantConstructor()
+    getTemporalInstantConstructor()
     const { fractionalDays, timezone } = parse(
       temporalInstantConfigSchema,
       config
@@ -65,7 +65,7 @@ export const temporalInstantChrono = defineChrono({
         : differenceInDays(from, to, timezone)
 
     const add = (from: Temporal.Instant, days: number): Temporal.Instant =>
-      addDays(from, days, timezone, TemporalInstant)
+      addDays(from, days, timezone)
 
     return {
       difference,
@@ -101,25 +101,23 @@ function fractionalDifferenceInDays(
 function addDays(
   from: Temporal.Instant,
   days: number,
-  timezone: string,
-  TemporalInstant: typeof Temporal.Instant
+  timezone: string
 ): Temporal.Instant {
-  const wholeDays = Math.trunc(days)
-  const fractionalDays = days - wholeDays
-  const zoned = from.toZonedDateTimeISO(timezone).add({ days: wholeDays })
+  const whole = Math.trunc(days)
+  const fraction = days - whole
+  const zdt = from.toZonedDateTimeISO(timezone)
+  const afterDays = zdt.add({ days: whole })
 
-  if (fractionalDays === 0) {
-    return zoned.toInstant()
+  if (fraction === 0) {
+    return afterDays.toInstant()
   }
 
-  const direction = fractionalDays > 0 ? 1 : -1
-  const neighbor = zoned.add({ days: direction })
+  const direction = fraction > 0 ? 1 : -1
+  const neighbor = afterDays.add({ days: direction })
   const dayLength = Number(
-    (neighbor.epochNanoseconds - zoned.epochNanoseconds) * BigInt(direction)
+    (neighbor.epochNanoseconds - afterDays.epochNanoseconds) * BigInt(direction)
   )
-  const offset = BigInt(Math.round(Math.abs(fractionalDays) * dayLength))
+  const nanoseconds = Math.round(fraction * dayLength)
 
-  return TemporalInstant.fromEpochNanoseconds(
-    zoned.epochNanoseconds + BigInt(direction) * offset
-  )
+  return afterDays.add({ nanoseconds }).toInstant()
 }
