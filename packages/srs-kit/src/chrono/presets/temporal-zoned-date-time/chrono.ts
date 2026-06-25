@@ -98,7 +98,7 @@ function fractionalDifferenceInDays(
   const toZoned = to.withTimeZone(timezone)
 
   return fromZoned
-    .until(toZoned, { largestUnit: 'day' })
+    .until(toZoned, { largestUnit: 'day', smallestUnit: 'nanosecond' })
     .total({ unit: 'day', relativeTo: fromZoned })
 }
 
@@ -118,10 +118,12 @@ function addDays(
 
   const direction = fraction > 0 ? 1 : -1
   const neighbor = afterDays.add({ days: direction })
-  const dayLength = Number(
-    (neighbor.epochNanoseconds - afterDays.epochNanoseconds) * BigInt(direction)
+  const dayLengthMs = Number(
+    ((neighbor.epochNanoseconds - afterDays.epochNanoseconds) *
+      BigInt(direction)) /
+      1_000_000n
   )
-  const nanoseconds = Math.round(fraction * dayLength)
+  const milliseconds = Math.round(Math.abs(fraction) * dayLengthMs) * direction
 
-  return afterDays.add({ nanoseconds })
+  return afterDays.add({ milliseconds })
 }
