@@ -15,3 +15,9 @@ export const emptyObjectSchema = defineSchema<Record<string, never>>(
     return { value: {} }
   }
 )
+
+export const numberSchema = defineSchema<unknown, number>((value) =>
+  typeof value === 'number' && Number.isFinite(value)
+    ? { value }
+    : { issues: [{ message: 'Expected finite number' }] }
+)

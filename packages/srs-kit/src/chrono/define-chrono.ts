@@ -14,46 +14,80 @@ import type {
   ChronoTimeProjection,
 } from './chrono.js'
 
-type ChronoProjectionValidator<Time> = (
-  value: unknown
-) => StandardSchemaV1.Result<ChronoTimeProjection<Time>>
+type ChronoProjectionDefinitionInput = {
+  readonly card?: unknown
+  readonly time: unknown
+}
 
-export function defineChronoProjection<CardFields, Time>(
+type ChronoProjectionInputOf<Input extends ChronoProjectionDefinitionInput> =
+  ChronoProjectionInput<
+    Input['time'],
+    Input extends { readonly card: infer Card } ? Card : never
+  >
+
+export function defineChronoProjection<
+  Input extends ChronoProjectionDefinitionInput,
+>(
   validate: (
-    value: ChronoProjectionInput<CardFields, Time>
-  ) => StandardSchemaV1.Result<ChronoTimeProjection<Time>>
+    value: ChronoProjectionInputOf<Input>
+  ) => StandardSchemaV1.Result<ChronoTimeProjection<Input['time']>>
 ) {
   return defineSchema<
-    ChronoProjectionInput<CardFields, Time>,
-    ChronoTimeProjection<Time>
-  >(validate as ChronoProjectionValidator<Time>)
+    ChronoProjectionInputOf<Input>,
+    ChronoTimeProjection<Input['time']>
+  >(
+    validate as (
+      value: unknown
+    ) => StandardSchemaV1.Result<ChronoTimeProjection<Input['time']>>
+  )
 }
+
+type ChronoProjectionInputFor<
+  TimeSchema extends AnySchema,
+  CardSchema extends AnyObjectSchema,
+> = ChronoProjectionInput<
+  SchemaOutput<TimeSchema>,
+  CardSchema extends typeof emptyObjectSchema ? never : SchemaOutput<CardSchema>
+>
 
 type ChronoProjectionDefinition<
   TimeSchema extends AnySchema,
   CardSchema extends AnyObjectSchema,
 > =
   | StandardSchemaV1<
-      ChronoProjectionInput<SchemaOutput<CardSchema>, SchemaOutput<TimeSchema>>,
+      ChronoProjectionInputFor<TimeSchema, CardSchema>,
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >
   | ((
-      value: ChronoProjectionInput<
-        SchemaOutput<CardSchema>,
-        SchemaOutput<TimeSchema>
-      >
+      value: ChronoProjectionInputFor<TimeSchema, CardSchema>
     ) => StandardSchemaV1.Result<
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >)
 
-function resolveChronoProjection(
-  projection: ChronoProjectionDefinition<AnySchema, AnyObjectSchema>
-) {
+function resolveChronoProjection(projection: unknown) {
   if (typeof projection === 'function') {
-    return defineChronoProjection(projection)
+    return defineChronoProjection(
+      projection as (
+        value: ChronoProjectionInput<unknown>
+      ) => StandardSchemaV1.Result<ChronoTimeProjection<unknown>>
+    )
   }
 
   return projection
+}
+
+type ChronoEnv<
+  TimeSchema extends AnySchema,
+  ConfigSchema extends AnySchema,
+  CardSchema extends AnyObjectSchema,
+  RevlogSchema extends AnyObjectSchema,
+> = {
+  readonly time: TimeSchema
+  readonly config: ConfigSchema
+  readonly fields: {
+    readonly card: CardSchema
+    readonly revlog: RevlogSchema
+  }
 }
 
 export function defineChrono<
@@ -68,42 +102,14 @@ export function defineChrono<
     readonly card?: CardSchema
     readonly revlog?: RevlogSchema
   }
-  readonly defaultValue?: ChronoDefaultValue<{
-    readonly time: TimeSchema
-    readonly config: ConfigSchema
-    readonly fields: {
-      readonly card: CardSchema
-      readonly revlog: RevlogSchema
-    }
-  }>
+  readonly defaultValue?: ChronoDefaultValue<
+    ChronoEnv<TimeSchema, ConfigSchema, CardSchema, RevlogSchema>
+  >
   readonly projection: ChronoProjectionDefinition<TimeSchema, CardSchema>
-  readonly create: ChronoCreate<{
-    readonly time: TimeSchema
-    readonly config: ConfigSchema
-    readonly fields: {
-      readonly card: CardSchema
-      readonly revlog: RevlogSchema
-    }
-  }>
-}): Chrono<{
-  readonly time: TimeSchema
-  readonly config: ConfigSchema
-  readonly fields: {
-    readonly card: CardSchema
-    readonly revlog: RevlogSchema
-  }
-}>
-export function defineChrono(definition: {
-  readonly schema: {
-    readonly config?: AnySchema
-    readonly card?: AnyObjectSchema
-    readonly revlog?: AnyObjectSchema
-    readonly time: AnySchema
-  }
-  readonly projection: ChronoProjectionDefinition<AnySchema, AnyObjectSchema>
-  readonly defaultValue?: unknown
-  readonly create: unknown
-}): unknown {
+  readonly create: ChronoCreate<
+    ChronoEnv<TimeSchema, ConfigSchema, CardSchema, RevlogSchema>
+  >
+}) {
   return {
     schema: {
       config: definition.schema.config ?? emptyObjectSchema,
@@ -114,5 +120,12 @@ export function defineChrono(definition: {
     projection: resolveChronoProjection(definition.projection),
     defaultValue: definition.defaultValue ?? {},
     create: definition.create,
-  }
+  } as Chrono<{
+    readonly time: TimeSchema
+    readonly config: ConfigSchema
+    readonly fields: {
+      readonly card: CardSchema
+      readonly revlog: RevlogSchema
+    }
+  }>
 }

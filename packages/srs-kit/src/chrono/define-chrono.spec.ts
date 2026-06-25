@@ -5,6 +5,7 @@ import {
   type ChronoRevlogOf,
   type ChronoTimeOf,
   defineChrono,
+  defineChronoProjection,
 } from './index.js'
 
 describe('defineChrono', () => {
@@ -131,6 +132,38 @@ describe('defineChrono', () => {
     })
 
     expect(chrono.projection).toBe(numberProjectionSchema)
+  })
+
+  it('preserves card presence in projection helpers', () => {
+    defineChronoProjection<{
+      readonly card: {
+        readonly previous: number | null
+        readonly current: number
+      }
+      readonly time: number
+    }>((value) => {
+      expectTypeOf(value.card).toEqualTypeOf<
+        Readonly<{
+          readonly previous: number | null
+          readonly current: number
+        }>
+      >()
+
+      return {
+        value: {
+          previous: value.card.previous,
+          current: value.time,
+        },
+      }
+    })
+
+    defineChronoProjection<{
+      readonly time: number
+    }>((value) => {
+      expectTypeOf(value).toEqualTypeOf<{ readonly time: number }>()
+
+      return { value: { previous: 0, current: value.time } }
+    })
   })
 })
 
