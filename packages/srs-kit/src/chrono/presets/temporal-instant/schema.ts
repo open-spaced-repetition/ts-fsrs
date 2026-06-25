@@ -5,9 +5,14 @@ export type TemporalInstantConfig = {
   readonly fractionalDays: boolean
 }
 
-export type TemporalInstantCardFields = {
+export type TemporalInstantCardInputFields = {
   dueAt: Temporal.Instant
   lastReviewAt?: Temporal.Instant | null
+}
+
+export type TemporalInstantCardOutputFields = {
+  dueAt: Temporal.Instant
+  lastReviewAt: Temporal.Instant | null
 }
 
 export type TemporalInstantRevlogFields = {
@@ -80,8 +85,8 @@ function invalidInstantFields() {
 }
 
 export const temporalInstantCardFieldsSchema = defineSchema<
-  TemporalInstantCardFields,
-  TemporalInstantRevlogFields
+  TemporalInstantCardInputFields,
+  TemporalInstantCardOutputFields
 >((value) => {
   if (!isObject(value) || !('dueAt' in value)) {
     return invalidInstantFields()
@@ -93,7 +98,12 @@ export const temporalInstantCardFieldsSchema = defineSchema<
   }
 
   if (value.lastReviewAt === undefined || value.lastReviewAt === null) {
-    return { value: { dueAt: dueAt.data, lastReviewAt: dueAt.data } }
+    return {
+      value: {
+        dueAt: dueAt.data,
+        lastReviewAt: null,
+      },
+    }
   }
 
   const lastReviewAt = temporalInstantSchema.safeParse(value.lastReviewAt)

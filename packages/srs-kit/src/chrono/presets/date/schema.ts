@@ -3,9 +3,14 @@ import { defineSchema, isObject } from '@/schema/index.js'
 
 export const MS_PER_DAY = 86_400_000
 
-export type DateCardFields = {
+export type DateCardInputFields = {
   dueAt: Date
   lastReviewAt?: Date | null
+}
+
+export type DateCardOutputFields = {
+  dueAt: Date
+  lastReviewAt: Date | null
 }
 
 export type DateRevlogFields = {
@@ -22,8 +27,8 @@ function invalidDateFields() {
 }
 
 export const dateCardFieldsSchema = defineSchema<
-  DateCardFields,
-  DateRevlogFields
+  DateCardInputFields,
+  DateCardOutputFields
 >((value) => {
   if (!isObject(value) || !('dueAt' in value)) {
     return invalidDateFields()
@@ -44,7 +49,7 @@ export const dateCardFieldsSchema = defineSchema<
   return {
     value: {
       dueAt,
-      lastReviewAt: lastReviewAt ?? dueAt,
+      lastReviewAt: lastReviewAt !== undefined ? lastReviewAt : null,
     },
   }
 })

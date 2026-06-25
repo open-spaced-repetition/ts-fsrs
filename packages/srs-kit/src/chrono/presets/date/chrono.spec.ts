@@ -12,7 +12,7 @@ describe('dateChrono', () => {
     expectTypeOf<ChronoTimeOf<typeof dateChrono>>().toEqualTypeOf<Date>()
     expectTypeOf<ChronoCardOf<typeof dateChrono>>().toEqualTypeOf<{
       dueAt: Date
-      lastReviewAt: Date
+      lastReviewAt: Date | null
     }>()
     expectTypeOf<ChronoRevlogOf<typeof dateChrono>>().toEqualTypeOf<{
       dueAt: Date
@@ -41,7 +41,12 @@ describe('dateChrono', () => {
         dueAt: now,
         lastReviewAt: null,
       })
-    ).toEqual({ dueAt: now, lastReviewAt: now })
+    ).toEqual({ dueAt: now, lastReviewAt: null })
+    expect(
+      parse(dateChrono.schema.card, {
+        dueAt: now,
+      })
+    ).toEqual({ dueAt: now, lastReviewAt: null })
     expect(() =>
       parse(dateChrono.schema.card, {
         dueAt: now,
@@ -86,6 +91,23 @@ describe('dateChrono', () => {
           dueAt: now,
           lastReviewAt: null,
         },
+        time: later,
+      })
+    ).toEqual({ previous: later, current: later })
+    expect(
+      parse(dateChrono.projection, {
+        card: parse(dateChrono.schema.card, {
+          dueAt: now,
+          lastReviewAt: null,
+        }),
+        time: later,
+      })
+    ).toEqual({ previous: later, current: later })
+    expect(
+      parse(dateChrono.projection, {
+        card: parse(dateChrono.schema.card, {
+          dueAt: now,
+        }),
         time: later,
       })
     ).toEqual({ previous: later, current: later })

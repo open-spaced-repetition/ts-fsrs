@@ -91,8 +91,8 @@ describe('defineChrono type display', () => {
     }>;
     readonly fields: {
         readonly card: SRSSchema<{
-            input: DateCardFields;
-            output: DateRevlogFields;
+            input: DateCardInputFields;
+            output: DateCardOutputFields;
         }>;
         readonly revlog: SRSSchema<{
             input: DateRevlogFields;
@@ -112,8 +112,8 @@ describe('defineChrono type display', () => {
     }>;
     readonly fields: {
         readonly card: SRSSchema<{
-            input: TemporalInstantCardFields;
-            output: TemporalInstantRevlogFields;
+            input: TemporalInstantCardInputFields;
+            output: TemporalInstantCardOutputFields;
         }>;
         readonly revlog: SRSSchema<{
             input: TemporalInstantRevlogFields;

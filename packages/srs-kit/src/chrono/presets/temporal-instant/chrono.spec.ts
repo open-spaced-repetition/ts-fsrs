@@ -54,7 +54,7 @@ describe('temporalInstantChrono', () => {
     >().toEqualTypeOf<Temporal.Instant>()
     expectTypeOf<ChronoCardOf<typeof temporalInstantChrono>>().toEqualTypeOf<{
       dueAt: Temporal.Instant
-      lastReviewAt: Temporal.Instant
+      lastReviewAt: Temporal.Instant | null
     }>()
     expectTypeOf<ChronoRevlogOf<typeof temporalInstantChrono>>().toEqualTypeOf<{
       dueAt: Temporal.Instant
@@ -131,12 +131,12 @@ describe('temporalInstantChrono', () => {
         dueAt: now,
         lastReviewAt: null,
       })
-    ).toEqual({ dueAt: now, lastReviewAt: now })
+    ).toEqual({ dueAt: now, lastReviewAt: null })
     expect(
       parse(temporalInstantChrono.schema.card, {
         dueAt: now,
       })
-    ).toEqual({ dueAt: now, lastReviewAt: now })
+    ).toEqual({ dueAt: now, lastReviewAt: null })
     expect(
       parse(temporalInstantChrono.schema.revlog, {
         dueAt: later,
@@ -175,6 +175,23 @@ describe('temporalInstantChrono', () => {
           dueAt: now,
           lastReviewAt: null,
         },
+        time: later,
+      })
+    ).toEqual({ previous: later, current: later })
+    expect(
+      parse(temporalInstantChrono.projection, {
+        card: parse(temporalInstantChrono.schema.card, {
+          dueAt: now,
+          lastReviewAt: null,
+        }),
+        time: later,
+      })
+    ).toEqual({ previous: later, current: later })
+    expect(
+      parse(temporalInstantChrono.projection, {
+        card: parse(temporalInstantChrono.schema.card, {
+          dueAt: now,
+        }),
         time: later,
       })
     ).toEqual({ previous: later, current: later })
