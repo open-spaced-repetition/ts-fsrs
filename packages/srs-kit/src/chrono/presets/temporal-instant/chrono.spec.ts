@@ -85,6 +85,35 @@ describe('temporalInstantChrono', () => {
       timezone: 'UTC',
     })
     expect(
+      parse(temporalInstantChrono.schema.config, {
+        timezone: 'Asia/Shanghai',
+      })
+    ).toEqual({
+      fractionalDays: false,
+      timezone: 'Asia/Shanghai',
+    })
+    expect(
+      parse(temporalInstantChrono.schema.config, {
+        timezone: '+09:00',
+      })
+    ).toEqual({
+      fractionalDays: false,
+      timezone: '+09:00',
+    })
+    expect(
+      parse(temporalInstantChrono.schema.config, {
+        timezone: 'Etc/GMT-9',
+      })
+    ).toEqual({
+      fractionalDays: false,
+      timezone: 'Etc/GMT-9',
+    })
+    expect(() =>
+      parse(temporalInstantChrono.schema.config, {
+        timezone: 'bad/timezone',
+      })
+    ).toThrow('Expected valid timezone')
+    expect(
       parse(temporalInstantChrono.schema.card, {
         dueAt: now,
         lastReviewAt: null,

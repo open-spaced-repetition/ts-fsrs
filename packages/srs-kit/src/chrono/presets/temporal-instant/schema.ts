@@ -27,6 +27,16 @@ export function getTemporalInstantConstructor(): typeof Temporal.Instant {
   return temporal.Instant
 }
 
+function parseTimeZoneId(timezone: string): string | undefined {
+  try {
+    return getTemporalInstantConstructor()
+      .fromEpochNanoseconds(0n)
+      .toZonedDateTimeISO(timezone).timeZoneId
+  } catch {
+    return undefined
+  }
+}
+
 export const temporalInstantConfigSchema = defineSchema<
   Partial<TemporalInstantConfig>,
   TemporalInstantConfig
@@ -39,6 +49,10 @@ export const temporalInstantConfigSchema = defineSchema<
   if (typeof timezone !== 'string') {
     return { issues: [{ message: 'Expected timezone to be a string' }] }
   }
+  const timezoneId = parseTimeZoneId(timezone)
+  if (timezoneId === undefined) {
+    return { issues: [{ message: 'Expected valid timezone' }] }
+  }
 
   const fractionalDays =
     value.fractionalDays === undefined ? false : value.fractionalDays
@@ -46,7 +60,7 @@ export const temporalInstantConfigSchema = defineSchema<
     return { issues: [{ message: 'Expected fractionalDays to be a boolean' }] }
   }
 
-  return { value: { timezone, fractionalDays } }
+  return { value: { timezone: timezoneId, fractionalDays } }
 })
 
 export const temporalInstantSchema = defineSchema<Temporal.Instant>((value) => {

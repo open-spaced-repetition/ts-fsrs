@@ -1,5 +1,4 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
-import { parse } from '@/schema/index.js'
 import {
   getTemporalInstantConstructor,
   temporalInstantCardFieldsSchema,
@@ -82,10 +81,7 @@ export const temporalInstantChrono = defineChrono({
   },
   create({ config }) {
     getTemporalInstantConstructor()
-    const { fractionalDays, timezone } = parse(
-      temporalInstantConfigSchema,
-      config
-    )
+    const { fractionalDays, timezone } = config
     const addMode = timezone === UTC_TIMEZONE ? 'utc' : 'zoned'
     const differenceMode = fractionalDays ? 'fractional' : addMode
 
