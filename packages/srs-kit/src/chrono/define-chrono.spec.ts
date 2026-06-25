@@ -30,9 +30,9 @@ describe('defineChrono', () => {
     })
 
     const instance = chrono.create()
-    expect(chrono.schema.config).toBe(emptyObjectSchema)
-    expect(chrono.schema.card).toBe(emptyObjectSchema)
-    expect(chrono.schema.revlog).toBe(emptyObjectSchema)
+    expect('config' in chrono.schema).toBe(false)
+    expect('card' in chrono.schema).toBe(false)
+    expect('revlog' in chrono.schema).toBe(false)
     expect(chrono.defaultValue).toEqual({})
     expect(instance.difference(null, 3)).toBe(0)
   })
@@ -104,12 +104,10 @@ describe('defineChrono', () => {
     expectTypeOf<ChronoRevlogOf<typeof chrono>>().toEqualTypeOf<{
       readonly elapsedDays: number
     }>()
-    expectTypeOf(chrono.schema).toEqualTypeOf<{
-      readonly config: typeof emptyObjectSchema
-      readonly time: typeof numberSchema
-      readonly card: typeof numberCardSchema
-      readonly revlog: typeof revlogSchema
-    }>()
+    expectTypeOf(chrono.schema.config).toEqualTypeOf<typeof emptyObjectSchema>()
+    expectTypeOf(chrono.schema.time).toEqualTypeOf<typeof numberSchema>()
+    expectTypeOf(chrono.schema.card).toEqualTypeOf<typeof numberCardSchema>()
+    expectTypeOf(chrono.schema.revlog).toEqualTypeOf<typeof revlogSchema>()
   })
 
   it('accepts a projection schema directly', () => {

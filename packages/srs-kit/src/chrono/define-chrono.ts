@@ -3,7 +3,7 @@ import {
   type AnyObjectSchema,
   type AnySchema,
   defineSchema,
-  emptyObjectSchema,
+  type EmptyPart,
   type SchemaOutput,
 } from '../schema/index.js'
 import type {
@@ -44,15 +44,15 @@ export function defineChronoProjection<
 
 type ChronoProjectionInputFor<
   TimeSchema extends AnySchema,
-  CardSchema extends AnyObjectSchema,
+  CardSchema extends AnyObjectSchema | undefined,
 > = ChronoProjectionInput<
   SchemaOutput<TimeSchema>,
-  CardSchema extends typeof emptyObjectSchema ? never : SchemaOutput<CardSchema>
+  CardSchema extends AnyObjectSchema ? SchemaOutput<CardSchema> : never
 >
 
 type ChronoProjectionDefinition<
   TimeSchema extends AnySchema,
-  CardSchema extends AnyObjectSchema,
+  CardSchema extends AnyObjectSchema | undefined,
 > =
   | StandardSchemaV1<
       ChronoProjectionInputFor<TimeSchema, CardSchema>,
@@ -76,56 +76,86 @@ function resolveChronoProjection(projection: unknown) {
   return projection
 }
 
-type ChronoEnv<
-  TimeSchema extends AnySchema,
-  ConfigSchema extends AnySchema,
-  CardSchema extends AnyObjectSchema,
-  RevlogSchema extends AnyObjectSchema,
-> = {
-  readonly time: TimeSchema
-  readonly config: ConfigSchema
-  readonly fields: {
-    readonly card: CardSchema
-    readonly revlog: RevlogSchema
-  }
+type ChronoDefinitionSchema = {
+  readonly time: AnySchema
+  readonly config?: AnySchema
+  readonly card?: AnyObjectSchema
+  readonly revlog?: AnyObjectSchema
 }
 
-export function defineChrono<
-  const TimeSchema extends AnySchema,
-  const ConfigSchema extends AnySchema = typeof emptyObjectSchema,
-  const CardSchema extends AnyObjectSchema = typeof emptyObjectSchema,
-  const RevlogSchema extends AnyObjectSchema = typeof emptyObjectSchema,
->(definition: {
-  readonly schema: {
-    readonly time: TimeSchema
-    readonly config?: ConfigSchema
-    readonly card?: CardSchema
-    readonly revlog?: RevlogSchema
-  }
-  readonly defaultValue?: ChronoDefaultValue<
-    ChronoEnv<TimeSchema, ConfigSchema, CardSchema, RevlogSchema>
+type ChronoDefinitionConfig<Schema extends ChronoDefinitionSchema> =
+  Schema extends { readonly config: infer Config extends AnySchema }
+    ? { readonly config: Config }
+    : EmptyPart
+
+type ChronoDefinitionFields<Schema extends ChronoDefinitionSchema> =
+  (Schema extends { readonly card: infer Card extends AnyObjectSchema }
+    ? { readonly card: Card }
+    : EmptyPart) &
+    (Schema extends { readonly revlog: infer Revlog extends AnyObjectSchema }
+      ? { readonly revlog: Revlog }
+      : EmptyPart)
+
+type ChronoDefinitionEnv<Schema extends ChronoDefinitionSchema> = {
+  readonly time: Schema['time']
+  readonly fields: ChronoDefinitionFields<Schema>
+} & ChronoDefinitionConfig<Schema>
+
+type ChronoDefinitionCard<Schema extends ChronoDefinitionSchema> =
+  Schema extends { readonly card: infer Card extends AnyObjectSchema }
+    ? Card
+    : undefined
+
+type ChronoDefinition<Schema extends ChronoDefinitionSchema> = {
+  readonly schema: Schema
+  readonly defaultValue?: ChronoDefaultValue<ChronoDefinitionEnv<Schema>>
+  readonly projection: ChronoProjectionDefinition<
+    Schema['time'],
+    ChronoDefinitionCard<Schema>
   >
-  readonly projection: ChronoProjectionDefinition<TimeSchema, CardSchema>
-  readonly create: ChronoCreate<
-    ChronoEnv<TimeSchema, ConfigSchema, CardSchema, RevlogSchema>
-  >
-}) {
+  readonly create: ChronoCreate<ChronoDefinitionEnv<Schema>>
+}
+
+export function defineChrono<const Schema extends ChronoDefinitionSchema>(
+  definition: ChronoDefinition<Schema>
+): Chrono<{
+  readonly [Key in keyof ({
+    readonly time: Schema['time']
+  } & ChronoDefinitionConfig<Schema> & {
+      readonly fields: {
+        readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
+      }
+    })]: ({
+    readonly time: Schema['time']
+  } & ChronoDefinitionConfig<Schema> & {
+      readonly fields: {
+        readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
+      }
+    })[Key]
+}> {
   return {
     schema: {
-      config: definition.schema.config ?? emptyObjectSchema,
-      card: definition.schema.card ?? emptyObjectSchema,
-      revlog: definition.schema.revlog ?? emptyObjectSchema,
       time: definition.schema.time,
+      ...(definition.schema.config ? { config: definition.schema.config } : {}),
+      ...(definition.schema.card ? { card: definition.schema.card } : {}),
+      ...(definition.schema.revlog ? { revlog: definition.schema.revlog } : {}),
     },
     projection: resolveChronoProjection(definition.projection),
     defaultValue: definition.defaultValue ?? {},
     create: definition.create,
-  } as Chrono<{
-    readonly time: TimeSchema
-    readonly config: ConfigSchema
-    readonly fields: {
-      readonly card: CardSchema
-      readonly revlog: RevlogSchema
-    }
+  } as unknown as Chrono<{
+    readonly [Key in keyof ({
+      readonly time: Schema['time']
+    } & ChronoDefinitionConfig<Schema> & {
+        readonly fields: {
+          readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
+        }
+      })]: ({
+      readonly time: Schema['time']
+    } & ChronoDefinitionConfig<Schema> & {
+        readonly fields: {
+          readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
+        }
+      })[Key]
   }>
 }

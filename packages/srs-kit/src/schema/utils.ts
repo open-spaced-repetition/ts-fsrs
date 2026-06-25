@@ -34,9 +34,13 @@ type TemporalBuiltIn = GlobalNamespaceBuiltIn<'Temporal'>
 
 type BuiltIn = Primitive | GlobalBuiltIn | TemporalBuiltIn
 
-export type Prettify<T> = T extends BuiltIn ? T : { [K in keyof T]: T[K] } & {}
+export type Prettify<T> = [T] extends [BuiltIn]
+  ? T
+  : { [K in keyof T]: T[K] } & {}
 
 export type EmptyObject = Record<PropertyKey, never>
+
+export type EmptyPart = Record<never, never>
 
 export type MutableRecord = Record<PropertyKey, unknown>
 
