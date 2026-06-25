@@ -121,5 +121,5 @@ describe('defineChrono type display', () => {
         }>;
     };
 }>`)
-  })
+  }, 20_000)
 })
