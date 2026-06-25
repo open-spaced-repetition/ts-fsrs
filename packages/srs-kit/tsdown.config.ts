@@ -17,8 +17,6 @@ const shared = {
     'chrono/numeric/index': 'src/chrono/presets/numeric/index.ts',
     'chrono/temporal-instant/index':
       'src/chrono/presets/temporal-instant/index.ts',
-    'chrono/temporal-zoned-date-time/index':
-      'src/chrono/presets/temporal-zoned-date-time/index.ts',
   },
   dts: true,
   clean: true,

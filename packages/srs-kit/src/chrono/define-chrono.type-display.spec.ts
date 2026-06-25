@@ -75,11 +75,6 @@ describe('defineChrono type display', () => {
       'src/chrono/presets/temporal-instant/chrono.ts',
       'temporalInstantChrono'
     )
-    const temporalZonedDateTime = quickInfoAt(
-      service,
-      'src/chrono/presets/temporal-zoned-date-time/chrono.ts',
-      'temporalZonedDateTimeChrono'
-    )
 
     expect(numeric).toBe(`const numericChrono: Chrono<{
     readonly time: SRSSchema<{
@@ -123,29 +118,6 @@ describe('defineChrono type display', () => {
         readonly revlog: SRSSchema<{
             input: TemporalInstantRevlogFields;
             output: TemporalInstantRevlogFields;
-        }>;
-    };
-}>`)
-
-    expect(
-      temporalZonedDateTime
-    ).toBe(`const temporalZonedDateTimeChrono: Chrono<{
-    readonly time: SRSSchema<{
-        input: Temporal.ZonedDateTime;
-        output: Temporal.ZonedDateTime;
-    }>;
-    readonly config: SRSSchema<{
-        input: Partial<TemporalZonedDateTimeConfig>;
-        output: TemporalZonedDateTimeConfig;
-    }>;
-    readonly fields: {
-        readonly card: SRSSchema<{
-            input: TemporalZonedDateTimeCardFields;
-            output: TemporalZonedDateTimeRevlogFields;
-        }>;
-        readonly revlog: SRSSchema<{
-            input: TemporalZonedDateTimeRevlogFields;
-            output: TemporalZonedDateTimeRevlogFields;
         }>;
     };
 }>`)

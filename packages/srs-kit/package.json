@@ -94,17 +94,6 @@
         "default": "./dist/esm/chrono/temporal-instant/index.js"
       },
       "default": "./dist/esm/chrono/temporal-instant/index.js"
-    },
-    "./chrono/temporal-zoned-date-time": {
-      "require": {
-        "types": "./dist/cjs/chrono/temporal-zoned-date-time/index.d.ts",
-        "default": "./dist/cjs/chrono/temporal-zoned-date-time/index.js"
-      },
-      "import": {
-        "types": "./dist/esm/chrono/temporal-zoned-date-time/index.d.ts",
-        "default": "./dist/esm/chrono/temporal-zoned-date-time/index.js"
-      },
-      "default": "./dist/esm/chrono/temporal-zoned-date-time/index.js"
     }
   },
   "sideEffects": false,
