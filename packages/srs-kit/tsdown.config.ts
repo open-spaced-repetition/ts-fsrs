@@ -12,6 +12,13 @@ const shared = {
     'schema/index': 'src/schema/index.ts',
     'primitives/index': 'src/primitives/index.ts',
     'model/index': 'src/model/index.ts',
+    'chrono/index': 'src/chrono/index.ts',
+    'chrono/date/index': 'src/chrono/presets/date/index.ts',
+    'chrono/numeric/index': 'src/chrono/presets/numeric/index.ts',
+    'chrono/temporal-instant/index':
+      'src/chrono/presets/temporal-instant/index.ts',
+    'chrono/temporal-zoned-date-time/index':
+      'src/chrono/presets/temporal-zoned-date-time/index.ts',
   },
   dts: true,
   clean: true,
