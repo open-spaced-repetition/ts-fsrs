@@ -21,3 +21,17 @@ export const numberSchema = defineSchema<unknown, number>((value) =>
     ? { value }
     : { issues: [{ message: 'Expected finite number' }] }
 )
+
+function isValidDate(value: unknown): value is Date {
+  return (
+    value instanceof Date &&
+    value.getTime() !== 0 &&
+    Number.isFinite(value.getTime())
+  )
+}
+
+export const dateSchema = defineSchema<Date>((value) =>
+  isValidDate(value)
+    ? { value }
+    : { issues: [{ message: 'Expected valid Date' }] }
+)
