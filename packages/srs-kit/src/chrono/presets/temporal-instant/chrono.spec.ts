@@ -56,9 +56,7 @@ describe('temporalInstantChrono', () => {
       dueAt: Temporal.Instant
       lastReviewAt: Temporal.Instant
     }>()
-    expectTypeOf<
-      ChronoRevlogOf<typeof temporalInstantChrono>
-    >().toEqualTypeOf<{
+    expectTypeOf<ChronoRevlogOf<typeof temporalInstantChrono>>().toEqualTypeOf<{
       dueAt: Temporal.Instant
       lastReviewAt: Temporal.Instant
     }>()
@@ -146,6 +144,21 @@ describe('temporalInstantChrono', () => {
     expect(add(now, 2).epochNanoseconds).toBe(NS_PER_DAY * 2n)
     expect(add(now, -0.25).epochNanoseconds).toBe(-NS_PER_DAY / 4n)
     expect(add(now, 2.25).epochNanoseconds).toBe((NS_PER_DAY * 9n) / 4n)
+    const { add: addInUtc, difference: utcDifference } =
+      temporalInstantChrono.create({
+        config: parse(temporalInstantChrono.schema.config, {
+          timezone: 'UTC',
+        }),
+      })
+    expect(
+      utcDifference(
+        createInstant(-NS_PER_DAY / 4n),
+        createInstant(NS_PER_DAY / 4n)
+      )
+    ).toBe(1)
+    expect(addInUtc(now, 2).epochNanoseconds).toBe(NS_PER_DAY * 2n)
+    expect(addInUtc(now, -0.25).epochNanoseconds).toBe(-NS_PER_DAY / 4n)
+    expect(addInUtc(now, 2.25).epochNanoseconds).toBe((NS_PER_DAY * 9n) / 4n)
     expect(
       temporalInstantChrono.defaultValue.card!({
         config: temporalConfig,

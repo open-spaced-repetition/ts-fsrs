@@ -8,6 +8,37 @@ import {
   temporalInstantSchema,
 } from './schema.js'
 
+const UTC_TIMEZONE = 'UTC'
+const MS_PER_DAY = 86_400_000
+const NS_PER_MS = 1_000_000n
+const NS_PER_DAY = 86_400_000_000_000n
+
+type DifferenceMode = 'fractional' | 'utc' | 'zoned'
+type AddMode = 'utc' | 'zoned'
+
+type DifferenceFn = (
+  from: Temporal.Instant,
+  to: Temporal.Instant,
+  timezone: string
+) => number
+
+type AddFn = (
+  from: Temporal.Instant,
+  days: number,
+  timezone: string
+) => Temporal.Instant
+
+const differenceByMode = {
+  fractional: fractionalZonedDifferenceInDays,
+  utc: utcDateDifferenceInDays,
+  zoned: zonedDateDifferenceInDays,
+} satisfies Record<DifferenceMode, DifferenceFn>
+
+const addByMode = {
+  utc: addFixedUtcDays,
+  zoned: addZonedCalendarDays,
+} satisfies Record<AddMode, AddFn>
+
 export const temporalInstantChrono = defineChrono({
   schema: {
     config: temporalInstantConfigSchema,
@@ -55,26 +86,18 @@ export const temporalInstantChrono = defineChrono({
       temporalInstantConfigSchema,
       config
     )
-
-    const difference = (
-      from: Temporal.Instant,
-      to: Temporal.Instant
-    ): number =>
-      fractionalDays
-        ? fractionalDifferenceInDays(from, to, timezone)
-        : differenceInDays(from, to, timezone)
-
-    const add = (from: Temporal.Instant, days: number): Temporal.Instant =>
-      addDays(from, days, timezone)
+    const addMode = timezone === UTC_TIMEZONE ? 'utc' : 'zoned'
+    const differenceMode = fractionalDays ? 'fractional' : addMode
 
     return {
-      difference,
-      add,
+      difference: (from, to) =>
+        differenceByMode[differenceMode](from, to, timezone),
+      add: (from, days) => addByMode[addMode](from, days, timezone),
     }
   },
 })
 
-function differenceInDays(
+function zonedDateDifferenceInDays(
   from: Temporal.Instant,
   to: Temporal.Instant,
   timezone: string
@@ -85,7 +108,7 @@ function differenceInDays(
   return fromDate.until(toDate, { largestUnit: 'day' }).days
 }
 
-function fractionalDifferenceInDays(
+function fractionalZonedDifferenceInDays(
   from: Temporal.Instant,
   to: Temporal.Instant,
   timezone: string
@@ -98,13 +121,12 @@ function fractionalDifferenceInDays(
     .total({ unit: 'day', relativeTo: fromZoned })
 }
 
-function addDays(
+function addZonedCalendarDays(
   from: Temporal.Instant,
   days: number,
   timezone: string
 ): Temporal.Instant {
-  const whole = Math.trunc(days)
-  const fraction = days - whole
+  const { whole, fraction } = splitDays(days)
   const zdt = from.toZonedDateTimeISO(timezone)
   const afterDays = zdt.add({ days: whole })
 
@@ -112,14 +134,65 @@ function addDays(
     return afterDays.toInstant()
   }
 
-  const direction = fraction > 0 ? 1 : -1
-  const neighbor = afterDays.add({ days: direction })
-  const dayLengthMs = Number(
-    ((neighbor.epochNanoseconds - afterDays.epochNanoseconds) *
-      BigInt(direction)) /
-      1_000_000n
+  const milliseconds = fractionToMilliseconds(
+    fraction,
+    zonedDayLengthInMilliseconds(afterDays, fraction)
   )
-  const milliseconds = Math.round(Math.abs(fraction) * dayLengthMs) * direction
 
   return afterDays.add({ milliseconds }).toInstant()
+}
+
+function utcDateDifferenceInDays(
+  from: Temporal.Instant,
+  to: Temporal.Instant
+): number {
+  return Number(utcDayIndex(to) - utcDayIndex(from))
+}
+
+function utcDayIndex(value: Temporal.Instant): bigint {
+  const epochNanoseconds = value.epochNanoseconds
+  const quotient = epochNanoseconds / NS_PER_DAY
+  const remainder = epochNanoseconds % NS_PER_DAY
+
+  return remainder < 0n ? quotient - 1n : quotient
+}
+
+function addFixedUtcDays(
+  from: Temporal.Instant,
+  days: number
+): Temporal.Instant {
+  const { whole, fraction } = splitDays(days)
+  const milliseconds = fractionToMilliseconds(fraction, MS_PER_DAY)
+  const nanoseconds =
+    BigInt(whole) * NS_PER_DAY + BigInt(milliseconds) * NS_PER_MS
+
+  return Temporal.Instant.fromEpochNanoseconds(
+    from.epochNanoseconds + nanoseconds
+  )
+}
+
+function splitDays(days: number): {
+  readonly whole: number
+  readonly fraction: number
+} {
+  const whole = Math.trunc(days)
+
+  return { whole, fraction: days - whole }
+}
+
+function fractionToMilliseconds(fraction: number, dayLengthMs: number): number {
+  return Math.round(Math.abs(fraction) * dayLengthMs) * Math.sign(fraction)
+}
+
+function zonedDayLengthInMilliseconds(
+  from: Temporal.ZonedDateTime,
+  fraction: number
+): number {
+  const direction = fraction > 0 ? 1 : -1
+  const neighbor = from.add({ days: direction })
+
+  return Number(
+    ((neighbor.epochNanoseconds - from.epochNanoseconds) * BigInt(direction)) /
+      NS_PER_MS
+  )
 }
