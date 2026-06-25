@@ -28,6 +28,10 @@ export function getTemporalInstantConstructor(): typeof Temporal.Instant {
 }
 
 function parseTimeZoneId(timezone: string): string | undefined {
+  if (timezone === 'UTC') {
+    return 'UTC'
+  }
+
   try {
     return getTemporalInstantConstructor()
       .fromEpochNanoseconds(0n)

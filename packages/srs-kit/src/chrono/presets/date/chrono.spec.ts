@@ -63,6 +63,11 @@ describe('dateChrono', () => {
     expect(() =>
       parse(dateChrono.schema.revlog, {
         dueAt: later,
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      parse(dateChrono.schema.revlog, {
+        dueAt: later,
         lastReviewAt: epoch,
       })
     ).toThrow('Expected valid Date fields')
@@ -84,6 +89,21 @@ describe('dateChrono', () => {
         time: later,
       })
     ).toEqual({ previous: later, current: later })
+    expect(() =>
+      parse(dateChrono.projection, {
+        card: null,
+        time: later,
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      parse(dateChrono.projection, {
+        card: {
+          dueAt: now,
+          lastReviewAt: now,
+        },
+        time: 'later',
+      })
+    ).toThrow('Expected valid Date')
     expect(() => parse(dateChrono.schema.card, null)).toThrow()
     expect(() =>
       parse(dateChrono.schema.card, {

@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest'
-import { dateSchema, numberSchema, parse } from './index.js'
+import { dateSchema, emptyObjectSchema, numberSchema, parse } from './index.js'
 
 describe('field schemas', () => {
+  it('validates empty objects', () => {
+    expect(parse(emptyObjectSchema, {})).toEqual({})
+    expect(() => parse(emptyObjectSchema, null)).toThrow(
+      'Expected empty object'
+    )
+    expect(() => parse(emptyObjectSchema, { value: 1 })).toThrow(
+      'Expected empty object'
+    )
+  })
+
   it('validates finite numbers', () => {
     expect(parse(numberSchema, 1.25)).toBe(1.25)
     expect(() => parse(numberSchema, Number.NaN)).toThrow(

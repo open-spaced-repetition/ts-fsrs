@@ -84,6 +84,19 @@ describe('temporalInstantChrono', () => {
       fractionalDays: false,
       timezone: 'UTC',
     })
+    expect(() => parse(temporalInstantChrono.schema.config, null)).toThrow(
+      'Expected temporal instant config'
+    )
+    expect(() =>
+      parse(temporalInstantChrono.schema.config, {
+        timezone: 9,
+      })
+    ).toThrow('Expected timezone to be a string')
+    expect(() =>
+      parse(temporalInstantChrono.schema.config, {
+        fractionalDays: 'yes',
+      })
+    ).toThrow('Expected fractionalDays to be a boolean')
     expect(
       parse(temporalInstantChrono.schema.config, {
         timezone: 'Asia/Shanghai',
@@ -136,6 +149,17 @@ describe('temporalInstantChrono', () => {
         lastReviewAt: null,
       })
     ).toThrow('Expected Temporal.Instant fields')
+    expect(() =>
+      parse(temporalInstantChrono.schema.revlog, {
+        dueAt: later,
+      })
+    ).toThrow('Expected Temporal.Instant fields')
+    expect(() =>
+      parse(temporalInstantChrono.schema.revlog, {
+        dueAt: {},
+        lastReviewAt: now,
+      })
+    ).toThrow('Expected Temporal.Instant fields')
     expect(
       parse(temporalInstantChrono.projection, {
         card: {
@@ -154,6 +178,21 @@ describe('temporalInstantChrono', () => {
         time: later,
       })
     ).toEqual({ previous: later, current: later })
+    expect(() =>
+      parse(temporalInstantChrono.projection, {
+        card: null,
+        time: later,
+      })
+    ).toThrow('Expected Temporal.Instant fields')
+    expect(() =>
+      parse(temporalInstantChrono.projection, {
+        card: {
+          dueAt: now,
+          lastReviewAt: now,
+        },
+        time: {},
+      })
+    ).toThrow('Expected Temporal.Instant')
     expect(() => parse(temporalInstantChrono.schema.card, null)).toThrow()
     expect(() =>
       parse(temporalInstantChrono.schema.card, {

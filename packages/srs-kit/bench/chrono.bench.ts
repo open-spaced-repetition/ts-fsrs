@@ -162,22 +162,26 @@ function describeTemporalInstant(
   describe(`temporalInstantChrono preset (${label})`, () => {
     const now = createInstant(temporal, 0n)
     const later = createInstant(temporal, (NS_PER_DAY * 3n) / 2n)
-    const config = temporalInstantChrono.schema.config.parse({
-      timezone: 'Asia/Shanghai',
-    })
+    const rawConfig = { timezone: 'Asia/Shanghai' }
+    const rawUtcConfig = { timezone: 'UTC' }
+    const config = temporalInstantChrono.schema.config.parse(rawConfig)
     const core = temporalInstantChrono.create({ config })
     const fractionalCore = temporalInstantChrono.create({
       config: { ...config, fractionalDays: true },
     })
-    const utcConfig = temporalInstantChrono.schema.config.parse({
-      timezone: 'UTC',
-    })
+    const utcConfig = temporalInstantChrono.schema.config.parse(rawUtcConfig)
     const utcCore = temporalInstantChrono.create({ config: utcConfig })
     const card = { dueAt: now, lastReviewAt: now }
     const previous = { previous: now, current: later }
 
     bench('create', () => {
       temporalInstantChrono.create({ config })
+    })
+    bench('parse config', () => {
+      temporalInstantChrono.schema.config.parse(rawConfig)
+    })
+    bench('parse config UTC', () => {
+      temporalInstantChrono.schema.config.parse(rawUtcConfig)
     })
     bench('now', () => {
       core.now()

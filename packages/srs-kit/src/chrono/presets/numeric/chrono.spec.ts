@@ -27,6 +27,12 @@ describe('numericChrono', () => {
       previous: 0,
       current: 4.5,
     })
+    expect(() =>
+      parse(numericChrono.projection, {
+        card: {},
+        time: Number.NaN,
+      })
+    ).toThrow('Expected finite number')
     expect(
       parse(numericChrono.projection, {
         card: { current: 4.5 },
