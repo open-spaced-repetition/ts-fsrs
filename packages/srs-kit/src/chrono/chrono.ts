@@ -73,9 +73,17 @@ export interface ChronoTimeProjection<Value> {
   readonly current: Value
 }
 
+export interface ChronoProjectionInput<CardFields, Time> {
+  readonly card: Readonly<CardFields>
+  readonly time: Time
+}
+
 export type ChronoProjection<Env extends BlankChronoEnv = BlankChronoEnv> =
   StandardSchemaV1<
-    SchemaOutput<Env['fields']['card']>,
+    ChronoProjectionInput<
+      SchemaOutput<Env['fields']['card']>,
+      SchemaOutput<Env['time']>
+    >,
     ChronoTimeProjection<SchemaOutput<Env['time']>>
   >
 

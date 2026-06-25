@@ -10,6 +10,7 @@ import type {
   Chrono,
   ChronoCreate,
   ChronoDefaultValue,
+  ChronoProjectionInput,
   ChronoTimeProjection,
 } from './chrono.js'
 
@@ -19,12 +20,13 @@ type ChronoProjectionValidator<Time> = (
 
 export function defineChronoProjection<CardFields, Time>(
   validate: (
-    value: CardFields
+    value: ChronoProjectionInput<CardFields, Time>
   ) => StandardSchemaV1.Result<ChronoTimeProjection<Time>>
 ) {
-  return defineSchema<CardFields, ChronoTimeProjection<Time>>(
-    validate as ChronoProjectionValidator<Time>
-  )
+  return defineSchema<
+    ChronoProjectionInput<CardFields, Time>,
+    ChronoTimeProjection<Time>
+  >(validate as ChronoProjectionValidator<Time>)
 }
 
 type ChronoProjectionDefinition<
@@ -32,11 +34,14 @@ type ChronoProjectionDefinition<
   CardSchema extends AnyObjectSchema,
 > =
   | StandardSchemaV1<
-      SchemaOutput<CardSchema>,
+      ChronoProjectionInput<SchemaOutput<CardSchema>, SchemaOutput<TimeSchema>>,
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >
   | ((
-      value: SchemaOutput<CardSchema>
+      value: ChronoProjectionInput<
+        SchemaOutput<CardSchema>,
+        SchemaOutput<TimeSchema>
+      >
     ) => StandardSchemaV1.Result<
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >)
