@@ -19,6 +19,9 @@ describe('defineChrono', () => {
       },
       create() {
         return {
+          now() {
+            return 0
+          },
           difference(from, to) {
             return to - from
           },
@@ -34,6 +37,7 @@ describe('defineChrono', () => {
     expect('card' in chrono.schema).toBe(false)
     expect('revlog' in chrono.schema).toBe(false)
     expect(chrono.defaultValue).toEqual({})
+    expect(instance.now()).toBe(0)
     expect(instance.difference(3, 3)).toBe(0)
   })
 
@@ -86,6 +90,9 @@ describe('defineChrono', () => {
       },
       create() {
         return {
+          now() {
+            return 0
+          },
           difference(from, to) {
             return to - from
           },
@@ -104,6 +111,7 @@ describe('defineChrono', () => {
     expectTypeOf<ChronoRevlogOf<typeof chrono>>().toEqualTypeOf<{
       readonly elapsedDays: number
     }>()
+    expectTypeOf(chrono.create().now).toEqualTypeOf<() => number>()
     expectTypeOf(chrono.schema.config).toEqualTypeOf<typeof emptyObjectSchema>()
     expectTypeOf(chrono.schema.time).toEqualTypeOf<typeof numberSchema>()
     expectTypeOf(chrono.schema.card).toEqualTypeOf<typeof numberCardSchema>()
@@ -119,6 +127,9 @@ describe('defineChrono', () => {
       projection: numberProjectionSchema,
       create() {
         return {
+          now() {
+            return 0
+          },
           difference(from, to) {
             return to - from
           },
@@ -154,6 +165,9 @@ describe('defineChrono', () => {
       },
       create() {
         return {
+          now() {
+            return 0
+          },
           difference(from, to) {
             return to - from
           },

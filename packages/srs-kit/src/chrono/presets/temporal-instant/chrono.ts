@@ -90,12 +90,15 @@ export const temporalInstantChrono = defineChrono({
     const differenceMode = fractionalDays ? 'fractional' : addMode
 
     return {
+      now,
       difference: (from, to) =>
         differenceByMode[differenceMode](from, to, timezone),
       add: (from, days) => addByMode[addMode](from, days, timezone),
     }
   },
 })
+
+const now = () => Temporal.Now.instant()
 
 function zonedDateDifferenceInDays(
   from: Temporal.Instant,

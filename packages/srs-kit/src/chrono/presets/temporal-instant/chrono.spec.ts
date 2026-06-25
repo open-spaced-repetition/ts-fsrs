@@ -66,10 +66,16 @@ describe('temporalInstantChrono', () => {
     const temporalConfig = parse(temporalInstantChrono.schema.config, {
       timezone: 'Asia/Shanghai',
     })
-    const { add, difference } = temporalInstantChrono.create({
+    const {
+      add,
+      difference,
+      now: getCurrent,
+    } = temporalInstantChrono.create({
       config: temporalConfig,
     })
+    const current = getCurrent()
 
+    expect(current).toBeInstanceOf(Temporal.Instant)
     expect(parse(temporalInstantChrono.schema.time, now)).toBe(now)
     expect(() => parse(temporalInstantChrono.schema.time, {})).toThrow(
       'Expected Temporal.Instant'

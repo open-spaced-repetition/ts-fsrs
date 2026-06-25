@@ -22,8 +22,10 @@ describe('dateChrono', () => {
     const now = new Date('2026-06-20T00:00:00.000Z')
     const later = new Date('2026-06-21T12:00:00.000Z')
     const epoch = new Date(0)
-    const { add, difference } = dateChrono.create()
+    const { add, difference, now: getCurrent } = dateChrono.create()
+    const current = getCurrent()
 
+    expect(current).toBeInstanceOf(Date)
     expect(parse(dateChrono.schema.time, now)).toBe(now)
     expect(() => parse(dateChrono.schema.time, epoch)).toThrow(
       'Expected valid Date'

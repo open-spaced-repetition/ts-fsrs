@@ -14,6 +14,7 @@ import type {
 // Chrono Core
 // ==========
 export interface ChronoCore<Time> {
+  readonly now: () => Time
   /**
    * Returns the distance from the previous review time to the current time.
    */

@@ -45,18 +45,18 @@ export const dateChrono = defineChrono({
     },
   },
   create() {
-    const difference = (from: Date, to: Date): number =>
-      dateDiffInDays(from, to)
-
-    const add = (from: Date, days: number): Date =>
-      new Date(from.getTime() + days * MS_PER_DAY)
-
     return {
+      now,
       difference,
       add,
     }
   },
 })
+
+const now = (): Date => new Date()
+const difference = (from: Date, to: Date): number => dateDiffInDays(from, to)
+const add = (from: Date, days: number): Date =>
+  new Date(from.getTime() + days * MS_PER_DAY)
 
 export function dateDiffInDays(last: Date, cur: Date): number {
   const utc1 = Date.UTC(

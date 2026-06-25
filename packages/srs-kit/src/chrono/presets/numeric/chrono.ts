@@ -8,12 +8,14 @@ export const numericChrono = defineChrono({
   },
   projection: numericProjectionSchema,
   create() {
-    const difference = (from: number, to: number): number => to - from
-    const add = (from: number, days: number): number => from + days
-
     return {
+      now,
       difference,
       add,
     }
   },
 })
+
+const now = (): number => 0
+const difference = (from: number, to: number): number => to - from
+const add = (from: number, days: number): number => from + days

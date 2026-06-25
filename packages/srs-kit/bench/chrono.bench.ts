@@ -57,6 +57,7 @@ describe('defineChrono', () => {
       projection: numericProjection,
       create() {
         return {
+          now: () => 0,
           difference: (from: number, to: number) => to - from,
           add: (from: number, days: number) => from + days,
         }
@@ -79,6 +80,7 @@ describe('defineChrono', () => {
       },
       create() {
         return {
+          now: () => 0,
           difference: (from: number, to: number) => to - from,
           add: (from: number, days: number) => from + days,
         }
@@ -104,6 +106,9 @@ describe('numericChrono preset', () => {
   bench('create', () => {
     numericChrono.create()
   })
+  bench('now', () => {
+    core.now()
+  })
   bench('projection', () => {
     numericChrono.projection['~standard'].validate({ time: 4.5 })
   })
@@ -124,6 +129,9 @@ describe('dateChrono preset', () => {
 
   bench('create', () => {
     dateChrono.create()
+  })
+  bench('now', () => {
+    core.now()
   })
   bench('projection', () => {
     dateChrono.projection['~standard'].validate({ card, time: later })
@@ -170,6 +178,9 @@ function describeTemporalInstant(
 
     bench('create', () => {
       temporalInstantChrono.create({ config })
+    })
+    bench('now', () => {
+      core.now()
     })
     bench('projection', () => {
       temporalInstantChrono.projection['~standard'].validate({
