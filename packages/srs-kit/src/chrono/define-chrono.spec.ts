@@ -15,12 +15,12 @@ describe('defineChrono', () => {
         time: numberSchema,
       },
       projection(value) {
-        return { value: { previous: null, current: value.time } }
+        return { value: { previous: value.time, current: value.time } }
       },
       create() {
         return {
           difference(from, to) {
-            return from === null ? 0 : to - from
+            return to - from
           },
           add(from, days) {
             return from + days
@@ -34,7 +34,7 @@ describe('defineChrono', () => {
     expect('card' in chrono.schema).toBe(false)
     expect('revlog' in chrono.schema).toBe(false)
     expect(chrono.defaultValue).toEqual({})
-    expect(instance.difference(null, 3)).toBe(0)
+    expect(instance.difference(3, 3)).toBe(0)
   })
 
   it('preserves schema and context inference', () => {
@@ -56,7 +56,7 @@ describe('defineChrono', () => {
 
         return {
           value: {
-            previous: value.card.previous,
+            previous: value.card.previous ?? value.time,
             current: value.time,
           },
         }
@@ -66,7 +66,7 @@ describe('defineChrono', () => {
           expectTypeOf(config).toEqualTypeOf<Readonly<Record<string, never>>>()
           expectTypeOf(previous).toEqualTypeOf<
             | Readonly<{
-                readonly previous: number | null
+                readonly previous: number
                 readonly current: number
               }>
             | undefined
@@ -87,7 +87,7 @@ describe('defineChrono', () => {
       create() {
         return {
           difference(from, to) {
-            return from === null ? 0 : to - from
+            return to - from
           },
           add(from, days) {
             return from + days
@@ -120,7 +120,7 @@ describe('defineChrono', () => {
       create() {
         return {
           difference(from, to) {
-            return from === null ? 0 : to - from
+            return to - from
           },
           add(from, days) {
             return from + days
@@ -149,7 +149,7 @@ describe('defineChrono', () => {
 
       return {
         value: {
-          previous: value.card.previous,
+          previous: value.card.previous ?? value.time,
           current: value.time,
         },
       }
@@ -207,7 +207,7 @@ const numberProjectionSchema = defineSchema<
     readonly time: number
   },
   {
-    readonly previous: number | null
+    readonly previous: number
     readonly current: number
   }
 >((value) => {
@@ -223,7 +223,9 @@ const numberProjectionSchema = defineSchema<
     return { issues: [{ message: 'Expected valid time' }] }
   }
 
-  return { value: { previous: card.value.previous, current: value.time } }
+  return {
+    value: { previous: card.value.previous ?? value.time, current: value.time },
+  }
 })
 
 const revlogSchema = defineSchema<{ readonly elapsedDays: number }>((value) => {
