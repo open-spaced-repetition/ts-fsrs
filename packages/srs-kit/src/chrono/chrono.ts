@@ -15,9 +15,8 @@ import type {
 export interface ChronoCore<Time> {
   /**
    * Returns the distance from the previous review time to the current time.
-   * When `from` is `null`, this must return `0`.
    */
-  readonly difference: (from: Time | null, to: Time) => number
+  readonly difference: (from: Time, to: Time) => number
   readonly add: (from: Time, days: number) => Time
 }
 
@@ -66,7 +65,7 @@ type ChronoSchemaFields<Env extends BlankChronoEnv> = ChronoPart<
 // Chrono Projection
 // ==========
 export interface ChronoTimeProjection<Time> {
-  readonly previous: Time | null
+  readonly previous: Time
   readonly current: Time
 }
 
