@@ -4,6 +4,7 @@ import {
   type AnySchema,
   defineSchema,
   type EmptyPart,
+  type SchemaInput,
   type SchemaOutput,
 } from '../schema/index.js'
 import type {
@@ -47,7 +48,7 @@ type ChronoProjectionInputFor<
   CardSchema extends AnyObjectSchema | undefined,
 > = ChronoProjectionInput<
   SchemaOutput<TimeSchema>,
-  CardSchema extends AnyObjectSchema ? SchemaOutput<CardSchema> : never
+  CardSchema extends AnyObjectSchema ? SchemaInput<CardSchema> : never
 >
 
 type ChronoProjectionDefinition<

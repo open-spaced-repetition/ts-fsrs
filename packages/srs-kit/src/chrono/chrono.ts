@@ -6,6 +6,7 @@ import type {
   EmptyPart,
   emptyObjectSchema,
   FieldDefault,
+  SchemaInput,
   SchemaOutput,
 } from '../schema/index.js'
 
@@ -79,7 +80,7 @@ type ChronoProjectedCard<Env extends BlankChronoEnv> = [
   ChronoFieldSchema<Env, 'card'>,
 ] extends [never]
   ? never
-  : SchemaOutput<ChronoFieldSchema<Env, 'card'>>
+  : SchemaInput<ChronoFieldSchema<Env, 'card'>>
 
 export type ChronoProjection<Env extends BlankChronoEnv = BlankChronoEnv> =
   StandardSchemaV1<

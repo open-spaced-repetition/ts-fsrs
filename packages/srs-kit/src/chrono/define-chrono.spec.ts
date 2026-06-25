@@ -132,6 +132,43 @@ describe('defineChrono', () => {
     expect(chrono.projection).toBe(numberProjectionSchema)
   })
 
+  it('types projection card as schema input', () => {
+    const chrono = defineChrono({
+      schema: {
+        card: normalizedCardSchema,
+        time: numberSchema,
+      },
+      projection(value) {
+        expectTypeOf(value.card).toEqualTypeOf<
+          Readonly<{
+            readonly previous: number | null
+          }>
+        >()
+
+        return {
+          value: {
+            previous: value.card.previous ?? value.time,
+            current: value.time,
+          },
+        }
+      },
+      create() {
+        return {
+          difference(from, to) {
+            return to - from
+          },
+          add(from, days) {
+            return from + days
+          },
+        }
+      },
+    })
+
+    expectTypeOf<ChronoCardOf<typeof chrono>>().toEqualTypeOf<{
+      readonly previous: number
+    }>()
+  })
+
   it('preserves card presence in projection helpers', () => {
     defineChronoProjection<{
       readonly card: {
@@ -196,6 +233,25 @@ const numberCardSchema = defineSchema<{
   }
 
   return { value: { previous, current } }
+})
+
+const normalizedCardSchema = defineSchema<
+  { readonly previous: number | null },
+  { readonly previous: number }
+>((value) => {
+  if (typeof value !== 'object' || value === null || !('previous' in value)) {
+    return { issues: [{ message: 'Expected normalized card fields' }] }
+  }
+
+  const { previous } = value
+  if (
+    previous !== null &&
+    (typeof previous !== 'number' || !Number.isFinite(previous))
+  ) {
+    return { issues: [{ message: 'Expected valid previous' }] }
+  }
+
+  return { value: { previous: previous ?? 0 } }
 })
 
 const numberProjectionSchema = defineSchema<
