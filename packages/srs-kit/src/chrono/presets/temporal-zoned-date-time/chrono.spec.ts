@@ -9,6 +9,15 @@ import { temporalZonedDateTimeChrono } from './index.js'
 
 const NS_PER_DAY = 86_400_000_000_000n
 
+function restoreTemporal(descriptor: PropertyDescriptor | undefined): void {
+  if (descriptor) {
+    Object.defineProperty(globalThis, 'Temporal', descriptor)
+    return
+  }
+
+  Reflect.deleteProperty(globalThis, 'Temporal')
+}
+
 function createZonedDateTime(epochNanoseconds: bigint): Temporal.ZonedDateTime {
   const TemporalZonedDateTime = globalThis.Temporal?.ZonedDateTime
 
@@ -20,6 +29,31 @@ function createZonedDateTime(epochNanoseconds: bigint): Temporal.ZonedDateTime {
 }
 
 describe('temporalZonedDateTimeChrono', () => {
+  it('fails at concrete runtime boundaries when Temporal is unavailable', () => {
+    const originalTemporal = Object.getOwnPropertyDescriptor(
+      globalThis,
+      'Temporal'
+    )
+
+    Object.defineProperty(globalThis, 'Temporal', {
+      configurable: true,
+      value: undefined,
+    })
+
+    try {
+      expect(() =>
+        temporalZonedDateTimeChrono.create({
+          config: { fractionalDays: false, timezone: 'UTC' },
+        })
+      ).toThrow('Temporal.ZonedDateTime is not available')
+      expect(() => parse(temporalZonedDateTimeChrono.schema.time, {})).toThrow(
+        'Temporal.ZonedDateTime is not available'
+      )
+    } finally {
+      restoreTemporal(originalTemporal)
+    }
+  })
+
   it('provides a Temporal.ZonedDateTime adapter', () => {
     expectTypeOf<
       ChronoTimeOf<typeof temporalZonedDateTimeChrono>
