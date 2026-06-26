@@ -23,7 +23,7 @@ describe('defineChrono type display', () => {
   const expectedChronos = {
     chronoNumeric: `const chronoNumeric: Chrono<{
     readonly time: SRSSchema<{
-        input: unknown;
+        input: {};
         output: number;
     }>;
     readonly fields: {};
@@ -35,12 +35,24 @@ describe('defineChrono type display', () => {
     }>;
     readonly fields: {
         readonly card: SRSSchema<{
-            input: DateCardInputFields;
-            output: DateCardOutputFields;
+            input: {
+                dueAt: Date;
+                lastReviewAt?: (Date | null) | undefined;
+            };
+            output: {
+                dueAt: Date;
+                lastReviewAt: Date | null;
+            };
         }>;
         readonly revlog: SRSSchema<{
-            input: DateRevlogFields;
-            output: DateRevlogFields;
+            input: {
+                dueAt: Date;
+                lastReviewAt: Date;
+            };
+            output: {
+                dueAt: Date;
+                lastReviewAt: Date;
+            };
         }>;
     };
 }>`,
@@ -50,17 +62,35 @@ describe('defineChrono type display', () => {
         output: Temporal.Instant;
     }>;
     readonly config: SRSSchema<{
-        input: Partial<TemporalInstantConfig>;
-        output: TemporalInstantConfig;
+        input: {
+            readonly timezone?: string | undefined;
+            readonly fractionalDays?: boolean | undefined;
+        };
+        output: {
+            readonly timezone: string;
+            readonly fractionalDays: boolean;
+        };
     }>;
     readonly fields: {
         readonly card: SRSSchema<{
-            input: TemporalInstantCardInputFields;
-            output: TemporalInstantCardOutputFields;
+            input: {
+                dueAt: Temporal.Instant;
+                lastReviewAt?: (Temporal.Instant | null) | undefined;
+            };
+            output: {
+                dueAt: Temporal.Instant;
+                lastReviewAt: Temporal.Instant | null;
+            };
         }>;
         readonly revlog: SRSSchema<{
-            input: TemporalInstantRevlogFields;
-            output: TemporalInstantRevlogFields;
+            input: {
+                dueAt: Temporal.Instant;
+                lastReviewAt: Temporal.Instant;
+            };
+            output: {
+                dueAt: Temporal.Instant;
+                lastReviewAt: Temporal.Instant;
+            };
         }>;
     };
 }>`,
@@ -83,5 +113,5 @@ describe('defineChrono type display', () => {
     for (const [marker, expected] of Object.entries(expectedCores)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
-  }, 20_000)
-})
+  })
+}, 20_000)
