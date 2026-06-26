@@ -1,6 +1,6 @@
 {
   "name": "@open-spaced-repetition/srs-kit",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
   "type": "module",
   "main": "dist/cjs/index.js",
@@ -50,6 +50,50 @@
         "default": "./dist/esm/model/index.js"
       },
       "default": "./dist/esm/model/index.js"
+    },
+    "./chrono": {
+      "require": {
+        "types": "./dist/cjs/chrono/index.d.ts",
+        "default": "./dist/cjs/chrono/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/chrono/index.d.ts",
+        "default": "./dist/esm/chrono/index.js"
+      },
+      "default": "./dist/esm/chrono/index.js"
+    },
+    "./chrono/date": {
+      "require": {
+        "types": "./dist/cjs/chrono/date/index.d.ts",
+        "default": "./dist/cjs/chrono/date/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/chrono/date/index.d.ts",
+        "default": "./dist/esm/chrono/date/index.js"
+      },
+      "default": "./dist/esm/chrono/date/index.js"
+    },
+    "./chrono/numeric": {
+      "require": {
+        "types": "./dist/cjs/chrono/numeric/index.d.ts",
+        "default": "./dist/cjs/chrono/numeric/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/chrono/numeric/index.d.ts",
+        "default": "./dist/esm/chrono/numeric/index.js"
+      },
+      "default": "./dist/esm/chrono/numeric/index.js"
+    },
+    "./chrono/temporal-instant": {
+      "require": {
+        "types": "./dist/cjs/chrono/temporal-instant/index.d.ts",
+        "default": "./dist/cjs/chrono/temporal-instant/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/chrono/temporal-instant/index.d.ts",
+        "default": "./dist/esm/chrono/temporal-instant/index.js"
+      },
+      "default": "./dist/esm/chrono/temporal-instant/index.js"
     }
   },
   "sideEffects": false,
@@ -64,7 +108,9 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "tsdown": "0.22.1"
+    "temporal-polyfill": "^1.0.1",
+    "tsdown": "0.22.1",
+    "unrun": "^0.3.1"
   },
   "author": "ishiko",
   "license": "MIT",
