@@ -29,6 +29,9 @@
     "check:fix": {
       "outputs": []
     },
+    "typecheck": {
+      "outputs": []
+    },
     "test": {
       "dependsOn": ["^build"],
       "outputs": [],
