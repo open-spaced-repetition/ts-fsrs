@@ -8,6 +8,6 @@
       "@vendor/*": ["./vendor/*"]
     }
   },
-  "include": ["src/**/*", "bench/**/*"],
+  "include": ["src/**/*", "bench/**/*", "vitest.d.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -7,6 +7,7 @@
   "scripts": {
     "check": "turbo run check",
     "check:fix": "turbo run check:fix",
+    "typecheck": "turbo run typecheck",
     "dev": "turbo run dev",
     "test": "turbo run test",
     "test:coverage": "turbo run test:coverage",

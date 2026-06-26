@@ -8,8 +8,6 @@ export const Rating = Object.freeze({
   Easy: 4,
 } as const)
 
-export type Rating = (typeof Rating)[keyof typeof Rating]
-
 export const ratings = Object.freeze([
   Rating.Manual,
   Rating.Again,
@@ -17,6 +15,8 @@ export const ratings = Object.freeze([
   Rating.Good,
   Rating.Easy,
 ] as const)
+
+export type Rating = (typeof ratings)[number]
 
 export const grades = Object.freeze([
   Rating.Again,

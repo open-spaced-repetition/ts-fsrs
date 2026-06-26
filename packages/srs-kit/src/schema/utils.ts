@@ -1,7 +1,46 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: wildcard constraint for generic bounds */
-export type Prettify<T> = { [K in keyof T]: T[K] } & {}
+type IsAny<T> = 0 extends 1 & T ? true : false
+
+type Primitive = null | undefined | string | number | boolean | symbol | bigint
+
+type ConstructorInstance<T> = T extends abstract new (
+  ...args: any
+) => infer I
+  ? IsAny<I> extends true
+    ? never
+    : unknown extends I
+      ? never
+      : keyof I extends never
+        ? never
+        : I
+  : never
+
+type ConstructorInstances<T> = {
+  [K in keyof T]: ConstructorInstance<T[K]>
+}[keyof T]
+
+type GlobalBuiltIn = {
+  [K in keyof typeof globalThis]: K extends 'Object'
+    ? never
+    : ConstructorInstance<(typeof globalThis)[K]>
+}[keyof typeof globalThis]
+
+type GlobalNamespaceBuiltIn<K extends PropertyKey> =
+  K extends keyof typeof globalThis
+    ? ConstructorInstances<(typeof globalThis)[K]>
+    : never
+
+type TemporalBuiltIn = GlobalNamespaceBuiltIn<'Temporal'>
+
+type BuiltIn = Primitive | GlobalBuiltIn | TemporalBuiltIn
+
+export type Prettify<T> = [T] extends [BuiltIn]
+  ? T
+  : { [K in keyof T]: T[K] } & {}
 
 export type EmptyObject = Record<PropertyKey, never>
+
+export type EmptyPart = Record<never, never>
 
 export type MutableRecord = Record<PropertyKey, unknown>
 

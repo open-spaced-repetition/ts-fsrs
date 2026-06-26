@@ -2,7 +2,7 @@ import type { StandardSchemaV1 } from '@vendor/standard-schema.js'
 import type { Prettify } from '@/schema/index.js'
 import type { AnySchema, SchemaOutput, SRSSchema } from './standard.js'
 
-export function defineSchema<Output, Input = Output>(
+export function defineSchema<Input, Output = Input>(
   validate: (value: unknown) => StandardSchemaV1.Result<Output>
 ): SRSSchema<{ input: Prettify<Input>; output: Prettify<Output> }> {
   return {
@@ -25,7 +25,7 @@ export function defineSchema<Output, Input = Output>(
       }
       return { success: true, data: result.value }
     },
-  }
+  } as SRSSchema<{ input: Prettify<Input>; output: Prettify<Output> }>
 }
 
 export function parse<S extends AnySchema>(

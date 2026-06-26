@@ -7,14 +7,14 @@ export const State = Object.freeze({
   Relearning: 3,
 } as const)
 
-export type State = (typeof State)[keyof typeof State]
-
 export const states = Object.freeze([
   State.New,
   State.Learning,
   State.Review,
   State.Relearning,
-] as const) satisfies readonly State[]
+] as const)
+
+export type State = (typeof states)[number]
 
 export const stateSchema = defineSchema<State>((value) =>
   value === State.New ||
