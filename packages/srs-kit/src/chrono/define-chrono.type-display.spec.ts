@@ -1,90 +1,34 @@
-import path from 'node:path'
-import ts from 'typescript'
+/** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
+import { dateChrono } from './presets/date/chrono.js'
+import { numericChrono } from './presets/numeric/chrono.js'
+import { temporalInstantChrono } from './presets/temporal-instant/chrono.js'
 
-const packageRoot = path.resolve(import.meta.dirname, '../..')
-const configPath = path.join(packageRoot, 'tsconfig.json')
-const configFile = ts.readConfigFile(configPath, ts.sys.readFile)
-const parsedConfig = ts.parseJsonConfigFileContent(
-  configFile.config,
-  ts.sys,
-  packageRoot
-)
+// Type fixtures — names must be unique and appear before any expected-value
+// strings so that quickInfoAt's indexOf hits the declaration first.
+const chronoNumeric = numericChrono
+const chronoDate = dateChrono
+const chronoTemporalInstant = temporalInstantChrono
+const coreNumeric = numericChrono.create()
+const coreDate = dateChrono.create()
+const coreTemporalInstant = temporalInstantChrono.create({
+  config: { timezone: 'UTC', fractionalDays: false },
+})
 
-function createService() {
-  const files = new Map(
-    parsedConfig.fileNames.map((file) => [path.resolve(file), { version: '0' }])
-  )
-
-  return ts.createLanguageService({
-    getScriptFileNames: () => Array.from(files.keys()),
-    getScriptVersion: (file) => files.get(path.resolve(file))?.version ?? '0',
-    getScriptSnapshot: (file) =>
-      ts.sys.fileExists(file)
-        ? ts.ScriptSnapshot.fromString(ts.sys.readFile(file) ?? '')
-        : undefined,
-    getCurrentDirectory: () => packageRoot,
-    getCompilationSettings: () => parsedConfig.options,
-    getDefaultLibFileName: (options) => ts.getDefaultLibFilePath(options),
-    fileExists: ts.sys.fileExists,
-    readFile: ts.sys.readFile,
-    readDirectory: ts.sys.readDirectory,
-  })
-}
-
-function quickInfoAt(service: ts.LanguageService, rel: string, marker: string) {
-  const fileName = path.join(packageRoot, rel)
-  const source = ts.sys.readFile(fileName)
-
-  if (!source) {
-    throw new Error(`Missing source file: ${rel}`)
-  }
-
-  const markerStart = source.indexOf(marker)
-  if (markerStart === -1) {
-    throw new Error(`Missing marker "${marker}" in ${rel}`)
-  }
-
-  const info = service.getQuickInfoAtPosition(
-    fileName,
-    markerStart + marker.length - 1
-  )
-
-  if (!info) {
-    throw new Error(`Missing quick info for "${marker}" in ${rel}`)
-  }
-
-  return ts.displayPartsToString(info.displayParts)
-}
+const SELF = 'src/chrono/define-chrono.type-display.spec.ts'
 
 describe('defineChrono type display', () => {
-  it('keeps chrono preset hovers readable', () => {
-    const service = createService()
-    const numeric = quickInfoAt(
-      service,
-      'src/chrono/presets/numeric/chrono.ts',
-      'numericChrono'
-    )
-    const date = quickInfoAt(
-      service,
-      'src/chrono/presets/date/chrono.ts',
-      'dateChrono'
-    )
-    const temporalInstant = quickInfoAt(
-      service,
-      'src/chrono/presets/temporal-instant/chrono.ts',
-      'temporalInstantChrono'
-    )
+  const service = getTypeDisplayService()
 
-    expect(numeric).toBe(`const numericChrono: Chrono<{
+  const expectedChronos = {
+    chronoNumeric: `const chronoNumeric: Chrono<{
     readonly time: SRSSchema<{
         input: unknown;
         output: number;
     }>;
     readonly fields: {};
-}>`)
-
-    expect(date).toBe(`const dateChrono: Chrono<{
+}>`,
+    chronoDate: `const chronoDate: Chrono<{
     readonly time: SRSSchema<{
         input: Date;
         output: Date;
@@ -99,9 +43,8 @@ describe('defineChrono type display', () => {
             output: DateRevlogFields;
         }>;
     };
-}>`)
-
-    expect(temporalInstant).toBe(`const temporalInstantChrono: Chrono<{
+}>`,
+    chronoTemporalInstant: `const chronoTemporalInstant: Chrono<{
     readonly time: SRSSchema<{
         input: Temporal.Instant;
         output: Temporal.Instant;
@@ -120,6 +63,25 @@ describe('defineChrono type display', () => {
             output: TemporalInstantRevlogFields;
         }>;
     };
-}>`)
+}>`,
+  }
+
+  const expectedCores = {
+    coreNumeric: 'const coreNumeric: ChronoCore<number>',
+    coreDate: 'const coreDate: ChronoCore<Date>',
+    coreTemporalInstant:
+      'const coreTemporalInstant: ChronoCore<Temporal.Instant>',
+  }
+
+  it('keeps chrono preset hovers readable', () => {
+    for (const [marker, expected] of Object.entries(expectedChronos)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('shows ChronoCore<T> for chrono.create()', () => {
+    for (const [marker, expected] of Object.entries(expectedCores)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
   }, 20_000)
 })
