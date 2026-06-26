@@ -6,11 +6,26 @@ import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.j
 import { numberSchema } from '@/schema/index.js'
 
 const NS_PER_DAY = 86_400_000_000_000n
+const temporalImplementations = ['native', 'polyfill'] as const
+type TemporalImplementation = (typeof temporalImplementations)[number]
+
 const nodeMajor = Number(process.versions.node.split('.')[0])
 const requestedTemporalImplementation =
   process.env.SRS_KIT_TEMPORAL_IMPLEMENTATION
-const temporalImplementation =
-  requestedTemporalImplementation ?? (nodeMajor >= 26 ? 'native' : 'polyfill')
+if (
+  requestedTemporalImplementation !== undefined &&
+  !temporalImplementations.includes(
+    requestedTemporalImplementation as TemporalImplementation
+  )
+) {
+  throw new Error(
+    `Unsupported Temporal benchmark implementation "${requestedTemporalImplementation}". Use "native" or "polyfill".`
+  )
+}
+
+const temporalImplementation: TemporalImplementation =
+  (requestedTemporalImplementation as TemporalImplementation | undefined) ??
+  (nodeMajor >= 26 ? 'native' : 'polyfill')
 
 function setTemporal(temporal: typeof Temporal): void {
   Object.defineProperty(globalThis, 'Temporal', {
@@ -20,7 +35,10 @@ function setTemporal(temporal: typeof Temporal): void {
 }
 
 if (temporalImplementation === 'polyfill') {
-  const { Temporal: PolyfillTemporal } = await import('temporal-polyfill')
+  // The package root delegates to native Temporal when present.
+  const { Temporal: PolyfillTemporal } = await import(
+    'temporal-polyfill/implementation'
+  )
   setTemporal(PolyfillTemporal as typeof Temporal)
 } else if (requestedTemporalImplementation === 'native' && nodeMajor < 26) {
   throw new Error(
