@@ -106,20 +106,18 @@ export type ChronoSchema<Env extends BlankChronoEnv = BlankChronoEnv> = {
 type ChronoDefaultPart<
   Env extends BlankChronoEnv,
   Key extends 'card' | 'revlog',
-  Schema extends AnyObjectSchema,
-> = [Schema] extends [never]
+> = [ChronoFieldSchema<Env, Key>] extends [never]
   ? EmptyPart
   : {
       readonly [K in Key]?: FieldDefault<
-        Schema,
+        ChronoFieldSchema<Env, Key>,
         ChronoDefaultCtx<ChronoConfig<Env>, SchemaOutput<Env['time']>>
       >
     }
 
 export type ChronoDefaultValue<Env extends BlankChronoEnv = BlankChronoEnv> =
   Readonly<
-    ChronoDefaultPart<Env, 'card', ChronoFieldSchema<Env, 'card'>> &
-      ChronoDefaultPart<Env, 'revlog', ChronoFieldSchema<Env, 'revlog'>>
+    ChronoDefaultPart<Env, 'card'> & ChronoDefaultPart<Env, 'revlog'>
   >
 
 export type ChronoCreate<Env extends BlankChronoEnv = BlankChronoEnv> = [

@@ -144,19 +144,5 @@ export function defineChrono<const Schema extends ChronoDefinitionSchema>(
     projection: resolveChronoProjection(definition.projection),
     defaultValue: definition.defaultValue ?? {},
     create: definition.create,
-  } as unknown as Chrono<{
-    readonly [Key in keyof ({
-      readonly time: Schema['time']
-    } & ChronoDefinitionConfig<Schema> & {
-        readonly fields: {
-          readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
-        }
-      })]: ({
-      readonly time: Schema['time']
-    } & ChronoDefinitionConfig<Schema> & {
-        readonly fields: {
-          readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
-        }
-      })[Key]
-  }>
+  } as unknown as Chrono<ChronoDefinitionEnv<Schema>>
 }
