@@ -116,9 +116,7 @@ type ChronoDefaultPart<
     }
 
 export type ChronoDefaultValue<Env extends BlankChronoEnv = BlankChronoEnv> =
-  Readonly<
-    ChronoDefaultPart<Env, 'card'> & ChronoDefaultPart<Env, 'revlog'>
-  >
+  Readonly<ChronoDefaultPart<Env, 'card'> & ChronoDefaultPart<Env, 'revlog'>>
 
 export type ChronoCreate<Env extends BlankChronoEnv = BlankChronoEnv> = [
   ChronoConfigSchema<Env>,
