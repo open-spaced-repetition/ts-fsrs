@@ -6,11 +6,13 @@ import {
   temporalInstantRevlogFieldsSchema,
   temporalInstantSchema,
 } from './schema.js'
+import {
+  addFixedUtcDays,
+  UTC_TIMEZONE,
+  utcDateDifferenceInDays,
+} from './utc.js'
 
-const UTC_TIMEZONE = 'UTC'
-const MS_PER_DAY = 86_400_000
 const NS_PER_MS = 1_000_000n
-const NS_PER_DAY = 86_400_000_000_000n
 
 type DifferenceMode = 'fractional' | 'utc' | 'zoned'
 type AddMode = 'utc' | 'zoned'
@@ -60,7 +62,7 @@ export const temporalInstantChrono = defineChrono({
 
     return {
       value: {
-        previous: value.card.lastReviewAt ?? time.value,
+        previous: card.value.lastReviewAt ?? time.value,
         current: time.value,
       },
     }
@@ -125,73 +127,20 @@ function addZonedCalendarDays(
   days: number,
   timezone: string
 ): Temporal.Instant {
-  const { whole, fraction } = splitDays(days)
-  const zdt = from.toZonedDateTimeISO(timezone)
-  const afterDays = zdt.add({ days: whole })
+  const whole = Math.trunc(days)
+  const fraction = days - whole
+  const shifted = from.toZonedDateTimeISO(timezone).add({ days: whole })
 
   if (fraction === 0) {
-    return afterDays.toInstant()
+    return shifted.toInstant()
   }
 
-  const milliseconds = fractionToMilliseconds(
-    fraction,
-    zonedDayLengthInMilliseconds(afterDays, fraction)
+  const neighbor = shifted.add({ days: fraction > 0 ? 1 : -1 })
+  const dayLengthMs = Math.abs(
+    Number((neighbor.epochNanoseconds - shifted.epochNanoseconds) / NS_PER_MS)
   )
+  const milliseconds =
+    Math.round(Math.abs(fraction) * dayLengthMs) * Math.sign(fraction)
 
-  return afterDays.add({ milliseconds }).toInstant()
-}
-
-function utcDateDifferenceInDays(
-  from: Temporal.Instant,
-  to: Temporal.Instant
-): number {
-  return Number(utcDayIndex(to) - utcDayIndex(from))
-}
-
-function utcDayIndex(value: Temporal.Instant): bigint {
-  const epochNanoseconds = value.epochNanoseconds
-  const quotient = epochNanoseconds / NS_PER_DAY
-  const remainder = epochNanoseconds % NS_PER_DAY
-
-  return remainder < 0n ? quotient - 1n : quotient
-}
-
-function addFixedUtcDays(
-  from: Temporal.Instant,
-  days: number
-): Temporal.Instant {
-  const { whole, fraction } = splitDays(days)
-  const milliseconds = fractionToMilliseconds(fraction, MS_PER_DAY)
-  const nanoseconds =
-    BigInt(whole) * NS_PER_DAY + BigInt(milliseconds) * NS_PER_MS
-
-  return Temporal.Instant.fromEpochNanoseconds(
-    from.epochNanoseconds + nanoseconds
-  )
-}
-
-function splitDays(days: number): {
-  readonly whole: number
-  readonly fraction: number
-} {
-  const whole = Math.trunc(days)
-
-  return { whole, fraction: days - whole }
-}
-
-function fractionToMilliseconds(fraction: number, dayLengthMs: number): number {
-  return Math.round(Math.abs(fraction) * dayLengthMs) * Math.sign(fraction)
-}
-
-function zonedDayLengthInMilliseconds(
-  from: Temporal.ZonedDateTime,
-  fraction: number
-): number {
-  const direction = fraction > 0 ? 1 : -1
-  const neighbor = from.add({ days: direction })
-
-  return Number(
-    ((neighbor.epochNanoseconds - from.epochNanoseconds) * BigInt(direction)) /
-      NS_PER_MS
-  )
+  return shifted.add({ milliseconds }).toInstant()
 }
