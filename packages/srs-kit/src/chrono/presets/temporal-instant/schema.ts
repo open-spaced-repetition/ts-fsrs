@@ -25,16 +25,18 @@ export function getTemporalInstantConstructor(): typeof Temporal.Instant {
 
   if (temporal?.Instant === undefined) {
     throw new ReferenceError(
-      'Temporal.Instant is not available in this runtime. Install a Temporal polyfill or use a non-Temporal time adapter.'
+      'Temporal.Instant is not available in this runtime. Install a Temporal polyfill or upgrade to Node.js 26+ for native Temporal support. See https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Temporal#browser_compatibility'
     )
   }
 
   return temporal.Instant
 }
 
+const UTC_OFFSET_RE = /^[+-](?:[01]\d|2[0-3]):[0-5]\d$/
+
 function parseTimeZoneId(timezone: string): string | undefined {
-  if (timezone === 'UTC') {
-    return 'UTC'
+  if (timezone === 'UTC' || UTC_OFFSET_RE.test(timezone)) {
+    return timezone
   }
 
   try {

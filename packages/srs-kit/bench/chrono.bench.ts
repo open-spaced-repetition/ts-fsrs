@@ -164,6 +164,7 @@ function describeTemporalInstant(
     const later = createInstant(temporal, (NS_PER_DAY * 3n) / 2n)
     const rawConfig = { timezone: 'Asia/Shanghai' }
     const rawUtcConfig = { timezone: 'UTC' }
+    const rawOffsetConfig = { timezone: '+09:00' }
     const config = temporalInstantChrono.schema.config.parse(rawConfig)
     const core = temporalInstantChrono.create({ config })
     const fractionalCore = temporalInstantChrono.create({
@@ -182,6 +183,9 @@ function describeTemporalInstant(
     })
     bench('parse config UTC', () => {
       temporalInstantChrono.schema.config.parse(rawUtcConfig)
+    })
+    bench('parse config offset', () => {
+      temporalInstantChrono.schema.config.parse(rawOffsetConfig)
     })
     bench('now', () => {
       core.now()
