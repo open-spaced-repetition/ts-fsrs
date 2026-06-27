@@ -1,5 +1,113 @@
 # ts-fsrs
 
+## 6.0.0-beta.0
+
+### Major Changes
+
+- [#375](https://github.com/open-spaced-repetition/ts-fsrs/pull/375) [`17afe2a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/17afe2aaedc0467cc778b5fba9ea5e3d92834077) Thanks [@ishiko732](https://github.com/ishiko732)! - - feat: Add optional `desired_retention` to `FSRSAlgorithm.next_interval`.
+
+  `next_interval(stability)` is now `next_interval(stability, desired_retention?)`. When omitted, `desired_retention` defaults to `parameters.request_retention`. The algorithm layer no longer clamps by `parameters.maximum_interval`; scheduler paths continue to read `request_retention` from parameters and apply maximum interval limits.
+
+  - **BREAKING CHANGE:** The `interval_modifier` getter and `calculate_interval_modifier()` method have been removed.
+
+- [#377](https://github.com/open-spaced-repetition/ts-fsrs/pull/377) [`21c86ff`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21c86ffda267cbdf11b4fe80eccd1296d562cc87) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move FSRS-6 algorithm operations out of the root `FSRSAlgorithm` API and into the model layer.
+
+  - `FSRSAlgorithm` and the root-level algorithm helpers have been removed. Use the new `ts-fsrs/models/fsrs-6` entry for FSRS-6 model, algorithm, parameter migration, and clipping helpers.
+  - `next_state`, `next_interval`, `forgetting_curve`, and `get_retrievability` have been removed from the `FSRS` facade/root exports. Use model methods (`step`, `nextInterval`, `forgettingCurve`, `forward`) or import `forgettingCurve` from `ts-fsrs/models/fsrs-6` instead.
+  - `clipParameters` and `migrateParameters` have been removed from the root export. Use `clipFSRS6Parameters` and `migrateFSRS6Parameters` from `ts-fsrs/models/fsrs-6`.
+  - `retrievability(card, now?)` now returns a number only. Format percentages at the call site when needed.
+  - `IFSRS`, `FSRS`, and `fsrs()` are now deprecated and will be removed after the tests are migrated and passing. Use Scheduler going forward.
+
+  Migration:
+
+  ```ts
+  // Before
+  import { forgetting_curve, fsrs, migrateParameters } from "ts-fsrs";
+
+  const f = fsrs();
+  const state = f.next_state(memoryState, elapsedDays, rating);
+  const interval = f.next_interval(state.stability);
+  const retention = f.get_retrievability(card, now);
+  const recall = f.forgetting_curve(elapsedDays, state.stability);
+  const recallFromHelper = forgetting_curve(decay, elapsedDays, stability);
+  const weights = migrateParameters(w);
+
+  // After
+  import { fsrs } from "ts-fsrs";
+  import {
+    forgettingCurve,
+    migrateFSRS6Parameters,
+  } from "ts-fsrs/models/fsrs-6";
+
+  const f = fsrs();
+  const state = f.model.step({ memoryState, elapsedDays, rating });
+  const interval = f.model.nextInterval(state, f.parameters.request_retention);
+  const retention = f.retrievability(card, now);
+  const recall = f.model.forgettingCurve(state, elapsedDays);
+  const recallFromHelper = forgettingCurve(decay, elapsedDays, stability);
+  const weights = migrateFSRS6Parameters(w);
+  ```
+
+- [#374](https://github.com/open-spaced-repetition/ts-fsrs/pull/374) [`e09aee2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e09aee252f5fb55efaa3254ef4e6ffc5455b1a97) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - - **BREAKING CHANGE:** Removed `afterHandler` callback parameter from `createEmptyCard()`, `repeat()`, `next()`, `rollback()`, and `forget()` methods. Transform results externally after calling these methods instead.
+
+  - **BREAKING CHANGE:** `reschedule` no longer accepts or applies `recordLogHandler`.
+
+  Migration:
+
+  ```ts
+  // Before
+  const card = createEmptyCard(now, cardAfterHandler);
+  const result = f.repeat(card, now, repeatAfterHandler);
+  const rescheduled = f.reschedule(card, reviews, { recordLogHandler: fn });
+
+  // After
+  const card = createEmptyCard(now);
+  const result = repeatAfterHandler(f.repeat(card, now));
+  const rescheduled = f.reschedule(card, reviews);
+  // transform rescheduled.collections externally
+  ```
+
+- [#341](https://github.com/open-spaced-repetition/ts-fsrs/pull/341) [`620575b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/620575bdeb1b252dfb39b75d051c0ee7275aea16) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** Removed global `Date.prototype` extensions (`scheduler`, `diff`, `format`, `dueFormat`). Use the standalone functions `date_scheduler()`, `date_diff()`, `formatDate()`, and `show_diff_message()` instead.
+
+  - **BREAKING CHANGE:** Removed deprecated helper functions `fixDate()`, `fixState()`, and `fixRating()`. Use `TypeConvert.time()`, `TypeConvert.state()`, and `TypeConvert.rating()` instead.
+
+- [#342](https://github.com/open-spaced-repetition/ts-fsrs/pull/342) [`dce1523`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dce1523f1e319be35a92cd9116ca095d817da8d4) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Remove deprecated `elapsed_days` field from `Card` interface and `elapsed_days`/`last_elapsed_days` fields from `ReviewLog` interface.
+
+  These fields were marked as deprecated since v5 and scheduled for removal in v6.0.0. When needed, `card.elapsed_days` can be derived from `card.last_review`.
+
+  Migration: Remove any references to `card.elapsed_days`, `log.elapsed_days`, and `log.last_elapsed_days` from your code. If you still need an elapsed-days value, derive card values from `card.last_review` using `date_diff()`, and for review logs replace `log.elapsed_days` with `date_diff(log.review, log.due, 'days')`.
+
+- [#356](https://github.com/open-spaced-repetition/ts-fsrs/pull/356) [`24b9f87`](https://github.com/open-spaced-repetition/ts-fsrs/commit/24b9f870daa884eb786bc63b9d2b4604373a7335) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move fuzz handling out of `FSRSAlgorithm` into the scheduler/strategy layer.
+
+  - `FSRSAlgorithm.apply_fuzz` and the `FSRSAlgorithm.seed` setter have been removed. The fuzz seed now lives on the scheduler instance (`AbstractScheduler#_seed`), initialised by the seed strategy.
+  - `FSRSAlgorithm.next_interval(s, elapsed_days)` is now `next_interval(s)` and returns the base interval (no fuzzing). Use the new `withFuzzing` helper if you need to apply fuzz manually; `repeat()` / `next()` still apply fuzz automatically through the scheduler.
+  - Added `withFuzzing(ivl, elapsed_days, params, seed?)` (exported from `ts-fsrs` via `strategies/fuzz`) as the canonical entry point for fuzz application.
+
+  Migration:
+
+  ```ts
+  // Before
+  const interval = scheduler.next_interval(stability, elapsedDays);
+
+  // After
+  import { withFuzzing } from "ts-fsrs";
+  const base = scheduler.next_interval(stability);
+  const interval = withFuzzing(base, elapsedDays, scheduler.parameters, seed);
+  ```
+
+### Minor Changes
+
+- [#378](https://github.com/open-spaced-repetition/ts-fsrs/pull/378) [`12d7154`](https://github.com/open-spaced-repetition/ts-fsrs/commit/12d7154f81ae0b1692bfc94de219dd66fcff1d65) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add `ts-fsrs/models/fsrs-5` as a dedicated FSRS-5 model entry.
+
+  The new entry exports the FSRS-5 algorithm, default weights, model binding, and parameter migration/clipping helpers based on the v4.7.1 implementation.
+
+### Patch Changes
+
+- [#346](https://github.com/open-spaced-repetition/ts-fsrs/pull/346) [`e3b6dff`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e3b6dffeddcdfdb8fcd038f59e1af1d0b17aeaf1) Thanks [@ishiko732](https://github.com/ishiko732)! - Migrate build toolchain from Rollup + esbuild to tsdown (powered by Rolldown). Remove sourcemap generation and code minification. Remove unnecessary dependencies (rollup, @rollup/plugin-\*, rollup-plugin-esbuild, rollup-plugin-dts, tslib).
+
+- Updated dependencies [[`34057d3`](https://github.com/open-spaced-repetition/ts-fsrs/commit/34057d34fde775e31c91400adeaeaf349505ba84), [`afadfe4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/afadfe4874e836f97a46340e80a01f4527f14fca)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.0
+
 ## 5.4.1
 
 ### Patch Changes

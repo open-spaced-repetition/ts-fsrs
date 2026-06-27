@@ -1,0 +1,34 @@
+{
+  "mode": "pre",
+  "tag": "beta",
+  "initialVersions": {
+    "@open-spaced-repetition/binding": "0.5.0",
+    "@open-spaced-repetition/binding-test": "0.1.0",
+    "@open-spaced-repetition/binding-android-arm64": "0.5.0",
+    "@open-spaced-repetition/binding-darwin-arm64": "0.5.0",
+    "@open-spaced-repetition/binding-darwin-x64": "0.5.0",
+    "@open-spaced-repetition/binding-linux-arm64-gnu": "0.5.0",
+    "@open-spaced-repetition/binding-linux-arm64-musl": "0.5.0",
+    "@open-spaced-repetition/binding-linux-x64-gnu": "0.5.0",
+    "@open-spaced-repetition/binding-linux-x64-musl": "0.5.0",
+    "@open-spaced-repetition/binding-wasm32-wasi": "0.5.0",
+    "@open-spaced-repetition/binding-win32-arm64-msvc": "0.5.0",
+    "@open-spaced-repetition/binding-win32-ia32-msvc": "0.5.0",
+    "@open-spaced-repetition/binding-win32-x64-msvc": "0.5.0",
+    "ts-fsrs": "5.4.1",
+    "@open-spaced-repetition/srs-kit": "0.0.0"
+  },
+  "changesets": [
+    "binding-rust-timezone",
+    "dynamic-desired-retention",
+    "fsrs5-model",
+    "fsrs6-model-migration",
+    "migrate-to-tsdown",
+    "remove-afterhandler",
+    "remove-date-prototype",
+    "remove-deprecated-elapsed-days",
+    "separate-apply-fuzz",
+    "srs-kit-chrono",
+    "srs-kit-model-contracts"
+  ]
+}
