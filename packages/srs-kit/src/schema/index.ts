@@ -4,6 +4,8 @@ export type {
 } from '@vendor/standard-schema.js'
 export * from './field.js'
 export * from './infer.js'
+export * from './iterable.js'
+export * from './middleware.js'
 export * from './standard.js'
 export * from './utils.js'
 export * from './validators.js'
