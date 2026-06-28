@@ -130,6 +130,10 @@ export type ChronoCreate<Env extends BlankChronoEnv = BlankChronoEnv> = [
         readonly config: SchemaOutput<ChronoConfigSchema<Env>>
       }) => ChronoCore<SchemaOutput<Env['time']>>
 
+export type AnyChronoCreate = (ctx?: {
+  readonly config: unknown
+}) => AnyChronoCore
+
 export interface Chrono<Env extends BlankChronoEnv = BlankChronoEnv> {
   readonly schema: ChronoSchema<Env>
   readonly projection: ChronoProjection<Env>
