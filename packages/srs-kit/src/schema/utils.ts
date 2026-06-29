@@ -42,6 +42,8 @@ export type EmptyObject = Record<PropertyKey, never>
 
 export type EmptyPart = Record<never, never>
 
+export type MergePart<Value> = [Value] extends [never] ? EmptyPart : Value
+
 export type MutableRecord = Record<PropertyKey, unknown>
 
 /** @internal */

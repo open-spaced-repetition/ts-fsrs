@@ -89,6 +89,16 @@ export type ChronoProjection<Env extends BlankChronoEnv = BlankChronoEnv> =
     ChronoTimeProjection<SchemaOutput<Env['time']>>
   >
 
+type ChronoProjectionRuntimeEnv = {
+  readonly time: StandardSchemaV1<unknown, unknown>
+  readonly fields: {
+    readonly card: StandardSchemaV1<unknown, object>
+  }
+}
+
+export type ChronoProjectionRuntimeSchema =
+  ChronoProjection<ChronoProjectionRuntimeEnv>
+
 // ==========
 // Chrono
 // ==========
@@ -97,6 +107,10 @@ export interface ChronoDefaultCtx<Config, Value> {
   readonly time: Value
   readonly previous?: Readonly<ChronoTimeProjection<Value>>
 }
+
+export type ChronoDefaultRuntimeFn = (
+  ctx: ChronoDefaultCtx<unknown, unknown>
+) => object
 
 export type ChronoSchema<Env extends BlankChronoEnv = BlankChronoEnv> = {
   readonly time: Env['time']
