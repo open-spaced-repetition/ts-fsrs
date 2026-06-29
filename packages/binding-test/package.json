@@ -11,10 +11,10 @@
   },
   "devDependencies": {
     "@types/papaparse": "^5.5.2",
-    "papaparse": "^5.5.3",
-    "tinybench": "^6.0.1",
-    "vite": "^8.0.11",
-    "vitest": "^4.1.5"
+    "papaparse": "^5.5.4",
+    "tinybench": "^6.0.2",
+    "vite": "^8.1.0",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
     "@open-spaced-repetition/binding": "workspace:^"
