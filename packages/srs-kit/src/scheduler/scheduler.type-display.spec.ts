@@ -61,12 +61,14 @@ const auditMiddleware: Middleware<
       return { audit: 'default' }
     },
   },
-  on: {
+  handlers: {
     review(_ctx, next) {
       return next()
     },
   },
 }
+
+const symbolNamedMiddleware = auditMiddleware
 
 const sm2NumericSchedulerWithMiddleware = defineScheduler({
   model: SM2Model,
@@ -338,6 +340,13 @@ describe('defineScheduler type display', () => {
 }>`,
   }
 
+  const expectedMiddlewares = {
+    symbolNamedMiddleware: `const symbolNamedMiddleware: Middleware<{
+    readonly card: typeof sourceCardSchema;
+    readonly revlog: typeof auditRevlogSchema;
+}, typeof auditMiddlewareName>`,
+  }
+
   it('keeps scheduler hovers readable with composed env', () => {
     for (const [marker, expected] of Object.entries(expectedSchedulers)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
@@ -346,6 +355,12 @@ describe('defineScheduler type display', () => {
 
   it('shows SchedulerCore<T> for scheduler.create()', () => {
     for (const [marker, expected] of Object.entries(expectedCores)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('keeps symbol middleware names readable', () => {
+    for (const [marker, expected] of Object.entries(expectedMiddlewares)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })
