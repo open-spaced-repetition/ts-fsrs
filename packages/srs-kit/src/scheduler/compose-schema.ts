@@ -18,9 +18,26 @@ function assignObjectFields(
   }
 }
 
-type ParsedSchedulerCard = {
-  readonly card: Record<string, unknown>
-  readonly memoryState: Record<string, any>
+const parsedCardMemoryState = Symbol('parsedCardMemoryState')
+
+export function getParsedCardMemoryState(
+  card: object
+): Record<string, any> | undefined {
+  return (card as Record<typeof parsedCardMemoryState, Record<string, any>>)[
+    parsedCardMemoryState
+  ]
+}
+
+function rememberParsedCardMemoryState<Card extends object>(
+  card: Card,
+  memoryState: Record<string, any>
+): Card {
+  const parsedCard = card as Record<
+    typeof parsedCardMemoryState,
+    Record<string, any>
+  >
+  parsedCard[parsedCardMemoryState] = memoryState
+  return card
 }
 
 export function composeSchema(ctx: {
@@ -35,7 +52,7 @@ export function composeSchema(ctx: {
   const chronoCardSchema = chronoSchema.card
   const chronoRevlogSchema = chronoSchema.revlog
 
-  const config = defineSchema((value: unknown) => {
+  const config = defineSchema<unknown, Record<string, unknown>>((value) => {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected scheduler config object' }] }
     }
@@ -76,7 +93,7 @@ export function composeSchema(ctx: {
     return { value: result }
   })
 
-  const card = defineSchema<unknown, ParsedSchedulerCard>((value) => {
+  const card = defineSchema<unknown, Record<string, unknown>>((value) => {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected card object' }] }
     }
@@ -101,10 +118,10 @@ export function composeSchema(ctx: {
       Object.assign(card, middlewareCard.value)
     }
 
-    return { value: { card, memoryState } }
+    return { value: rememberParsedCardMemoryState(card, memoryState) }
   })
 
-  const revlog = defineSchema((value: unknown) => {
+  const revlog = defineSchema<unknown, Record<string, unknown>>((value) => {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected revlog object' }] }
     }
