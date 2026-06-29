@@ -17,7 +17,7 @@ const composeContext: ComposeContext = { value: 'ctx' }
 
 describe('composeMiddleware', () => {
   it('returns the terminal result without runtimes', () => {
-    expect(composeMiddleware([], composeContext, () => 'terminal')).toBe(
+    expect(composeMiddleware([], composeContext, (_ctx) => 'terminal')).toBe(
       'terminal'
     )
   })
@@ -41,7 +41,7 @@ describe('composeMiddleware', () => {
       runtime.enabled ? createHandler(runtime) : undefined
     )
 
-    const result = composeMiddleware(handlers, composeContext, () => {
+    const result = composeMiddleware(handlers, composeContext, (_ctx) => {
       trace.push('terminal')
       return 'done'
     })
@@ -66,7 +66,7 @@ describe('composeMiddleware', () => {
           },
         ],
         { name: 'bad', enabled: true },
-        () => 'done'
+        (_ctx) => 'done'
       )
     ).toThrow('Middleware next() called multiple times')
   })

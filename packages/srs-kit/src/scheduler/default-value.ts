@@ -19,11 +19,17 @@ type DefaultValueTimeContext = DefaultValueContext & {
 }
 
 export type SchedulerDefaultValueFactory = {
-  readonly newCard: (ctx: DefaultValueContext & {
-    readonly time: unknown
-  }) => Record<string, unknown>
-  readonly card: (ctx: DefaultValueTimeContext) => Record<string, unknown>
-  readonly revlog: (ctx: DefaultValueTimeContext) => Record<string, unknown>
+  readonly newCard: <Card extends object = Record<string, unknown>>(
+    ctx: DefaultValueContext & {
+      readonly time: unknown
+    }
+  ) => Card
+  readonly card: <Card extends object = Record<string, unknown>>(
+    ctx: DefaultValueTimeContext
+  ) => Card
+  readonly revlog: <Revlog extends object = Record<string, unknown>>(
+    ctx: DefaultValueTimeContext
+  ) => Revlog
 }
 
 function applyMiddlewareDefaults(
@@ -87,7 +93,10 @@ export function useComposeDefaultValue(ctx: {
   const chronoRevlogDefault = resolveChronoDefault(chrono.defaultValue?.revlog)
 
   return {
-    newCard({ config, time }) {
+    newCard<Card extends object = Record<string, unknown>>({
+      config,
+      time,
+    }: DefaultValueContext & { readonly time: unknown }) {
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
       })
@@ -100,9 +109,13 @@ export function useComposeDefaultValue(ctx: {
         time,
       })
 
-      return card
+      return card as Card
     },
-    card({ config, time, previous }) {
+    card<Card extends object = Record<string, unknown>>({
+      config,
+      time,
+      previous,
+    }: DefaultValueTimeContext) {
       const card: Record<string, unknown> = {}
       applyFieldDefaults({
         target: card,
@@ -114,9 +127,13 @@ export function useComposeDefaultValue(ctx: {
         previous,
       })
 
-      return card
+      return card as Card
     },
-    revlog({ config, time, previous }) {
+    revlog<Revlog extends object = Record<string, unknown>>({
+      config,
+      time,
+      previous,
+    }: DefaultValueTimeContext) {
       const revlog: Record<string, unknown> = {}
       applyFieldDefaults({
         target: revlog,
@@ -128,7 +145,7 @@ export function useComposeDefaultValue(ctx: {
         previous,
       })
 
-      return revlog
+      return revlog as Revlog
     },
   }
 }

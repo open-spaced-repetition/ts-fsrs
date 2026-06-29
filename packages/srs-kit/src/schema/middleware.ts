@@ -6,10 +6,10 @@ export type MiddlewareRuntimeHandler<Result, Context> = (
 export function composeMiddleware<Result, Context>(
   handlers: readonly (MiddlewareRuntimeHandler<Result, Context> | undefined)[],
   context: Context,
-  terminal: () => Result
+  terminal: (ctx: Context) => Result
 ): Result {
   if (handlers.length === 0) {
-    return terminal()
+    return terminal(context)
   }
 
   let index = -1
@@ -20,7 +20,7 @@ export function composeMiddleware<Result, Context>(
     index = nextIndex
 
     if (nextIndex >= handlers.length) {
-      return terminal()
+      return terminal(context)
     }
 
     const handler = handlers[nextIndex]

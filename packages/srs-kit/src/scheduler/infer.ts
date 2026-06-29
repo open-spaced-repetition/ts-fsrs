@@ -162,7 +162,9 @@ export type ExtendSchedulerEnv<
   }>
 }
 
-export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutputOf<T, 'card'>
+export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutput<
+  SchedulerEnvOf<T>['card']
+>
 
 export type SchedulerRevlogOf<T extends AnyScheduler> = SchemaOutputOf<
   T,

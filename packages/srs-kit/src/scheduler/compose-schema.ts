@@ -18,6 +18,11 @@ function assignObjectFields(
   }
 }
 
+type ParsedSchedulerCard = {
+  readonly card: Record<string, unknown>
+  readonly memoryState: Record<string, any>
+}
+
 export function composeSchema(ctx: {
   readonly model: AnyModel
   readonly chrono: AnyChrono
@@ -71,7 +76,7 @@ export function composeSchema(ctx: {
     return { value: result }
   })
 
-  const card = defineSchema((value: unknown) => {
+  const card = defineSchema<unknown, ParsedSchedulerCard>((value) => {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected card object' }] }
     }
@@ -79,12 +84,13 @@ export function composeSchema(ctx: {
     const modelResult = model.schema.memoryState['~standard'].validate(value)
     if (modelResult.issues) return modelResult
 
-    const result: Record<string, unknown> = modelResult.value
+    const memoryState = modelResult.value as Record<string, any>
+    const card: Record<string, unknown> = Object.assign({}, memoryState)
 
     if (chronoCardSchema) {
       const chronoCard = chronoCardSchema['~standard'].validate(value)
       if (chronoCard.issues) return chronoCard
-      Object.assign(result, chronoCard.value)
+      Object.assign(card, chronoCard.value)
     }
 
     for (const middleware of middlewares) {
@@ -92,10 +98,10 @@ export function composeSchema(ctx: {
       if (!schema) continue
       const middlewareCard = schema['~standard'].validate(value)
       if (middlewareCard.issues) return middlewareCard
-      Object.assign(result, middlewareCard.value)
+      Object.assign(card, middlewareCard.value)
     }
 
-    return { value: result }
+    return { value: { card, memoryState } }
   })
 
   const revlog = defineSchema((value: unknown) => {
