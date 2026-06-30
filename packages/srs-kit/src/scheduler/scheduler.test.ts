@@ -2,7 +2,12 @@ import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { defineSchema, isObject } from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
-import type { Middleware } from './middleware.js'
+import type {
+  Middleware,
+  MiddlewareNext,
+  ReviewMiddlewareContext,
+  RollbackMiddlewareContext,
+} from './middleware.js'
 
 export const createSM2NumericScheduler = () =>
   defineScheduler({
@@ -60,12 +65,14 @@ export const auditRevlogSchema = defineSchema<
 export const sourceMiddlewareName = 'sourceMiddleware'
 export const statusMiddlewareName = Symbol('statusMiddleware')
 
+type SourceMiddlewareEnv = {
+  readonly config: typeof sourceConfigSchema
+  readonly card: typeof sourceCardSchema
+  readonly revlog: typeof auditRevlogSchema
+}
+
 export const sourceMiddleware: Middleware<
-  {
-    readonly config: typeof sourceConfigSchema
-    readonly card: typeof sourceCardSchema
-    readonly revlog: typeof auditRevlogSchema
-  },
+  SourceMiddlewareEnv,
   typeof sourceMiddlewareName
 > = {
   name: sourceMiddlewareName,
@@ -80,6 +87,33 @@ export const sourceMiddleware: Middleware<
     },
     revlog(ctx) {
       return { audit: ctx.config.source }
+    },
+  },
+  handlers: {
+    review<Result>(
+      ctx: ReviewMiddlewareContext<SourceMiddlewareEnv>,
+      next: MiddlewareNext<Result>
+    ): Result {
+      const result = next() as {
+        readonly card: Record<string, unknown>
+        readonly revlog: Record<string, unknown>
+      }
+      result.card.source = ctx.config.source
+      result.revlog.audit = ctx.config.source
+      ctx.result = result
+      return result as Result
+    },
+    rollback<Result>(
+      ctx: RollbackMiddlewareContext<SourceMiddlewareEnv>,
+      next: MiddlewareNext<Result>
+    ): Result {
+      const restored = next() as Readonly<Record<string, unknown>>
+      const resultCard = {
+        ...restored,
+        source: ctx.config.source,
+      }
+      ctx.result = { card: resultCard }
+      return ctx.result.card as Result
     },
   },
 }
