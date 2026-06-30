@@ -1,11 +1,11 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
+import type { Middleware } from '@/middleware/index.js'
+import { schedulerStatsMiddleware } from '@/middleware/stats.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { defineSchema, isObject } from '@/schema/index.js'
-import { schedulerStatsMiddleware } from '../middleware/stats.js'
 import { defineScheduler } from './define-scheduler.js'
-import type { Middleware } from './middleware.js'
 
 const sm2NumericScheduler = defineScheduler({
   model: SM2Model,

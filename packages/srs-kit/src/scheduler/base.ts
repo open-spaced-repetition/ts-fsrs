@@ -5,6 +5,10 @@ import type {
   ChronoDefaultRuntimeFn,
   ChronoProjectionRuntimeSchema,
 } from '@/chrono/chrono.js'
+import type {
+  AnyMiddleware,
+  ReviewCandidateContext,
+} from '@/middleware/index.js'
 import type { AnyModel, AnyModelCore } from '@/model/model.js'
 import { type Grade, grades } from '@/primitives/rating.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
@@ -16,7 +20,6 @@ import {
 } from '@/schema/index.js'
 import { getParsedCardMemoryState } from './compose-schema.js'
 import type { SchedulerDefaultValueFactory } from './default-value.js'
-import type { AnyMiddleware, ReviewCandidateContext } from './middleware.js'
 import type {
   BlankSchedulerEnv,
   PreviewResult,
