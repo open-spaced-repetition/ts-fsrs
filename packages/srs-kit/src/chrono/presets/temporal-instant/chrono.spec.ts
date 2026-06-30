@@ -195,6 +195,14 @@ describe('temporalInstantChrono', () => {
         time: later,
       })
     ).toEqual({ previous: later, current: later })
+    expect(
+      parse(temporalInstantChrono.projection, {
+        revlog: {
+          dueAt: later,
+          lastReviewAt: now,
+        },
+      })
+    ).toEqual({ previous: now, current: later })
     expect(() =>
       parse(temporalInstantChrono.projection, {
         card: null,

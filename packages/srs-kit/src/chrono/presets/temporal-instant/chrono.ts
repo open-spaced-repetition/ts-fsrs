@@ -48,22 +48,38 @@ export const temporalInstantChrono = defineChrono({
     time: temporalInstantSchema,
   },
   projection(value) {
-    const card = temporalInstantCardFieldsSchema['~standard'].validate(
-      value.card
-    )
-    if (card.issues) {
-      return card
+    if ('card' in value) {
+      const card = temporalInstantCardFieldsSchema['~standard'].validate(
+        value.card
+      )
+      if (card.issues) {
+        return card
+      }
+
+      const time = temporalInstantSchema['~standard'].validate(value.time)
+      if (time.issues) {
+        return time
+      }
+
+      return {
+        value: {
+          previous: card.value.lastReviewAt ?? time.value,
+          current: time.value,
+        },
+      }
     }
 
-    const time = temporalInstantSchema['~standard'].validate(value.time)
-    if (time.issues) {
-      return time
+    const revlog = temporalInstantRevlogFieldsSchema['~standard'].validate(
+      value.revlog
+    )
+    if (revlog.issues) {
+      return revlog
     }
 
     return {
       value: {
-        previous: card.value.lastReviewAt ?? time.value,
-        current: time.value,
+        previous: revlog.value.lastReviewAt,
+        current: revlog.value.dueAt,
       },
     }
   },

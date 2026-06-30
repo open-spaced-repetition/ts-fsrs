@@ -13,20 +13,34 @@ export const dateChrono = defineChrono({
     time: dateSchema,
   },
   projection(value) {
-    const card = dateCardFieldsSchema['~standard'].validate(value.card)
-    if (card.issues) {
-      return card
+    if ('card' in value) {
+      const card = dateCardFieldsSchema['~standard'].validate(value.card)
+      if (card.issues) {
+        return card
+      }
+
+      const time = dateSchema['~standard'].validate(value.time)
+      if (time.issues) {
+        return time
+      }
+
+      return {
+        value: {
+          previous: card.value.lastReviewAt ?? time.value,
+          current: time.value,
+        },
+      }
     }
 
-    const time = dateSchema['~standard'].validate(value.time)
-    if (time.issues) {
-      return time
+    const revlog = dateRevlogFieldsSchema['~standard'].validate(value.revlog)
+    if (revlog.issues) {
+      return revlog
     }
 
     return {
       value: {
-        previous: card.value.lastReviewAt ?? time.value,
-        current: time.value,
+        previous: revlog.value.lastReviewAt,
+        current: revlog.value.dueAt,
       },
     }
   },

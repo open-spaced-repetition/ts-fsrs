@@ -17,13 +17,15 @@ import type {
 
 type ChronoProjectionDefinitionInput = {
   readonly card?: unknown
+  readonly revlog?: unknown
   readonly time: unknown
 }
 
 type ChronoProjectionInputOf<Input extends ChronoProjectionDefinitionInput> =
   ChronoProjectionInput<
     Input['time'],
-    Input extends { readonly card: infer Card } ? Card : never
+    Input extends { readonly card: infer Card } ? Card : never,
+    Input extends { readonly revlog: infer Revlog } ? Revlog : never
   >
 
 export function defineChronoProjection<
@@ -46,21 +48,24 @@ export function defineChronoProjection<
 type ChronoProjectionInputFor<
   TimeSchema extends AnySchema,
   CardSchema extends AnyObjectSchema | undefined,
+  RevlogSchema extends AnyObjectSchema | undefined,
 > = ChronoProjectionInput<
   SchemaOutput<TimeSchema>,
-  CardSchema extends AnyObjectSchema ? SchemaInput<CardSchema> : never
+  CardSchema extends AnyObjectSchema ? SchemaInput<CardSchema> : never,
+  RevlogSchema extends AnyObjectSchema ? SchemaInput<RevlogSchema> : never
 >
 
 type ChronoProjectionDefinition<
   TimeSchema extends AnySchema,
   CardSchema extends AnyObjectSchema | undefined,
+  RevlogSchema extends AnyObjectSchema | undefined,
 > =
   | StandardSchemaV1<
-      ChronoProjectionInputFor<TimeSchema, CardSchema>,
+      ChronoProjectionInputFor<TimeSchema, CardSchema, RevlogSchema>,
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >
   | ((
-      value: ChronoProjectionInputFor<TimeSchema, CardSchema>
+      value: ChronoProjectionInputFor<TimeSchema, CardSchema, RevlogSchema>
     ) => StandardSchemaV1.Result<
       ChronoTimeProjection<SchemaOutput<TimeSchema>>
     >)
@@ -107,12 +112,18 @@ type ChronoDefinitionCard<Schema extends ChronoDefinitionSchema> =
     ? Card
     : undefined
 
+type ChronoDefinitionRevlog<Schema extends ChronoDefinitionSchema> =
+  Schema extends { readonly revlog: infer Revlog extends AnyObjectSchema }
+    ? Revlog
+    : undefined
+
 type ChronoDefinition<Schema extends ChronoDefinitionSchema> = {
   readonly schema: Schema
   readonly defaultValue?: ChronoDefaultValue<ChronoDefinitionEnv<Schema>>
   readonly projection: ChronoProjectionDefinition<
     Schema['time'],
-    ChronoDefinitionCard<Schema>
+    ChronoDefinitionCard<Schema>,
+    ChronoDefinitionRevlog<Schema>
   >
   readonly create: ChronoCreate<ChronoDefinitionEnv<Schema>>
 }

@@ -111,6 +111,14 @@ describe('dateChrono', () => {
         time: later,
       })
     ).toEqual({ previous: later, current: later })
+    expect(
+      parse(dateChrono.projection, {
+        revlog: {
+          dueAt: later,
+          lastReviewAt: now,
+        },
+      })
+    ).toEqual({ previous: now, current: later })
     expect(() =>
       parse(dateChrono.projection, {
         card: null,

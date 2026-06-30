@@ -71,11 +71,25 @@ export interface ChronoTimeProjection<Time> {
   readonly current: Time
 }
 
-export type ChronoProjectionInput<Time, CardFields = never> = [
-  CardFields,
-] extends [never]
+type ChronoReviewProjectionInput<Time, CardFields> = [CardFields] extends [
+  never,
+]
   ? { readonly time: Time }
   : { readonly card: Readonly<CardFields>; readonly time: Time }
+
+type ChronoRollbackProjectionInput<RevlogFields> = [RevlogFields] extends [
+  never,
+]
+  ? never
+  : { readonly revlog: Readonly<RevlogFields> }
+
+export type ChronoProjectionInput<
+  Time,
+  CardFields = never,
+  RevlogFields = never,
+> =
+  | ChronoReviewProjectionInput<Time, CardFields>
+  | ChronoRollbackProjectionInput<RevlogFields>
 
 type ChronoProjectedCard<Env extends BlankChronoEnv> = [
   ChronoFieldSchema<Env, 'card'>,
@@ -83,9 +97,19 @@ type ChronoProjectedCard<Env extends BlankChronoEnv> = [
   ? never
   : SchemaInput<ChronoFieldSchema<Env, 'card'>>
 
+type ChronoProjectedRevlog<Env extends BlankChronoEnv> = [
+  ChronoFieldSchema<Env, 'revlog'>,
+] extends [never]
+  ? never
+  : SchemaInput<ChronoFieldSchema<Env, 'revlog'>>
+
 export type ChronoProjection<Env extends BlankChronoEnv = BlankChronoEnv> =
   StandardSchemaV1<
-    ChronoProjectionInput<SchemaOutput<Env['time']>, ChronoProjectedCard<Env>>,
+    ChronoProjectionInput<
+      SchemaOutput<Env['time']>,
+      ChronoProjectedCard<Env>,
+      ChronoProjectedRevlog<Env>
+    >,
     ChronoTimeProjection<SchemaOutput<Env['time']>>
   >
 
@@ -93,6 +117,7 @@ type ChronoProjectionRuntimeEnv = {
   readonly time: StandardSchemaV1<unknown, unknown>
   readonly fields: {
     readonly card: StandardSchemaV1<unknown, object>
+    readonly revlog: StandardSchemaV1<unknown, object>
   }
 }
 

@@ -50,6 +50,21 @@ describe('defineChrono', () => {
         time: numberSchema,
       },
       projection(value) {
+        if ('revlog' in value) {
+          expectTypeOf(value.revlog).toEqualTypeOf<
+            Readonly<{
+              readonly elapsedDays: number
+            }>
+          >()
+
+          return {
+            value: {
+              previous: value.revlog.elapsedDays,
+              current: value.revlog.elapsedDays,
+            },
+          }
+        }
+
         expectTypeOf(value).toEqualTypeOf<{
           readonly card: Readonly<{
             readonly previous: number | null
@@ -183,6 +198,51 @@ describe('defineChrono', () => {
     }>()
   })
 
+  it('types projection revlog as schema input', () => {
+    defineChrono({
+      schema: {
+        revlog: revlogSchema,
+        time: numberSchema,
+      },
+      projection(value) {
+        if ('revlog' in value) {
+          expectTypeOf(value.revlog).toEqualTypeOf<
+            Readonly<{
+              readonly elapsedDays: number
+            }>
+          >()
+
+          return {
+            value: {
+              previous: value.revlog.elapsedDays,
+              current: value.revlog.elapsedDays,
+            },
+          }
+        }
+
+        return {
+          value: {
+            previous: value.time,
+            current: value.time,
+          },
+        }
+      },
+      create() {
+        return {
+          now() {
+            return 0
+          },
+          difference(from, to) {
+            return to - from
+          },
+          add(from, days) {
+            return from + days
+          },
+        }
+      },
+    })
+  })
+
   it('preserves card presence in projection helpers', () => {
     defineChronoProjection<{
       readonly card: {
@@ -204,6 +264,30 @@ describe('defineChrono', () => {
           current: value.time,
         },
       }
+    })
+
+    defineChronoProjection<{
+      readonly time: number
+      readonly revlog: {
+        readonly elapsedDays: number
+      }
+    }>((value) => {
+      if ('revlog' in value) {
+        expectTypeOf(value.revlog).toEqualTypeOf<
+          Readonly<{
+            readonly elapsedDays: number
+          }>
+        >()
+
+        return {
+          value: {
+            previous: value.revlog.elapsedDays,
+            current: value.revlog.elapsedDays,
+          },
+        }
+      }
+
+      return { value: { previous: 0, current: value.time } }
     })
 
     defineChronoProjection<{
