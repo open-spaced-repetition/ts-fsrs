@@ -73,7 +73,7 @@ function applyFieldDefaults(ctx: {
     Object.assign(
       target,
       chronoDefault({
-        config: config.chrono ?? {},
+        config: config.chrono as Readonly<unknown>,
         time,
         previous,
       })
@@ -100,6 +100,8 @@ export function useComposeDefaultValue(ctx: {
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
       })
+      card.scheduleStatus = 'new'
+      card.scheduledDays = 0
       applyFieldDefaults({
         target: card,
         config,
