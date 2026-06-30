@@ -94,6 +94,17 @@
         "default": "./dist/esm/chrono/temporal-instant/index.js"
       },
       "default": "./dist/esm/chrono/temporal-instant/index.js"
+    },
+    "./scheduler": {
+      "require": {
+        "types": "./dist/cjs/scheduler/index.d.ts",
+        "default": "./dist/cjs/scheduler/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/scheduler/index.d.ts",
+        "default": "./dist/esm/scheduler/index.js"
+      },
+      "default": "./dist/esm/scheduler/index.js"
     }
   },
   "sideEffects": false,
