@@ -1,4 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyScheduler */
+
+import type { AnyMiddleware } from '@/middleware/index.js'
 import type { Grade } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
@@ -9,7 +11,6 @@ import type {
   SchemaOutput,
 } from '@/schema/index.js'
 import type { ExtendSchedulerEnv } from './infer.js'
-import type { AnyMiddleware } from './middleware.js'
 
 // ==========
 // Schedule Result

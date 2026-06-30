@@ -1,9 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: runtime generic dispatch */
 
 import type { AnyChrono } from '@/chrono/chrono.js'
+import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
 import { defineSchema, isObject } from '@/schema/index.js'
-import type { AnyMiddleware } from './middleware.js'
 import type { SchedulerSchema } from './scheduler.js'
 
 function assignObjectFields(

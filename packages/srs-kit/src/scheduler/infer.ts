@@ -5,6 +5,13 @@ import type {
   ChronoRevlogOf,
   ChronoTimeOf,
 } from '@/chrono/infer.js'
+import type { MiddlewareConfigPart } from '@/middleware/config.js'
+import type {
+  AnyMiddleware,
+  MiddlewareCardOf,
+  MiddlewareRevlogOf,
+  MiddlewareStatusOf,
+} from '@/middleware/index.js'
 import type {
   ModelConfigInputOf,
   ModelConfigOf,
@@ -22,13 +29,6 @@ import type {
   SchemaOutputOf,
   SRSSchema,
 } from '@/schema/index.js'
-import type {
-  AnyMiddleware,
-  MiddlewareCardOf,
-  MiddlewareRevlogOf,
-  MiddlewareStatusOf,
-} from './middleware.js'
-import type { MiddlewareConfigPart } from './middleware-config.js'
 import type {
   AnyScheduler,
   BlankSchedulerEnv,

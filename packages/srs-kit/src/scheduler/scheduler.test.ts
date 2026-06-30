@@ -1,13 +1,13 @@
 import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
-import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
-import { defineSchema, isObject } from '@/schema/index.js'
-import { defineScheduler } from './define-scheduler.js'
 import type {
   Middleware,
   MiddlewareNext,
   ReviewMiddlewareContext,
   RollbackMiddlewareContext,
-} from './middleware.js'
+} from '@/middleware/index.js'
+import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
+import { defineSchema, isObject } from '@/schema/index.js'
+import { defineScheduler } from './define-scheduler.js'
 
 export const createSM2NumericScheduler = () =>
   defineScheduler({

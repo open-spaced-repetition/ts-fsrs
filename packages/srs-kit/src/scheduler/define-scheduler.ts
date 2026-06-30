@@ -1,13 +1,13 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: runtime generic dispatch */
 
 import type { AnyChrono } from '@/chrono/chrono.js'
+import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
 import { BaseScheduler } from './base.js'
 import { composeSchema } from './compose-schema.js'
 import { useComposeDefaultValue } from './default-value.js'
 import { SRSSchedulerError } from './error.js'
 import type { SchedulerEnvFor, SchedulerNameOf } from './infer.js'
-import type { AnyMiddleware } from './middleware.js'
 import type { ComposableScheduler } from './scheduler.js'
 
 type InitialSchedulerEnv<M extends AnyModel, C extends AnyChrono> = {

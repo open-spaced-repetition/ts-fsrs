@@ -3,9 +3,9 @@ import type {
   ChronoDefaultCtx,
   ChronoDefaultRuntimeFn,
 } from '@/chrono/chrono.js'
+import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
 import { isFunction } from '@/schema/index.js'
-import type { AnyMiddleware } from './middleware.js'
 
 type DefaultValueConfig = Record<PropertyKey, unknown>
 
