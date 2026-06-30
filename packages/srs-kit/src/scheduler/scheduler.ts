@@ -3,6 +3,8 @@ import type { Grade } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
   AnySchema,
+  Assign,
+  Prettify,
   SchemaInput,
   SchemaOutput,
 } from '@/schema/index.js'
@@ -64,7 +66,7 @@ export interface SchedulerCore<
   readonly rollback: (input: {
     readonly card: Env['card']['output']
     readonly revlog: Env['revlog']['output']
-  }) => Readonly<Env['card']['output']>
+  }) => Env['card']['output']
 }
 
 export type AnySchedulerCore = SchedulerCore<any>
@@ -80,6 +82,22 @@ export type BlankSchedulerEnv = {
   readonly revlog: AnyObjectSchema
   readonly scheduleStatus: string
 }
+
+export type SchedulerCoreFields<Env extends BlankSchedulerEnv> = {
+  readonly scheduleStatus: Env['scheduleStatus']
+  readonly scheduledDays: number
+}
+
+type SchedulerCoreFieldSchemaPart<
+  Env extends BlankSchedulerEnv,
+  Key extends 'card' | 'revlog',
+  Direction extends 'input' | 'output',
+> = Prettify<
+  Assign<
+    Direction extends 'input' ? SchemaInput<Env[Key]> : SchemaOutput<Env[Key]>,
+    SchedulerCoreFields<Env>
+  >
+>
 
 export interface SchedulerSchema<
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
@@ -107,12 +125,12 @@ export type SchedulerUseFn<
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
   readonly card: {
-    readonly input: SchemaInput<Env['card']>
-    readonly output: SchemaOutput<Env['card']>
+    readonly input: SchedulerCoreFieldSchemaPart<Env, 'card', 'input'>
+    readonly output: SchedulerCoreFieldSchemaPart<Env, 'card', 'output'>
   }
   readonly revlog: {
-    readonly input: SchemaInput<Env['revlog']>
-    readonly output: SchemaOutput<Env['revlog']>
+    readonly input: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'input'>
+    readonly output: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'output'>
   }
   readonly chrono: Env['chrono']
   readonly scheduleStatus: Env['scheduleStatus']
@@ -122,12 +140,12 @@ export type SchedulerCreate<Env extends BlankSchedulerEnv = BlankSchedulerEnv> =
   (ctx: { readonly config: SchemaInput<Env['config']> }) => SchedulerCore<{
     readonly config: SchemaOutput<Env['config']>
     readonly card: {
-      readonly input: SchemaInput<Env['card']>
-      readonly output: SchemaOutput<Env['card']>
+      readonly input: SchedulerCoreFieldSchemaPart<Env, 'card', 'input'>
+      readonly output: SchedulerCoreFieldSchemaPart<Env, 'card', 'output'>
     }
     readonly revlog: {
-      readonly input: SchemaInput<Env['revlog']>
-      readonly output: SchemaOutput<Env['revlog']>
+      readonly input: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'input'>
+      readonly output: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'output'>
     }
     readonly chrono: Env['chrono']
     readonly scheduleStatus: Env['scheduleStatus']

@@ -18,6 +18,23 @@ function assignObjectFields(
   }
 }
 
+const coreSchedulerFieldsSchema = defineSchema<{
+  readonly scheduleStatus: string
+  readonly scheduledDays: number
+}>((value) => {
+  const fields = value as Record<string, unknown> | null | undefined
+  const scheduleStatus = fields?.scheduleStatus
+  const scheduledDays = fields?.scheduledDays
+  if (typeof scheduleStatus !== 'string') {
+    return { issues: [{ message: 'Expected scheduleStatus string' }] }
+  }
+  if (typeof scheduledDays !== 'number' || !Number.isFinite(scheduledDays)) {
+    return { issues: [{ message: 'Expected finite scheduledDays' }] }
+  }
+
+  return { value: { scheduleStatus, scheduledDays } }
+})
+
 const parsedCardMemoryState = Symbol('parsedCardMemoryState')
 
 export function getParsedCardMemoryState(
@@ -60,7 +77,7 @@ export function composeSchema(ctx: {
     const modelResult = modelConfigSchema['~standard'].validate(value)
     if (modelResult.issues) return modelResult
 
-    let chronoValue: unknown
+    let chronoValue: unknown = {}
     if (chronoConfigSchema) {
       const chronoResult = chronoConfigSchema['~standard'].validate(
         value.chrono
@@ -72,11 +89,9 @@ export function composeSchema(ctx: {
     const result: Record<PropertyKey, unknown> = {
       // TODO: desiredRetention should be a required field in the future, but for now we will default it to 0.9 if not provided.
       desiredRetention: value.desiredRetention ?? 0.9,
+      chrono: chronoValue,
     }
     assignObjectFields(result, modelResult.value)
-    if (chronoValue !== undefined) {
-      result.chrono = chronoValue
-    }
 
     for (const middleware of middlewares) {
       const schema = middleware.schema?.config
@@ -110,6 +125,12 @@ export function composeSchema(ctx: {
       Object.assign(card, chronoCard.value)
     }
 
+    const coreFields = coreSchedulerFieldsSchema['~standard'].validate(value)
+    if (coreFields.issues) return coreFields
+    // Explicitly inject scheduler core fields into the parsed card.
+    card.scheduleStatus = coreFields.value.scheduleStatus
+    card.scheduledDays = coreFields.value.scheduledDays
+
     for (const middleware of middlewares) {
       const schema = middleware.schema?.card
       if (!schema) continue
@@ -136,6 +157,12 @@ export function composeSchema(ctx: {
       if (chronoRevlog.issues) return chronoRevlog
       Object.assign(result, chronoRevlog.value)
     }
+
+    const coreFields = coreSchedulerFieldsSchema['~standard'].validate(value)
+    if (coreFields.issues) return coreFields
+    // Explicitly inject scheduler core fields into the parsed revlog.
+    result.scheduleStatus = coreFields.value.scheduleStatus
+    result.scheduledDays = coreFields.value.scheduledDays
 
     for (const middleware of middlewares) {
       const schema = middleware.schema?.revlog

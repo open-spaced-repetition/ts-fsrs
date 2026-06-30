@@ -44,6 +44,8 @@ export type EmptyPart = Record<never, never>
 
 export type MergePart<Value> = [Value] extends [never] ? EmptyPart : Value
 
+export type Mutable<T> = { -readonly [Key in keyof T]: T[Key] }
+
 export type MutableRecord = Record<PropertyKey, unknown>
 
 /** @internal */

@@ -77,18 +77,38 @@ type MiddlewareCardFields<MWs extends readonly AnyMiddleware[]> = MergePart<
   MergeAllObjects<MiddlewareCardOf<MWs[number]>>
 >
 
+type SchedulerScheduleStatus<MWs extends readonly AnyMiddleware[]> =
+  | ScheduleStatus
+  | Extract<MiddlewareStatusOf<MWs[number]>, string>
+
+type SchedulerScheduleFields<Status extends string> = {
+  readonly scheduleStatus: Status
+  readonly scheduledDays: number
+}
+
 type ExtendSchedulerCard<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
-> = Prettify<Assign<SchemaOutput<Env['card']>, MiddlewareCardFields<AddedMWs>>>
+> = Prettify<
+  Assign<
+    Assign<SchemaOutput<Env['card']>, MiddlewareCardFields<AddedMWs>>,
+    SchedulerScheduleFields<
+      | Extract<Env['scheduleStatus'], string>
+      | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
+    >
+  >
+>
 
 export type SchedulerCardFields<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
 > = Assign<
-  Assign<ModelMemoryOf<M>, MergePart<ChronoCardOf<C>>>,
-  MiddlewareCardFields<MWs>
+  Assign<
+    Assign<ModelMemoryOf<M>, MergePart<ChronoCardOf<C>>>,
+    MiddlewareCardFields<MWs>
+  >,
+  SchedulerScheduleFields<SchedulerScheduleStatus<MWs>>
 >
 
 type MiddlewareRevlogFields<MWs extends readonly AnyMiddleware[]> = MergePart<
@@ -99,7 +119,13 @@ type ExtendSchedulerRevlog<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
 > = Prettify<
-  Assign<SchemaOutput<Env['revlog']>, MiddlewareRevlogFields<AddedMWs>>
+  Assign<
+    Assign<SchemaOutput<Env['revlog']>, MiddlewareRevlogFields<AddedMWs>>,
+    SchedulerScheduleFields<
+      | Extract<Env['scheduleStatus'], string>
+      | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
+    >
+  >
 >
 
 export type SchedulerRevlogFields<
@@ -107,8 +133,11 @@ export type SchedulerRevlogFields<
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
 > = Assign<
-  Assign<ModelMemoryOf<M>, MergePart<ChronoRevlogOf<C>>>,
-  MiddlewareRevlogFields<MWs>
+  Assign<
+    Assign<ModelMemoryOf<M>, MergePart<ChronoRevlogOf<C>>>,
+    MiddlewareRevlogFields<MWs>
+  >,
+  SchedulerScheduleFields<SchedulerScheduleStatus<MWs>>
 >
 
 export type SchedulerNameOf<M extends AnyModel> = M extends {
@@ -123,9 +152,7 @@ export type SchedulerEnvFor<
   MWs extends readonly AnyMiddleware[],
 > = {
   readonly chrono: ChronoTimeOf<C>
-  readonly scheduleStatus:
-    | ScheduleStatus
-    | Extract<MiddlewareStatusOf<MWs[number]>, string>
+  readonly scheduleStatus: SchedulerScheduleStatus<MWs>
   readonly config: SRSSchema<{
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
