@@ -2,6 +2,7 @@
 
 import type { AnyMiddleware } from '@/middleware/index.js'
 import type { Grade } from '@/primitives/rating.js'
+import type { State } from '@/primitives/state.js'
 import type {
   AnyObjectSchema,
   AnySchema,
@@ -85,9 +86,18 @@ export type BlankSchedulerEnv = {
 }
 
 export type SchedulerCoreFields<Env extends BlankSchedulerEnv> = {
+  readonly state: State
   readonly scheduleStatus: Env['scheduleStatus']
   readonly scheduledDays: number
 }
+
+export type SchedulerCardCoreFields<Env extends BlankSchedulerEnv> =
+  SchedulerCoreFields<Env>
+
+export type SchedulerRevlogCoreFields<Env extends BlankSchedulerEnv> =
+  SchedulerCoreFields<Env> & {
+    readonly rating: Grade
+  }
 
 type SchedulerCoreFieldSchemaPart<
   Env extends BlankSchedulerEnv,
@@ -96,7 +106,9 @@ type SchedulerCoreFieldSchemaPart<
 > = Prettify<
   Assign<
     Direction extends 'input' ? SchemaInput<Env[Key]> : SchemaOutput<Env[Key]>,
-    SchedulerCoreFields<Env>
+    Key extends 'card'
+      ? SchedulerCardCoreFields<Env>
+      : SchedulerRevlogCoreFields<Env>
   >
 >
 
