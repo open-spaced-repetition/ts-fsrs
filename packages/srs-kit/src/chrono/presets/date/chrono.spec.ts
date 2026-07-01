@@ -16,7 +16,7 @@ describe('dateChrono', () => {
     }>()
     expectTypeOf<ChronoRevlogOf<typeof dateChrono>>().toEqualTypeOf<{
       dueAt: Date
-      lastReviewAt: Date
+      reviewTime: Date
     }>()
 
     const now = new Date('2026-06-20T00:00:00.000Z')
@@ -55,25 +55,25 @@ describe('dateChrono', () => {
     ).toThrow('Expected valid Date fields')
     expect(
       parse(dateChrono.schema.revlog, {
-        dueAt: later,
-        lastReviewAt: now,
+        dueAt: now,
+        reviewTime: later,
       })
-    ).toEqual({ dueAt: later, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: later })
     expect(() =>
       parse(dateChrono.schema.revlog, {
-        dueAt: later,
-        lastReviewAt: null,
-      })
-    ).toThrow('Expected valid Date fields')
-    expect(() =>
-      parse(dateChrono.schema.revlog, {
-        dueAt: later,
+        dueAt: null,
+        reviewTime: later,
       })
     ).toThrow('Expected valid Date fields')
     expect(() =>
       parse(dateChrono.schema.revlog, {
         dueAt: later,
-        lastReviewAt: epoch,
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      parse(dateChrono.schema.revlog, {
+        dueAt: epoch,
+        reviewTime: later,
       })
     ).toThrow('Expected valid Date fields')
     expect(
@@ -114,8 +114,8 @@ describe('dateChrono', () => {
     expect(
       parse(dateChrono.projection, {
         revlog: {
-          dueAt: later,
-          lastReviewAt: now,
+          dueAt: now,
+          reviewTime: later,
         },
       })
     ).toEqual({ previous: now, current: later })
@@ -199,13 +199,13 @@ describe('dateChrono', () => {
           current: later,
         },
       })
-    ).toEqual({ dueAt: later, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: later })
     expect(
       dateChrono.defaultValue.revlog!({
         config: {},
         time: now,
       })
-    ).toEqual({ dueAt: now, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: now })
   })
 
   it('compares only UTC calendar dates', () => {

@@ -78,8 +78,8 @@ export const temporalInstantChrono = defineChrono({
 
     return {
       value: {
-        previous: revlog.value.lastReviewAt,
-        current: revlog.value.dueAt,
+        previous: revlog.value.dueAt,
+        current: revlog.value.reviewTime,
       },
     }
   },
@@ -92,8 +92,8 @@ export const temporalInstantChrono = defineChrono({
     },
     revlog({ time, previous }) {
       return {
-        dueAt: previous?.current ?? time,
-        lastReviewAt: previous?.previous ?? time,
+        dueAt: previous?.previous ?? time,
+        reviewTime: previous?.current ?? time,
       }
     },
   },

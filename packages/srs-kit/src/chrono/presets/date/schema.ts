@@ -15,7 +15,7 @@ export type DateCardOutputFields = {
 
 export type DateRevlogFields = {
   dueAt: Date
-  lastReviewAt: Date
+  reviewTime: Date
 }
 
 function isValidDate(value: unknown): value is Date {
@@ -56,15 +56,15 @@ export const dateCardFieldsSchema = defineSchema<
 
 export const dateRevlogFieldsSchema = defineSchema<DateRevlogFields>(
   (value: unknown) => {
-    if (!isObject(value) || !('dueAt' in value) || !('lastReviewAt' in value)) {
+    if (!isObject(value) || !('dueAt' in value) || !('reviewTime' in value)) {
       return invalidDateFields()
     }
 
-    const { dueAt, lastReviewAt } = value
-    if (!isValidDate(dueAt) || !isValidDate(lastReviewAt)) {
+    const { dueAt, reviewTime } = value
+    if (!isValidDate(dueAt) || !isValidDate(reviewTime)) {
       return invalidDateFields()
     }
 
-    return { value: { dueAt, lastReviewAt } }
+    return { value: { dueAt, reviewTime } }
   }
 )

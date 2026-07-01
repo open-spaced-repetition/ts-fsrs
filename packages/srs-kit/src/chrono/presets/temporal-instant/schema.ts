@@ -17,7 +17,7 @@ export type TemporalInstantCardOutputFields = {
 
 export type TemporalInstantRevlogFields = {
   dueAt: Temporal.Instant
-  lastReviewAt: Temporal.Instant
+  reviewTime: Temporal.Instant
 }
 
 export function getTemporalInstantConstructor(): typeof Temporal.Instant {
@@ -118,7 +118,7 @@ export const temporalInstantCardFieldsSchema = defineSchema<
 
 export const temporalInstantRevlogFieldsSchema =
   defineSchema<TemporalInstantRevlogFields>((value) => {
-    if (!isObject(value) || !('dueAt' in value) || !('lastReviewAt' in value)) {
+    if (!isObject(value) || !('dueAt' in value) || !('reviewTime' in value)) {
       return invalidInstantFields()
     }
 
@@ -127,10 +127,12 @@ export const temporalInstantRevlogFieldsSchema =
       return invalidInstantFields()
     }
 
-    const lastReviewAt = temporalInstantSchema.safeParse(value.lastReviewAt)
-    if (!lastReviewAt.success) {
+    const reviewTime = temporalInstantSchema.safeParse(value.reviewTime)
+    if (!reviewTime.success) {
       return invalidInstantFields()
     }
 
-    return { value: { dueAt: dueAt.data, lastReviewAt: lastReviewAt.data } }
+    return {
+      value: { dueAt: dueAt.data, reviewTime: reviewTime.data },
+    }
   })

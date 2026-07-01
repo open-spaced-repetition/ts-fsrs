@@ -47,11 +47,11 @@ describe('defineChrono type display', () => {
         readonly revlog: SRSSchema<{
             input: {
                 dueAt: Date;
-                lastReviewAt: Date;
+                reviewTime: Date;
             };
             output: {
                 dueAt: Date;
-                lastReviewAt: Date;
+                reviewTime: Date;
             };
         }>;
     };
@@ -85,11 +85,11 @@ describe('defineChrono type display', () => {
         readonly revlog: SRSSchema<{
             input: {
                 dueAt: Temporal.Instant;
-                lastReviewAt: Temporal.Instant;
+                reviewTime: Temporal.Instant;
             };
             output: {
                 dueAt: Temporal.Instant;
-                lastReviewAt: Temporal.Instant;
+                reviewTime: Temporal.Instant;
             };
         }>;
     };

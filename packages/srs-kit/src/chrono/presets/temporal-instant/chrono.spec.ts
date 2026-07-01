@@ -58,7 +58,7 @@ describe('temporalInstantChrono', () => {
     }>()
     expectTypeOf<ChronoRevlogOf<typeof temporalInstantChrono>>().toEqualTypeOf<{
       dueAt: Temporal.Instant
-      lastReviewAt: Temporal.Instant
+      reviewTime: Temporal.Instant
     }>()
 
     const now = createInstant(0n)
@@ -139,25 +139,25 @@ describe('temporalInstantChrono', () => {
     ).toEqual({ dueAt: now, lastReviewAt: null })
     expect(
       parse(temporalInstantChrono.schema.revlog, {
-        dueAt: later,
-        lastReviewAt: now,
+        dueAt: now,
+        reviewTime: later,
       })
-    ).toEqual({ dueAt: later, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: later })
     expect(() =>
       parse(temporalInstantChrono.schema.revlog, {
-        dueAt: later,
-        lastReviewAt: null,
-      })
-    ).toThrow('Expected Temporal.Instant fields')
-    expect(() =>
-      parse(temporalInstantChrono.schema.revlog, {
-        dueAt: later,
+        dueAt: null,
+        reviewTime: later,
       })
     ).toThrow('Expected Temporal.Instant fields')
     expect(() =>
       parse(temporalInstantChrono.schema.revlog, {
-        dueAt: {},
-        lastReviewAt: now,
+        dueAt: later,
+      })
+    ).toThrow('Expected Temporal.Instant fields')
+    expect(() =>
+      parse(temporalInstantChrono.schema.revlog, {
+        dueAt: now,
+        reviewTime: {},
       })
     ).toThrow('Expected Temporal.Instant fields')
     expect(
@@ -198,8 +198,8 @@ describe('temporalInstantChrono', () => {
     expect(
       parse(temporalInstantChrono.projection, {
         revlog: {
-          dueAt: later,
-          lastReviewAt: now,
+          dueAt: now,
+          reviewTime: later,
         },
       })
     ).toEqual({ previous: now, current: later })
@@ -283,12 +283,12 @@ describe('temporalInstantChrono', () => {
           current: later,
         },
       })
-    ).toEqual({ dueAt: later, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: later })
     expect(
       temporalInstantChrono.defaultValue.revlog!({
         config: temporalConfig,
         time: now,
       })
-    ).toEqual({ dueAt: now, lastReviewAt: now })
+    ).toEqual({ dueAt: now, reviewTime: now })
   })
 })
