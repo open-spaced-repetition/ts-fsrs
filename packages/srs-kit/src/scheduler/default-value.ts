@@ -5,6 +5,7 @@ import type {
 } from '@/chrono/chrono.js'
 import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
+import { State } from '@/primitives/state.js'
 import { isFunction } from '@/schema/index.js'
 
 type DefaultValueConfig = Record<PropertyKey, unknown>
@@ -100,6 +101,7 @@ export function useComposeDefaultValue(ctx: {
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
       })
+      card.state = State.New
       card.scheduleStatus = 'new'
       card.scheduledDays = 0
       applyFieldDefaults({

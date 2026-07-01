@@ -18,6 +18,8 @@ import type {
   ModelMemoryOf,
 } from '@/model/infer.js'
 import type { AnyModel } from '@/model/model.js'
+import type { Grade } from '@/primitives/rating.js'
+import type { State } from '@/primitives/state.js'
 import type { ScheduleStatus } from '@/primitives/status.js'
 import type {
   Assign,
@@ -82,9 +84,15 @@ type SchedulerScheduleStatus<MWs extends readonly AnyMiddleware[]> =
   | Extract<MiddlewareStatusOf<MWs[number]>, string>
 
 type SchedulerScheduleFields<Status extends string> = {
+  readonly state: State
   readonly scheduleStatus: Status
   readonly scheduledDays: number
 }
+
+type SchedulerRevlogCoreFields<Status extends string> =
+  SchedulerScheduleFields<Status> & {
+    readonly rating: Grade
+  }
 
 type ExtendSchedulerCard<
   Env extends BlankSchedulerEnv,
@@ -121,7 +129,7 @@ type ExtendSchedulerRevlog<
 > = Prettify<
   Assign<
     Assign<SchemaOutput<Env['revlog']>, MiddlewareRevlogFields<AddedMWs>>,
-    SchedulerScheduleFields<
+    SchedulerRevlogCoreFields<
       | Extract<Env['scheduleStatus'], string>
       | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
     >
@@ -137,7 +145,7 @@ export type SchedulerRevlogFields<
     Assign<ModelMemoryOf<M>, MergePart<ChronoRevlogOf<C>>>,
     MiddlewareRevlogFields<MWs>
   >,
-  SchedulerScheduleFields<SchedulerScheduleStatus<MWs>>
+  SchedulerRevlogCoreFields<SchedulerScheduleStatus<MWs>>
 >
 
 export type SchedulerNameOf<M extends AnyModel> = M extends {

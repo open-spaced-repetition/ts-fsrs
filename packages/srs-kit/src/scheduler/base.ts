@@ -11,6 +11,7 @@ import type {
 } from '@/middleware/index.js'
 import type { AnyModel, AnyModelCore } from '@/model/model.js'
 import { type Grade, grades } from '@/primitives/rating.js'
+import { State } from '@/primitives/state.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import {
   composeMiddleware,
@@ -273,7 +274,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       if (chronoRevlogSchema) {
         time = parse(this.chrono.projection, {
           revlog: revlog,
-        }).current
+        }).previous
       } else {
         time = this.chronoCore.now()
       }
@@ -386,10 +387,13 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     ctx.scheduledDays = scheduledDays
 
     Object.assign(result.card, newMemoryState, {
+      state: State.Review,
       scheduleStatus: 'review',
       scheduledDays,
     })
     Object.assign(result.revlog, memoryState, {
+      rating: grade,
+      state: prepared.card.state,
       scheduleStatus: prepared.card.scheduleStatus,
       scheduledDays: prepared.card.scheduledDays,
     })
@@ -406,6 +410,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     const revlog = ctx.input.revlog
 
     Object.assign(result.card, parse(this.model.schema.memoryState, revlog))
+    result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
     result.card.scheduledDays = revlog.scheduledDays
     this.applyRollbackChronoDefaults(result, revlog)
