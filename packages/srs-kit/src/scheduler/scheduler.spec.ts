@@ -185,7 +185,6 @@ describe('defineScheduler', () => {
       readonly state: State
       readonly scheduledDays: number
       readonly elapsedDays: number
-      readonly lapses: number
     }>()
   })
 
@@ -201,7 +200,6 @@ describe('defineScheduler', () => {
       readonly state: State
       readonly scheduledDays: number
       readonly elapsedDays: number
-      readonly lapses: number
       readonly audit: string
     }>()
   })
@@ -216,7 +214,6 @@ describe('defineScheduler', () => {
       readonly state: State
       readonly scheduledDays: number
       readonly elapsedDays: number
-      readonly lapses: number
       readonly audit: string
     }>()
   })
@@ -232,7 +229,6 @@ describe('defineScheduler', () => {
       readonly state: State
       readonly scheduledDays: number
       readonly elapsedDays: number
-      readonly lapses: number
     }>()
   })
 

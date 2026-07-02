@@ -518,6 +518,7 @@ describe('SchedulerCore.review', () => {
     expect(result.revlog.rating).toBe(Rating.Good)
     expect(result.revlog.state).toBe(State.New)
     expect(result.revlog.scheduledDays).toBe(0)
+    expect(result.revlog).not.toHaveProperty('elapsedDays')
   })
 
   it('computes elapsed days from chrono', () => {
@@ -525,6 +526,7 @@ describe('SchedulerCore.review', () => {
     const r1 = core.review({ card: card, grade: Rating.Good, now: 0 })
     const r2 = core.review({ card: r1.card, grade: Rating.Good, now: 5 })
 
+    expect(r2.card.elapsedDays).toBe(5)
     expect(r2.revlog.elapsedDays).toBe(5)
   })
 

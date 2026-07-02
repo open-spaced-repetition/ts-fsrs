@@ -77,7 +77,7 @@ type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   }
   desiredRetention: number
   readonly elapsedDays: number
-  scheduledDays?: number
+  scheduledDays: number | undefined
   readonly candidate: ReviewCandidateContext
   readonly result: ReviewResultDraft<Env>
 }
@@ -204,6 +204,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
       desiredRetention: DEFAULT_DESIRED_RETENTION,
       elapsedDays: prepared.elapsedDays,
+      scheduledDays: undefined,
       candidate: prepared.candidate,
       result: { card: {}, revlog: {} },
     }
@@ -240,6 +241,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
         input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
         desiredRetention: DEFAULT_DESIRED_RETENTION,
         elapsedDays: prepared.elapsedDays,
+        scheduledDays: undefined,
         candidate: prepared.candidate,
         result: { card: {}, revlog: {} },
       }
@@ -393,11 +395,11 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     const { grade } = ctx.input
     const result = ctx.result
     const newMemoryState = ctx.candidate.step(grade)
-    const scheduledDays = ctx.candidate.nextInterval(
+    ctx.scheduledDays ??= ctx.candidate.nextInterval(
       newMemoryState,
       ctx.desiredRetention
     )
-    ctx.scheduledDays = scheduledDays
+    const scheduledDays = ctx.scheduledDays
 
     Object.assign(result.card, newMemoryState, {
       state: State.Review,
