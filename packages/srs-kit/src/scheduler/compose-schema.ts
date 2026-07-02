@@ -83,24 +83,34 @@ const coreSchedulerRevlogFieldsSchema = defineSchema<{
 
 const parsedCardMemoryState = Symbol('parsedCardMemoryState')
 
+type ParsedCardMemoryState<MemoryState extends object> = {
+  readonly [parsedCardMemoryState]: MemoryState
+}
+
+export function getParsedCardMemoryState<MemoryState extends object>(
+  card: ParsedCardMemoryState<MemoryState>
+): MemoryState | undefined
 export function getParsedCardMemoryState(
   card: object
-): Record<string, any> | undefined {
-  return (card as Record<typeof parsedCardMemoryState, Record<string, any>>)[
+): Record<string, unknown> | undefined
+export function getParsedCardMemoryState(card: object): object | undefined {
+  return (card as Partial<ParsedCardMemoryState<Record<string, unknown>>>)[
     parsedCardMemoryState
   ]
 }
 
-function rememberParsedCardMemoryState<Card extends object>(
+export function rememberParsedCardMemoryState<
+  Card extends object,
+  MemoryState extends object,
+>(
   card: Card,
-  memoryState: Record<string, any>
-): Card {
-  const parsedCard = card as Record<
-    typeof parsedCardMemoryState,
-    Record<string, any>
-  >
+  memoryState: MemoryState
+): Card & ParsedCardMemoryState<MemoryState> {
+  const parsedCard = card as Card & {
+    [parsedCardMemoryState]: MemoryState
+  }
   parsedCard[parsedCardMemoryState] = memoryState
-  return card
+  return parsedCard
 }
 
 export function composeSchema(ctx: {
@@ -110,7 +120,7 @@ export function composeSchema(ctx: {
 }): SchedulerSchema<any> {
   const { model, chrono, middlewares } = ctx
   const modelConfigSchema = model.schema.config
-  const chronoSchema = chrono.schema as any
+  const chronoSchema = chrono.schema
   const chronoConfigSchema = chronoSchema.config
   const chronoCardSchema = chronoSchema.card
   const chronoRevlogSchema = chronoSchema.revlog
@@ -162,7 +172,7 @@ export function composeSchema(ctx: {
     const modelResult = model.schema.memoryState['~standard'].validate(value)
     if (modelResult.issues) return modelResult
 
-    const memoryState = modelResult.value as Record<string, any>
+    const memoryState = modelResult.value as Record<string, unknown>
     const card: Record<string, unknown> = Object.assign({}, memoryState)
 
     if (chronoCardSchema) {

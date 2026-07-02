@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: runtime generic dispatch */
 import type {
   AnyChrono,
   AnyChronoCore,
@@ -99,8 +98,8 @@ type ReviewRuntimeHandler<Env extends BlankSchedulerEnv> = (
 
 type RollbackRuntimeHandler<Env extends BlankSchedulerEnv> = (
   operation: RollbackMiddlewareOperationContext<Env>,
-  next: () => Readonly<Record<string, any>>
-) => Readonly<Record<string, any>>
+  next: () => RollbackResultDraft<Env>['card']
+) => RollbackResultDraft<Env>['card']
 
 type ReviewInputContext<Env extends BlankSchedulerEnv> =
   ReviewMiddlewareOperationContext<Env>['input']
@@ -320,9 +319,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       this.schema.card,
       inputCard
     ) as SchedulerCoreEnv<Env>['card']['output']
-    const memoryState = getParsedCardMemoryState(parsedCard) as
-      | Record<string, unknown>
-      | undefined
+    const memoryState = getParsedCardMemoryState(parsedCard)
     if (!memoryState) {
       throw new Error('Parsed scheduler card is missing model memory state')
     }
@@ -419,7 +416,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
 
   private finalizeRollback(
     ctx: RollbackMiddlewareOperationContext<Env>
-  ): Readonly<Record<string, any>> {
+  ): RollbackResultDraft<Env>['card'] {
     const result = ctx.result
     const revlog = ctx.input.revlog
 
