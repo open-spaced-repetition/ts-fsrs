@@ -93,25 +93,17 @@ export const sourceMiddleware: Middleware<
       ctx: ReviewMiddlewareContext<SourceMiddlewareEnv>,
       next: MiddlewareNext<Result>
     ): Result {
-      const result = next() as {
-        readonly card: Record<string, unknown>
-        readonly revlog: Record<string, unknown>
-      }
-      result.card.source = ctx.config.source
-      result.revlog.audit = ctx.config.source
-      ctx.result = result
-      return result as Result
+      next()
+      ctx.result.card.source = ctx.config.source
+      ctx.result.revlog.audit = ctx.config.source
+      return ctx.result as Result
     },
     rollback<Result>(
       ctx: RollbackMiddlewareContext<SourceMiddlewareEnv>,
       next: MiddlewareNext<Result>
     ): Result {
-      const restored = next() as Readonly<Record<string, unknown>>
-      const resultCard = {
-        ...restored,
-        source: ctx.config.source,
-      }
-      ctx.result = { card: resultCard }
+      next()
+      ctx.result.card.source = ctx.config.source
       return ctx.result.card as Result
     },
   },

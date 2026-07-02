@@ -79,7 +79,7 @@ type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   readonly elapsedDays: number
   scheduledDays?: number
   readonly candidate: ReviewCandidateContext
-  result: ReviewResultDraft<Env>
+  readonly result: ReviewResultDraft<Env>
 }
 
 type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
@@ -88,7 +88,7 @@ type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
     readonly revlog: Readonly<SchedulerCoreEnv<Env>['revlog']['output']>
   }
-  result: RollbackResultDraft<Env>
+  readonly result: RollbackResultDraft<Env>
 }
 
 type ReviewRuntimeHandler<Env extends BlankSchedulerEnv> = (
@@ -412,8 +412,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     })
     this.applyChronoDefaults(result, prepared, scheduledDays)
 
-    ctx.result = result
-    return ctx.result
+    return result
   }
 
   private finalizeRollback(
@@ -428,8 +427,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     result.card.scheduledDays = revlog.scheduledDays
     this.applyRollbackChronoDefaults(result, revlog)
 
-    ctx.result = result
-    return ctx.result.card
+    return result.card
   }
 
   private applyChronoDefaults(
