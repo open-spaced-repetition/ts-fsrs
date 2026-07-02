@@ -120,8 +120,8 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
@@ -129,8 +129,8 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
@@ -177,8 +177,8 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly elapsedDays: number;
             readonly lapses: number;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
@@ -188,8 +188,8 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly elapsedDays: number;
             readonly lapses: number;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
@@ -239,8 +239,8 @@ describe('defineScheduler type display', () => {
             readonly elapsedDays: number;
             readonly lapses: number;
             readonly audit: string;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
@@ -251,8 +251,8 @@ describe('defineScheduler type display', () => {
             readonly elapsedDays: number;
             readonly lapses: number;
             readonly audit: string;
-            readonly scheduleStatus: "new" | "learning" | "review";
             readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
             readonly rating: Grade;
         };
