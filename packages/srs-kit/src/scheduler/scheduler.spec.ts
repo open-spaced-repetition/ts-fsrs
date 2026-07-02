@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import { schedulerStatsMiddleware } from '@/middleware/stats.js'
+import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { type Grade, Rating, type State } from '@/primitives/index.js'
 import type {
   SchedulerCardOf,
@@ -128,7 +128,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly lapses: number
     }>()
   })
@@ -141,7 +140,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly lapses: number
       readonly source: string
     }>()
@@ -155,7 +153,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly lapses: number
       readonly source: string
     }>()
@@ -170,7 +167,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly lapses: number
     }>()
   })
@@ -184,7 +180,6 @@ describe('defineScheduler', () => {
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
     }>()
   })
 
@@ -199,7 +194,6 @@ describe('defineScheduler', () => {
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly audit: string
     }>()
   })
@@ -213,7 +207,6 @@ describe('defineScheduler', () => {
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
       readonly audit: string
     }>()
   })
@@ -228,7 +221,6 @@ describe('defineScheduler', () => {
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
       readonly scheduledDays: number
-      readonly elapsedDays: number
     }>()
   })
 

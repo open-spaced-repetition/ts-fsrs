@@ -2,7 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import type { Middleware } from '@/middleware/index.js'
-import { schedulerStatsMiddleware } from '@/middleware/stats.js'
+import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { defineSchema, isObject } from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
@@ -153,7 +153,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -163,7 +162,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -175,7 +173,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
@@ -185,7 +182,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
@@ -211,7 +207,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -222,7 +217,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -234,7 +228,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -245,7 +238,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -268,7 +260,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -279,7 +270,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -291,7 +281,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -302,7 +291,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -323,7 +311,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -333,7 +320,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -345,7 +331,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;
@@ -355,7 +340,6 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reps: number;
-            readonly elapsedDays: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly scheduledDays: number;

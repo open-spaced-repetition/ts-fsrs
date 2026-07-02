@@ -3,7 +3,7 @@ import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateChrono } from '@/chrono/presets/date/chrono.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import type { Middleware } from '@/middleware/index.js'
-import { schedulerStatsMiddleware } from '@/middleware/stats.js'
+import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { defineModel } from '@/model/model.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { Rating, State } from '@/primitives/index.js'
@@ -117,7 +117,7 @@ describe('SchedulerCore.newCard', () => {
     expect(card.reps).toBe(0)
     expect(card.scheduleStatus).toBe('new')
     expect(card.scheduledDays).toBe(0)
-    expect(card.elapsedDays).toBe(0)
+    expect(card).not.toHaveProperty('elapsedDays')
     expect(card.lapses).toBe(0)
   })
 
@@ -519,15 +519,6 @@ describe('SchedulerCore.review', () => {
     expect(result.revlog.state).toBe(State.New)
     expect(result.revlog.scheduledDays).toBe(0)
     expect(result.revlog).not.toHaveProperty('elapsedDays')
-  })
-
-  it('computes elapsed days from chrono', () => {
-    const card = core.newCard()
-    const r1 = core.review({ card: card, grade: Rating.Good, now: 0 })
-    const r2 = core.review({ card: r1.card, grade: Rating.Good, now: 5 })
-
-    expect(r2.card.elapsedDays).toBe(5)
-    expect(r2.revlog.elapsedDays).toBe(5)
   })
 
   it('chains multiple reviews correctly', () => {
@@ -1017,7 +1008,6 @@ describe('card schema validation', () => {
       reps: 0,
       scheduleStatus: 'new',
       scheduledDays: 0,
-      elapsedDays: 0,
       lapses: 0,
     }
     expect(() =>
