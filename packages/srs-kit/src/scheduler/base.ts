@@ -104,6 +104,8 @@ type RollbackRuntimeHandler<Env extends BlankSchedulerEnv> = (
 type ReviewInputContext<Env extends BlankSchedulerEnv> =
   ReviewMiddlewareOperationContext<Env>['input']
 
+const DEFAULT_DESIRED_RETENTION = 0.9
+
 class ReviewInput<Env extends BlankSchedulerEnv>
   implements ReviewInputContext<Env>
 {
@@ -200,7 +202,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     const ctx: ReviewMiddlewareOperationContext<Env> = {
       config: this.config,
       input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-      desiredRetention: this.config.desiredRetention,
+      desiredRetention: DEFAULT_DESIRED_RETENTION,
       elapsedDays: prepared.elapsedDays,
       candidate: prepared.candidate,
       result: { card: {}, revlog: {} },
@@ -236,7 +238,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       const ctx: ReviewMiddlewareOperationContext<Env> = {
         config: this.config,
         input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-        desiredRetention: this.config.desiredRetention,
+        desiredRetention: DEFAULT_DESIRED_RETENTION,
         elapsedDays: prepared.elapsedDays,
         candidate: prepared.candidate,
         result: { card: {}, revlog: {} },

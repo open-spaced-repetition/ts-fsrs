@@ -17,7 +17,6 @@ export const createSM2NumericScheduler = () =>
 
 export const config = {
   weights: SM2_DEFAULT_WEIGHTS,
-  desiredRetention: 0.9,
 }
 
 export const sourceConfigSchema = defineSchema<{ readonly source: string }>(

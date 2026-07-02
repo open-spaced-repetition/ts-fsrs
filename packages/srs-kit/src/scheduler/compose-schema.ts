@@ -142,11 +142,7 @@ export function composeSchema(ctx: {
       chronoValue = chronoResult.value
     }
 
-    const result: Record<PropertyKey, unknown> = {
-      // TODO: desiredRetention should be a required field in the future, but for now we will default it to 0.9 if not provided.
-      desiredRetention: value.desiredRetention ?? 0.9,
-      chrono: chronoValue,
-    }
+    const result: Record<PropertyKey, unknown> = { chrono: chronoValue }
     assignObjectFields(result, modelResult.value)
 
     for (const middleware of middlewares) {
