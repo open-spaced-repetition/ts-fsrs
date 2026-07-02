@@ -349,13 +349,29 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
         }),
       { lru: false }
     )
-    const nextInterval = withCache(
-      ([nextMemoryState, desiredRetention]: readonly [
-        Readonly<Record<string, unknown>>,
-        number,
-      ]) => this.modelCore.nextInterval(nextMemoryState, desiredRetention),
-      { lru: false }
-    )
+    const intervalCache = new Map<
+      Readonly<Record<string, unknown>>,
+      Map<number, number>
+    >()
+    const nextInterval = (
+      nextMemoryState: Readonly<Record<string, unknown>>,
+      desiredRetention: number
+    ): number => {
+      let inner = intervalCache.get(nextMemoryState)
+      if (inner) {
+        const cached = inner.get(desiredRetention)
+        if (cached !== undefined) return cached
+      } else {
+        inner = new Map()
+        intervalCache.set(nextMemoryState, inner)
+      }
+      const value = this.modelCore.nextInterval(
+        nextMemoryState,
+        desiredRetention
+      )
+      inner.set(desiredRetention, value)
+      return value
+    }
 
     return {
       card,
@@ -365,9 +381,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       retrievability,
       candidate: {
         step,
-        nextInterval(memoryState, desiredRetention) {
-          return nextInterval([memoryState, desiredRetention])
-        },
+        nextInterval,
       },
     }
   }
