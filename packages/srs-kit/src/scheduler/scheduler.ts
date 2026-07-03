@@ -9,6 +9,7 @@ import type {
   Prettify,
   SchemaInput,
   SchemaOutput,
+  SRSSchema,
 } from '@/schema/index.js'
 import type {
   SchedulerCoreFields,
@@ -107,6 +108,10 @@ export interface SchedulerSchema<
   readonly config: Env['config']
   readonly card: Env['card']
   readonly revlog: Env['revlog']
+  readonly scheduleStatus: SRSSchema<{
+    input: Env['scheduleStatus']
+    output: Env['scheduleStatus']
+  }>
 }
 
 export type SchedulerUseFn<

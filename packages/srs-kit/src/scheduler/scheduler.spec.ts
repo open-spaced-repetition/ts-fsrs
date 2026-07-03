@@ -235,6 +235,17 @@ describe('defineScheduler', () => {
   it('validates scheduleStatus against default and middleware keys', () => {
     const card = core.newCard()
 
+    expect(scheduler.schema.scheduleStatus.parse('new')).toBe('new')
+    expect(() => scheduler.schema.scheduleStatus.parse('suspend')).toThrow(
+      'Expected known scheduleStatus'
+    )
+    expect(statusScheduler.schema.scheduleStatus.parse('suspend')).toBe(
+      'suspend'
+    )
+    expect(() => statusScheduler.schema.scheduleStatus.parse('typo')).toThrow(
+      'Expected known scheduleStatus'
+    )
+
     expect(() =>
       scheduler.schema.card.parse({
         ...card,

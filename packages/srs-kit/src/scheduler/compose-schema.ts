@@ -236,5 +236,6 @@ export function composeSchema(ctx: {
     config,
     card,
     revlog,
+    scheduleStatus: scheduleStatusSchema,
   }
 }
