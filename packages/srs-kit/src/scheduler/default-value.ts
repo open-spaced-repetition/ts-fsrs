@@ -103,7 +103,6 @@ export function useComposeDefaultValue(ctx: {
       })
       card.state = State.New
       card.scheduleStatus = 'new'
-      card.scheduledDays = 0
       applyFieldDefaults({
         target: card,
         config,

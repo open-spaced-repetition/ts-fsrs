@@ -77,6 +77,7 @@ const suspendMiddleware: Middleware<
   'suspendMiddleware'
 > = {
   name: 'suspendMiddleware',
+  scheduleStatus: ['suspend'],
   handlers: {
     review(_ctx, next) {
       return next()
@@ -127,7 +128,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
         output: {
             readonly interval: number;
@@ -135,7 +135,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -145,7 +144,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         output: {
@@ -154,7 +152,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     }>;
@@ -179,7 +176,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
         output: {
             readonly interval: number;
@@ -188,7 +184,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -198,7 +193,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         output: {
@@ -207,7 +201,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     }>;
@@ -233,7 +226,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
         output: {
             readonly source: string;
@@ -243,7 +235,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -254,7 +245,6 @@ describe('defineScheduler type display', () => {
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         output: {
@@ -264,7 +254,6 @@ describe('defineScheduler type display', () => {
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     }>;
@@ -286,7 +275,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
         readonly output: {
             readonly source: string;
@@ -296,7 +284,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
     };
     readonly revlog: {
@@ -307,7 +294,6 @@ describe('defineScheduler type display', () => {
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         readonly output: {
@@ -317,7 +303,6 @@ describe('defineScheduler type display', () => {
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     };
@@ -337,7 +322,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
         readonly output: {
             readonly interval: number;
@@ -346,7 +330,6 @@ describe('defineScheduler type display', () => {
             readonly lapses: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
         };
     };
     readonly revlog: {
@@ -356,7 +339,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         readonly output: {
@@ -365,7 +347,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     };
@@ -394,7 +375,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
         };
         output: {
             readonly interval: number;
@@ -402,7 +382,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -412,7 +391,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         output: {
@@ -421,7 +399,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     }>;
@@ -438,7 +415,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
         };
         readonly output: {
             readonly interval: number;
@@ -446,7 +422,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
         };
     };
     readonly revlog: {
@@ -456,7 +431,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
         readonly output: {
@@ -465,7 +439,6 @@ describe('defineScheduler type display', () => {
             readonly reps: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly scheduledDays: number;
             readonly rating: Grade;
         };
     };

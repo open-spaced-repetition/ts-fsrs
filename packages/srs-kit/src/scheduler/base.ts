@@ -404,13 +404,11 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     Object.assign(result.card, newMemoryState, {
       state: State.Review,
       scheduleStatus: 'review',
-      scheduledDays,
     })
     Object.assign(result.revlog, memoryState, {
       rating: grade,
       state: prepared.card.state,
       scheduleStatus: prepared.card.scheduleStatus,
-      scheduledDays: prepared.card.scheduledDays,
     })
     this.applyChronoDefaults(result, prepared, scheduledDays)
 
@@ -426,7 +424,6 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     Object.assign(result.card, parse(this.model.schema.memoryState, revlog))
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
-    result.card.scheduledDays = revlog.scheduledDays
     this.applyRollbackChronoDefaults(result, revlog)
 
     return result.card

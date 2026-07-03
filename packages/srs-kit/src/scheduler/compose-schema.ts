@@ -3,9 +3,18 @@
 import type { AnyChrono } from '@/chrono/chrono.js'
 import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
-import { type Grade, gradeSchema } from '@/primitives/rating.js'
-import { type State, stateSchema } from '@/primitives/state.js'
-import { defineSchema, isObject } from '@/schema/index.js'
+import { gradeSchema } from '@/primitives/rating.js'
+import { stateSchema } from '@/primitives/state.js'
+import { scheduleStatuses } from '@/primitives/status.js'
+import {
+  defineSchema,
+  isObject,
+  type StandardSchemaV1,
+} from '@/schema/index.js'
+import type {
+  SchedulerCoreFields,
+  SchedulerRevlogCoreFields,
+} from './fields.js'
 import type { SchedulerSchema } from './scheduler.js'
 
 function assignObjectFields(
@@ -19,67 +28,6 @@ function assignObjectFields(
     }
   }
 }
-
-const coreSchedulerFieldsSchema = defineSchema<{
-  readonly state: State
-  readonly scheduleStatus: string
-  readonly scheduledDays: number
-}>((value) => {
-  const fields = value as Record<string, unknown> | null | undefined
-  if (!fields) {
-    return { issues: [{ message: 'Expected scheduleStatus string' }] }
-  }
-
-  const scheduleStatus = fields.scheduleStatus
-  const scheduledDays = fields.scheduledDays
-  const state = stateSchema['~standard'].validate(fields.state)
-  if (state.issues) return state
-
-  if (typeof scheduleStatus !== 'string') {
-    return { issues: [{ message: 'Expected scheduleStatus string' }] }
-  }
-  if (typeof scheduledDays !== 'number' || !Number.isFinite(scheduledDays)) {
-    return { issues: [{ message: 'Expected finite scheduledDays' }] }
-  }
-
-  return { value: { state: state.value, scheduleStatus, scheduledDays } }
-})
-
-const coreSchedulerRevlogFieldsSchema = defineSchema<{
-  readonly rating: Grade
-  readonly state: State
-  readonly scheduleStatus: string
-  readonly scheduledDays: number
-}>((value) => {
-  const fields = value as Record<string, unknown> | null | undefined
-  if (!fields) {
-    return { issues: [{ message: 'Expected scheduleStatus string' }] }
-  }
-
-  const scheduleStatus = fields.scheduleStatus
-  const scheduledDays = fields.scheduledDays
-  if (typeof scheduleStatus !== 'string') {
-    return { issues: [{ message: 'Expected scheduleStatus string' }] }
-  }
-  if (typeof scheduledDays !== 'number' || !Number.isFinite(scheduledDays)) {
-    return { issues: [{ message: 'Expected finite scheduledDays' }] }
-  }
-
-  const rating = gradeSchema['~standard'].validate(fields.rating)
-  if (rating.issues) return rating
-
-  const state = stateSchema['~standard'].validate(fields.state)
-  if (state.issues) return state
-
-  return {
-    value: {
-      scheduleStatus,
-      scheduledDays,
-      rating: rating.value,
-      state: state.value,
-    },
-  }
-})
 
 const parsedCardMemoryState = Symbol('parsedCardMemoryState')
 
@@ -124,6 +72,60 @@ export function composeSchema(ctx: {
   const chronoConfigSchema = chronoSchema.config
   const chronoCardSchema = chronoSchema.card
   const chronoRevlogSchema = chronoSchema.revlog
+
+  const scheduleStatusSchema = defineSchema<string>((value) => {
+    if (typeof value !== 'string') {
+      return { issues: [{ message: 'Expected scheduleStatus string' }] }
+    }
+
+    let isKnownStatus = scheduleStatuses.includes(value as any)
+    for (const middleware of middlewares) {
+      if (isKnownStatus) break
+      isKnownStatus = middleware.scheduleStatus?.includes(value) === true
+    }
+    if (!isKnownStatus) {
+      return { issues: [{ message: 'Expected known scheduleStatus' }] }
+    }
+
+    return { value }
+  })
+
+  const parseCoreFields = (
+    value: unknown,
+    options?: { readonly rating?: boolean }
+  ): StandardSchemaV1.Result<
+    SchedulerCoreFields | SchedulerRevlogCoreFields
+  > => {
+    const fields = value as Record<string, unknown> | null | undefined
+    if (!fields) {
+      return { issues: [{ message: 'Expected scheduleStatus string' }] }
+    }
+
+    const scheduleStatus = scheduleStatusSchema['~standard'].validate(
+      fields.scheduleStatus
+    )
+    if (scheduleStatus.issues) return scheduleStatus
+
+    const state = stateSchema['~standard'].validate(fields.state)
+    if (state.issues) return state
+
+    if (!options?.rating) {
+      return {
+        value: { state: state.value, scheduleStatus: scheduleStatus.value },
+      }
+    }
+
+    const rating = gradeSchema['~standard'].validate(fields.rating)
+    if (rating.issues) return rating
+
+    return {
+      value: {
+        state: state.value,
+        scheduleStatus: scheduleStatus.value,
+        rating: rating.value,
+      },
+    }
+  }
 
   const config = defineSchema<unknown, Record<string, unknown>>((value) => {
     if (!isObject(value)) {
@@ -177,12 +179,11 @@ export function composeSchema(ctx: {
       Object.assign(card, chronoCard.value)
     }
 
-    const coreFields = coreSchedulerFieldsSchema['~standard'].validate(value)
+    const coreFields = parseCoreFields(value)
     if (coreFields.issues) return coreFields
     // Explicitly inject scheduler core fields into the parsed card.
     card.state = coreFields.value.state
     card.scheduleStatus = coreFields.value.scheduleStatus
-    card.scheduledDays = coreFields.value.scheduledDays
 
     for (const middleware of middlewares) {
       const schema = middleware.schema?.card
@@ -211,12 +212,12 @@ export function composeSchema(ctx: {
       Object.assign(result, chronoRevlog.value)
     }
 
-    const coreFields =
-      coreSchedulerRevlogFieldsSchema['~standard'].validate(value)
+    const coreFields = parseCoreFields(value, {
+      rating: true,
+    }) as StandardSchemaV1.Result<SchedulerRevlogCoreFields>
     if (coreFields.issues) return coreFields
     // Explicitly inject scheduler core fields into the parsed revlog.
     result.scheduleStatus = coreFields.value.scheduleStatus
-    result.scheduledDays = coreFields.value.scheduledDays
     result.rating = coreFields.value.rating
     result.state = coreFields.value.state
 

@@ -127,7 +127,6 @@ describe('defineScheduler', () => {
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
-      readonly scheduledDays: number
       readonly lapses: number
     }>()
   })
@@ -139,7 +138,6 @@ describe('defineScheduler', () => {
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
-      readonly scheduledDays: number
       readonly lapses: number
       readonly source: string
     }>()
@@ -152,7 +150,6 @@ describe('defineScheduler', () => {
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
-      readonly scheduledDays: number
       readonly lapses: number
       readonly source: string
     }>()
@@ -166,7 +163,6 @@ describe('defineScheduler', () => {
       readonly source: string
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
-      readonly scheduledDays: number
       readonly lapses: number
     }>()
   })
@@ -179,7 +175,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
-      readonly scheduledDays: number
     }>()
   })
 
@@ -193,7 +188,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
-      readonly scheduledDays: number
       readonly audit: string
     }>()
   })
@@ -206,7 +200,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
-      readonly scheduledDays: number
       readonly audit: string
     }>()
   })
@@ -220,7 +213,6 @@ describe('defineScheduler', () => {
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
-      readonly scheduledDays: number
     }>()
   })
 
@@ -240,6 +232,36 @@ describe('defineScheduler', () => {
     >()
   })
 
+  it('validates scheduleStatus against default and middleware keys', () => {
+    const card = core.newCard()
+
+    expect(() =>
+      scheduler.schema.card.parse({
+        ...card,
+        scheduleStatus: 'suspend',
+      })
+    ).toThrow('Expected known scheduleStatus')
+    expect(
+      statusScheduler.schema.card.parse({
+        ...card,
+        scheduleStatus: 'suspend',
+      }).scheduleStatus
+    ).toBe('suspend')
+    expect(() =>
+      statusScheduler.schema.card.parse({
+        ...card,
+        scheduleStatus: 'typo',
+      })
+    ).toThrow('Expected known scheduleStatus')
+    expect(
+      statusScheduler.schema.revlog.parse({
+        ...card,
+        rating: Rating.Good,
+        scheduleStatus: 'buried',
+      }).scheduleStatus
+    ).toBe('buried')
+  })
+
   it('extends card and revlog schedule status via use()', () => {
     type ExtendedStatus = 'new' | 'learning' | 'review' | 'suspend' | 'buried'
 
@@ -249,14 +271,12 @@ describe('defineScheduler', () => {
       readonly reps: number
       readonly state: State
       readonly scheduleStatus: ExtendedStatus
-      readonly scheduledDays: number
     }>()
     expectTypeOf<SchedulerRevlogOf<typeof statusScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
       readonly reps: number
       readonly scheduleStatus: ExtendedStatus
-      readonly scheduledDays: number
       readonly rating: Grade
       readonly state: State
     }>()

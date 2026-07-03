@@ -116,4 +116,5 @@ export const statusMiddleware: Middleware<
   typeof statusMiddlewareName
 > = {
   name: statusMiddlewareName,
+  scheduleStatus: ['suspend', 'buried'],
 }

@@ -116,7 +116,6 @@ describe('SchedulerCore.newCard', () => {
     expect(card.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
     expect(card.reps).toBe(0)
     expect(card.scheduleStatus).toBe('new')
-    expect(card.scheduledDays).toBe(0)
     expect(card).not.toHaveProperty('elapsedDays')
     expect(card.lapses).toBe(0)
   })
@@ -288,7 +287,12 @@ describe('SchedulerCore.newCard', () => {
         review(ctx, next) {
           seen.push(ctx.desiredRetention)
           ctx.desiredRetention = 0.5
-          return next()
+          const result = next()
+          if (ctx.scheduledDays === undefined) {
+            throw new Error('Expected scheduledDays')
+          }
+          seen.push(ctx.scheduledDays)
+          return result
         },
       },
     } satisfies Middleware<
@@ -309,8 +313,8 @@ describe('SchedulerCore.newCard', () => {
       now: 0,
     })
 
-    expect(seen).toEqual([0.9])
-    expect(result.card.scheduledDays).toBe(7)
+    expect(seen).toEqual([0.9, 7])
+    expect(result.card.interval).toBe(1)
   })
 
   it('lets middleware derive desiredRetention from candidate memory state', () => {
@@ -348,7 +352,7 @@ describe('SchedulerCore.newCard', () => {
       },
       7,
     ])
-    expect(result.card.scheduledDays).toBe(7)
+    expect(result.card.interval).toBe(1)
   })
 
   it('lets middleware read the previous grade candidate separately', () => {
@@ -465,7 +469,6 @@ describe('SchedulerCore.review', () => {
     expect(result.card.interval).toBeGreaterThan(0)
     expect(result.card.reps).toBe(1)
     expect(result.card.lapses).toBe(0)
-    expect(result.card.scheduledDays).toBeGreaterThan(0)
   })
 
   it('transitions New -> Review on Again by default', () => {
@@ -483,7 +486,7 @@ describe('SchedulerCore.review', () => {
     const r2 = core.review({
       card: r1.card,
       grade: Rating.Again,
-      now: r1.card.scheduledDays,
+      now: r1.card.interval,
     })
 
     expect(r2.card.state).toBe(State.Review)
@@ -507,7 +510,6 @@ describe('SchedulerCore.review', () => {
     expect(result.revlog.scheduleStatus).toBe('new')
     expect(result.revlog.interval).toBe(0)
     expect(result.revlog.reps).toBe(0)
-    expect(result.revlog.scheduledDays).toBe(0)
   })
 
   it('records rating and state in core revlog without stats middleware', () => {
@@ -517,7 +519,6 @@ describe('SchedulerCore.review', () => {
 
     expect(result.revlog.rating).toBe(Rating.Good)
     expect(result.revlog.state).toBe(State.New)
-    expect(result.revlog.scheduledDays).toBe(0)
     expect(result.revlog).not.toHaveProperty('elapsedDays')
   })
 
@@ -527,12 +528,12 @@ describe('SchedulerCore.review', () => {
     const r2 = core.review({
       card: r1.card,
       grade: Rating.Good,
-      now: r1.card.scheduledDays,
+      now: r1.card.interval,
     })
     const r3 = core.review({
       card: r2.card,
       grade: Rating.Good,
-      now: r1.card.scheduledDays + r2.card.scheduledDays,
+      now: r1.card.interval + r2.card.interval,
     })
 
     expect(r3.card.reps).toBe(3)
@@ -748,7 +749,7 @@ describe('SchedulerCore middleware handlers', () => {
     const result = tracedCore.review({
       card: first.card,
       grade: Rating.Good,
-      now: first.card.scheduledDays,
+      now: first.card.interval,
     })
     trace.length = 0
 
@@ -868,7 +869,6 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.scheduleStatus).toBe('new')
     expect(restored.interval).toBe(0)
     expect(restored.reps).toBe(0)
-    expect(restored.scheduledDays).toBe(0)
   })
 
   it('returns an empty card when revlog status is new', () => {
@@ -882,7 +882,6 @@ describe('SchedulerCore.rollback', () => {
         easeFactor: 3,
         reps: 10,
         scheduleStatus: 'new',
-        scheduledDays: 0,
       },
     })
 
@@ -890,7 +889,6 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
     expect(restored.reps).toBe(0)
     expect(restored.scheduleStatus).toBe('new')
-    expect(restored.scheduledDays).toBe(0)
   })
 
   it('restores lapses on lapse rollback', () => {
@@ -899,7 +897,7 @@ describe('SchedulerCore.rollback', () => {
     const r2 = core.review({
       card: r1.card,
       grade: Rating.Again,
-      now: r1.card.scheduledDays,
+      now: r1.card.interval,
     })
 
     expect(r2.card.lapses).toBe(1)
@@ -1007,7 +1005,6 @@ describe('card schema validation', () => {
       easeFactor: 2.5,
       reps: 0,
       scheduleStatus: 'new',
-      scheduledDays: 0,
       lapses: 0,
     }
     expect(() =>
