@@ -70,6 +70,29 @@ const auditMiddleware: Middleware<
 
 const symbolNamedMiddleware = auditMiddleware
 
+const suspendMiddleware: Middleware<
+  {
+    readonly scheduleStatus: 'suspend'
+  },
+  'suspendMiddleware'
+> = {
+  name: 'suspendMiddleware',
+  handlers: {
+    review(_ctx, next) {
+      return next()
+    },
+  },
+}
+
+const sm2WithSuspend = defineScheduler({
+  model: SM2Model,
+  chrono: numericChrono,
+}).use(suspendMiddleware)
+
+const sm2WithSuspendCore = sm2WithSuspend.create({
+  config: { weights: SM2_DEFAULT_WEIGHTS },
+})
+
 const sm2NumericSchedulerWithMiddleware = defineScheduler({
   model: SM2Model,
   chrono: numericChrono,
@@ -351,6 +374,106 @@ describe('defineScheduler type display', () => {
 }>`,
   }
 
+  const expectedSuspend = {
+    sm2WithSuspend: `const sm2WithSuspend: ComposableScheduler<"sm2", {
+    readonly chrono: number;
+    readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+            readonly chrono: Record<string, never>;
+        };
+    }>;
+    readonly card: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+        };
+    }>;
+    readonly revlog: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+            readonly rating: Grade;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+            readonly rating: Grade;
+        };
+    }>;
+}>`,
+    sm2WithSuspendCore: `const sm2WithSuspendCore: SchedulerCore<{
+    readonly config: {
+        readonly weights: readonly number[];
+        readonly chrono: Record<string, never>;
+    };
+    readonly card: {
+        readonly input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+        };
+        readonly output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+        };
+    };
+    readonly revlog: {
+        readonly input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+            readonly rating: Grade;
+        };
+        readonly output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reps: number;
+            readonly state: State;
+            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            readonly scheduledDays: number;
+            readonly rating: Grade;
+        };
+    };
+    readonly chrono: number;
+    readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+}>`,
+  }
+
   const expectedMiddlewares = {
     symbolNamedMiddleware: `const symbolNamedMiddleware: Middleware<{
     readonly card: typeof sourceCardSchema;
@@ -366,6 +489,12 @@ describe('defineScheduler type display', () => {
 
   it('shows SchedulerCore<T> for scheduler.create()', () => {
     for (const [marker, expected] of Object.entries(expectedCores)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('extends scheduleStatus with middleware-contributed status', () => {
+    for (const [marker, expected] of Object.entries(expectedSuspend)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })

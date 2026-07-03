@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyScheduler */
 
 import type { AnyMiddleware } from '@/middleware/index.js'
+import type { Grade } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
   AnySchema,
@@ -113,15 +114,7 @@ export type SchedulerUseFn<
   Env extends BlankSchedulerEnv,
 > = <const AddedMWs extends readonly AnyMiddleware[]>(
   ...middlewares: AddedMWs
-) => ComposableScheduler<
-  Name,
-  {
-    readonly [K in keyof ExtendSchedulerEnv<Env, AddedMWs>]: ExtendSchedulerEnv<
-      Env,
-      AddedMWs
-    >[K]
-  }
->
+) => ComposableScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>>
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
@@ -138,19 +131,9 @@ export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
 }
 
 export type SchedulerCreate<Env extends BlankSchedulerEnv = BlankSchedulerEnv> =
-  (ctx: { readonly config: SchemaInput<Env['config']> }) => SchedulerCore<{
-    readonly config: SchemaOutput<Env['config']>
-    readonly card: {
-      readonly input: SchedulerCoreFieldSchemaPart<Env, 'card', 'input'>
-      readonly output: SchedulerCoreFieldSchemaPart<Env, 'card', 'output'>
-    }
-    readonly revlog: {
-      readonly input: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'input'>
-      readonly output: SchedulerCoreFieldSchemaPart<Env, 'revlog', 'output'>
-    }
-    readonly chrono: Env['chrono']
-    readonly scheduleStatus: Env['scheduleStatus']
-  }>
+  (ctx: {
+    readonly config: SchemaInput<Env['config']>
+  }) => SchedulerCore<Prettify<SchedulerCoreEnv<Env>>>
 
 /**
  * Scheduler definition that can be extended with middleware before it is

@@ -81,10 +81,6 @@ type MiddlewareCardFields<MWs extends readonly AnyMiddleware[]> = MergePart<
   MergeAllObjects<MiddlewareCardOf<MWs[number]>>
 >
 
-type SchedulerScheduleStatus<MWs extends readonly AnyMiddleware[]> =
-  | ScheduleStatus
-  | Extract<MiddlewareStatusOf<MWs[number]>, string>
-
 type ExtendSchedulerCard<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
@@ -107,7 +103,7 @@ export type SchedulerCardFields<
     Assign<ModelMemoryOf<M>, MergePart<ChronoCardOf<C>>>,
     MiddlewareCardFields<MWs>
   >,
-  SchedulerCoreFields<SchedulerScheduleStatus<MWs>>
+  SchedulerCoreFields<ScheduleStatus | Extract<MiddlewareStatusOf<MWs[number]>, string>>
 >
 
 type MiddlewareRevlogFields<MWs extends readonly AnyMiddleware[]> = MergePart<
@@ -136,7 +132,7 @@ export type SchedulerRevlogFields<
     Assign<ModelMemoryOf<M>, MergePart<ChronoRevlogOf<C>>>,
     MiddlewareRevlogFields<MWs>
   >,
-  SchedulerRevlogCoreFields<SchedulerScheduleStatus<MWs>>
+  SchedulerRevlogCoreFields<ScheduleStatus | Extract<MiddlewareStatusOf<MWs[number]>, string>>
 >
 
 export type SchedulerNameOf<M extends AnyModel> = M extends {
@@ -151,7 +147,7 @@ export type SchedulerEnvFor<
   MWs extends readonly AnyMiddleware[],
 > = {
   readonly chrono: ChronoTimeOf<C>
-  readonly scheduleStatus: SchedulerScheduleStatus<MWs>
+  readonly scheduleStatus: ScheduleStatus | Extract<MiddlewareStatusOf<MWs[number]>, string>
   readonly config: SRSSchema<{
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
