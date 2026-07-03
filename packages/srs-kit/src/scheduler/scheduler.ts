@@ -1,8 +1,6 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyScheduler */
 
 import type { AnyMiddleware } from '@/middleware/index.js'
-import type { Grade } from '@/primitives/rating.js'
-import type { State } from '@/primitives/state.js'
 import type {
   AnyObjectSchema,
   AnySchema,
@@ -11,6 +9,10 @@ import type {
   SchemaInput,
   SchemaOutput,
 } from '@/schema/index.js'
+import type {
+  SchedulerCoreFields,
+  SchedulerRevlogCoreFields,
+} from './fields.js'
 import type { ExtendSchedulerEnv } from './infer.js'
 
 // ==========
@@ -85,20 +87,6 @@ export type BlankSchedulerEnv = {
   readonly scheduleStatus: string
 }
 
-export type SchedulerCoreFields<Env extends BlankSchedulerEnv> = {
-  readonly state: State
-  readonly scheduleStatus: Env['scheduleStatus']
-  readonly scheduledDays: number
-}
-
-export type SchedulerCardCoreFields<Env extends BlankSchedulerEnv> =
-  SchedulerCoreFields<Env>
-
-export type SchedulerRevlogCoreFields<Env extends BlankSchedulerEnv> =
-  SchedulerCoreFields<Env> & {
-    readonly rating: Grade
-  }
-
 type SchedulerCoreFieldSchemaPart<
   Env extends BlankSchedulerEnv,
   Key extends 'card' | 'revlog',
@@ -107,8 +95,8 @@ type SchedulerCoreFieldSchemaPart<
   Assign<
     Direction extends 'input' ? SchemaInput<Env[Key]> : SchemaOutput<Env[Key]>,
     Key extends 'card'
-      ? SchedulerCardCoreFields<Env>
-      : SchedulerRevlogCoreFields<Env>
+      ? SchedulerCoreFields<Env['scheduleStatus']>
+      : SchedulerRevlogCoreFields<Env['scheduleStatus']>
   >
 >
 

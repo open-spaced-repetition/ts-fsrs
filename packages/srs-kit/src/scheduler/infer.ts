@@ -18,8 +18,6 @@ import type {
   ModelMemoryOf,
 } from '@/model/infer.js'
 import type { AnyModel } from '@/model/model.js'
-import type { Grade } from '@/primitives/rating.js'
-import type { State } from '@/primitives/state.js'
 import type { ScheduleStatus } from '@/primitives/status.js'
 import type {
   Assign,
@@ -31,6 +29,10 @@ import type {
   SchemaOutputOf,
   SRSSchema,
 } from '@/schema/index.js'
+import type {
+  SchedulerCoreFields,
+  SchedulerRevlogCoreFields,
+} from './fields.js'
 import type {
   AnyScheduler,
   BlankSchedulerEnv,
@@ -83,24 +85,13 @@ type SchedulerScheduleStatus<MWs extends readonly AnyMiddleware[]> =
   | ScheduleStatus
   | Extract<MiddlewareStatusOf<MWs[number]>, string>
 
-type SchedulerScheduleFields<Status extends string> = {
-  readonly state: State
-  readonly scheduleStatus: Status
-  readonly scheduledDays: number
-}
-
-type SchedulerRevlogCoreFields<Status extends string> =
-  SchedulerScheduleFields<Status> & {
-    readonly rating: Grade
-  }
-
 type ExtendSchedulerCard<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
 > = Prettify<
   Assign<
     Assign<SchemaOutput<Env['card']>, MiddlewareCardFields<AddedMWs>>,
-    SchedulerScheduleFields<
+    SchedulerCoreFields<
       | Extract<Env['scheduleStatus'], string>
       | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
     >
@@ -116,7 +107,7 @@ export type SchedulerCardFields<
     Assign<ModelMemoryOf<M>, MergePart<ChronoCardOf<C>>>,
     MiddlewareCardFields<MWs>
   >,
-  SchedulerScheduleFields<SchedulerScheduleStatus<MWs>>
+  SchedulerCoreFields<SchedulerScheduleStatus<MWs>>
 >
 
 type MiddlewareRevlogFields<MWs extends readonly AnyMiddleware[]> = MergePart<
