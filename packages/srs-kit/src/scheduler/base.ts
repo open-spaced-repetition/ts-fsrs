@@ -93,13 +93,13 @@ type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
 
 type ReviewRuntimeHandler<Env extends BlankSchedulerEnv> = (
   operation: ReviewMiddlewareOperationContext<Env>,
-  next: () => ReviewResultDraft<Env>
-) => ReviewResultDraft<Env>
+  next: () => void
+) => void
 
 type RollbackRuntimeHandler<Env extends BlankSchedulerEnv> = (
   operation: RollbackMiddlewareOperationContext<Env>,
-  next: () => RollbackResultDraft<Env>['card']
-) => RollbackResultDraft<Env>['card']
+  next: () => void
+) => void
 
 type ReviewInputContext<Env extends BlankSchedulerEnv> =
   ReviewMiddlewareOperationContext<Env>['input']

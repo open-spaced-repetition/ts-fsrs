@@ -57,7 +57,7 @@ const auditMiddleware = defineMiddleware({
   },
   handlers: {
     review(_ctx, next) {
-      return next()
+      next()
     },
   },
 })
@@ -69,7 +69,7 @@ const suspendMiddleware = defineMiddleware({
   scheduleStatus: ['suspend'],
   handlers: {
     review(_ctx, next) {
-      return next()
+      next()
     },
   },
 })

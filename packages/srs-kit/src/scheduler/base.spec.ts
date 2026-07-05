@@ -269,12 +269,11 @@ describe('SchedulerCore.newCard', () => {
         review(ctx, next) {
           seen.push(ctx.desiredRetention)
           ctx.desiredRetention = 0.5
-          const result = next()
+          next()
           if (ctx.scheduledDays === undefined) {
             throw new Error('Expected scheduledDays')
           }
           seen.push(ctx.scheduledDays)
-          return result
         },
       },
     })
@@ -309,7 +308,7 @@ describe('SchedulerCore.newCard', () => {
           seen.push(
             ctx.candidate.nextInterval(memoryState, ctx.desiredRetention)
           )
-          return next()
+          next()
         },
       },
     })
@@ -353,7 +352,7 @@ describe('SchedulerCore.newCard', () => {
               ctx.desiredRetention
             ),
           })
-          return next()
+          next()
         },
       },
     })
@@ -410,7 +409,7 @@ describe('SchedulerCore.newCard', () => {
             const ms = ctx.candidate.step(g)
             ctx.candidate.nextInterval(ms, ctx.desiredRetention)
           }
-          return next()
+          next()
         },
       },
     })
@@ -576,7 +575,7 @@ describe('SchedulerCore middleware handlers', () => {
         handlers: {
           review(ctx, next) {
             ;(ctx.input as Record<typeof field, unknown>)[field] = null
-            return next()
+            next()
           },
         },
       })
@@ -597,7 +596,7 @@ describe('SchedulerCore middleware handlers', () => {
       handlers: {
         review(ctx, next) {
           seen.push(structuredClone(ctx.result))
-          return next()
+          next()
         },
       },
     })
@@ -621,14 +620,13 @@ describe('SchedulerCore middleware handlers', () => {
       name: Symbol('invalid-result'),
       handlers: {
         review(ctx, next) {
-          const result = next()
+          next()
           const runtimeCtx = ctx as {
             readonly result: {
               readonly card: Record<string, unknown>
             }
           }
           delete runtimeCtx.result.card.interval
-          return result
         },
       },
     })
@@ -648,16 +646,14 @@ describe('SchedulerCore middleware handlers', () => {
       handlers: {
         review(ctx, next) {
           trace.push(`${name}:review:before:${ctx.input.grade}`)
-          const result = next() as { readonly card: { readonly state: State } }
-          trace.push(`${name}:review:after:${result.card.state}`)
-          return result as never
+          next()
+          trace.push(`${name}:review:after:${ctx.result.card.state}`)
         },
         rollback(ctx, next) {
           const revlog = ctx.input.revlog as { readonly rating: Rating }
           trace.push(`${name}:rollback:before:${revlog.rating}`)
-          const result = next() as { readonly state: State }
-          trace.push(`${name}:rollback:after:${result.state}`)
-          return result as never
+          next()
+          trace.push(`${name}:rollback:after:${ctx.result.card.state}`)
         },
       },
     })
@@ -748,7 +744,7 @@ describe('SchedulerCore middleware handlers', () => {
       handlers: {
         review(_ctx, next) {
           next()
-          return next()
+          next()
         },
       },
     })

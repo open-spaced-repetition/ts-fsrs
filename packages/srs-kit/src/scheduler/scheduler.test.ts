@@ -79,12 +79,10 @@ export const sourceMiddleware = defineMiddleware({
       next()
       ctx.result.card.source = ctx.config.source
       ctx.result.revlog.audit = ctx.config.source
-      return ctx.result
     },
     rollback(ctx, next) {
       next()
       ctx.result.card.source = ctx.config.source
-      return ctx.result.card
     },
   },
 })
