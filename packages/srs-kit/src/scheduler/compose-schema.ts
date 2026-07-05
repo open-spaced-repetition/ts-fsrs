@@ -80,16 +80,11 @@ export function composeSchema(ctx: {
   })
 
   const parseCoreFields = (
-    value: unknown,
+    fields: Record<string, unknown>,
     options?: { readonly rating?: boolean }
   ): StandardSchemaV1.Result<
     SchedulerCoreFields | SchedulerRevlogCoreFields
   > => {
-    const fields = value as Record<string, unknown> | null | undefined
-    if (!fields) {
-      return { issues: [{ message: 'Expected scheduleStatus string' }] }
-    }
-
     const scheduleStatus = scheduleStatusSchema['~standard'].validate(
       fields.scheduleStatus
     )

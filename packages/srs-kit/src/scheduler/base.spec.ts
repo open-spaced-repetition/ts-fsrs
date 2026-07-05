@@ -8,6 +8,8 @@ import { defineModel } from '@/model/model.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { Rating, State } from '@/primitives/index.js'
 import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
+import { BaseScheduler } from './base.js'
+import { useComposeDefaultValue } from './default-value.js'
 import { defineScheduler } from './define-scheduler.js'
 import { SRSSchedulerError } from './error.js'
 import {
@@ -333,6 +335,33 @@ describe('SchedulerCore.newCard', () => {
     expect(result.card.interval).toBe(1)
   })
 
+  it('caches nextInterval by memory state and desired retention', () => {
+    const seen: number[] = []
+    const candidateMiddleware = defineMiddleware({
+      name: Symbol('candidate-retention-cache'),
+      handlers: {
+        review(ctx, next) {
+          const memoryState = ctx.candidate.step(ctx.input.grade)
+          seen.push(ctx.candidate.nextInterval(memoryState, 0.9))
+          seen.push(ctx.candidate.nextInterval(memoryState, 0.5))
+          next()
+        },
+      },
+    })
+    const candidateCore = createSM2NumericScheduler()
+      .use(candidateMiddleware, schedulerStatsMiddleware)
+      .create({ config: { weights: SM2_DEFAULT_WEIGHTS } })
+    const card = candidateCore.newCard({ now: 0 })
+
+    candidateCore.review({
+      card,
+      grade: Rating.Good,
+      now: 0,
+    })
+
+    expect(seen).toEqual([1, 7])
+  })
+
   it('lets middleware read the previous grade candidate separately', () => {
     const seen: unknown[] = []
     const candidateMiddleware = defineMiddleware({
@@ -526,6 +555,13 @@ describe('SchedulerCore.review', () => {
     ).toThrow('Expected finite number')
   })
 
+  it('validates grade input', () => {
+    const card = core.newCard()
+    expect(() =>
+      core.review({ card, grade: Rating.Manual as never, now: 0 })
+    ).toThrow('Expected grade')
+  })
+
   it('throws chrono projection errors', () => {
     const failingChrono = defineChrono({
       schema: { time: numberSchema },
@@ -613,6 +649,27 @@ describe('SchedulerCore middleware handlers', () => {
         revlog: {},
       },
     ])
+  })
+
+  it('lets review middleware read the immutable now input', () => {
+    const seen: unknown[] = []
+    const inputMiddleware = defineMiddleware({
+      name: Symbol('input-now'),
+      handlers: {
+        review(ctx, next) {
+          seen.push(ctx.input.now)
+          next()
+        },
+      },
+    })
+    const inputCore = createSM2NumericScheduler()
+      .use(inputMiddleware, schedulerStatsMiddleware)
+      .create({ config })
+    const card = inputCore.newCard({ now: 0 })
+
+    inputCore.review({ card, grade: Rating.Good, now: 7 })
+
+    expect(seen).toEqual([7])
   })
 
   it('validates the final review result with scheduler schemas', () => {
@@ -832,6 +889,14 @@ describe('SchedulerCore.preview', () => {
       'Expected finite number'
     )
   })
+
+  it('uses chrono now when preview time is omitted', () => {
+    const card = core.newCard()
+
+    expect(
+      Array.from(core.preview({ card })).map((item) => item.grade)
+    ).toEqual([Rating.Again, Rating.Hard, Rating.Good, Rating.Easy])
+  })
 })
 
 describe('SchedulerCore.rollback', () => {
@@ -964,6 +1029,82 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.dueAt).toEqual(revlog.reviewTime)
     expect(restored.lastReviewAt).toEqual(revlog.dueAt)
   })
+
+  it('allows rollback when chrono card defaults are absent', () => {
+    const optionalNumberFields = defineSchema<
+      unknown,
+      { readonly previous: number; readonly current: number }
+    >((value) =>
+      isObject(value)
+        ? {
+            value: {
+              previous: typeof value.previous === 'number' ? value.previous : 0,
+              current: typeof value.current === 'number' ? value.current : 0,
+            },
+          }
+        : { issues: [{ message: 'Expected optional number fields' }] }
+    )
+    const projectionSchema = defineSchema<
+      | { readonly card: { readonly previous: number }; readonly time: number }
+      | {
+          readonly revlog: {
+            readonly previous: number
+            readonly current: number
+          }
+        },
+      { readonly previous: number; readonly current: number }
+    >((value) => {
+      if (!isObject(value)) {
+        return { issues: [{ message: 'Expected optional projection input' }] }
+      }
+      if ('card' in value) {
+        const time = typeof value.time === 'number' ? value.time : 0
+        return { value: { previous: 0, current: time } }
+      }
+
+      return optionalNumberFields['~standard'].validate(value.revlog)
+    })
+    const noCardDefaultChrono = defineChrono({
+      schema: {
+        card: optionalNumberFields,
+        revlog: optionalNumberFields,
+        time: numberSchema,
+      },
+      projection: projectionSchema,
+      create() {
+        return {
+          now: () => 0,
+          difference: (from: number, to: number) => to - from,
+          add: (from: number, days: number) => from + days,
+        }
+      },
+    })
+    const noCardDefaultCore = defineScheduler({
+      model: SM2Model,
+      chrono: noCardDefaultChrono,
+    }).create({ config })
+    const card = {
+      interval: 1,
+      easeFactor: SM2_DEFAULT_WEIGHTS[2],
+      reps: 1,
+      previous: 0,
+      current: 1,
+      state: State.Review,
+      scheduleStatus: 'review' as const,
+    }
+    const result = noCardDefaultCore.review({
+      card,
+      grade: Rating.Good,
+      now: 1,
+    })
+
+    const restored = noCardDefaultCore.rollback({
+      card: result.card,
+      revlog: result.revlog,
+    })
+
+    expect(restored.scheduleStatus).toBe('review')
+  })
 })
 
 describe('card schema validation', () => {
@@ -985,5 +1126,43 @@ describe('card schema validation', () => {
     expect(() =>
       core.review({ card: card as never, grade: Rating.Good })
     ).toThrow()
+  })
+
+  it('requires composed card parsing to preserve model memory state', () => {
+    const unmarkedCardSchema = defineSchema<unknown, Record<string, unknown>>(
+      (value) =>
+        isObject(value)
+          ? { value }
+          : { issues: [{ message: 'Expected card object' }] }
+    )
+    const scheduler = createSM2NumericScheduler()
+    const unmarkedCore = new BaseScheduler({
+      model: SM2Model,
+      chrono: numericChrono,
+      schema: {
+        ...scheduler.schema,
+        card: unmarkedCardSchema,
+      },
+      defaultValue: useComposeDefaultValue({
+        model: SM2Model,
+        chrono: numericChrono,
+        middlewares: [],
+      }),
+      config,
+    })
+
+    expect(() =>
+      unmarkedCore.review({
+        card: {
+          interval: 0,
+          easeFactor: SM2_DEFAULT_WEIGHTS[2],
+          reps: 0,
+          state: State.New,
+          scheduleStatus: 'new',
+        },
+        grade: Rating.Good,
+        now: 0,
+      })
+    ).toThrow('Parsed scheduler card is missing model memory state')
   })
 })

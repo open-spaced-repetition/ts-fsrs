@@ -9,7 +9,7 @@ import type {
   ReviewCandidateContext,
 } from '@/middleware/index.js'
 import type { AnyModel, AnyModelCore } from '@/model/model.js'
-import { type Grade, grades } from '@/primitives/rating.js'
+import { type Grade, gradeSchema, grades } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import {
@@ -196,7 +196,8 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     SchedulerCoreEnv<Env>['card']['output'],
     SchedulerCoreEnv<Env>['revlog']['output']
   > => {
-    const { card: inputCard, grade } = input
+    const { card: inputCard, grade: inputGrade } = input
+    const grade = parse(gradeSchema, inputGrade)
     const now = this.parseNow(input.now ?? this.chronoCore.now())
     const prepared = this.prepareReview(inputCard, now)
     const ctx: ReviewMiddlewareOperationContext<Env> = {

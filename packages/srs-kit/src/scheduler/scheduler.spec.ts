@@ -1,6 +1,11 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
+import { defineChrono } from '@/chrono/define-chrono.js'
+import { dateChrono } from '@/chrono/presets/date/chrono.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
-import { type Grade, Rating, type State } from '@/primitives/index.js'
+import { SM2Model } from '@/model/sm2.test.js'
+import { type Grade, Rating, State } from '@/primitives/index.js'
+import { defineSchema, numberSchema } from '@/schema/index.js'
+import { defineScheduler } from './define-scheduler.js'
 import type {
   SchedulerCardOf,
   SchedulerConfigOf,
@@ -85,6 +90,145 @@ describe('defineScheduler', () => {
         audit: 'schema-source',
       }).audit
     ).toBe('schema-source')
+  })
+
+  it('validates scheduler config input before composing config fields', () => {
+    expect(() => scheduler.schema.config.parse(null)).toThrow(
+      'Expected scheduler config object'
+    )
+  })
+
+  it('validates chrono config while composing scheduler config', () => {
+    const offsetSchema = defineSchema<{ readonly offset: number }>((value) => {
+      if (
+        value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        typeof (value as { readonly offset?: unknown }).offset === 'number'
+      ) {
+        return {
+          value: {
+            offset: (value as { readonly offset: number }).offset,
+          },
+        }
+      }
+
+      return { issues: [{ message: 'Expected offset config' }] }
+    })
+    const offsetChrono = defineChrono({
+      schema: {
+        config: offsetSchema,
+        time: numberSchema,
+      },
+      projection(value) {
+        if (
+          value &&
+          typeof value === 'object' &&
+          !Array.isArray(value) &&
+          typeof (value as { readonly time?: unknown }).time === 'number'
+        ) {
+          const time = (value as { readonly time: number }).time
+          return { value: { previous: time, current: time } }
+        }
+
+        return { issues: [{ message: 'Expected offset time' }] }
+      },
+      create() {
+        return {
+          now: () => 0,
+          difference: (from: number, to: number) => to - from,
+          add: (from: number, days: number) => from + days,
+        }
+      },
+    })
+    const chronoScheduler = defineScheduler({
+      model: SM2Model,
+      chrono: offsetChrono,
+    })
+
+    expect(
+      chronoScheduler.schema.config.parse({
+        ...config,
+        chrono: { offset: 9 },
+      }).chrono
+    ).toEqual({ offset: 9 })
+    expect(() =>
+      chronoScheduler.schema.config.parse({
+        ...config,
+        chrono: { offset: 'bad' },
+      })
+    ).toThrow('Expected offset config')
+  })
+
+  it('validates middleware config while composing scheduler config', () => {
+    expect(() => middlewareScheduler.schema.config.parse(config)).toThrow(
+      'Expected source config'
+    )
+  })
+
+  it('validates card and revlog object inputs', () => {
+    expect(() => scheduler.schema.card.parse(null)).toThrow(
+      'Expected card object'
+    )
+    expect(() => scheduler.schema.revlog.parse(null)).toThrow(
+      'Expected revlog object'
+    )
+  })
+
+  it('validates composed chrono and model revlog fields', () => {
+    const dateScheduler = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+    const dueAt = new Date('2026-01-02T00:00:00.000Z')
+    const reviewTime = new Date('2026-01-03T00:00:00.000Z')
+    const fields = {
+      interval: 1,
+      easeFactor: 2.5,
+      reps: 1,
+      state: State.Review,
+      scheduleStatus: 'review' as const,
+    }
+
+    expect(() =>
+      dateScheduler.schema.card.parse({
+        ...fields,
+        dueAt: new Date(0),
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      dateScheduler.schema.revlog.parse({
+        ...fields,
+        interval: 'bad',
+        rating: Rating.Good,
+        dueAt,
+        reviewTime,
+      })
+    ).toThrow('Expected SM2 memory state')
+    expect(() =>
+      dateScheduler.schema.revlog.parse({
+        ...fields,
+        rating: Rating.Good,
+        dueAt: new Date(0),
+        reviewTime,
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      dateScheduler.schema.revlog.parse({
+        ...fields,
+        rating: Rating.Manual,
+        dueAt,
+        reviewTime,
+      })
+    ).toThrow('Expected grade')
+    expect(
+      dateScheduler.schema.revlog.parse({
+        ...fields,
+        rating: Rating.Good,
+        dueAt,
+        reviewTime,
+      }).reviewTime
+    ).toBe(reviewTime)
   })
 
   it('infers composed config type', () => {
@@ -236,6 +380,9 @@ describe('defineScheduler', () => {
     const card = core.newCard()
 
     expect(scheduler.schema.scheduleStatus.parse('new')).toBe('new')
+    expect(() => scheduler.schema.scheduleStatus.parse(1 as never)).toThrow(
+      'Expected scheduleStatus string'
+    )
     expect(() => scheduler.schema.scheduleStatus.parse('suspend')).toThrow(
       'Expected known scheduleStatus'
     )
@@ -246,6 +393,12 @@ describe('defineScheduler', () => {
       'Expected known scheduleStatus'
     )
 
+    expect(() =>
+      scheduler.schema.card.parse({
+        ...card,
+        state: 'bad',
+      })
+    ).toThrow('Expected state')
     expect(() =>
       scheduler.schema.card.parse({
         ...card,
