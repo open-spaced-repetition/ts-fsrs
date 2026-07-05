@@ -118,23 +118,20 @@ type ChronoDefinitionEnv<Schema extends ChronoDefinitionSchema> = {
     })[Key]
 }
 
-type ChronoDefinitionCard<Schema extends ChronoDefinitionSchema> =
-  Schema extends { readonly card: infer Card extends AnyObjectSchema }
-    ? Card
-    : undefined
-
-type ChronoDefinitionRevlog<Schema extends ChronoDefinitionSchema> =
-  Schema extends { readonly revlog: infer Revlog extends AnyObjectSchema }
-    ? Revlog
-    : undefined
+type ChronoDefinitionField<
+  Schema extends ChronoDefinitionSchema,
+  Key extends 'card' | 'revlog',
+> = Schema extends { readonly [K in Key]: infer Field extends AnyObjectSchema }
+  ? Field
+  : undefined
 
 type ChronoDefinition<Schema extends ChronoDefinitionSchema> = {
   readonly schema: Schema
   readonly defaultValue?: ChronoDefaultValue<ChronoDefinitionEnv<Schema>>
   readonly projection: ChronoProjectionDefinition<
     Schema['time'],
-    ChronoDefinitionCard<Schema>,
-    ChronoDefinitionRevlog<Schema>
+    ChronoDefinitionField<Schema, 'card'>,
+    ChronoDefinitionField<Schema, 'revlog'>
   >
   readonly create: ChronoCreate<ChronoDefinitionEnv<Schema>>
 }
