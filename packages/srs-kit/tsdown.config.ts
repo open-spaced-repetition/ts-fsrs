@@ -12,6 +12,7 @@ const shared = {
     'schema/index': 'src/schema/index.ts',
     'primitives/index': 'src/primitives/index.ts',
     'model/index': 'src/model/index.ts',
+    'middleware/index': 'src/middleware/index.ts',
     'chrono/index': 'src/chrono/index.ts',
     'chrono/date/index': 'src/chrono/presets/date/index.ts',
     'chrono/numeric/index': 'src/chrono/presets/numeric/index.ts',

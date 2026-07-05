@@ -272,7 +272,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       this.schema.revlog,
       inputRevlog
     ) as SchedulerCoreEnv<Env>['revlog']['output']
-    if (revlog.scheduleStatus === 'new') {
+    if (revlog.state === State.New) {
       let time = null
       const chronoRevlogSchema = this.chrono.schema.revlog
       if (chronoRevlogSchema) {

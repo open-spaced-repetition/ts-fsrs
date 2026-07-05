@@ -51,6 +51,17 @@
       },
       "default": "./dist/esm/model/index.js"
     },
+    "./middleware": {
+      "require": {
+        "types": "./dist/cjs/middleware/index.d.ts",
+        "default": "./dist/cjs/middleware/index.js"
+      },
+      "import": {
+        "types": "./dist/esm/middleware/index.d.ts",
+        "default": "./dist/esm/middleware/index.js"
+      },
+      "default": "./dist/esm/middleware/index.js"
+    },
     "./chrono": {
       "require": {
         "types": "./dist/cjs/chrono/index.d.ts",
