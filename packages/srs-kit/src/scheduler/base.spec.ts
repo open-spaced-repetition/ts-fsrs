@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateChrono } from '@/chrono/presets/date/chrono.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
-import type { Middleware } from '@/middleware/index.js'
+import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { defineModel } from '@/model/model.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
@@ -87,13 +87,10 @@ describe('SchedulerCore.create', () => {
 
       return { value: config }
     })
-    const inheritedMiddleware = {
+    const inheritedMiddleware = defineMiddleware({
       name: 'inheritedConfig',
       schema: { config: inheritedConfigSchema },
-    } satisfies Middleware<
-      { readonly config: typeof inheritedConfigSchema },
-      'inheritedConfig'
-    >
+    })
     const inheritedCore = createSM2NumericScheduler()
       .use(inheritedMiddleware)
       .create({
@@ -185,24 +182,21 @@ describe('SchedulerCore.newCard', () => {
   })
 
   it('calls config-only middleware card defaults for each new card', () => {
-    const cachedMiddleware = {
+    const cardDefault = vi.fn(
+      (ctx: { readonly config: { source: string } }) => ({
+        source: ctx.config.source,
+      })
+    )
+    const cachedMiddleware = defineMiddleware({
       name: cachedMiddlewareName,
       schema: {
         config: sourceConfigSchema,
         card: sourceCardSchema,
       },
       defaultValue: {
-        card: vi.fn((ctx) => ({
-          source: ctx.config.source,
-        })),
+        card: cardDefault,
       },
-    } satisfies Middleware<
-      {
-        readonly config: typeof sourceConfigSchema
-        readonly card: typeof sourceCardSchema
-      },
-      typeof cachedMiddlewareName
-    >
+    })
     const cachedMiddlewareScheduler = createSM2NumericScheduler().use(
       cachedMiddleware,
       schedulerStatsMiddleware
@@ -219,7 +213,7 @@ describe('SchedulerCore.newCard', () => {
 
     expect(secondCard).not.toBe(firstCard)
     expect(secondCard).toStrictEqual(firstCard)
-    expect(cachedMiddleware.defaultValue.card).toHaveBeenCalledTimes(2)
+    expect(cardDefault).toHaveBeenCalledTimes(2)
   })
 
   it('lets middleware read config fields from the top-level config', () => {
@@ -228,13 +222,7 @@ describe('SchedulerCore.newCard', () => {
     const secondName = 'second'
     const firstConfigSchema = defineStringFieldConfigSchema('firstSource')
     const secondConfigSchema = defineStringFieldConfigSchema('secondSource')
-    const firstMiddleware: Middleware<
-      {
-        readonly config: typeof firstConfigSchema
-        readonly card: typeof sourceCardSchema
-      },
-      typeof firstName
-    > = {
+    const firstMiddleware = defineMiddleware({
       name: firstName,
       schema: { config: firstConfigSchema, card: sourceCardSchema },
       defaultValue: {
@@ -243,14 +231,8 @@ describe('SchedulerCore.newCard', () => {
           return { source: 'first' }
         },
       },
-    }
-    const secondMiddleware: Middleware<
-      {
-        readonly config: typeof secondConfigSchema
-        readonly card: typeof sourceCardSchema
-      },
-      typeof secondName
-    > = {
+    })
+    const secondMiddleware = defineMiddleware({
       name: secondName,
       schema: { config: secondConfigSchema, card: sourceCardSchema },
       defaultValue: {
@@ -259,7 +241,7 @@ describe('SchedulerCore.newCard', () => {
           return { source: 'second' }
         },
       },
-    }
+    })
     const namedScheduler = createSM2NumericScheduler().use(
       secondMiddleware,
       firstMiddleware,
@@ -281,7 +263,7 @@ describe('SchedulerCore.newCard', () => {
 
   it('lets review middleware read and update desiredRetention', () => {
     const seen: number[] = []
-    const retentionMiddleware = {
+    const retentionMiddleware = defineMiddleware({
       name: retentionMiddlewareName,
       handlers: {
         review(ctx, next) {
@@ -295,10 +277,7 @@ describe('SchedulerCore.newCard', () => {
           return result
         },
       },
-    } satisfies Middleware<
-      Record<PropertyKey, never>,
-      typeof retentionMiddlewareName
-    >
+    })
     const retentionScheduler = createSM2NumericScheduler().use(
       retentionMiddleware,
       schedulerStatsMiddleware
@@ -319,7 +298,7 @@ describe('SchedulerCore.newCard', () => {
 
   it('lets middleware derive desiredRetention from candidate memory state', () => {
     const seen: unknown[] = []
-    const candidateMiddleware = {
+    const candidateMiddleware = defineMiddleware({
       name: Symbol('candidate-retention'),
       handlers: {
         review(ctx, next) {
@@ -333,7 +312,7 @@ describe('SchedulerCore.newCard', () => {
           return next()
         },
       },
-    } satisfies Middleware
+    })
     const candidateCore = createSM2NumericScheduler()
       .use(candidateMiddleware, schedulerStatsMiddleware)
       .create({ config: { weights: SM2_DEFAULT_WEIGHTS } })
@@ -357,7 +336,7 @@ describe('SchedulerCore.newCard', () => {
 
   it('lets middleware read the previous grade candidate separately', () => {
     const seen: unknown[] = []
-    const candidateMiddleware = {
+    const candidateMiddleware = defineMiddleware({
       name: Symbol('previous-candidate'),
       handlers: {
         review(ctx, next) {
@@ -377,7 +356,7 @@ describe('SchedulerCore.newCard', () => {
           return next()
         },
       },
-    } satisfies Middleware
+    })
     const candidateCore = createSM2NumericScheduler()
       .use(candidateMiddleware, schedulerStatsMiddleware)
       .create({ config: { weights: SM2_DEFAULT_WEIGHTS } })
@@ -415,7 +394,7 @@ describe('SchedulerCore.newCard', () => {
       },
     })
 
-    const cumulativeMiddleware = {
+    const cumulativeMiddleware = defineMiddleware({
       name: Symbol('cumulative-candidate'),
       handlers: {
         review(ctx, next) {
@@ -434,7 +413,7 @@ describe('SchedulerCore.newCard', () => {
           return next()
         },
       },
-    } satisfies Middleware
+    })
 
     const spiedScheduler = defineScheduler({
       model: SpiedSM2Model,
@@ -592,7 +571,7 @@ describe('SchedulerCore middleware handlers', () => {
     const card = core.newCard({ now: 0 })
 
     for (const field of ['card', 'grade', 'now'] as const) {
-      const mutatingMiddleware = {
+      const mutatingMiddleware = defineMiddleware({
         name: Symbol(`mutate-${field}`),
         handlers: {
           review(ctx, next) {
@@ -600,7 +579,7 @@ describe('SchedulerCore middleware handlers', () => {
             return next()
           },
         },
-      } satisfies Middleware
+      })
       const mutatingCore = createSM2NumericScheduler()
         .use(mutatingMiddleware)
         .create({ config })
@@ -613,7 +592,7 @@ describe('SchedulerCore middleware handlers', () => {
 
   it('seeds review result with empty containers', () => {
     const seen: unknown[] = []
-    const resultMiddleware = {
+    const resultMiddleware = defineMiddleware({
       name: Symbol('seed-result'),
       handlers: {
         review(ctx, next) {
@@ -621,7 +600,7 @@ describe('SchedulerCore middleware handlers', () => {
           return next()
         },
       },
-    } satisfies Middleware
+    })
     const resultCore = createSM2NumericScheduler()
       .use(resultMiddleware, schedulerStatsMiddleware)
       .create({ config })
@@ -638,7 +617,7 @@ describe('SchedulerCore middleware handlers', () => {
   })
 
   it('validates the final review result with scheduler schemas', () => {
-    const invalidResultMiddleware = {
+    const invalidResultMiddleware = defineMiddleware({
       name: Symbol('invalid-result'),
       handlers: {
         review(ctx, next) {
@@ -652,7 +631,7 @@ describe('SchedulerCore middleware handlers', () => {
           return result
         },
       },
-    } satisfies Middleware
+    })
     const invalidResultCore = createSM2NumericScheduler()
       .use(invalidResultMiddleware, schedulerStatsMiddleware)
       .create({ config })
@@ -663,8 +642,8 @@ describe('SchedulerCore middleware handlers', () => {
     ).toThrow('Expected SM2 memory state')
   })
 
-  function traceMiddleware(name: string, trace: string[]): Middleware {
-    return {
+  function traceMiddleware(name: string, trace: string[]) {
+    return defineMiddleware({
       name,
       handlers: {
         review(ctx, next) {
@@ -681,7 +660,7 @@ describe('SchedulerCore middleware handlers', () => {
           return result as never
         },
       },
-    }
+    })
   }
 
   it('wraps review handlers in array order', () => {
@@ -764,7 +743,7 @@ describe('SchedulerCore middleware handlers', () => {
   })
 
   it('rejects calling next more than once', () => {
-    const badMiddleware = {
+    const badMiddleware = defineMiddleware({
       name: badMiddlewareName,
       handlers: {
         review(_ctx, next) {
@@ -772,7 +751,7 @@ describe('SchedulerCore middleware handlers', () => {
           return next()
         },
       },
-    } satisfies Middleware
+    })
     const badScheduler = createSM2NumericScheduler().use(
       badMiddleware,
       schedulerStatsMiddleware

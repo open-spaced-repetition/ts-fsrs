@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
-import type { Middleware } from '@/middleware/index.js'
+import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import { defineSchema, isObject } from '@/schema/index.js'
@@ -39,15 +39,9 @@ const auditRevlogSchema = defineSchema<unknown, { readonly audit: string }>(
   }
 )
 
-const auditMiddlewareName = Symbol('auditMiddleware')
+const auditMiddlewareName = 'auditMiddleware'
 
-const auditMiddleware: Middleware<
-  {
-    readonly card: typeof sourceCardSchema
-    readonly revlog: typeof auditRevlogSchema
-  },
-  typeof auditMiddlewareName
-> = {
+const auditMiddleware = defineMiddleware({
   name: auditMiddlewareName,
   schema: {
     card: sourceCardSchema,
@@ -66,16 +60,11 @@ const auditMiddleware: Middleware<
       return next()
     },
   },
-}
+})
 
-const symbolNamedMiddleware = auditMiddleware
+const namedMiddleware = auditMiddleware
 
-const suspendMiddleware: Middleware<
-  {
-    readonly scheduleStatus: 'suspend'
-  },
-  'suspendMiddleware'
-> = {
+const suspendMiddleware = defineMiddleware({
   name: 'suspendMiddleware',
   scheduleStatus: ['suspend'],
   handlers: {
@@ -83,7 +72,7 @@ const suspendMiddleware: Middleware<
       return next()
     },
   },
-}
+})
 
 const sm2WithSuspend = defineScheduler({
   model: SM2Model,
@@ -448,10 +437,20 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedMiddlewares = {
-    symbolNamedMiddleware: `const symbolNamedMiddleware: Middleware<{
-    readonly card: typeof sourceCardSchema;
-    readonly revlog: typeof auditRevlogSchema;
-}, typeof auditMiddlewareName>`,
+    namedMiddleware: `const namedMiddleware: Middleware<"auditMiddleware", {
+    readonly card: SRSSchema<{
+        input: {};
+        output: {
+            readonly source: string;
+        };
+    }>;
+    readonly revlog: SRSSchema<{
+        input: {};
+        output: {
+            readonly audit: string;
+        };
+    }>;
+}>`,
   }
 
   it('keeps scheduler hovers readable with composed env', () => {
@@ -472,7 +471,7 @@ describe('defineScheduler type display', () => {
     }
   })
 
-  it('keeps symbol middleware names readable', () => {
+  it('keeps middleware names readable', () => {
     for (const [marker, expected] of Object.entries(expectedMiddlewares)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
