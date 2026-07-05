@@ -19,7 +19,7 @@ describe('parsed card memory state', () => {
     const inputMemoryState: SM2State = {
       interval: 1,
       easeFactor: 2.5,
-      reps: 3,
+      reviewStep: 3,
     }
     const remembered = rememberParsedCardMemoryState(
       { source: 'fixture' },
@@ -31,7 +31,7 @@ describe('parsed card memory state', () => {
     expect(memoryState).toEqual({
       interval: 1,
       easeFactor: 2.5,
-      reps: 3,
+      reviewStep: 3,
     })
   })
 })

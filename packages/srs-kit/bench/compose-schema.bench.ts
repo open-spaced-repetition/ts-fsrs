@@ -18,7 +18,7 @@ function consumeParsedCard(value: {
   composeSchemaSink =
     (composeSchemaSink +
       Number(value.card.interval ?? 0) +
-      Number(value.memoryState.reps ?? 0)) %
+      Number(value.memoryState.reviewStep ?? 0)) %
     Number.MAX_SAFE_INTEGER
 }
 

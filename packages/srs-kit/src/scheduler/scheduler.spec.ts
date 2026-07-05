@@ -185,7 +185,7 @@ describe('defineScheduler', () => {
     const fields = {
       interval: 1,
       easeFactor: 2.5,
-      reps: 1,
+      reviewStep: 1,
       state: State.Review,
       scheduleStatus: 'review' as const,
     }
@@ -268,6 +268,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerCardOf<typeof scheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
+      readonly reviewStep: number
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
@@ -279,6 +280,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerCardOf<typeof middlewareScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
+      readonly reviewStep: number
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
@@ -291,6 +293,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerCardOf<typeof usedScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
+      readonly reviewStep: number
       readonly reps: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
@@ -303,6 +306,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerCardOf<typeof chainedScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
+      readonly reviewStep: number
       readonly reps: number
       readonly source: string
       readonly scheduleStatus: 'new' | 'learning' | 'review'
@@ -315,7 +319,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerRevlogOf<typeof scheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
@@ -328,7 +332,7 @@ describe('defineScheduler', () => {
     >().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
@@ -340,7 +344,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerRevlogOf<typeof usedScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
@@ -352,7 +356,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerRevlogOf<typeof chainedScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly audit: string
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
@@ -432,14 +436,14 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerCardOf<typeof statusScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly state: State
       readonly scheduleStatus: ExtendedStatus
     }>()
     expectTypeOf<SchedulerRevlogOf<typeof statusScheduler>>().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
-      readonly reps: number
+      readonly reviewStep: number
       readonly scheduleStatus: ExtendedStatus
       readonly rating: Grade
       readonly state: State

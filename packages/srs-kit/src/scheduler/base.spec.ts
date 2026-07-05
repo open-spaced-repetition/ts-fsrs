@@ -113,6 +113,7 @@ describe('SchedulerCore.newCard', () => {
     expect(card.state).toBe(State.New)
     expect(card.interval).toBe(0)
     expect(card.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
+    expect(card.reviewStep).toBe(0)
     expect(card.reps).toBe(0)
     expect(card.scheduleStatus).toBe('new')
     expect(card).not.toHaveProperty('elapsedDays')
@@ -328,7 +329,7 @@ describe('SchedulerCore.newCard', () => {
       {
         interval: 1,
         easeFactor: 2.5,
-        reps: 1,
+        reviewStep: 1,
       },
       7,
     ])
@@ -516,7 +517,9 @@ describe('SchedulerCore.review', () => {
     expect(result.revlog.state).toBe(State.New)
     expect(result.revlog.scheduleStatus).toBe('new')
     expect(result.revlog.interval).toBe(0)
-    expect(result.revlog.reps).toBe(0)
+    expect(result.revlog.reviewStep).toBe(0)
+    expect(result.revlog).not.toHaveProperty('reps')
+    expect(result.revlog).not.toHaveProperty('lapses')
   })
 
   it('records rating and state in core revlog without stats middleware', () => {
@@ -911,16 +914,37 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.reps).toBe(0)
   })
 
-  it('returns an empty card when revlog status is new', () => {
+  it('returns an empty card when revlog state is new', () => {
     const card = core.newCard()
     const result = core.review({ card: card, grade: Rating.Good, now: 0 })
     const restored = core.rollback({
       card: result.card,
       revlog: {
         ...result.revlog,
-        interval: 30,
-        easeFactor: 3,
-        reps: 10,
+        scheduleStatus: 'review',
+      },
+    })
+
+    expect(restored.interval).toBe(0)
+    expect(restored.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
+    expect(restored.reps).toBe(0)
+    expect(restored.state).toBe(State.New)
+    expect(restored.scheduleStatus).toBe('new')
+  })
+
+  it('returns an empty card when revlog schedule status is new', () => {
+    const card = core.newCard()
+    const first = core.review({ card: card, grade: Rating.Good, now: 0 })
+    const second = core.review({
+      card: first.card,
+      grade: Rating.Good,
+      now: first.card.interval,
+    })
+    const restored = core.rollback({
+      card: second.card,
+      revlog: {
+        ...second.revlog,
+        state: State.New,
         scheduleStatus: 'new',
       },
     })
@@ -928,6 +952,7 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.interval).toBe(0)
     expect(restored.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
     expect(restored.reps).toBe(0)
+    expect(restored.state).toBe(State.New)
     expect(restored.scheduleStatus).toBe('new')
   })
 
@@ -1086,7 +1111,7 @@ describe('SchedulerCore.rollback', () => {
     const card = {
       interval: 1,
       easeFactor: SM2_DEFAULT_WEIGHTS[2],
-      reps: 1,
+      reviewStep: 1,
       previous: 0,
       current: 1,
       state: State.Review,
@@ -1119,7 +1144,7 @@ describe('card schema validation', () => {
       state: State.New,
       interval: 'bad',
       easeFactor: 2.5,
-      reps: 0,
+      reviewStep: 0,
       scheduleStatus: 'new',
       lapses: 0,
     }
@@ -1156,7 +1181,7 @@ describe('card schema validation', () => {
         card: {
           interval: 0,
           easeFactor: SM2_DEFAULT_WEIGHTS[2],
-          reps: 0,
+          reviewStep: 0,
           state: State.New,
           scheduleStatus: 'new',
         },

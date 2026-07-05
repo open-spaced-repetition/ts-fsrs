@@ -46,7 +46,7 @@ describe('SM2Model', () => {
     expect(state).toEqual({
       interval: SM2_DEFAULT_WEIGHTS[0],
       easeFactor: expect.any(Number),
-      reps: 1,
+      reviewStep: 1,
     })
   })
 
@@ -62,7 +62,7 @@ describe('SM2Model', () => {
       elapsedDays: 1,
     })
     expect(second.interval).toBe(SM2_DEFAULT_WEIGHTS[1])
-    expect(second.reps).toBe(2)
+    expect(second.reviewStep).toBe(2)
   })
 
   it('multiplies interval by ease factor from third review onward', () => {
@@ -82,10 +82,10 @@ describe('SM2Model', () => {
       elapsedDays: 6,
     })
     expect(third.interval).toBe(second.interval * second.easeFactor)
-    expect(third.reps).toBe(3)
+    expect(third.reviewStep).toBe(3)
   })
 
-  it('resets reps to 1 on Again', () => {
+  it('resets review step to 1 on Again', () => {
     const first = core.step({
       memoryState: null,
       rating: Rating.Good,
@@ -101,7 +101,7 @@ describe('SM2Model', () => {
       rating: Rating.Again,
       elapsedDays: 6,
     })
-    expect(lapse.reps).toBe(1)
+    expect(lapse.reviewStep).toBe(1)
     expect(lapse.interval).toBe(SM2_DEFAULT_WEIGHTS[0])
   })
 
@@ -138,13 +138,13 @@ describe('SM2Model', () => {
   })
 
   it('computes forgetting curve as 0.9^(t/interval)', () => {
-    const state = { interval: 10, easeFactor: 2.5, reps: 3 }
+    const state = { interval: 10, easeFactor: 2.5, reviewStep: 3 }
     expect(core.forgettingCurve(state, 10)).toBeCloseTo(0.9, 8)
     expect(core.forgettingCurve(state, 0)).toBeCloseTo(1.0, 8)
   })
 
   it('computes next interval from desired retention', () => {
-    const state = { interval: 10, easeFactor: 2.5, reps: 3 }
+    const state = { interval: 10, easeFactor: 2.5, reviewStep: 3 }
     expect(core.nextInterval(state, 0.9)).toBe(10)
   })
 
@@ -157,9 +157,9 @@ describe('SM2Model', () => {
       ],
     })
     expect(states).toHaveLength(3)
-    expect(states[0].reps).toBe(1)
-    expect(states[1].reps).toBe(2)
-    expect(states[2].reps).toBe(3)
+    expect(states[0].reviewStep).toBe(1)
+    expect(states[1].reviewStep).toBe(2)
+    expect(states[2].reviewStep).toBe(3)
 
     const manual = core.step({
       memoryState: core.step({
@@ -189,7 +189,7 @@ describe('SM2Model', () => {
     expect(defaultState).toEqual({
       interval: 0,
       easeFactor: SM2_DEFAULT_WEIGHTS[2],
-      reps: 0,
+      reviewStep: 0,
     })
   })
 })

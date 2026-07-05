@@ -106,14 +106,14 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
         };
@@ -122,7 +122,7 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -130,7 +130,7 @@ describe('defineScheduler type display', () => {
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -153,6 +153,7 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -161,6 +162,7 @@ describe('defineScheduler type display', () => {
         output: {
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -171,7 +173,7 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -179,7 +181,7 @@ describe('defineScheduler type display', () => {
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -203,6 +205,7 @@ describe('defineScheduler type display', () => {
             readonly source: string;
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -212,6 +215,7 @@ describe('defineScheduler type display', () => {
             readonly source: string;
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -222,7 +226,7 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -231,7 +235,7 @@ describe('defineScheduler type display', () => {
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -252,6 +256,7 @@ describe('defineScheduler type display', () => {
             readonly source: string;
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -261,6 +266,7 @@ describe('defineScheduler type display', () => {
             readonly source: string;
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -271,7 +277,7 @@ describe('defineScheduler type display', () => {
         readonly input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -280,7 +286,7 @@ describe('defineScheduler type display', () => {
         readonly output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly audit: string;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
@@ -299,6 +305,7 @@ describe('defineScheduler type display', () => {
         readonly input: {
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -307,6 +314,7 @@ describe('defineScheduler type display', () => {
         readonly output: {
             readonly interval: number;
             readonly easeFactor: number;
+            readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
             readonly state: State;
@@ -317,7 +325,7 @@ describe('defineScheduler type display', () => {
         readonly input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -325,7 +333,7 @@ describe('defineScheduler type display', () => {
         readonly output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
@@ -353,14 +361,14 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
@@ -369,7 +377,7 @@ describe('defineScheduler type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
             readonly rating: Grade;
@@ -377,7 +385,7 @@ describe('defineScheduler type display', () => {
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
             readonly rating: Grade;
@@ -393,14 +401,14 @@ describe('defineScheduler type display', () => {
         readonly input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
         readonly output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
@@ -409,7 +417,7 @@ describe('defineScheduler type display', () => {
         readonly input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
             readonly rating: Grade;
@@ -417,7 +425,7 @@ describe('defineScheduler type display', () => {
         readonly output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
             readonly rating: Grade;
