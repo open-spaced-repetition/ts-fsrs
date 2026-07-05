@@ -14,33 +14,21 @@ type DefaultValueContext = {
   readonly config: DefaultValueConfig
 }
 
-type DefaultValueTimeContext = DefaultValueContext & {
-  readonly time: ChronoDefaultCtx<unknown, unknown>['time']
-  readonly previous?: ChronoDefaultCtx<unknown, unknown>['previous']
-}
-
 export type SchedulerDefaultValueFactory = {
   readonly newCard: <Card extends object = Record<string, unknown>>(
     ctx: DefaultValueContext & {
       readonly time: unknown
     }
   ) => Card
-  readonly card: <Card extends object = Record<string, unknown>>(
-    ctx: DefaultValueTimeContext
-  ) => Card
-  readonly revlog: <Revlog extends object = Record<string, unknown>>(
-    ctx: DefaultValueTimeContext
-  ) => Revlog
 }
 
-function applyMiddlewareDefaults(
+function applyMiddlewareCardDefaults(
   target: Record<string, unknown>,
   middlewares: readonly AnyMiddleware[],
-  key: 'card' | 'revlog',
   config: DefaultValueConfig
 ) {
   for (const middleware of middlewares) {
-    const defaultValue = middleware.defaultValue?.[key]
+    const defaultValue = middleware.defaultValue?.card
     if (isFunction(defaultValue)) {
       Object.assign(
         target,
@@ -58,17 +46,14 @@ function resolveChronoDefault(
   return isFunction(value) ? (value as ChronoDefaultRuntimeFn) : undefined
 }
 
-function applyFieldDefaults(ctx: {
+function applyNewCardDefaults(ctx: {
   readonly target: Record<string, unknown>
   readonly config: DefaultValueConfig
   readonly middlewares: readonly AnyMiddleware[]
-  readonly key: 'card' | 'revlog'
   readonly chronoDefault?: ChronoDefaultRuntimeFn
   readonly time: ChronoDefaultCtx<unknown, unknown>['time']
-  readonly previous?: ChronoDefaultCtx<unknown, unknown>['previous']
 }) {
-  const { target, config, middlewares, key, chronoDefault, time, previous } =
-    ctx
+  const { target, config, middlewares, chronoDefault, time } = ctx
 
   if (chronoDefault) {
     Object.assign(
@@ -76,12 +61,11 @@ function applyFieldDefaults(ctx: {
       chronoDefault({
         config: config.chrono as Readonly<unknown>,
         time,
-        previous,
       })
     )
   }
 
-  applyMiddlewareDefaults(target, middlewares, key, config)
+  applyMiddlewareCardDefaults(target, middlewares, config)
 }
 
 export function useComposeDefaultValue(ctx: {
@@ -91,7 +75,6 @@ export function useComposeDefaultValue(ctx: {
 }): SchedulerDefaultValueFactory {
   const { model, chrono, middlewares } = ctx
   const chronoCardDefault = resolveChronoDefault(chrono.defaultValue?.card)
-  const chronoRevlogDefault = resolveChronoDefault(chrono.defaultValue?.revlog)
 
   return {
     newCard<Card extends object = Record<string, unknown>>({
@@ -103,52 +86,15 @@ export function useComposeDefaultValue(ctx: {
       })
       card.state = State.New
       card.scheduleStatus = 'new'
-      applyFieldDefaults({
+      applyNewCardDefaults({
         target: card,
         config,
         middlewares,
-        key: 'card',
         chronoDefault: chronoCardDefault,
         time,
       })
 
       return card as Card
-    },
-    card<Card extends object = Record<string, unknown>>({
-      config,
-      time,
-      previous,
-    }: DefaultValueTimeContext) {
-      const card: Record<string, unknown> = {}
-      applyFieldDefaults({
-        target: card,
-        config,
-        middlewares,
-        key: 'card',
-        chronoDefault: chronoCardDefault,
-        time,
-        previous,
-      })
-
-      return card as Card
-    },
-    revlog<Revlog extends object = Record<string, unknown>>({
-      config,
-      time,
-      previous,
-    }: DefaultValueTimeContext) {
-      const revlog: Record<string, unknown> = {}
-      applyFieldDefaults({
-        target: revlog,
-        config,
-        middlewares,
-        key: 'revlog',
-        chronoDefault: chronoRevlogDefault,
-        time,
-        previous,
-      })
-
-      return revlog as Revlog
     },
   }
 }
