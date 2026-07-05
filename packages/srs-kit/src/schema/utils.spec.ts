@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest'
-import { assert, isFunction, isObject, noop, run } from './utils.js'
+import {
+  assert,
+  assignObjectFields,
+  isFunction,
+  isObject,
+  noop,
+  run,
+} from './utils.js'
 
 describe('isObject', () => {
   it('returns true for plain objects', () => {
@@ -51,5 +58,25 @@ describe('assert', () => {
 
   it('includes custom message', () => {
     expect(() => assert(false, 'custom')).toThrow('AssertionError: custom')
+  })
+})
+
+describe('assignObjectFields', () => {
+  it('assigns own enumerable fields', () => {
+    const target: Record<PropertyKey, unknown> = {}
+
+    assignObjectFields(target, { source: 'test', count: 1 })
+
+    expect(target).toEqual({ source: 'test', count: 1 })
+  })
+
+  it('skips inherited fields', () => {
+    const target: Record<PropertyKey, unknown> = {}
+    const source = Object.create({ inherited: 'skip' }) as { own?: string }
+    source.own = 'keep'
+
+    assignObjectFields(target, source)
+
+    expect(target).toEqual({ own: 'keep' })
   })
 })

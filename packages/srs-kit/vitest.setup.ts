@@ -25,11 +25,17 @@ const typeDisplayPrinter = ts.createPrinter({
   newLine: ts.NewLineKind.LineFeed,
 })
 
-function getTypeDisplayProgram(): ts.Program {
+function getTypeDisplayProgram(svc: ts.LanguageService): ts.Program {
   if (!typeDisplayProgram) {
+    const program = svc.getProgram()
+
+    if (!program) {
+      throw new Error('Missing TypeScript language service program')
+    }
+
     typeDisplayProgram = ts.createProgram(
-      parsedConfig.fileNames.map((file) => path.resolve(file)),
-      parsedConfig.options
+      program.getRootFileNames(),
+      program.getCompilerOptions()
     )
   }
 
@@ -130,7 +136,7 @@ globalThis.getTypeDisplayService = () => {
   return service
 }
 
-globalThis.quickInfoAt = (_svc, rel, marker) => {
+globalThis.quickInfoAt = (svc, rel, marker) => {
   const fileName = path.join(packageRoot, rel)
   const source = ts.sys.readFile(fileName)
 
@@ -143,7 +149,7 @@ globalThis.quickInfoAt = (_svc, rel, marker) => {
     throw new Error(`Missing marker "${marker}" in ${rel}`)
   }
 
-  const program = getTypeDisplayProgram()
+  const program = getTypeDisplayProgram(svc)
   const sourceFile = program.getSourceFile(fileName)
 
   if (!sourceFile) {
