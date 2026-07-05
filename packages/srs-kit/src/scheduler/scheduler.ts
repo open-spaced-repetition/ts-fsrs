@@ -156,7 +156,7 @@ export interface ComposableScheduler<
    * Adds middleware to this scheduler instance.
    *
    * Must be called before the first create() call. Once create() has been
-   * called, the scheduler is locked and use() throws SRSSchedulerError.
+   * called, the scheduler is locked and use() throws.
    */
   readonly use: SchedulerUseFn<Name, Env>
 }

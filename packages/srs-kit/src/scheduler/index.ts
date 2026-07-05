@@ -1,5 +1,3 @@
-export * from './base.js'
-export * from './define-scheduler.js'
-export * from './error.js'
-export * from './infer.js'
-export * from './scheduler.js'
+export { defineScheduler } from './define-scheduler.js'
+export type * from './infer.js'
+export type * from './scheduler.js'
