@@ -28,6 +28,10 @@ describe('SM2 numeric scheduler', () => {
     now: 0,
   }).card
 
+  function consumePreview(previews: ReturnType<typeof core.preview>) {
+    return Array.from(previews)
+  }
+
   bench('create', () => {
     scheduler.create({ config })
   })
@@ -49,11 +53,11 @@ describe('SM2 numeric scheduler', () => {
   })
 
   bench('preview new card', () => {
-    core.preview({ card: newCard, now: 0 })
+    consumePreview(core.preview({ card: newCard, now: 0 }))
   })
 
   bench('preview existing card', () => {
-    core.preview({ card: reviewCard, now: reviewCard.interval })
+    consumePreview(core.preview({ card: reviewCard, now: reviewCard.interval }))
   })
 })
 
