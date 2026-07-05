@@ -1,4 +1,5 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
+import { isObject } from '@/schema/index.js'
 import {
   getTemporalInstantConstructor,
   temporalInstantCardFieldsSchema,
@@ -48,22 +49,42 @@ export const temporalInstantChrono = defineChrono({
     time: temporalInstantSchema,
   },
   projection(value) {
-    const card = temporalInstantCardFieldsSchema['~standard'].validate(
-      value.card
-    )
-    if (card.issues) {
-      return card
+    if (!isObject(value)) {
+      return { issues: [{ message: 'Expected Temporal.Instant fields' }] }
     }
 
-    const time = temporalInstantSchema['~standard'].validate(value.time)
-    if (time.issues) {
-      return time
+    if ('card' in value) {
+      const card = temporalInstantCardFieldsSchema['~standard'].validate(
+        value.card
+      )
+      if (card.issues) {
+        return card
+      }
+
+      const time = temporalInstantSchema['~standard'].validate(value.time)
+      if (time.issues) {
+        return time
+      }
+
+      return {
+        value: {
+          previous: card.value.lastReviewAt ?? time.value,
+          current: time.value,
+        },
+      }
+    }
+
+    const revlog = temporalInstantRevlogFieldsSchema['~standard'].validate(
+      value.revlog
+    )
+    if (revlog.issues) {
+      return revlog
     }
 
     return {
       value: {
-        previous: card.value.lastReviewAt ?? time.value,
-        current: time.value,
+        previous: revlog.value.dueAt,
+        current: revlog.value.reviewTime,
       },
     }
   },
@@ -76,8 +97,8 @@ export const temporalInstantChrono = defineChrono({
     },
     revlog({ time, previous }) {
       return {
-        dueAt: previous?.current ?? time,
-        lastReviewAt: previous?.previous ?? time,
+        dueAt: previous?.previous ?? time,
+        reviewTime: previous?.current ?? time,
       }
     },
   },
