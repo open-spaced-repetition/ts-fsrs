@@ -1,4 +1,5 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
+import { isObject } from '@/schema/index.js'
 import {
   getTemporalInstantConstructor,
   temporalInstantCardFieldsSchema,
@@ -48,6 +49,10 @@ export const temporalInstantChrono = defineChrono({
     time: temporalInstantSchema,
   },
   projection(value) {
+    if (!isObject(value)) {
+      return { issues: [{ message: 'Expected Temporal.Instant fields' }] }
+    }
+
     if ('card' in value) {
       const card = temporalInstantCardFieldsSchema['~standard'].validate(
         value.card

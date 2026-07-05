@@ -203,6 +203,21 @@ describe('temporalInstantChrono', () => {
         },
       })
     ).toEqual({ previous: now, current: later })
+    expect(temporalInstantChrono.projection['~standard'].validate(123)).toEqual(
+      {
+        issues: [{ message: 'Expected Temporal.Instant fields' }],
+      }
+    )
+    expect(() => parse(temporalInstantChrono.projection, 123)).toThrow(
+      'Expected Temporal.Instant fields'
+    )
+    expect(() =>
+      parse(temporalInstantChrono.projection, {
+        revlog: {
+          dueAt: now,
+        },
+      })
+    ).toThrow('Expected Temporal.Instant fields')
     expect(() =>
       parse(temporalInstantChrono.projection, {
         card: null,

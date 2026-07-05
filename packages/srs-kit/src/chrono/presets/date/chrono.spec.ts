@@ -119,6 +119,19 @@ describe('dateChrono', () => {
         },
       })
     ).toEqual({ previous: now, current: later })
+    expect(dateChrono.projection['~standard'].validate(123)).toEqual({
+      issues: [{ message: 'Expected valid Date fields' }],
+    })
+    expect(() => parse(dateChrono.projection, 123)).toThrow(
+      'Expected valid Date fields'
+    )
+    expect(() =>
+      parse(dateChrono.projection, {
+        revlog: {
+          dueAt: now,
+        },
+      })
+    ).toThrow('Expected valid Date fields')
     expect(() =>
       parse(dateChrono.projection, {
         card: null,

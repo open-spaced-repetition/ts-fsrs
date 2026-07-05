@@ -1,5 +1,6 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateSchema } from '@/schema/field.js'
+import { isObject } from '@/schema/index.js'
 import {
   dateCardFieldsSchema,
   dateRevlogFieldsSchema,
@@ -13,6 +14,10 @@ export const dateChrono = defineChrono({
     time: dateSchema,
   },
   projection(value) {
+    if (!isObject(value)) {
+      return { issues: [{ message: 'Expected valid Date fields' }] }
+    }
+
     if ('card' in value) {
       const card = dateCardFieldsSchema['~standard'].validate(value.card)
       if (card.issues) {
