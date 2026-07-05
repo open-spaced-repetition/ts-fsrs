@@ -4,7 +4,7 @@ import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
-import { defineSchema, isObject } from '@/schema/index.js'
+import { defineStringFieldOutputSchema } from '@/schema/string-field.test.js'
 import { defineScheduler } from './define-scheduler.js'
 
 const sm2NumericScheduler = defineScheduler({
@@ -21,23 +21,15 @@ const sm2NumericCore = sm2NumericScheduler.create({
   config: { weights: SM2_DEFAULT_WEIGHTS },
 })
 
-const sourceCardSchema = defineSchema<unknown, { readonly source: string }>(
-  (value) => {
-    if (isObject(value) && typeof value.source === 'string') {
-      return { value: { source: value.source } }
-    }
-    return { issues: [{ message: 'Expected source' }] }
-  }
-)
+const sourceCardSchema = defineStringFieldOutputSchema({
+  field: 'source',
+  message: 'Expected source',
+})
 
-const auditRevlogSchema = defineSchema<unknown, { readonly audit: string }>(
-  (value) => {
-    if (isObject(value) && typeof value.audit === 'string') {
-      return { value: { audit: value.audit } }
-    }
-    return { issues: [{ message: 'Expected audit' }] }
-  }
-)
+const auditRevlogSchema = defineStringFieldOutputSchema({
+  field: 'audit',
+  message: 'Expected audit',
+})
 
 const auditMiddlewareName = 'auditMiddleware'
 

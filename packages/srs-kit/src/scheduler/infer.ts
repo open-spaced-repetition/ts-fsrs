@@ -77,67 +77,75 @@ type ExtendSchedulerConfigOutput<
   Assign<SchemaOutput<Env['config']>, MiddlewareConfigPart<AddedMWs, 'output'>>
 >
 
-type MiddlewareCardFields<MWs extends readonly AnyMiddleware[]> = MergePart<
-  MergeAllObjects<MiddlewareCardOf<MWs[number]>>
+type SchedulerObjectKey = 'card' | 'revlog'
+
+type MiddlewareObjectFields<
+  MWs extends readonly AnyMiddleware[],
+  Key extends SchedulerObjectKey,
+> = MergePart<
+  MergeAllObjects<
+    Key extends 'card'
+      ? MiddlewareCardOf<MWs[number]>
+      : MiddlewareRevlogOf<MWs[number]>
+  >
 >
 
-type ExtendSchedulerCard<
+type SchedulerCoreFieldsFor<
+  Key extends SchedulerObjectKey,
+  Status extends string,
+> = Key extends 'card'
+  ? SchedulerCoreFields<Status>
+  : SchedulerRevlogCoreFields<Status>
+
+type MiddlewareScheduleStatus<MWs extends readonly AnyMiddleware[]> = Extract<
+  MiddlewareStatusOf<MWs[number]>,
+  string
+>
+
+type ExtendSchedulerObject<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
+  Key extends SchedulerObjectKey,
 > = Prettify<
   Assign<
-    Assign<SchemaOutput<Env['card']>, MiddlewareCardFields<AddedMWs>>,
-    SchedulerCoreFields<
+    Assign<SchemaOutput<Env[Key]>, MiddlewareObjectFields<AddedMWs, Key>>,
+    SchedulerCoreFieldsFor<
+      Key,
       | Extract<Env['scheduleStatus'], string>
-      | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
+      | MiddlewareScheduleStatus<AddedMWs>
     >
   >
+>
+
+type ChronoObjectFields<
+  C extends AnyChrono,
+  Key extends SchedulerObjectKey,
+> = Key extends 'card' ? ChronoCardOf<C> : ChronoRevlogOf<C>
+
+type SchedulerObjectFields<
+  M extends AnyModel,
+  C extends AnyChrono,
+  MWs extends readonly AnyMiddleware[],
+  Key extends SchedulerObjectKey,
+> = Assign<
+  Assign<
+    Assign<ModelMemoryOf<M>, MergePart<ChronoObjectFields<C, Key>>>,
+    MiddlewareObjectFields<MWs, Key>
+  >,
+  SchedulerCoreFieldsFor<Key, ScheduleStatus | MiddlewareScheduleStatus<MWs>>
 >
 
 export type SchedulerCardFields<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
-> = Assign<
-  Assign<
-    Assign<ModelMemoryOf<M>, MergePart<ChronoCardOf<C>>>,
-    MiddlewareCardFields<MWs>
-  >,
-  SchedulerCoreFields<
-    ScheduleStatus | Extract<MiddlewareStatusOf<MWs[number]>, string>
-  >
->
-
-type MiddlewareRevlogFields<MWs extends readonly AnyMiddleware[]> = MergePart<
-  MergeAllObjects<MiddlewareRevlogOf<MWs[number]>>
->
-
-type ExtendSchedulerRevlog<
-  Env extends BlankSchedulerEnv,
-  AddedMWs extends readonly AnyMiddleware[],
-> = Prettify<
-  Assign<
-    Assign<SchemaOutput<Env['revlog']>, MiddlewareRevlogFields<AddedMWs>>,
-    SchedulerRevlogCoreFields<
-      | Extract<Env['scheduleStatus'], string>
-      | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
-    >
-  >
->
+> = SchedulerObjectFields<M, C, MWs, 'card'>
 
 export type SchedulerRevlogFields<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
-> = Assign<
-  Assign<
-    Assign<ModelMemoryOf<M>, MergePart<ChronoRevlogOf<C>>>,
-    MiddlewareRevlogFields<MWs>
-  >,
-  SchedulerRevlogCoreFields<
-    ScheduleStatus | Extract<MiddlewareStatusOf<MWs[number]>, string>
-  >
->
+> = SchedulerObjectFields<M, C, MWs, 'revlog'>
 
 export type SchedulerNameOf<M extends AnyModel> = M extends {
   readonly name: infer Name
@@ -175,18 +183,18 @@ export type ExtendSchedulerEnv<
   readonly chrono: Env['chrono']
   readonly scheduleStatus:
     | Extract<Env['scheduleStatus'], string>
-    | Extract<MiddlewareStatusOf<AddedMWs[number]>, string>
+    | MiddlewareScheduleStatus<AddedMWs>
   readonly config: SRSSchema<{
     input: ExtendSchedulerConfigInput<Env, AddedMWs>
     output: ExtendSchedulerConfigOutput<Env, AddedMWs>
   }>
   readonly card: SRSSchema<{
-    input: ExtendSchedulerCard<Env, AddedMWs>
-    output: ExtendSchedulerCard<Env, AddedMWs>
+    input: ExtendSchedulerObject<Env, AddedMWs, 'card'>
+    output: ExtendSchedulerObject<Env, AddedMWs, 'card'>
   }>
   readonly revlog: SRSSchema<{
-    input: ExtendSchedulerRevlog<Env, AddedMWs>
-    output: ExtendSchedulerRevlog<Env, AddedMWs>
+    input: ExtendSchedulerObject<Env, AddedMWs, 'revlog'>
+    output: ExtendSchedulerObject<Env, AddedMWs, 'revlog'>
   }>
 }
 
