@@ -46,6 +46,10 @@ export type EmptyObject = Record<PropertyKey, never>
 
 export type EmptyPart = Record<never, never>
 
+export type MergePart<Value> = [Value] extends [never] ? EmptyPart : Value
+
+export type Mutable<T> = { -readonly [Key in keyof T]: T[Key] }
+
 export type MutableRecord = Record<PropertyKey, unknown>
 
 /** @internal */
@@ -161,5 +165,17 @@ export function assert(
 ): asserts condition {
   if (!condition) {
     throw new Error(`AssertionError: ${msg}`)
+  }
+}
+
+export function assignObjectFields(
+  target: Record<PropertyKey, unknown>,
+  source: object
+) {
+  const fields = source as Record<string, unknown>
+  for (const key in fields) {
+    if (Object.hasOwn(fields, key)) {
+      target[key] = fields[key]
+    }
   }
 }
