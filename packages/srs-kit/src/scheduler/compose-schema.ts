@@ -7,6 +7,7 @@ import { gradeSchema } from '@/primitives/rating.js'
 import { stateSchema } from '@/primitives/state.js'
 import { scheduleStatuses } from '@/primitives/status.js'
 import {
+  assignObjectFields,
   defineSchema,
   isObject,
   type StandardSchemaV1,
@@ -16,18 +17,6 @@ import type {
   SchedulerRevlogCoreFields,
 } from './fields.js'
 import type { SchedulerSchema } from './scheduler.js'
-
-function assignObjectFields(
-  target: Record<PropertyKey, unknown>,
-  source: object
-) {
-  const fields = source as Record<string, unknown>
-  for (const key in fields) {
-    if (Object.hasOwn(fields, key)) {
-      target[key] = fields[key]
-    }
-  }
-}
 
 const parsedCardMemoryState = Symbol('parsedCardMemoryState')
 
