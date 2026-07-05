@@ -71,10 +71,7 @@ export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
   ) => readonly Env['memoryState'][]
 }
 
-export type AnyModelCore = ModelCore<{
-  readonly config: any
-  readonly memoryState: any
-}>
+export type AnyModelCore = ModelCore<any>
 
 // ==========
 // Model
@@ -92,12 +89,11 @@ export interface ModelSchema<
   readonly memoryState: Schema['memoryState']
 }
 
-export type ModelCreate<
-  ConfigSchema extends AnySchema,
-  MemoryStateSchema extends AnyObjectSchema,
-> = (ctx: { readonly config: SchemaInput<ConfigSchema> }) => ModelCore<{
-  readonly config: SchemaOutput<ConfigSchema>
-  readonly memoryState: SchemaOutput<MemoryStateSchema>
+export type ModelCreate<Schema extends BlankModelSchema> = (ctx: {
+  readonly config: SchemaInput<Schema['config']>
+}) => ModelCore<{
+  readonly config: SchemaOutput<Schema['config']>
+  readonly memoryState: SchemaOutput<Schema['memoryState']>
 }>
 
 export type BlankModelEnv = {
@@ -114,14 +110,10 @@ export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
       readonly config: SchemaOutput<Env['config']>
     }) => SchemaInput<Env['memoryState']>
   }
-  readonly create: ModelCreate<Env['config'], Env['memoryState']>
+  readonly create: ModelCreate<Env>
 }
 
-export type AnyModel = Model<{
-  readonly name: any
-  readonly config: any
-  readonly memoryState: any
-}>
+export type AnyModel = Model<any>
 
 export function defineModel<
   const Name extends string | symbol,
