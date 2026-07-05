@@ -103,7 +103,7 @@ jobs:
       - name: Setup pnpm (x86)
         if: matrix.settings.target == 'i686-pc-windows-msvc'
         shell: bash
-        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+        run: npm install -g corepack@0.34.6 --force && corepack enable pnpm
 
       - name: Setup node x86
         uses: actions/setup-node@v4
