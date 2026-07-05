@@ -1,5 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: wildcard constraint for generic bounds */
-type IsAny<T> = 0 extends 1 & T ? true : false
+export type IsAny<T> = unknown extends T
+  ? [keyof T] extends [never]
+    ? false
+    : true
+  : false
 
 type Primitive = null | undefined | string | number | boolean | symbol | bigint
 
