@@ -188,6 +188,7 @@ export function composeSchema(ctx: {
     const modelResult = model.schema.memoryState['~standard'].validate(value)
     if (modelResult.issues) return modelResult
 
+    // Reuse the parsed memory state for revlog hot paths to avoid another allocation.
     const result = modelResult.value as Record<string, unknown>
 
     if (chronoRevlogSchema) {
