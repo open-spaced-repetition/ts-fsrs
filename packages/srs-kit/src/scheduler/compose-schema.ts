@@ -6,6 +6,7 @@ import type { AnyModel } from '@/model/model.js'
 import { gradeSchema } from '@/primitives/rating.js'
 import { stateSchema } from '@/primitives/state.js'
 import { scheduleStatuses } from '@/primitives/status.js'
+import { rememberAttachedValue } from '@/schema/attached-value.js'
 import {
   assignObjectFields,
   defineSchema,
@@ -18,37 +19,8 @@ import type {
 } from './fields.js'
 import type { SchedulerSchema } from './scheduler.js'
 
-const parsedCardMemoryState = Symbol('parsedCardMemoryState')
-
-type ParsedCardMemoryState<MemoryState extends object> = {
-  readonly [parsedCardMemoryState]: MemoryState
-}
-
-export function getParsedCardMemoryState<MemoryState extends object>(
-  card: ParsedCardMemoryState<MemoryState>
-): MemoryState | undefined
-export function getParsedCardMemoryState(
-  card: object
-): Record<string, unknown> | undefined
-export function getParsedCardMemoryState(card: object): object | undefined {
-  return (card as Partial<ParsedCardMemoryState<Record<string, unknown>>>)[
-    parsedCardMemoryState
-  ]
-}
-
-export function rememberParsedCardMemoryState<
-  Card extends object,
-  MemoryState extends object,
->(
-  card: Card,
-  memoryState: MemoryState
-): Card & ParsedCardMemoryState<MemoryState> {
-  const parsedCard = card as Card & {
-    [parsedCardMemoryState]: MemoryState
-  }
-  parsedCard[parsedCardMemoryState] = memoryState
-  return parsedCard
-}
+export const parsedModelConfigSymbol = Symbol('parsedModelConfig')
+export const parsedCardMemoryStateSymbol = Symbol('parsedCardMemoryState')
 
 export function composeSchema(ctx: {
   readonly model: AnyModel
@@ -143,7 +115,13 @@ export function composeSchema(ctx: {
       assignObjectFields(result, middlewareResult.value)
     }
 
-    return { value: result }
+    return {
+      value: rememberAttachedValue(
+        result,
+        parsedModelConfigSymbol,
+        modelResult.value
+      ),
+    }
   })
 
   const card = defineSchema<unknown, Record<string, unknown>>((value) => {
@@ -177,7 +155,13 @@ export function composeSchema(ctx: {
       Object.assign(card, middlewareCard.value)
     }
 
-    return { value: rememberParsedCardMemoryState(card, memoryState) }
+    return {
+      value: rememberAttachedValue(
+        card,
+        parsedCardMemoryStateSymbol,
+        memoryState
+      ),
+    }
   })
 
   const revlog = defineSchema<unknown, Record<string, unknown>>((value) => {

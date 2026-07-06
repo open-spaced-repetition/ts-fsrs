@@ -5,7 +5,11 @@ import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { defineModel } from '@/model/model.js'
-import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
+import {
+  SM2_DEFAULT_WEIGHTS,
+  type SM2Config,
+  SM2Model,
+} from '@/model/sm2.test.js'
 import { Rating, State } from '@/primitives/index.js'
 import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
@@ -72,6 +76,32 @@ describe('SchedulerCore.create', () => {
     expect(() =>
       scheduler.create({ config: { weights: [1] } as never })
     ).toThrow()
+  })
+
+  it('reuses model config parsed by composed scheduler config', () => {
+    let configParses = 0
+    let createdConfigFrozen = true
+    const spiedConfigSchema = defineSchema<SM2Config>((value) => {
+      configParses += 1
+      return SM2Model.schema.config['~standard'].validate(value)
+    })
+    const spiedModel = defineModel({
+      name: 'sm2-config-spied',
+      schema: { ...SM2Model.schema, config: spiedConfigSchema },
+      defaultValue: SM2Model.defaultValue,
+      create({ config, bypass }) {
+        const modelConfig = bypass ? config : Object.freeze(config)
+        createdConfigFrozen = Object.isFrozen(modelConfig)
+        return SM2Model.create({ config })
+      },
+    })
+
+    defineScheduler({ model: spiedModel, chrono: numericChrono }).create({
+      config: { weights: SM2_DEFAULT_WEIGHTS },
+    })
+
+    expect(configParses).toBe(1)
+    expect(createdConfigFrozen).toBe(false)
   })
 
   it('does not copy inherited middleware config fields', () => {

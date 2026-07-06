@@ -105,6 +105,7 @@ export class FSRS implements IFSRS {
         enableShortTerm: this.#parameters.enable_short_term,
         numRelearningSteps: this.#parameters.relearning_steps.length,
       },
+      bypass: true,
     })
   }
 

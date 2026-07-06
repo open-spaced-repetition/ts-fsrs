@@ -1,13 +1,17 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { SM2State } from '@/model/sm2.test.js'
 import {
-  getParsedCardMemoryState,
-  rememberParsedCardMemoryState,
-} from './compose-schema.js'
+  getAttachedValue,
+  rememberAttachedValue,
+} from '@/schema/attached-value.js'
+import { parsedCardMemoryStateSymbol } from './compose-schema.js'
 
 describe('parsed card memory state', () => {
   it('falls back to unknown record for unmarked cards', () => {
-    const memoryState = getParsedCardMemoryState({})
+    const memoryState = getAttachedValue<
+      typeof parsedCardMemoryStateSymbol,
+      Record<string, unknown>
+    >({}, parsedCardMemoryStateSymbol)
 
     expectTypeOf(memoryState).toEqualTypeOf<
       Record<string, unknown> | undefined
@@ -21,11 +25,15 @@ describe('parsed card memory state', () => {
       easeFactor: 2.5,
       reviewStep: 3,
     }
-    const remembered = rememberParsedCardMemoryState(
+    const remembered = rememberAttachedValue(
       { source: 'fixture' },
+      parsedCardMemoryStateSymbol,
       inputMemoryState
     )
-    const memoryState = getParsedCardMemoryState(remembered)
+    const memoryState = getAttachedValue<
+      typeof parsedCardMemoryStateSymbol,
+      SM2State
+    >(remembered, parsedCardMemoryStateSymbol)
 
     expectTypeOf(memoryState).toEqualTypeOf<SM2State | undefined>()
     expect(memoryState).toEqual({

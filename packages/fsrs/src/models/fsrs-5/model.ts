@@ -8,7 +8,12 @@ import { FSRSMemoryStateSchema } from '../../kit/index.js'
 import type { FSRSState } from '../../models.js'
 import { FSRS5Algorithm } from './algorithm.js'
 import { FSRS5_MODEL_BOUNDS } from './constants.js'
-import { type FSRS5Config, fsrs5ConfigSchema } from './parameters.js'
+import {
+  checkFSRS5Parameters,
+  type FSRS5Config,
+  fsrs5ConfigSchema,
+  migrateFSRS5Parameters,
+} from './parameters.js'
 
 const createFSRS5Model = (
   config: FSRS5Config
@@ -18,11 +23,9 @@ const createFSRS5Model = (
 }> => {
   const bounds = FSRS5_MODEL_BOUNDS
 
-  const modelConfig: FSRS5Config = Object.freeze(config)
-
   const algo = new FSRS5Algorithm(
-    modelConfig.weights,
-    modelConfig.enableShortTerm,
+    config.weights,
+    config.enableShortTerm,
     FSRS5_MODEL_BOUNDS
   )
 
@@ -67,7 +70,7 @@ const createFSRS5Model = (
   }
 
   return {
-    config: modelConfig,
+    config,
     bounds,
     step,
     nextInterval,
@@ -87,7 +90,23 @@ export const FSRS5Model = defineModel({
       return { stability: 0, difficulty: 0 }
     },
   },
-  create({ config }) {
-    return createFSRS5Model(fsrs5ConfigSchema.parse(config))
+  create({ config, migrate = true, check = true, bypass = false }) {
+    if (bypass) {
+      return createFSRS5Model(config)
+    }
+
+    const weights = migrate
+      ? migrateFSRS5Parameters(config.weights)
+      : config.weights
+    if (check) {
+      checkFSRS5Parameters(weights)
+    }
+
+    const $config = fsrs5ConfigSchema.parse({
+      weights,
+      enableShortTerm: config.enableShortTerm,
+    })
+
+    return createFSRS5Model(Object.freeze($config))
   },
 })

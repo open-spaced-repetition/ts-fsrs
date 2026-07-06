@@ -41,13 +41,34 @@ export const clipFSRS6Parameters = (
       0.01,
       FSRS6_W17_W18_CEILING
     )
-    if (clip[17]) clip[17] = [clip[17][0], w17W18Ceiling]
-    if (clip[18]) clip[18] = [clip[18][0], w17W18Ceiling]
+    clip[17] = [clip[17][0], w17W18Ceiling]
+    clip[18] = [clip[18][0], w17W18Ceiling]
   }
 
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)
   )
+}
+
+export const checkFSRS6Parameters = (
+  parameters: number[] | readonly number[],
+  numRelearningSteps = 0,
+  enableShortTerm = true
+) => {
+  const clipped = clipFSRS6Parameters(
+    Array.from(parameters),
+    numRelearningSteps,
+    enableShortTerm
+  )
+  const isValid =
+    parameters.length === FSRS6_DEFAULT_WEIGHTS.length &&
+    clipped.every((value, index) => value === parameters[index])
+
+  if (!isValid) {
+    throw new FSRSValidationError('Expected FSRS6 weights within model bounds.')
+  }
+
+  return parameters
 }
 
 export const migrateFSRS6Parameters = (

@@ -5,9 +5,10 @@ import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import {
   composeSchema,
-  getParsedCardMemoryState,
+  parsedCardMemoryStateSymbol,
 } from '@/scheduler/compose-schema.js'
 import { defineScheduler } from '@/scheduler/index.js'
+import { getAttachedValue } from '@/schema/attached-value.js'
 
 let composeSchemaSink = 0
 
@@ -25,7 +26,10 @@ function consumeParsedCard(value: {
 function consumeCardWithRememberedMemoryState(
   card: Readonly<Record<string, unknown>> & object
 ): void {
-  const memoryState = getParsedCardMemoryState(card)
+  const memoryState = getAttachedValue<
+    typeof parsedCardMemoryStateSymbol,
+    Record<string, unknown>
+  >(card, parsedCardMemoryStateSymbol)
   if (!memoryState) {
     throw new Error('Parsed card is missing remembered memory state')
   }
