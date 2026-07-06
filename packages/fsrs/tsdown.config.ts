@@ -25,7 +25,10 @@ export default defineConfig([
     globalName: 'FSRS',
     platform: 'browser',
     deps: {
-      alwaysBundle: ['@open-spaced-repetition/srs-kit'],
+      alwaysBundle: [
+        '@open-spaced-repetition/srs-kit',
+        '@open-spaced-repetition/srs-kit/chrono/date',
+      ],
     },
     sourcemap: false,
     minify: false,
