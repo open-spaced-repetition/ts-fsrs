@@ -1,9 +1,7 @@
 import { bench, describe } from 'vitest'
-import { defineChrono, defineChronoProjection } from '@/chrono/index.js'
 import { dateChrono } from '@/chrono/presets/date/index.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.js'
-import { numberSchema } from '@/schema/index.js'
 
 const NS_PER_DAY = 86_400_000_000_000n
 const temporalImplementations = ['native', 'polyfill'] as const
@@ -54,69 +52,6 @@ function createInstant(
 ): Temporal.Instant {
   return temporal.Instant.fromEpochNanoseconds(epochNanoseconds)
 }
-
-const numericProjection = defineChronoProjection<{
-  readonly time: number
-}>((value) => {
-  const time = numberSchema['~standard'].validate(value.time)
-  if (time.issues) {
-    return time
-  }
-
-  return { value: { previous: 0, current: time.value } }
-})
-
-describe('defineChrono', () => {
-  bench('defineChrono with schema projection', () => {
-    defineChrono({
-      schema: {
-        time: numberSchema,
-      },
-      projection: numericProjection,
-      create() {
-        return {
-          now: () => 0,
-          difference: (from: number, to: number) => to - from,
-          add: (from: number, days: number) => from + days,
-        }
-      },
-    })
-  })
-
-  bench('defineChrono with function projection', () => {
-    defineChrono({
-      schema: {
-        time: numberSchema,
-      },
-      projection(value) {
-        const time = numberSchema['~standard'].validate(value.time)
-        if (time.issues) {
-          return time
-        }
-
-        return { value: { previous: 0, current: time.value } }
-      },
-      create() {
-        return {
-          now: () => 0,
-          difference: (from: number, to: number) => to - from,
-          add: (from: number, days: number) => from + days,
-        }
-      },
-    })
-  })
-
-  bench('defineChronoProjection', () => {
-    defineChronoProjection<{ readonly time: number }>((value) => {
-      const time = numberSchema['~standard'].validate(value.time)
-      if (time.issues) {
-        return time
-      }
-
-      return { value: { previous: 0, current: time.value } }
-    })
-  })
-})
 
 describe('numericChrono preset', () => {
   const core = numericChrono.create()

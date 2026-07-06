@@ -29,12 +29,12 @@ describe('defineModel type display', () => {
         input: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
         };
         output: {
             readonly interval: number;
             readonly easeFactor: number;
-            readonly reps: number;
+            readonly reviewStep: number;
         };
     }>;
 }>`,
@@ -53,12 +53,12 @@ describe('defineModel type display', () => {
     input: {
         readonly interval: number;
         readonly easeFactor: number;
-        readonly reps: number;
+        readonly reviewStep: number;
     };
     output: {
         readonly interval: number;
         readonly easeFactor: number;
-        readonly reps: number;
+        readonly reviewStep: number;
     };
 }>`,
   }
@@ -71,7 +71,7 @@ describe('defineModel type display', () => {
     readonly memoryState: {
         readonly interval: number;
         readonly easeFactor: number;
-        readonly reps: number;
+        readonly reviewStep: number;
     };
 }>`,
   }

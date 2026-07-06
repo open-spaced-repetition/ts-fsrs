@@ -14,7 +14,7 @@ import { defineModel } from './model.js'
 export interface SM2State {
   readonly interval: number
   readonly easeFactor: number
-  readonly reps: number
+  readonly reviewStep: number
 }
 
 export interface SM2Config {
@@ -64,16 +64,16 @@ const sm2MemoryStateSchema = defineSchema<SM2State>((value) => {
     value !== null &&
     'interval' in value &&
     'easeFactor' in value &&
-    'reps' in value &&
+    'reviewStep' in value &&
     typeof value.interval === 'number' &&
     typeof value.easeFactor === 'number' &&
-    typeof value.reps === 'number'
+    typeof value.reviewStep === 'number'
   ) {
     return {
       value: {
         interval: value.interval,
         easeFactor: value.easeFactor,
-        reps: value.reps,
+        reviewStep: value.reviewStep,
       },
     }
   }
@@ -98,19 +98,19 @@ function createSM2Core(
     memoryState,
     rating,
   }: ModelStepInput<SM2State>): SM2State => {
-    const { interval, easeFactor, reps } = memoryState ?? {
+    const { interval, easeFactor, reviewStep } = memoryState ?? {
       interval: 0,
       easeFactor: w[2],
-      reps: 0,
+      reviewStep: 0,
     }
 
     const success = rating > 1
-    const newReps = success ? reps + 1 : 1
+    const newReviewStep = success ? reviewStep + 1 : 1
 
     let newInterval: number
-    if (newReps === 1) {
+    if (newReviewStep === 1) {
       newInterval = w[0]
-    } else if (newReps === 2) {
+    } else if (newReviewStep === 2) {
       newInterval = w[1]
     } else {
       newInterval = interval * easeFactor
@@ -122,7 +122,7 @@ function createSM2Core(
     return {
       interval: clamp(newInterval, bounds.iMin, bounds.iMax),
       easeFactor: clamp(newEf, bounds.eMin, bounds.eMax),
-      reps: newReps,
+      reviewStep: newReviewStep,
     }
   }
 
@@ -184,7 +184,7 @@ export const SM2Model = defineModel({
   },
   defaultValue: {
     memoryState({ config }) {
-      return { interval: 0, easeFactor: config.weights[2], reps: 0 }
+      return { interval: 0, easeFactor: config.weights[2], reviewStep: 0 }
     },
   },
   create({ config }) {
