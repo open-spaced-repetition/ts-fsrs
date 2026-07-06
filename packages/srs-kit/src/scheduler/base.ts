@@ -1,7 +1,6 @@
 import type {
   AnyChrono,
   AnyChronoCore,
-  ChronoDefaultRuntimeFn,
   ChronoProjectionRuntimeSchema,
 } from '@/chrono/chrono.js'
 import type {
@@ -435,8 +434,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     prepared: PreparedReview<Env>,
     scheduledDays: number
   ): void {
-    const chronoCardDefault = this.chrono.defaultValue
-      ?.card as ChronoDefaultRuntimeFn
+    const chronoCardDefault = this.chrono.defaultValue?.card
     if (chronoCardDefault) {
       Object.assign(
         result.card,
@@ -448,8 +446,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       )
     }
 
-    const chronoRevlogDefault = this.chrono.defaultValue
-      ?.revlog as ChronoDefaultRuntimeFn
+    const chronoRevlogDefault = this.chrono.defaultValue?.revlog
     if (chronoRevlogDefault) {
       Object.assign(
         result.revlog,
