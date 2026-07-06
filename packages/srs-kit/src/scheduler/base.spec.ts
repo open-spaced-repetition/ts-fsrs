@@ -914,7 +914,7 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.reps).toBe(0)
   })
 
-  it('returns an empty card when revlog state is new', () => {
+  it('runs rollback handlers when revlog state is new', () => {
     const card = core.newCard()
     const result = core.review({ card: card, grade: Rating.Good, now: 0 })
     const restored = core.rollback({
@@ -929,10 +929,10 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
     expect(restored.reps).toBe(0)
     expect(restored.state).toBe(State.New)
-    expect(restored.scheduleStatus).toBe('new')
+    expect(restored.scheduleStatus).toBe('review')
   })
 
-  it('returns an empty card when revlog schedule status is new', () => {
+  it('does not reset stats when revlog state is new', () => {
     const card = core.newCard()
     const first = core.review({ card: card, grade: Rating.Good, now: 0 })
     const second = core.review({
@@ -949,9 +949,9 @@ describe('SchedulerCore.rollback', () => {
       },
     })
 
-    expect(restored.interval).toBe(0)
+    expect(restored.interval).toBe(1)
     expect(restored.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
-    expect(restored.reps).toBe(0)
+    expect(restored.reps).toBe(1)
     expect(restored.state).toBe(State.New)
     expect(restored.scheduleStatus).toBe('new')
   })
@@ -1015,8 +1015,8 @@ describe('SchedulerCore.rollback', () => {
     })
     const restoredFields = restored as Record<string, unknown>
 
-    expect(restored.dueAt).toEqual(revlog.dueAt)
-    expect(restored.lastReviewAt).toBeNull()
+    expect(restored.dueAt).toEqual(revlog.reviewTime)
+    expect(restored.lastReviewAt).toEqual(revlog.dueAt)
     expect(restored.source).toBe('test-source')
     expect('audit' in restoredFields).toBe(false)
   })

@@ -271,26 +271,6 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       this.schema.revlog,
       inputRevlog
     ) as SchedulerCoreEnv<Env>['revlog']['output']
-    if (revlog.state === State.New) {
-      let time = null
-      const chronoRevlogSchema = this.chrono.schema.revlog
-      if (chronoRevlogSchema) {
-        time = parse(this.chrono.projection, {
-          revlog: revlog,
-        }).previous
-      } else {
-        time = this.chronoCore.now()
-      }
-
-      return parse(
-        this.schema.card,
-        this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>({
-          config: this.config,
-          time,
-        })
-      ) as SchedulerCoreEnv<Env>['card']['output']
-    }
-
     const card = parse(
       this.schema.card,
       inputCard
