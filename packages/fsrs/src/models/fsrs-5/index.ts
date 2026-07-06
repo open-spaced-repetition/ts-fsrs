@@ -12,6 +12,7 @@ export {
 export { FSRS5Model } from './model.js'
 export type { FSRS5Config } from './parameters.js'
 export {
+  checkFSRS5Parameters,
   clipFSRS5Parameters,
   fsrs5ConfigSchema,
   migrateFSRS5Parameters,

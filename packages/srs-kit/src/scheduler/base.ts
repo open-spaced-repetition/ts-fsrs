@@ -10,6 +10,11 @@ import type {
 import type { AnyModel, AnyModelCore } from '@/model/model.js'
 import { type Grade, gradeSchema, grades } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
+import {
+  parsedCardMemoryStateSymbol,
+  parsedModelConfigSymbol,
+} from '@/scheduler/compose-schema.js'
+import { getAttachedValue } from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import {
   composeMiddleware,
@@ -17,7 +22,6 @@ import {
   parse,
   withCache,
 } from '@/schema/index.js'
-import { getParsedCardMemoryState } from './compose-schema.js'
 import type { SchedulerDefaultValueFactory } from './default-value.js'
 import type {
   BlankSchedulerEnv,
@@ -165,7 +169,13 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     const config = parse(schema.config, ctx.config)
 
     this.config = config
-    this.modelCore = model.create({ config })
+    this.modelCore = model.create({
+      config: getAttachedValue<typeof parsedModelConfigSymbol, typeof config>(
+        config,
+        parsedModelConfigSymbol
+      ),
+      bypass: true,
+    })
     this.chronoCore = Reflect.apply(chrono.create, chrono, [
       { config: config.chrono },
     ])
@@ -303,7 +313,10 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       this.schema.card,
       inputCard
     ) as SchedulerCoreEnv<Env>['card']['output']
-    const memoryState = getParsedCardMemoryState(parsedCard)
+    const memoryState = getAttachedValue<
+      typeof parsedCardMemoryStateSymbol,
+      PreparedReview<Env>['memoryState']
+    >(parsedCard, parsedCardMemoryStateSymbol)
     if (!memoryState) {
       throw new Error('Parsed scheduler card is missing model memory state')
     }

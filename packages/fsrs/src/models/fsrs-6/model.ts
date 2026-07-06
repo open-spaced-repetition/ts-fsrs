@@ -8,7 +8,12 @@ import { FSRSMemoryStateSchema } from '../../kit/index.js'
 import type { FSRSState } from '../../models.js'
 import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_MODEL_BOUNDS } from './constants.js'
-import { type FSRS6Config, fsrs6ConfigSchema } from './parameters.js'
+import {
+  checkFSRS6Parameters,
+  type FSRS6Config,
+  fsrs6ConfigSchema,
+  migrateFSRS6Parameters,
+} from './parameters.js'
 
 const createFSRS6Model = (
   config: FSRS6Config
@@ -18,11 +23,9 @@ const createFSRS6Model = (
 }> => {
   const bounds = FSRS6_MODEL_BOUNDS
 
-  const modelConfig: FSRS6Config = Object.freeze(config)
-
   const algo = new FSRS6Algorithm(
-    modelConfig.weights,
-    modelConfig.enableShortTerm,
+    config.weights,
+    config.enableShortTerm,
     FSRS6_MODEL_BOUNDS
   )
 
@@ -67,7 +70,7 @@ const createFSRS6Model = (
   }
 
   return {
-    config: modelConfig,
+    config,
     bounds,
     step,
     nextInterval,
@@ -87,7 +90,32 @@ export const FSRS6Model = defineModel({
       return { stability: 0, difficulty: 0 }
     },
   },
-  create({ config }) {
-    return createFSRS6Model(fsrs6ConfigSchema.parse(config))
+  create({ config, migrate = true, check = true, bypass = false }) {
+    if (bypass) {
+      return createFSRS6Model(config)
+    }
+
+    const weights = migrate
+      ? migrateFSRS6Parameters(
+          config.weights,
+          config.numRelearningSteps,
+          config.enableShortTerm
+        )
+      : config.weights
+    if (check) {
+      checkFSRS6Parameters(
+        weights,
+        config.numRelearningSteps,
+        config.enableShortTerm
+      )
+    }
+
+    const $config = fsrs6ConfigSchema.parse({
+      weights,
+      enableShortTerm: config.enableShortTerm,
+      numRelearningSteps: config.numRelearningSteps,
+    })
+
+    return createFSRS6Model(Object.freeze($config))
   },
 })
