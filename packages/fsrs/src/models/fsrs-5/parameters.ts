@@ -11,6 +11,21 @@ export const clipFSRS5Parameters = (parameters: number[]): number[] => {
   )
 }
 
+export const checkFSRS5Parameters = (
+  parameters: number[] | readonly number[]
+) => {
+  const clipped = clipFSRS5Parameters(Array.from(parameters))
+  const isValid =
+    parameters.length === FSRS5_DEFAULT_WEIGHTS.length &&
+    clipped.every((value, index) => value === parameters[index])
+
+  if (!isValid) {
+    throw new FSRSValidationError('Expected FSRS5 weights within model bounds.')
+  }
+
+  return parameters
+}
+
 export const migrateFSRS5Parameters = (parameters?: number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS5_DEFAULT_WEIGHTS]

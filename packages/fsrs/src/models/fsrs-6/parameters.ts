@@ -50,6 +50,27 @@ export const clipFSRS6Parameters = (
   )
 }
 
+export const checkFSRS6Parameters = (
+  parameters: number[] | readonly number[],
+  numRelearningSteps = 0,
+  enableShortTerm = true
+) => {
+  const clipped = clipFSRS6Parameters(
+    Array.from(parameters),
+    numRelearningSteps,
+    enableShortTerm
+  )
+  const isValid =
+    parameters.length === FSRS6_DEFAULT_WEIGHTS.length &&
+    clipped.every((value, index) => value === parameters[index])
+
+  if (!isValid) {
+    throw new FSRSValidationError('Expected FSRS6 weights within model bounds.')
+  }
+
+  return parameters
+}
+
 export const migrateFSRS6Parameters = (
   parameters?: number[],
   numRelearningSteps = 0,

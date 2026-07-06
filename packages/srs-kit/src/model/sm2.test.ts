@@ -187,7 +187,7 @@ export const SM2Model = defineModel({
       return { interval: 0, easeFactor: config.weights[2], reviewStep: 0 }
     },
   },
-  create({ config }) {
-    return createSM2Core(sm2ConfigSchema.parse(config))
+  create({ config, bypass }) {
+    return createSM2Core(bypass ? config : sm2ConfigSchema.parse(config))
   },
 })

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { type Grade, Rating } from '../../models.js'
 import { FSRS5_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS5Model } from './model.js'
+import { migrateFSRS5Parameters } from './parameters.js'
 
 describe('FSRS5Model', () => {
   it('binds step, forgetting curve, interval, and forward to FSRS-5 algorithm', () => {
@@ -54,5 +55,28 @@ describe('FSRS5Model', () => {
         } as never,
       })
     ).toThrow()
+  })
+
+  it('migrates FSRS-4.5 weights when requested', () => {
+    const weights = FSRS5_DEFAULT_WEIGHTS.slice(0, 17)
+    const model = FSRS5Model.create({
+      config: { weights, enableShortTerm: true },
+      migrate: true,
+    })
+
+    expect(model.config.weights).toEqual(migrateFSRS5Parameters(weights))
+  })
+
+  it('checks parameter bounds when requested', () => {
+    const weights = Array.from(FSRS5_DEFAULT_WEIGHTS)
+    weights[0] = 0
+
+    expect(() =>
+      FSRS5Model.create({
+        config: { weights, enableShortTerm: true },
+        migrate: false,
+        check: true,
+      })
+    ).toThrow('Expected FSRS5 weights within model bounds.')
   })
 })

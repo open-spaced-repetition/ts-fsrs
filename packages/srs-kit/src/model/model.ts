@@ -90,7 +90,17 @@ export interface ModelSchema<
 }
 
 export type ModelCreate<Schema extends BlankModelSchema> = (ctx: {
-  readonly config: SchemaInput<Schema['config']>
+  readonly config:
+    | SchemaInput<Schema['config']>
+    | SchemaOutput<Schema['config']>
+  readonly migrate?: boolean
+  readonly check?: boolean
+  /**
+   * The config has already been parsed by the composed scheduler schema.
+   * Model implementations should use it directly and skip create-time
+   * validation, migration, range checks, and freezing.
+   */
+  readonly bypass?: boolean
 }) => ModelCore<{
   readonly config: SchemaOutput<Schema['config']>
   readonly memoryState: SchemaOutput<Schema['memoryState']>
