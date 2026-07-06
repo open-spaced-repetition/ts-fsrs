@@ -5,6 +5,17 @@ import { FSRS5Model } from './model.js'
 import { migrateFSRS5Parameters } from './parameters.js'
 
 describe('FSRS5Model', () => {
+  it('returns the default empty memory state', () => {
+    expect(
+      FSRS5Model.defaultValue.memoryState({
+        config: {
+          weights: FSRS5_DEFAULT_WEIGHTS,
+          enableShortTerm: true,
+        },
+      })
+    ).toEqual({ stability: 0, difficulty: 0 })
+  })
+
   it('binds step, forgetting curve, interval, and forward to FSRS-5 algorithm', () => {
     const model = FSRS5Model.create({
       config: {
@@ -65,6 +76,30 @@ describe('FSRS5Model', () => {
     })
 
     expect(model.config.weights).toEqual(migrateFSRS5Parameters(weights))
+  })
+
+  it('bypasses create-time parsing when requested', () => {
+    const config = {
+      weights: Array.from(FSRS5_DEFAULT_WEIGHTS),
+      enableShortTerm: true,
+    }
+
+    const model = FSRS5Model.create({ config, bypass: true })
+
+    expect(model.config).toBe(config)
+  })
+
+  it('skips parameter bounds checks when requested', () => {
+    const weights = Array.from(FSRS5_DEFAULT_WEIGHTS)
+    weights[0] = 0
+
+    const model = FSRS5Model.create({
+      config: { weights, enableShortTerm: true },
+      migrate: false,
+      check: false,
+    })
+
+    expect(model.config.weights[0]).toBe(0)
   })
 
   it('checks parameter bounds when requested', () => {

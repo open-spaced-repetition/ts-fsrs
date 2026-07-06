@@ -41,8 +41,8 @@ export const clipFSRS6Parameters = (
       0.01,
       FSRS6_W17_W18_CEILING
     )
-    if (clip[17]) clip[17] = [clip[17][0], w17W18Ceiling]
-    if (clip[18]) clip[18] = [clip[18][0], w17W18Ceiling]
+    clip[17] = [clip[17][0], w17W18Ceiling]
+    clip[18] = [clip[18][0], w17W18Ceiling]
   }
 
   return clip.map(([min, max], index) =>
