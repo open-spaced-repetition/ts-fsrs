@@ -17,6 +17,7 @@ export const FSRS4Dot5_DEFAULT_WEIGHTS = Object.freeze([
   0.1367, 1.0461, 2.1072, 0.0793, 0.3246, 1.587, 0.2272, 2.8755,
 ]) as number[]
 
+// https://github.com/open-spaced-repetition/srs-benchmark/blob/main/models/fsrs_v4dot5.py
 export const FSRS4Dot5ParameterBounds = (): [number, number][] => [
   [FSRS4Dot5_MODEL_BOUNDS.sMin, INIT_S_MAX],
   [FSRS4Dot5_MODEL_BOUNDS.sMin, INIT_S_MAX],

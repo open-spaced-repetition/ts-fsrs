@@ -35,11 +35,6 @@ export const migrateFSRS4Dot5Parameters = (parameters?: number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS4Dot5_DEFAULT_WEIGHTS]
   }
-  if (parameters.length !== FSRS4Dot5_DEFAULT_WEIGHTS.length) {
-    throw new FSRSValidationError(
-      `Invalid parameters length "${parameters.length}", expected 17.`
-    )
-  }
   return clipFSRS4Dot5Parameters(parameters)
 }
 
