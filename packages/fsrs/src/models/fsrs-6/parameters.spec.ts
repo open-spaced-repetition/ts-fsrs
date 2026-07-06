@@ -1,9 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from './constants.js'
-import {
-  checkFSRS6Parameters,
-  clipFSRS6Parameters,
-} from './parameters.js'
+import { checkFSRS6Parameters, clipFSRS6Parameters } from './parameters.js'
 
 describe('FSRS-6 parameters', () => {
   it('checks default weights with default options', () => {
