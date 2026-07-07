@@ -1,10 +1,8 @@
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import type { FSRSState } from '../../models.js'
 
-export const INIT_S_MAX = 100.0
-
 export const FSRS4_MODEL_BOUNDS: ModelBounds<FSRSState> = Object.freeze({
-  sMin: 0.01,
+  sMin: 0.1,
   sMax: 36500.0,
   dMin: 1.0,
   dMax: 10.0,
@@ -16,10 +14,10 @@ export const FSRS4_DEFAULT_WEIGHTS = Object.freeze([
 ]) as number[]
 
 export const FSRS4ParameterBounds = (): [number, number][] => [
-  [FSRS4_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS4_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS4_MODEL_BOUNDS.sMin, INIT_S_MAX],
-  [FSRS4_MODEL_BOUNDS.sMin, INIT_S_MAX],
+  [FSRS4_MODEL_BOUNDS.sMin, FSRS4_MODEL_BOUNDS.sMax],
+  [FSRS4_MODEL_BOUNDS.sMin, FSRS4_MODEL_BOUNDS.sMax],
+  [FSRS4_MODEL_BOUNDS.sMin, FSRS4_MODEL_BOUNDS.sMax],
+  [FSRS4_MODEL_BOUNDS.sMin, FSRS4_MODEL_BOUNDS.sMax],
   [1.0, 10.0],
   [0.1, 5.0],
   [0.1, 5.0],

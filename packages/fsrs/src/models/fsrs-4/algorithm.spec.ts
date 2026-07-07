@@ -62,6 +62,12 @@ describe('FSRS4Algorithm', () => {
       weights[2],
       weights[3],
     ])
+    const clamped = new FSRS4Algorithm(
+      [Number.NEGATIVE_INFINITY, Number.POSITIVE_INFINITY, ...weights.slice(2)],
+      FSRS4_MODEL_BOUNDS
+    )
+    expect(clamped.init_stability(Rating.Again)).toBe(FSRS4_MODEL_BOUNDS.sMin)
+    expect(clamped.init_stability(Rating.Hard)).toBe(FSRS4_MODEL_BOUNDS.sMax)
     expectCloseArray(
       grades.map((rating) => algorithm.init_difficulty(rating)),
       [

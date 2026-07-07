@@ -27,7 +27,7 @@ export class FSRS4Algorithm {
   }
 
   init_stability(g: Grade): number {
-    return Math.max(this.weights[g - 1], 0.1)
+    return clamp(this.weights[g - 1], this.bounds.sMin, this.bounds.sMax)
   }
 
   init_difficulty(g: Grade): number {
