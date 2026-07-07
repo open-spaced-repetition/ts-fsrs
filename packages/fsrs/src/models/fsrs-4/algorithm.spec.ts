@@ -1,12 +1,13 @@
-import { grades } from '@open-spaced-repetition/srs-kit'
+import { type Grade, grades, Rating } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
-import { type FSRSState, type Grade, Rating } from '../../models.js'
 import {
   FSRS4_DEFAULT_WEIGHTS,
   FSRS4_MODEL_BOUNDS,
   FSRS4Algorithm,
   forgettingCurve,
 } from './index.js'
+
+type FSRSState = ReturnType<FSRS4Algorithm['next_state']>
 
 describe('FSRS4Algorithm', () => {
   const weights = FSRS4_DEFAULT_WEIGHTS
@@ -27,12 +28,16 @@ describe('FSRS4Algorithm', () => {
   }
 
   it('uses the FSRS-4 forgetting curve', () => {
+    // Expected values source: srs-benchmark/models/fsrs_v4.py Python reference at 70cc4387f573ff20b13ac9c106333a335c8a4cb8.
+    // https://github.com/open-spaced-repetition/srs-benchmark/blob/70cc4387f573ff20b13ac9c106333a335c8a4cb8/models/fsrs_v4.py
     expect([0, 1, 2, 3].map((t) => forgettingCurve(t, 1))).toEqual([
       1, 0.9, 0.81818182, 0.75,
     ])
   })
 
   it('calculates intervals through the FSRS-4 interval modifier', () => {
+    // Expected values source: fsrs-rs PR #58 test_next_interval result.
+    // https://github.com/open-spaced-repetition/fsrs-rs/pull/58/changes
     const requestRetentions = Array.from({ length: 10 }, (_, index) =>
       Number(((index + 1) / 10).toFixed(1))
     )
@@ -69,6 +74,8 @@ describe('FSRS4Algorithm', () => {
   })
 
   it('matches the Python reference difficulty update results to 4 decimals', () => {
+    // Expected values source: srs-benchmark/models/fsrs_v4.py Python reference at 70cc4387f573ff20b13ac9c106333a335c8a4cb8.
+    // https://github.com/open-spaced-repetition/srs-benchmark/blob/70cc4387f573ff20b13ac9c106333a335c8a4cb8/models/fsrs_v4.py
     expectCloseArray(
       grades.map((rating) => 5 - weights[6] * (rating - 3)),
       [5 + 2 * weights[6], 5 + weights[6], 5, 5 - weights[6]]
@@ -81,6 +88,8 @@ describe('FSRS4Algorithm', () => {
   })
 
   it('matches the Python reference stability update results to 4 decimals', () => {
+    // Expected values source: srs-benchmark/models/fsrs_v4.py Python reference at 70cc4387f573ff20b13ac9c106333a335c8a4cb8.
+    // https://github.com/open-spaced-repetition/srs-benchmark/blob/70cc4387f573ff20b13ac9c106333a335c8a4cb8/models/fsrs_v4.py
     const stability = [5, 5, 5, 5]
     const difficulty = [1, 2, 3, 4]
     const retention = [0.9, 0.8, 0.7, 0.6]
@@ -118,13 +127,15 @@ describe('FSRS4Algorithm', () => {
     )
   })
 
-  it('matches the fsrs-rs scheduler memory-state fixture', () => {
+  it('matches the fsrs-rs PR #58 scheduler memory-state results', () => {
+    // Expected values source: fsrs-rs PR #58 test_memo_state result.
+    // https://github.com/open-spaced-repetition/fsrs-rs/pull/58/changes
     const rsWeights = [
       0.81497127, 1.5411042, 4.007436, 9.045982, 4.9264183, 1.039322,
       0.93803364, 0, 1.5530516, 0.10299722, 0.9981442, 2.210701, 0.018248068,
       0.3422524, 1.3384504, 0.22278537, 2.6646678,
     ]
-    const rsAlgorithm = new FSRS4Algorithm(rsWeights, FSRS4_MODEL_BOUNDS)
+    const algo = new FSRS4Algorithm(rsWeights, FSRS4_MODEL_BOUNDS)
     const reviews: { rating: Grade; deltaT: number }[] = [
       { rating: Rating.Again, deltaT: 0 },
       { rating: Rating.Good, deltaT: 1 },
@@ -135,7 +146,7 @@ describe('FSRS4Algorithm', () => {
     let state: FSRSState | null = null
 
     for (const review of reviews) {
-      state = rsAlgorithm.next_state(state, review.deltaT, review.rating)
+      state = algo.next_state(state, review.deltaT, review.rating)
     }
 
     expectCloseArray(
@@ -143,7 +154,7 @@ describe('FSRS4Algorithm', () => {
       [51.344814, 7.005062],
       4
     )
-    const nextState = rsAlgorithm.next_state(
+    const nextState = algo.next_state(
       { stability: 20.925528, difficulty: 7.005062 },
       21,
       Rating.Good
@@ -157,6 +168,8 @@ describe('FSRS4Algorithm', () => {
   })
 
   it('matches the Python reference default memory-state progression', () => {
+    // Expected values source: srs-benchmark/models/fsrs_v4.py Python reference at 70cc4387f573ff20b13ac9c106333a335c8a4cb8.
+    // https://github.com/open-spaced-repetition/srs-benchmark/blob/70cc4387f573ff20b13ac9c106333a335c8a4cb8/models/fsrs_v4.py
     const ratings: Grade[] = [
       Rating.Again,
       Rating.Good,

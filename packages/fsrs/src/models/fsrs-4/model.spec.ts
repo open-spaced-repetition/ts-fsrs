@@ -1,7 +1,12 @@
-import type { ModelForwardInput } from '@open-spaced-repetition/srs-kit/model'
+import { Rating } from '@open-spaced-repetition/srs-kit'
+import type {
+  ModelForwardInput,
+  ModelMemoryOf,
+} from '@open-spaced-repetition/srs-kit/model'
 import { describe, expect, it } from 'vitest'
-import { type FSRSState, Rating } from '../../models.js'
 import { FSRS4_DEFAULT_WEIGHTS, FSRS4Model, forgettingCurve } from './index.js'
+
+type FSRSState = ModelMemoryOf<typeof FSRS4Model>
 
 describe('FSRS-4 model', () => {
   const weights = FSRS4_DEFAULT_WEIGHTS
@@ -86,7 +91,7 @@ describe('FSRS-4 model', () => {
   })
 
   it('calculates the FSRS-4 forgetting curve and interval modifier', () => {
-    const model = FSRS4Model.create({ config: { weights: [...weights] } })
+    const model = FSRS4Model.create({ config: { weights } })
     const state: FSRSState = { stability: 10, difficulty: 5 }
 
     expect(forgettingCurve(10, 10)).toBe(0.9)
