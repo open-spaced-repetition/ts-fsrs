@@ -13,6 +13,7 @@ export function forgetting_curve(
 
 /**
  * @see https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-3
+ * @see https://github.com/open-spaced-repetition/fsrs4anki/blob/6dba490ed156c28172f37f5969fe70e8301bca0f/fsrs4anki_scheduler.js
  */
 export class FSRS3Algorithm {
   constructor(
@@ -28,18 +29,12 @@ export class FSRS3Algorithm {
 
   init_stability(g: Grade): number {
     const w = this.weights
-    return roundTo(
-      clamp(w[0] + (g - 1) * w[1], this.bounds.sMin, this.bounds.sMax),
-      8
-    )
+    return clamp(w[0] + (g - 1) * w[1], this.bounds.sMin, this.bounds.sMax)
   }
 
   init_difficulty(g: Grade): number {
     const w = this.weights
-    return roundTo(
-      clamp(w[2] + (g - 3) * w[3], this.bounds.dMin, this.bounds.dMax),
-      8
-    )
+    return clamp(w[2] + (g - 3) * w[3], this.bounds.dMin, this.bounds.dMax)
   }
 
   next_interval(s: number, desired_retention: number): number {
@@ -52,10 +47,8 @@ export class FSRS3Algorithm {
         'Desired retention rate should be in the range (0,1]'
       )
     }
-    return Math.max(
-      Math.round((s * Math.log(desired_retention)) / Math.log(0.9)),
-      1
-    )
+    const intervalModifier = Math.log(desired_retention) / Math.log(0.9)
+    return roundTo(Math.max(Math.round(s * intervalModifier), 1), 8)
   }
 
   next_difficulty(d: number, g: Grade): number {
