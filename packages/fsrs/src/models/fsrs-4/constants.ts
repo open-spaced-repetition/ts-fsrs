@@ -2,7 +2,7 @@ import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import type { FSRSState } from '../../models.js'
 
 export const FSRS4_MODEL_BOUNDS: ModelBounds<FSRSState> = Object.freeze({
-  sMin: 0.1,
+  sMin: 0.01,
   sMax: 36500.0,
   dMin: 1.0,
   dMax: 10.0,

@@ -19,7 +19,7 @@ describe('FSRS-4 parameters', () => {
     expect(
       clipFSRS4Parameters(Array(17).fill(Number.NEGATIVE_INFINITY))
     ).toEqual([
-      0.1, 0.1, 0.1, 0.1, 1, 0.1, 0.1, 0, 0, 0.1, 0.01, 0.5, 0.01, 0.01, 0.01,
+      0.01, 0.01, 0.01, 0.01, 1, 0.1, 0.1, 0, 0, 0.1, 0.01, 0.5, 0.01, 0.01, 0.01,
       0, 1,
     ])
   })
