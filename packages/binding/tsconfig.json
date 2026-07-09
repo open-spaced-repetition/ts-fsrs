@@ -3,7 +3,7 @@
     "target": "ESNext",
     "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "strict": true,
-    "moduleResolution": "node",
+    "moduleResolution": "Bundler",
     "module": "esnext",
     "declaration": false,
     "noUnusedLocals": true,
