@@ -14,7 +14,7 @@ on:
     inputs:
       node-version:
         type: string
-        default: '22'
+        default: '26'
 
 jobs:
   build:

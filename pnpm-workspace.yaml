@@ -3,5 +3,16 @@ packages:
   - packages/binding/npm/*
   # - examples/*
 
+overrides:
+  is-core-module: npm:@nolyfill/is-core-module@^1
+  minimatch: '>=10.2.3'
+
+patchedDependencies:
+  '@napi-rs/cli': patches/@napi-rs__cli.patch
+
+allowBuilds:
+  esbuild: true
+  unrs-resolver: false
+
 supportedArchitectures:
   cpu: [current, wasm32]

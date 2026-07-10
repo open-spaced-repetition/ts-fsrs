@@ -31,7 +31,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: 22
+      node-version: 26
     secrets: inherit
   test:
     needs: build
@@ -48,8 +48,8 @@ jobs:
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
         node:
-          - '22'
           - '24'
+          - '26'
 
     uses: ./.github/workflows/test.yml
     with:
@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Run checks
         run: pnpm run check

@@ -5,7 +5,7 @@ inputs:
   node-version:
     description: Node version to use
     required: false
-    default: '22'
+    default: '26'
   architecture:
     description: Node architecture to use
     required: false
@@ -15,7 +15,7 @@ runs:
   using: 'composite'
   steps:
     - name: Setup pnpm
-      run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
+      run: npm install -g corepack@0.35.0 --force && corepack enable pnpm
       shell: bash
 
     - name: Install Node.js

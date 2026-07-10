@@ -27,7 +27,7 @@ jobs:
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Build docs
         run: pnpm run docs
