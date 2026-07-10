@@ -103,9 +103,7 @@ export type MiddlewareConfigResolveOf<
   Mode extends 'input' | 'output' = 'output',
 > =
   TMiddleware extends Middleware<any, infer Env>
-    ? Mode extends 'input'
-      ? MiddlewareSchemaResolveOf<Env, 'config', AnySchema, EmptyPart, 'input'>
-      : MiddlewareConfigOf<Env>
+    ? MiddlewareSchemaResolveOf<Env, 'config', AnySchema, EmptyPart, Mode>
     : never
 
 export type MiddlewareStatusOf<TMiddleware> =

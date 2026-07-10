@@ -8,6 +8,7 @@ import {
   type SchemaOutput,
 } from '../schema/index.js'
 import type {
+  AnyChronoSchema,
   Chrono,
   ChronoCreate,
   ChronoDefaultValue,
@@ -82,12 +83,7 @@ function resolveChronoProjection(projection: unknown) {
   return projection
 }
 
-type ChronoDefinitionSchema = {
-  readonly time: AnySchema
-  readonly config?: AnySchema
-  readonly card?: AnyObjectSchema
-  readonly revlog?: AnyObjectSchema
-}
+type ChronoDefinitionSchema = AnyChronoSchema
 
 type ChronoDefinitionConfig<Schema extends ChronoDefinitionSchema> =
   Schema extends { readonly config: infer Config extends AnySchema }
@@ -138,21 +134,7 @@ type ChronoDefinition<Schema extends ChronoDefinitionSchema> = {
 
 export function defineChrono<const Schema extends ChronoDefinitionSchema>(
   definition: ChronoDefinition<Schema>
-): Chrono<{
-  readonly [Key in keyof ({
-    readonly time: Schema['time']
-  } & ChronoDefinitionConfig<Schema> & {
-      readonly fields: {
-        readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
-      }
-    })]: ({
-    readonly time: Schema['time']
-  } & ChronoDefinitionConfig<Schema> & {
-      readonly fields: {
-        readonly [Field in keyof ChronoDefinitionFields<Schema>]: ChronoDefinitionFields<Schema>[Field]
-      }
-    })[Key]
-}> {
+): Chrono<ChronoDefinitionEnv<Schema>> {
   return {
     schema: {
       time: definition.schema.time,
