@@ -97,10 +97,8 @@ type SchedulerCoreFieldsFor<
   ? SchedulerCoreFields<Status>
   : SchedulerRevlogCoreFields<Status>
 
-type MiddlewareScheduleStatus<MWs extends readonly AnyMiddleware[]> = Extract<
-  MiddlewareStatusOf<MWs[number]>,
-  string
->
+type MiddlewareScheduleStatus<MWs extends readonly AnyMiddleware[]> =
+  MiddlewareStatusOf<MWs[number]>
 
 type ExtendSchedulerObject<
   Env extends BlankSchedulerEnv,
@@ -111,8 +109,7 @@ type ExtendSchedulerObject<
     Assign<SchemaOutput<Env[Key]>, MiddlewareObjectFields<AddedMWs, Key>>,
     SchedulerCoreFieldsFor<
       Key,
-      | Extract<Env['scheduleStatus'], string>
-      | MiddlewareScheduleStatus<AddedMWs>
+      Env['scheduleStatus'] | MiddlewareScheduleStatus<AddedMWs>
     >
   >
 >
@@ -159,9 +156,7 @@ export type SchedulerEnvFor<
   MWs extends readonly AnyMiddleware[],
 > = {
   readonly chrono: ChronoTimeOf<C>
-  readonly scheduleStatus:
-    | ScheduleStatus
-    | Extract<MiddlewareStatusOf<MWs[number]>, string>
+  readonly scheduleStatus: ScheduleStatus | MiddlewareScheduleStatus<MWs>
   readonly config: SRSSchema<{
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
@@ -182,7 +177,7 @@ export type ExtendSchedulerEnv<
 > = {
   readonly chrono: Env['chrono']
   readonly scheduleStatus:
-    | Extract<Env['scheduleStatus'], string>
+    | Env['scheduleStatus']
     | MiddlewareScheduleStatus<AddedMWs>
   readonly config: SRSSchema<{
     input: ExtendSchedulerConfigInput<Env, AddedMWs>
