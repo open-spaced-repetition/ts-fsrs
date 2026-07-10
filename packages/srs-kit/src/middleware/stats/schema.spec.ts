@@ -1,5 +1,31 @@
 import { describe, expect, it } from 'vitest'
-import { statsFieldsSchema } from './schema.js'
+import { statsConfigSchema, statsFieldsSchema } from './schema.js'
+
+describe('statsConfigSchema', () => {
+  it('defaults clearStatsOnForget to true', () => {
+    expect(statsConfigSchema.parse({})).toEqual({
+      clearStatsOnForget: true,
+    })
+  })
+
+  it('accepts clearStatsOnForget false', () => {
+    expect(statsConfigSchema.parse({ clearStatsOnForget: false })).toEqual({
+      clearStatsOnForget: false,
+    })
+  })
+
+  it('rejects non-object values', () => {
+    expect(() => statsConfigSchema.parse(null)).toThrow(
+      'Expected stats config object'
+    )
+  })
+
+  it('rejects non-boolean clearStatsOnForget values', () => {
+    expect(() =>
+      statsConfigSchema.parse({ clearStatsOnForget: 'false' })
+    ).toThrow('Expected boolean clearStatsOnForget')
+  })
+})
 
 describe('statsFieldsSchema', () => {
   it('accepts non-negative integer stats fields', () => {

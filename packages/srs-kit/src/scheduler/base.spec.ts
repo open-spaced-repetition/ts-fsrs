@@ -57,7 +57,11 @@ const usedCore = usedScheduler.create({
 
 describe('SchedulerCore.create', () => {
   it('validates config and returns core', () => {
-    expect(core.config).toEqual({ ...config, chrono: {} })
+    expect(core.config).toEqual({
+      ...config,
+      chrono: {},
+      clearStatsOnForget: true,
+    })
   })
 
   it('does not expose desiredRetention on config', () => {
@@ -68,6 +72,7 @@ describe('SchedulerCore.create', () => {
     expect(c.config).toEqual({
       weights: SM2_DEFAULT_WEIGHTS,
       chrono: {},
+      clearStatsOnForget: true,
     })
     expect(c.config).not.toHaveProperty('desiredRetention')
   })
@@ -929,6 +934,148 @@ describe('SchedulerCore.preview', () => {
     expect(
       Array.from(core.preview({ card })).map((item) => item.grade)
     ).toEqual([Rating.Again, Rating.Hard, Rating.Good, Rating.Easy])
+  })
+})
+
+describe('SchedulerCore.forget', () => {
+  it('resets a reviewed card through new-card defaults without a revlog', () => {
+    const card = core.newCard({ now: 0 })
+    const first = core.review({ card, grade: Rating.Good, now: 0 })
+    const second = core.review({
+      card: first.card,
+      grade: Rating.Again,
+      now: first.card.interval,
+    })
+
+    const forgotten = core.forget({ card: second.card, now: 9 })
+
+    expect(forgotten.state).toBe(State.New)
+    expect(forgotten.scheduleStatus).toBe('new')
+    expect(forgotten.interval).toBe(0)
+    expect(forgotten.easeFactor).toBe(SM2_DEFAULT_WEIGHTS[2])
+    expect(forgotten.reviewStep).toBe(0)
+    expect(forgotten.reps).toBe(0)
+    expect(forgotten.lapses).toBe(0)
+    expect(forgotten).not.toHaveProperty('rating')
+  })
+
+  it('can preserve stats from the forgotten card', () => {
+    const preserveCore = scheduler.create({
+      config: {
+        ...config,
+        clearStatsOnForget: false,
+      },
+    })
+    const card = preserveCore.newCard({ now: 0 })
+    const first = preserveCore.review({ card, grade: Rating.Good, now: 0 })
+    const second = preserveCore.review({
+      card: first.card,
+      grade: Rating.Again,
+      now: first.card.interval,
+    })
+
+    const forgotten = preserveCore.forget({ card: second.card, now: 9 })
+
+    expect(forgotten.state).toBe(State.New)
+    expect(forgotten.interval).toBe(0)
+    expect(forgotten.reps).toBe(2)
+    expect(forgotten.lapses).toBe(1)
+  })
+
+  it('passes old card data to middleware defaults only for forget', () => {
+    const seen: string[] = []
+    const contextMiddleware = defineMiddleware({
+      name: 'forgetDefaultContext',
+      schema: {
+        card: sourceCardSchema,
+      },
+      defaultValue: {
+        card(ctx) {
+          seen.push(
+            Object.hasOwn(ctx, 'input')
+              ? (ctx.input?.card.scheduleStatus ?? 'undefined')
+              : 'none'
+          )
+          return { source: ctx.input?.card.source ?? 'fresh' }
+        },
+      },
+    })
+    const contextCore = createSM2NumericScheduler()
+      .use(contextMiddleware, schedulerStatsMiddleware)
+      .create({ config })
+    const card = contextCore.newCard({ now: 0 })
+
+    const forgotten = contextCore.forget({
+      card: { ...card, source: 'old-source' },
+      now: 1,
+    })
+
+    expect(seen).toEqual(['none', 'new'])
+    expect(forgotten.source).toBe('old-source')
+  })
+
+  it('uses chrono card defaults at the forget time', () => {
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+      .use(schedulerStatsMiddleware)
+      .create({ config })
+    const first = new Date('2026-01-01T00:00:00.000Z')
+    const second = new Date('2026-01-02T00:00:00.000Z')
+    const forgottenAt = new Date('2026-02-01T00:00:00.000Z')
+    const card = dateCore.newCard({ now: first })
+    const reviewed = dateCore.review({
+      card,
+      grade: Rating.Good,
+      now: second,
+    })
+
+    const forgotten = dateCore.forget({
+      card: reviewed.card,
+      now: forgottenAt,
+    })
+
+    expect(forgotten.state).toBe(State.New)
+    expect(forgotten.dueAt).toBe(forgottenAt)
+    expect(forgotten.lastReviewAt).toBe(null)
+  })
+
+  it('uses chrono now when forget time is omitted', () => {
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+      .use(schedulerStatsMiddleware)
+      .create({ config })
+    const card = dateCore.newCard({
+      now: new Date('2026-01-01T00:00:00.000Z'),
+    })
+
+    const forgotten = dateCore.forget({ card })
+
+    expect(forgotten.dueAt).toBeInstanceOf(Date)
+    expect(forgotten.lastReviewAt).toBe(null)
+  })
+
+  it('returns a mutable card', () => {
+    const card = core.newCard()
+    const result = core.review({ card, grade: Rating.Good, now: 0 })
+    const forgotten = core.forget({ card: result.card, now: 1 })
+
+    expect(Object.isFrozen(forgotten)).toBe(false)
+  })
+
+  it('validates card input', () => {
+    expect(() => core.forget({ card: {} as never, now: 0 })).toThrow()
+  })
+
+  it('validates now input', () => {
+    const card = core.newCard()
+
+    expect(() => core.forget({ card, now: 'bad' as never })).toThrow(
+      'Expected finite number'
+    )
   })
 })
 

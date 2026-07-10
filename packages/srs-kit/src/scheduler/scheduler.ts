@@ -60,6 +60,10 @@ export interface SchedulerCore<
   readonly newCard: (options?: {
     readonly now?: Env['chrono']
   }) => Env['card']['output']
+  readonly forget: (input: {
+    readonly card: Env['card']['input']
+    readonly now?: Env['chrono']
+  }) => Env['card']['output']
   readonly review: (input: {
     readonly card: Env['card']['input']
     readonly grade: Grade

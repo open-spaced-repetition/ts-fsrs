@@ -1,15 +1,24 @@
 import { Rating } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
 import { defineMiddleware } from '../middleware.js'
-import { statsFieldsSchema } from './schema.js'
+import { statsConfigSchema, statsFieldsSchema } from './schema.js'
 
 export const schedulerStatsMiddleware = defineMiddleware({
   name: Symbol('srs-kit.stats'),
   schema: {
+    config: statsConfigSchema,
     card: statsFieldsSchema,
   },
   defaultValue: {
-    card(_ctx) {
+    card(ctx) {
+      const card = ctx.input?.card
+      if (card && ctx.config.clearStatsOnForget === false) {
+        return {
+          reps: card.reps,
+          lapses: card.lapses,
+        }
+      }
+
       return {
         reps: 0,
         lapses: 0,

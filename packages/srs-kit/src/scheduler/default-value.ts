@@ -12,6 +12,9 @@ type DefaultValueConfig = Record<PropertyKey, unknown>
 
 type DefaultValueContext = {
   readonly config: DefaultValueConfig
+  readonly input?: {
+    readonly card: Readonly<Record<string, unknown>>
+  }
 }
 
 export type SchedulerDefaultValueFactory = {
@@ -25,17 +28,12 @@ export type SchedulerDefaultValueFactory = {
 function applyMiddlewareCardDefaults(
   target: Record<string, unknown>,
   middlewares: readonly AnyMiddleware[],
-  config: DefaultValueConfig
+  ctx: DefaultValueContext
 ) {
   for (const middleware of middlewares) {
     const defaultValue = middleware.defaultValue?.card
     if (isFunction(defaultValue)) {
-      Object.assign(
-        target,
-        defaultValue({
-          config,
-        })
-      )
+      Object.assign(target, defaultValue(ctx))
     }
   }
 }
@@ -52,8 +50,12 @@ function applyNewCardDefaults(ctx: {
   readonly middlewares: readonly AnyMiddleware[]
   readonly chronoDefault?: ChronoDefaultRuntimeFn
   readonly time: ChronoDefaultCtx<unknown, unknown>['time']
+  readonly input?: DefaultValueContext['input']
 }) {
   const { target, config, middlewares, chronoDefault, time } = ctx
+  const defaultCtx: DefaultValueContext = ctx.input
+    ? { config: ctx.config, input: ctx.input }
+    : { config: ctx.config }
 
   if (chronoDefault) {
     Object.assign(
@@ -65,7 +67,7 @@ function applyNewCardDefaults(ctx: {
     )
   }
 
-  applyMiddlewareCardDefaults(target, middlewares, config)
+  applyMiddlewareCardDefaults(target, middlewares, defaultCtx)
 }
 
 export function useComposeDefaultValue(ctx: {
@@ -80,6 +82,7 @@ export function useComposeDefaultValue(ctx: {
     newCard<Card extends object = Record<string, unknown>>({
       config,
       time,
+      input,
     }: DefaultValueContext & { readonly time: unknown }) {
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
@@ -92,6 +95,7 @@ export function useComposeDefaultValue(ctx: {
         middlewares,
         chronoDefault: chronoCardDefault,
         time,
+        input,
       })
 
       return card as Card

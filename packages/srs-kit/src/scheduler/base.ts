@@ -197,6 +197,23 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     })
   }
 
+  forget = (input: {
+    readonly card: SchedulerCoreEnv<Env>['card']['input']
+    readonly now?: SchedulerCoreEnv<Env>['chrono']
+  }): SchedulerCoreEnv<Env>['card']['output'] => {
+    const card = parse(
+      this.schema.card,
+      input.card
+    ) as SchedulerCoreEnv<Env>['card']['output']
+    const now = this.parseNow(input.now ?? this.chronoCore.now())
+
+    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>({
+      config: this.config,
+      time: now,
+      input: { card: Object.freeze(card) },
+    })
+  }
+
   review = (input: {
     readonly card: SchedulerCoreEnv<Env>['card']['input']
     readonly grade: Grade

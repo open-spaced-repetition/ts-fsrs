@@ -235,6 +235,7 @@ describe('defineScheduler', () => {
     expectTypeOf<SchedulerConfigOf<typeof scheduler>>().toEqualTypeOf<{
       readonly weights: readonly number[]
       readonly chrono: Record<string, never>
+      readonly clearStatsOnForget: boolean
     }>()
   })
 
@@ -245,6 +246,7 @@ describe('defineScheduler', () => {
       readonly weights: readonly number[]
       readonly chrono: Record<string, never>
       readonly source: string
+      readonly clearStatsOnForget: boolean
     }>()
   })
 
@@ -253,6 +255,7 @@ describe('defineScheduler', () => {
       readonly weights: readonly number[]
       readonly chrono: Record<string, never>
       readonly source: string
+      readonly clearStatsOnForget: boolean
     }>()
   })
 
@@ -261,6 +264,7 @@ describe('defineScheduler', () => {
       readonly weights: readonly number[]
       readonly chrono: Record<string, never>
       readonly source: string
+      readonly clearStatsOnForget: boolean
     }>()
   })
 

@@ -5,6 +5,40 @@ export type StatsCardFields = {
   readonly lapses: number
 }
 
+export type StatsConfigInput = {
+  /**
+   * When forget receives an existing card, clear reps/lapses instead of
+   * carrying the previous counters forward. Defaults to true.
+   */
+  readonly clearStatsOnForget?: boolean
+}
+
+export type StatsConfig = {
+  readonly clearStatsOnForget: boolean
+}
+
+export const statsConfigSchema = defineSchema<StatsConfigInput, StatsConfig>(
+  (value) => {
+    if (!isObject(value)) {
+      return { issues: [{ message: 'Expected stats config object' }] }
+    }
+
+    const { clearStatsOnForget } = value
+    if (clearStatsOnForget === undefined) {
+      return { value: { clearStatsOnForget: true } }
+    }
+    if (typeof clearStatsOnForget !== 'boolean') {
+      return { issues: [{ message: 'Expected boolean clearStatsOnForget' }] }
+    }
+
+    return {
+      value: {
+        clearStatsOnForget,
+      },
+    }
+  }
+)
+
 export const statsFieldsSchema = defineSchema<StatsCardFields>((value) => {
   if (!isObject(value)) {
     return { issues: [{ message: 'Expected stats object' }] }

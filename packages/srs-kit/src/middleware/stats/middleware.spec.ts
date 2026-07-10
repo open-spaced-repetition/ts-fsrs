@@ -27,7 +27,7 @@ function reviewContext({
   readonly lapses?: number
 } = {}): ReviewContext {
   return {
-    config: { chrono: 0 },
+    config: { chrono: 0, clearStatsOnForget: true },
     input: {
       card: { reps, lapses, state, scheduleStatus: 'review' },
       grade,
@@ -59,7 +59,7 @@ function rollbackContext({
   readonly lapses?: number
 } = {}): RollbackContext {
   return {
-    config: { chrono: 0 },
+    config: { chrono: 0, clearStatsOnForget: true },
     input: {
       card: { reps, lapses, state, scheduleStatus: 'review' },
       revlog: { state, rating, scheduleStatus: 'review' },
@@ -73,10 +73,50 @@ function rollbackContext({
 describe('schedulerStatsMiddleware', () => {
   it('provides default stats fields', () => {
     expect(
-      schedulerStatsMiddleware.defaultValue?.card?.({ config: { chrono: 0 } })
+      schedulerStatsMiddleware.defaultValue?.card?.({
+        config: { chrono: 0, clearStatsOnForget: true },
+      })
     ).toEqual({
       reps: 0,
       lapses: 0,
+    })
+  })
+
+  it('clears old stats by default when card defaults receive input', () => {
+    expect(
+      schedulerStatsMiddleware.defaultValue?.card?.({
+        config: { chrono: 0, clearStatsOnForget: true },
+        input: {
+          card: {
+            reps: 3,
+            lapses: 1,
+            state: State.Review,
+            scheduleStatus: 'review',
+          },
+        },
+      })
+    ).toEqual({
+      reps: 0,
+      lapses: 0,
+    })
+  })
+
+  it('can preserve old stats when card defaults receive input', () => {
+    expect(
+      schedulerStatsMiddleware.defaultValue?.card?.({
+        config: { chrono: 0, clearStatsOnForget: false },
+        input: {
+          card: {
+            reps: 3,
+            lapses: 1,
+            state: State.Review,
+            scheduleStatus: 'review',
+          },
+        },
+      })
+    ).toEqual({
+      reps: 3,
+      lapses: 1,
     })
   })
 

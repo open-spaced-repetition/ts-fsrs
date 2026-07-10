@@ -143,10 +143,12 @@ describe('defineScheduler type display', () => {
     readonly config: SRSSchema<{
         input: {
             readonly weights: readonly number[];
+            readonly clearStatsOnForget?: boolean | undefined;
         };
         output: {
             readonly weights: readonly number[];
             readonly chrono: Record<string, never>;
+            readonly clearStatsOnForget: boolean;
         };
     }>;
     readonly card: SRSSchema<{
@@ -194,10 +196,12 @@ describe('defineScheduler type display', () => {
     readonly config: SRSSchema<{
         input: {
             readonly weights: readonly number[];
+            readonly clearStatsOnForget?: boolean | undefined;
         };
         output: {
             readonly weights: readonly number[];
             readonly chrono: Record<string, never>;
+            readonly clearStatsOnForget: boolean;
         };
     }>;
     readonly card: SRSSchema<{
@@ -250,6 +254,7 @@ describe('defineScheduler type display', () => {
     readonly config: {
         readonly weights: readonly number[];
         readonly chrono: Record<string, never>;
+        readonly clearStatsOnForget: boolean;
     };
     readonly card: {
         readonly input: {
@@ -300,6 +305,7 @@ describe('defineScheduler type display', () => {
     readonly config: {
         readonly weights: readonly number[];
         readonly chrono: Record<string, never>;
+        readonly clearStatsOnForget: boolean;
     };
     readonly card: {
         readonly input: {
