@@ -122,17 +122,7 @@ export type UnionToIntersection<T> = (
   ? U
   : never
 
-type ExtractObjects<TUnion> = TUnion extends
-  | ReadonlyArray<any>
-  | number
-  | string
-  | bigint
-  | boolean
-  | symbol
-  | undefined
-  | null
-  ? never
-  : TUnion
+type ExtractObjects<TUnion> = Exclude<TUnion, ReadonlyArray<any> | Primitive>
 
 export type MergeAllObjects<
   TUnion,
