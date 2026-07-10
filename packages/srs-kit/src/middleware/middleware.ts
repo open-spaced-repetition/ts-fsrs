@@ -31,6 +31,9 @@ export type RollbackMiddlewareResult<
 
 export interface MiddlewareContextBase<Env extends MiddlewareEnv> {
   readonly config: MiddlewareContextConfig<Env>
+  readonly input?: {
+    readonly card: MiddlewareContextObjectOf<Env, 'card'>
+  }
 }
 
 export interface ReviewCandidateContext {
