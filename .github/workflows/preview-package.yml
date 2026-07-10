@@ -50,7 +50,7 @@ jobs:
       - build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/build-packages
       - name: Cache test data
         id: cache-revlog
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: packages/binding-test/src/revlog.csv
           key: revlog-csv-v1
