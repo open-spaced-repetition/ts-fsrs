@@ -23,6 +23,7 @@ import type {
   Assign,
   MergeAllObjects,
   MergePart,
+  Mutable,
   Prettify,
   SchemaInput,
   SchemaOutput,
@@ -82,11 +83,12 @@ type SchedulerObjectKey = 'card' | 'revlog'
 type MiddlewareObjectFields<
   MWs extends readonly AnyMiddleware[],
   Key extends SchedulerObjectKey,
+  Mode extends 'input' | 'output' = 'output',
 > = MergePart<
   MergeAllObjects<
     Key extends 'card'
-      ? MiddlewareCardOf<MWs[number]>
-      : MiddlewareRevlogOf<MWs[number]>
+      ? MiddlewareCardOf<MWs[number], Mode>
+      : MiddlewareRevlogOf<MWs[number], Mode>
   >
 >
 
@@ -100,18 +102,33 @@ type SchedulerCoreFieldsFor<
 type MiddlewareScheduleStatus<MWs extends readonly AnyMiddleware[]> =
   MiddlewareStatusOf<MWs[number]>
 
-type ExtendSchedulerObject<
+type ExtendSchedulerObjectFields<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
   Key extends SchedulerObjectKey,
+  Mode extends 'input' | 'output',
 > = Prettify<
   Assign<
-    Assign<SchemaOutput<Env[Key]>, MiddlewareObjectFields<AddedMWs, Key>>,
+    Assign<
+      Mode extends 'input' ? SchemaInput<Env[Key]> : SchemaOutput<Env[Key]>,
+      MiddlewareObjectFields<AddedMWs, Key, Mode>
+    >,
     SchedulerCoreFieldsFor<
       Key,
       Env['scheduleStatus'] | MiddlewareScheduleStatus<AddedMWs>
     >
   >
+>
+
+type ExtendSchedulerObject<
+  Env extends BlankSchedulerEnv,
+  AddedMWs extends readonly AnyMiddleware[],
+  Key extends SchedulerObjectKey,
+  Mode extends 'input' | 'output',
+> = Prettify<
+  Mode extends 'input'
+    ? Readonly<ExtendSchedulerObjectFields<Env, AddedMWs, Key, Mode>>
+    : Mutable<ExtendSchedulerObjectFields<Env, AddedMWs, Key, Mode>>
 >
 
 type ChronoObjectFields<
@@ -124,10 +141,11 @@ type SchedulerObjectFields<
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
   Key extends SchedulerObjectKey,
+  Mode extends 'input' | 'output' = 'output',
 > = Assign<
   Assign<
     Assign<ModelMemoryOf<M>, MergePart<ChronoObjectFields<C, Key>>>,
-    MiddlewareObjectFields<MWs, Key>
+    MiddlewareObjectFields<MWs, Key, Mode>
   >,
   SchedulerCoreFieldsFor<Key, ScheduleStatus | MiddlewareScheduleStatus<MWs>>
 >
@@ -136,13 +154,13 @@ export type SchedulerCardFields<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
-> = SchedulerObjectFields<M, C, MWs, 'card'>
+> = Mutable<SchedulerObjectFields<M, C, MWs, 'card'>>
 
 export type SchedulerRevlogFields<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
-> = SchedulerObjectFields<M, C, MWs, 'revlog'>
+> = Mutable<SchedulerObjectFields<M, C, MWs, 'revlog'>>
 
 export type SchedulerNameOf<M extends AnyModel> = M extends {
   readonly name: infer Name
@@ -162,11 +180,13 @@ export type SchedulerEnvFor<
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
   }>
   readonly card: SRSSchema<{
-    input: Prettify<SchedulerCardFields<M, C, MWs>>
+    input: Prettify<Readonly<SchedulerObjectFields<M, C, MWs, 'card', 'input'>>>
     output: Prettify<SchedulerCardFields<M, C, MWs>>
   }>
   readonly revlog: SRSSchema<{
-    input: Prettify<SchedulerRevlogFields<M, C, MWs>>
+    input: Prettify<
+      Readonly<SchedulerObjectFields<M, C, MWs, 'revlog', 'input'>>
+    >
     output: Prettify<SchedulerRevlogFields<M, C, MWs>>
   }>
 }
@@ -184,12 +204,12 @@ export type ExtendSchedulerEnv<
     output: ExtendSchedulerConfigOutput<Env, AddedMWs>
   }>
   readonly card: SRSSchema<{
-    input: ExtendSchedulerObject<Env, AddedMWs, 'card'>
-    output: ExtendSchedulerObject<Env, AddedMWs, 'card'>
+    input: ExtendSchedulerObject<Env, AddedMWs, 'card', 'input'>
+    output: ExtendSchedulerObject<Env, AddedMWs, 'card', 'output'>
   }>
   readonly revlog: SRSSchema<{
-    input: ExtendSchedulerObject<Env, AddedMWs, 'revlog'>
-    output: ExtendSchedulerObject<Env, AddedMWs, 'revlog'>
+    input: ExtendSchedulerObject<Env, AddedMWs, 'revlog', 'input'>
+    output: ExtendSchedulerObject<Env, AddedMWs, 'revlog', 'output'>
   }>
 }
 
@@ -197,9 +217,17 @@ export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutput<
   SchedulerEnvOf<T>['card']
 >
 
+export type SchedulerCardInputOf<T extends AnyScheduler> = SchemaInput<
+  SchedulerEnvOf<T>['card']
+>
+
 export type SchedulerRevlogOf<T extends AnyScheduler> = SchemaOutputOf<
   T,
   'revlog'
+>
+
+export type SchedulerRevlogInputOf<T extends AnyScheduler> = SchemaInput<
+  SchedulerEnvOf<T>['revlog']
 >
 
 export type SchedulerTimeOf<T extends AnyScheduler> =

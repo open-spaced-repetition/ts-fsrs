@@ -7,6 +7,7 @@ import type {
   AnySchema,
   Assign,
   EmptyPart,
+  IntersectAssign,
   Mutable,
   Prettify,
   SchemaInput,
@@ -83,20 +84,49 @@ export type MiddlewareResultObjectOf<
     Record<string, unknown>
 >
 
-type MiddlewareObjectOf<TMiddleware, Key extends 'card' | 'revlog'> =
+type MiddlewareObjectOf<
+  TMiddleware,
+  Key extends 'card' | 'revlog',
+  Mode extends 'input' | 'output' = 'output',
+> =
   TMiddleware extends Middleware<any, infer Env>
-    ? MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema, EmptyPart>
+    ? Mode extends 'input'
+      ? IntersectAssign<
+          MiddlewareSchemaResolveOf<
+            Env,
+            Key,
+            AnyObjectSchema,
+            EmptyPart,
+            'input'
+          >,
+          Partial<
+            MiddlewareSchemaResolveOf<
+              Env,
+              Key,
+              AnyObjectSchema,
+              EmptyPart,
+              'output'
+            >
+          >
+        >
+      : MiddlewareSchemaResolveOf<
+          Env,
+          Key,
+          AnyObjectSchema,
+          EmptyPart,
+          'output'
+        >
     : never
 
-export type MiddlewareCardOf<TMiddleware> = MiddlewareObjectOf<
+export type MiddlewareCardOf<
   TMiddleware,
-  'card'
->
+  Mode extends 'input' | 'output' = 'output',
+> = MiddlewareObjectOf<TMiddleware, 'card', Mode>
 
-export type MiddlewareRevlogOf<TMiddleware> = MiddlewareObjectOf<
+export type MiddlewareRevlogOf<
   TMiddleware,
-  'revlog'
->
+  Mode extends 'input' | 'output' = 'output',
+> = MiddlewareObjectOf<TMiddleware, 'revlog', Mode>
 
 export type MiddlewareConfigResolveOf<
   TMiddleware,

@@ -6,6 +6,7 @@ import type {
   AnyObjectSchema,
   AnySchema,
   Assign,
+  Mutable,
   Prettify,
   SchemaInput,
   SchemaOutput,
@@ -22,8 +23,8 @@ import type { ExtendSchedulerEnv } from './infer.js'
 // ==========
 
 export interface ScheduleResult<Card, Revlog> {
-  readonly card: Readonly<Card>
-  readonly revlog: Readonly<Revlog>
+  card: Mutable<Card>
+  revlog: Mutable<Revlog>
 }
 
 export interface PreviewItem<Card, Revlog>
@@ -93,7 +94,7 @@ export type BlankSchedulerEnv = {
   readonly scheduleStatus: string
 }
 
-type SchedulerCoreFieldSchemaPart<
+type SchedulerCoreFieldSchemaPartFields<
   Env extends BlankSchedulerEnv,
   Key extends 'card' | 'revlog',
   Direction extends 'input' | 'output',
@@ -104,6 +105,16 @@ type SchedulerCoreFieldSchemaPart<
       ? SchedulerCoreFields<Env['scheduleStatus']>
       : SchedulerRevlogCoreFields<Env['scheduleStatus']>
   >
+>
+
+type SchedulerCoreFieldSchemaPart<
+  Env extends BlankSchedulerEnv,
+  Key extends 'card' | 'revlog',
+  Direction extends 'input' | 'output',
+> = Prettify<
+  Direction extends 'input'
+    ? Readonly<SchedulerCoreFieldSchemaPartFields<Env, Key, Direction>>
+    : Mutable<SchedulerCoreFieldSchemaPartFields<Env, Key, Direction>>
 >
 
 export interface SchedulerSchema<

@@ -7,8 +7,10 @@ import { type Grade, Rating, State } from '@/primitives/index.js'
 import { defineSchema, numberSchema } from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
 import type {
+  SchedulerCardInputOf,
   SchedulerCardOf,
   SchedulerConfigOf,
+  SchedulerRevlogInputOf,
   SchedulerRevlogOf,
   SchedulerStatusOf,
   SchedulerTimeOf,
@@ -270,60 +272,89 @@ describe('defineScheduler', () => {
 
   it('infers composed card type with flattened model fields', () => {
     expectTypeOf<SchedulerCardOf<typeof scheduler>>().toEqualTypeOf<{
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      reps: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      state: State
+      lapses: number
+    }>()
+  })
+
+  it('infers readonly middleware card input fields', () => {
+    expectTypeOf<
+      SchedulerCardInputOf<typeof middlewareScheduler>
+    >().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
       readonly reviewStep: number
       readonly reps: number
+      readonly lapses: number
+      readonly source?: string
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly state: State
-      readonly lapses: number
     }>()
   })
 
   it('infers middleware card fields', () => {
     expectTypeOf<SchedulerCardOf<typeof middlewareScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly reps: number
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly state: State
-      readonly lapses: number
-      readonly source: string
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      reps: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      state: State
+      lapses: number
+      source: string
     }>()
   })
 
   it('preserves middleware card fields through use()', () => {
     expectTypeOf<SchedulerCardOf<typeof usedScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly reps: number
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly state: State
-      readonly lapses: number
-      readonly source: string
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      reps: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      state: State
+      lapses: number
+      source: string
     }>()
   })
 
   it('preserves prior card fields through chained use()', () => {
     expectTypeOf<SchedulerCardOf<typeof chainedScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly reps: number
-      readonly source: string
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly state: State
-      readonly lapses: number
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      reps: number
+      source: string
+      scheduleStatus: 'new' | 'learning' | 'review'
+      state: State
+      lapses: number
     }>()
   })
 
   it('infers composed revlog type with flattened model fields', () => {
     expectTypeOf<SchedulerRevlogOf<typeof scheduler>>().toEqualTypeOf<{
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      rating: 1 | 2 | 3 | 4
+      state: State
+    }>()
+  })
+
+  it('infers readonly middleware revlog input fields', () => {
+    expectTypeOf<
+      SchedulerRevlogInputOf<typeof middlewareScheduler>
+    >().toEqualTypeOf<{
       readonly interval: number
       readonly easeFactor: number
       readonly reviewStep: number
+      readonly audit?: string
       readonly scheduleStatus: 'new' | 'learning' | 'review'
       readonly rating: 1 | 2 | 3 | 4
       readonly state: State
@@ -334,37 +365,37 @@ describe('defineScheduler', () => {
     expectTypeOf<
       SchedulerRevlogOf<typeof middlewareScheduler>
     >().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly rating: 1 | 2 | 3 | 4
-      readonly state: State
-      readonly audit: string
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      rating: 1 | 2 | 3 | 4
+      state: State
+      audit: string
     }>()
   })
 
   it('preserves middleware revlog fields through use()', () => {
     expectTypeOf<SchedulerRevlogOf<typeof usedScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly rating: 1 | 2 | 3 | 4
-      readonly state: State
-      readonly audit: string
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      scheduleStatus: 'new' | 'learning' | 'review'
+      rating: 1 | 2 | 3 | 4
+      state: State
+      audit: string
     }>()
   })
 
   it('preserves prior revlog fields through chained use()', () => {
     expectTypeOf<SchedulerRevlogOf<typeof chainedScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly audit: string
-      readonly scheduleStatus: 'new' | 'learning' | 'review'
-      readonly rating: 1 | 2 | 3 | 4
-      readonly state: State
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      audit: string
+      scheduleStatus: 'new' | 'learning' | 'review'
+      rating: 1 | 2 | 3 | 4
+      state: State
     }>()
   })
 
@@ -438,19 +469,19 @@ describe('defineScheduler', () => {
     type ExtendedStatus = 'new' | 'learning' | 'review' | 'suspend' | 'buried'
 
     expectTypeOf<SchedulerCardOf<typeof statusScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly state: State
-      readonly scheduleStatus: ExtendedStatus
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      state: State
+      scheduleStatus: ExtendedStatus
     }>()
     expectTypeOf<SchedulerRevlogOf<typeof statusScheduler>>().toEqualTypeOf<{
-      readonly interval: number
-      readonly easeFactor: number
-      readonly reviewStep: number
-      readonly scheduleStatus: ExtendedStatus
-      readonly rating: Grade
-      readonly state: State
+      interval: number
+      easeFactor: number
+      reviewStep: number
+      scheduleStatus: ExtendedStatus
+      rating: Grade
+      state: State
     }>()
   })
 })
