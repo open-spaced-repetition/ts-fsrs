@@ -1,13 +1,7 @@
 import type { AbstractScheduler } from '../abstract_scheduler'
 import type { IFSRSModel } from '../kit/index.js'
-import type {
-  Card,
-  CardInput,
-  DateInput,
-  FSRSParameters,
-  Grade,
-  State,
-} from '../models'
+import type { LearningStepsResolver } from '../middlewares/learning-steps/types.js'
+import type { Card, CardInput, DateInput, FSRSParameters } from '../models'
 import type { IScheduler } from '../types'
 
 export enum StrategyMode {
@@ -26,21 +20,10 @@ export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
     strategies: Map<StrategyMode, TStrategyHandler>
   ) => IScheduler
 
-/**
- * When enable_short_term = false, the learning steps strategy will not take effect.
- */
-export type TLearningStepsStrategy = (
-  params: FSRSParameters,
-  state: State,
-  cur_step: number
-) => {
-  [K in Grade]?: { scheduled_minutes: number; next_step: number }
-}
-
 type StrategyMap = {
   [StrategyMode.SCHEDULER]: TSchedulerStrategy
   [StrategyMode.SEED]: TSeedStrategy
-  [StrategyMode.LEARNING_STEPS]: TLearningStepsStrategy
+  [StrategyMode.LEARNING_STEPS]: LearningStepsResolver
 }
 
 export type TStrategyHandler<E = StrategyMode> = E extends StrategyMode

@@ -111,11 +111,11 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -128,12 +128,12 @@ describe('defineScheduler type display', () => {
             readonly rating: Grade;
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
+            rating: Grade;
         };
     }>;
 }>`,
@@ -162,13 +162,13 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly reps: number;
-            readonly lapses: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            reps: number;
+            lapses: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -181,12 +181,12 @@ describe('defineScheduler type display', () => {
             readonly rating: Grade;
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
+            rating: Grade;
         };
     }>;
 }>`,
@@ -206,7 +206,7 @@ describe('defineScheduler type display', () => {
     }>;
     readonly card: SRSSchema<{
         input: {
-            readonly source: string;
+            readonly source?: string | undefined;
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
@@ -216,14 +216,14 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
-            readonly source: string;
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly reps: number;
-            readonly lapses: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
+            source: string;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            reps: number;
+            lapses: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -231,19 +231,19 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
-            readonly audit: string;
+            readonly audit?: string | undefined;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly audit: string;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            audit: string;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
+            rating: Grade;
         };
     }>;
 }>`,
@@ -258,7 +258,7 @@ describe('defineScheduler type display', () => {
     };
     readonly card: {
         readonly input: {
-            readonly source: string;
+            readonly source?: string | undefined;
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
@@ -268,14 +268,14 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         readonly output: {
-            readonly source: string;
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly reps: number;
-            readonly lapses: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
+            source: string;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            reps: number;
+            lapses: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
         };
     };
     readonly revlog: {
@@ -283,19 +283,19 @@ describe('defineScheduler type display', () => {
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
-            readonly audit: string;
+            readonly audit?: string | undefined;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
             readonly rating: Grade;
         };
         readonly output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly audit: string;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            audit: string;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
+            rating: Grade;
         };
     };
     readonly chrono: number;
@@ -318,13 +318,13 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         readonly output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly reps: number;
-            readonly lapses: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            reps: number;
+            lapses: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
         };
     };
     readonly revlog: {
@@ -337,12 +337,12 @@ describe('defineScheduler type display', () => {
             readonly rating: Grade;
         };
         readonly output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review";
+            rating: Grade;
         };
     };
     readonly chrono: number;
@@ -372,11 +372,11 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
     }>;
     readonly revlog: SRSSchema<{
@@ -389,12 +389,12 @@ describe('defineScheduler type display', () => {
             readonly rating: Grade;
         };
         output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review" | "suspend";
+            rating: Grade;
         };
     }>;
 }>`,
@@ -412,11 +412,11 @@ describe('defineScheduler type display', () => {
             readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
         readonly output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review" | "suspend";
         };
     };
     readonly revlog: {
@@ -429,12 +429,12 @@ describe('defineScheduler type display', () => {
             readonly rating: Grade;
         };
         readonly output: {
-            readonly interval: number;
-            readonly easeFactor: number;
-            readonly reviewStep: number;
-            readonly state: State;
-            readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-            readonly rating: Grade;
+            interval: number;
+            easeFactor: number;
+            reviewStep: number;
+            state: State;
+            scheduleStatus: "new" | "learning" | "review" | "suspend";
+            rating: Grade;
         };
     };
     readonly chrono: number;

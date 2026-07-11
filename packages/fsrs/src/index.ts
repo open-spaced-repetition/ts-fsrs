@@ -6,6 +6,14 @@ export * from './fsrs'
 export * from './help'
 export * from './impl/basic_scheduler'
 export * from './impl/long_term_scheduler'
+export {
+  defaultLearningSteps,
+  defaultRelearningSteps,
+} from './middlewares/learning-steps/schema.js'
+export type {
+  StepUnit,
+  TimeUnit,
+} from './middlewares/learning-steps/types.js'
 export type {
   Card,
   CardInput,
@@ -23,8 +31,6 @@ export type {
   ReviewLogInput,
   StateType,
   Steps,
-  StepUnit,
-  TimeUnit,
 } from './models'
 export { Rating, State } from './models'
 export * from './strategies'
