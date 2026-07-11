@@ -2,6 +2,12 @@ import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
 import type { IFSRSModel } from '../kit/index.js'
+import { calculateLearningSteps } from '../middlewares/learning-steps/core.js'
+import type {
+  LearningStepsConfig,
+  LearningStepsResolver,
+  LearningStepsResult,
+} from '../middlewares/learning-steps/types.js'
 import {
   type Card,
   type CardInput,
@@ -12,17 +18,14 @@ import {
   type RecordLogItem,
   State,
 } from '../models'
-import {
-  StrategyMode,
-  type TLearningStepsStrategy,
-  type TStrategyHandler,
-} from '../strategies'
+import { StrategyMode, type TStrategyHandler } from '../strategies'
 import { withFuzzing } from '../strategies/fuzz'
-import { BasicLearningStepsStrategy } from '../strategies/learning_steps'
 import type { int } from '../types'
 
 export default class BasicScheduler extends AbstractScheduler {
-  private learningStepsStrategy: TLearningStepsStrategy
+  private readonly learningSteps: LearningStepsResolver
+  private readonly learningStepsConfig: LearningStepsConfig
+  private learningStepsResult: LearningStepsResult | undefined
 
   constructor(
     card: CardInput | Card,
@@ -33,31 +36,34 @@ export default class BasicScheduler extends AbstractScheduler {
   ) {
     super(card, now, model, parameters, strategies)
 
-    // init learning steps strategy
-    let learningStepStrategy: TLearningStepsStrategy =
-      BasicLearningStepsStrategy
+    this.learningStepsConfig = {
+      learningSteps: parameters.learning_steps,
+      relearningSteps: parameters.relearning_steps,
+    }
+
+    let learningSteps: LearningStepsResolver = calculateLearningSteps
     if (this.strategies) {
-      const custom_strategy = this.strategies.get(StrategyMode.LEARNING_STEPS)
-      if (custom_strategy) {
-        learningStepStrategy = custom_strategy as TLearningStepsStrategy
+      const customStrategy = this.strategies.get(StrategyMode.LEARNING_STEPS)
+      if (customStrategy) {
+        learningSteps = customStrategy as LearningStepsResolver
       }
     }
-    this.learningStepsStrategy = learningStepStrategy
+    this.learningSteps = learningSteps
   }
 
   private getLearningInfo(card: Card, grade: Grade) {
-    const parameters = this.parameters
     card.learning_steps = card.learning_steps || 0
-    const steps_strategy = this.learningStepsStrategy(
-      parameters,
-      card.state,
-      card.learning_steps
-    )
-    const scheduled_minutes = Math.max(
-      0,
-      steps_strategy[grade]?.scheduled_minutes ?? 0
-    )
-    const next_steps = Math.max(0, steps_strategy[grade]?.next_step ?? 0)
+    let steps = this.learningStepsResult
+    if (!steps) {
+      steps = this.learningSteps(
+        this.learningStepsConfig,
+        card.state,
+        card.learning_steps
+      )
+      this.learningStepsResult = steps
+    }
+    const scheduled_minutes = Math.max(0, steps[grade]?.scheduledMinutes ?? 0)
+    const next_steps = Math.max(0, steps[grade]?.nextStep ?? 0)
     return {
       scheduled_minutes,
       next_steps,

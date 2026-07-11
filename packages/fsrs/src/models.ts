@@ -1,3 +1,5 @@
+import type { StepUnit } from './middlewares/learning-steps/types.js'
+
 export type StateType = 'New' | 'Learning' | 'Review' | 'Relearning'
 
 export enum State {
@@ -58,8 +60,6 @@ export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
 }
 
 export type DateInput = Date | number | string
-export type TimeUnit = 'm' | 'h' | 'd'
-export type StepUnit = `${number}${TimeUnit}`
 /**
  * (re)Learning steps:
  * [1m, 10m]

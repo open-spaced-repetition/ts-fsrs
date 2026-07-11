@@ -1,13 +1,15 @@
 import {
   default_enable_fuzz,
   default_enable_short_term,
-  default_learning_steps,
   default_maximum_interval,
-  default_relearning_steps,
   default_request_retention,
 } from './constant'
 import { TypeConvert } from './convert'
 import { FSRSValidationError } from './error'
+import {
+  defaultLearningSteps,
+  defaultRelearningSteps,
+} from './middlewares/learning-steps/schema.js'
 import { type Card, type DateInput, type FSRSParameters, State } from './models'
 import { migrateFSRS6Parameters } from './models/fsrs-6/parameters.js'
 
@@ -41,10 +43,10 @@ export const generatorParameters = (
 ): FSRSParameters => {
   const learning_steps = Array.isArray(props?.learning_steps)
     ? props!.learning_steps
-    : default_learning_steps
+    : defaultLearningSteps
   const relearning_steps = Array.isArray(props?.relearning_steps)
     ? props!.relearning_steps
-    : default_relearning_steps
+    : defaultRelearningSteps
   const enable_short_term =
     props?.enable_short_term ?? default_enable_short_term
   const w = migrateFSRS6Parameters(
