@@ -2,4 +2,4 @@
 "ts-fsrs": major
 ---
 
-feat(fsrs): add scheduler learning-steps middleware and update its API.
+refactor(fsrs): refactor learning steps and update its API.
