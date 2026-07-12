@@ -3,7 +3,6 @@ import {
   date_scheduler,
   formatDate,
   Grades,
-  get_fuzz_range,
   Rating,
   State,
   TypeConvert,
@@ -226,9 +225,4 @@ describe('default values can not be overwritten', () => {
     }).toThrow()
     expect(Grades.length).toEqual(4)
   })
-})
-
-it('get_fuzz_range should skip interval > elapsed_days branch when interval <= elapsed_days', () => {
-  const result = get_fuzz_range(5, 5, 100)
-  expect(result.min_ivl).toBeLessThanOrEqual(result.max_ivl)
 })

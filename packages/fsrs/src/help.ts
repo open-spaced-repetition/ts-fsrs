@@ -1,5 +1,6 @@
 import { TypeConvert } from './convert'
 import { FSRSValidationError } from './error'
+import { getFuzzRange } from './middlewares/fuzzing/core.js'
 import type { DateInput, Grade } from './models'
 import { Rating } from './models'
 import type { unit } from './types'
@@ -92,42 +93,18 @@ export const Grades: Readonly<Grade[]> = Object.freeze([
   Rating.Easy,
 ])
 
-const FUZZ_RANGES = [
-  {
-    start: 2.5,
-    end: 7.0,
-    factor: 0.15,
-  },
-  {
-    start: 7.0,
-    end: 20.0,
-    factor: 0.1,
-  },
-  {
-    start: 20.0,
-    end: Infinity,
-    factor: 0.05,
-  },
-] as const
-
+/** @deprecated Use getFuzzRange from the fuzzing core. */
 export function get_fuzz_range(
   interval: number,
   elapsed_days: number,
   maximum_interval: number
 ) {
-  let delta = 1.0
-  for (const range of FUZZ_RANGES) {
-    delta +=
-      range.factor * Math.max(Math.min(interval, range.end) - range.start, 0.0)
-  }
-  interval = Math.min(interval, maximum_interval)
-  let min_ivl = Math.max(2, Math.round(interval - delta))
-  const max_ivl = Math.min(Math.round(interval + delta), maximum_interval)
-  if (interval > elapsed_days) {
-    min_ivl = Math.max(min_ivl, elapsed_days + 1)
-  }
-  min_ivl = Math.min(min_ivl, max_ivl)
-  return { min_ivl, max_ivl }
+  const { minInterval, maxInterval } = getFuzzRange(
+    interval,
+    elapsed_days,
+    maximum_interval
+  )
+  return { min_ivl: minInterval, max_ivl: maxInterval }
 }
 
 export function clamp(value: number, min: number, max: number): number {
