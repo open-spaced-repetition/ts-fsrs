@@ -124,6 +124,40 @@ export function composeSchema(ctx: {
     }
   })
 
+  const cardInitInput = defineSchema<
+    unknown,
+    {
+      readonly input: Record<string, unknown>
+      readonly now?: unknown
+    }
+  >((value) => {
+    if (!isObject(value)) {
+      return { issues: [{ message: 'Expected card init input object' }] }
+    }
+
+    const { now, ...middlewareValue } = value
+
+    let firstMiddlewareFields: Record<string, unknown> | undefined
+    let combinedFields: Record<string, unknown> | undefined
+    for (const middleware of middlewares) {
+      const schema = middleware.schema?.cardInitInput
+      if (!schema) continue
+      const middlewareResult = schema['~standard'].validate(middlewareValue)
+      if (middlewareResult.issues) return middlewareResult
+      const fields = middlewareResult.value as Record<string, unknown>
+      if (firstMiddlewareFields === undefined) {
+        firstMiddlewareFields = fields
+        continue
+      }
+      combinedFields ??= Object.assign({}, firstMiddlewareFields)
+      assignObjectFields(combinedFields, fields)
+    }
+
+    return {
+      value: { input: combinedFields ?? firstMiddlewareFields ?? {}, now },
+    }
+  })
+
   const card = defineSchema<unknown, Record<string, unknown>>((value) => {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected card object' }] }
@@ -203,6 +237,7 @@ export function composeSchema(ctx: {
 
   return {
     config,
+    cardInitInput,
     card,
     revlog,
     scheduleStatus: scheduleStatusSchema,

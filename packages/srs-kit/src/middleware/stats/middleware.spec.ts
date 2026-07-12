@@ -74,7 +74,9 @@ describe('schedulerStatsMiddleware', () => {
   it('provides default stats fields', () => {
     expect(
       schedulerStatsMiddleware.defaultValue?.card?.({
+        operation: 'newCard',
         config: { chrono: 0, clearStatsOnForget: true },
+        input: {},
       })
     ).toEqual({
       reps: 0,
@@ -85,14 +87,13 @@ describe('schedulerStatsMiddleware', () => {
   it('clears old stats by default when card defaults receive input', () => {
     expect(
       schedulerStatsMiddleware.defaultValue?.card?.({
+        operation: 'forget',
         config: { chrono: 0, clearStatsOnForget: true },
         input: {
-          card: {
-            reps: 3,
-            lapses: 1,
-            state: State.Review,
-            scheduleStatus: 'review',
-          },
+          reps: 3,
+          lapses: 1,
+          state: State.Review,
+          scheduleStatus: 'review',
         },
       })
     ).toEqual({
@@ -104,14 +105,13 @@ describe('schedulerStatsMiddleware', () => {
   it('can preserve old stats when card defaults receive input', () => {
     expect(
       schedulerStatsMiddleware.defaultValue?.card?.({
+        operation: 'forget',
         config: { chrono: 0, clearStatsOnForget: false },
         input: {
-          card: {
-            reps: 3,
-            lapses: 1,
-            state: State.Review,
-            scheduleStatus: 'review',
-          },
+          reps: 3,
+          lapses: 1,
+          state: State.Review,
+          scheduleStatus: 'review',
         },
       })
     ).toEqual({

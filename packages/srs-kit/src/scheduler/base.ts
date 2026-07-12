@@ -29,6 +29,8 @@ import type {
   ScheduleResult,
   SchedulerCore,
   SchedulerCoreEnv,
+  SchedulerNewCardFn,
+  SchedulerNewCardOptions,
   SchedulerSchema,
 } from './scheduler.js'
 
@@ -187,14 +189,22 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     ) as readonly (RollbackRuntimeHandler<Env> | undefined)[]
   }
 
-  newCard = (options?: {
-    readonly now?: SchedulerCoreEnv<Env>['chrono']
-  }): SchedulerCoreEnv<Env>['card']['output'] => {
-    const now = this.parseNow(options?.now ?? this.chronoCore.now())
-    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>({
-      config: this.config,
-      time: now,
-    })
+  newCard: SchedulerNewCardFn<SchedulerCoreEnv<Env>> = (
+    options?: SchedulerNewCardOptions<SchedulerCoreEnv<Env>>
+  ): SchedulerCoreEnv<Env>['card']['output'] => {
+    const { now, input } = parse(
+      this.schema.cardInitInput,
+      options === undefined ? {} : options
+    )
+
+    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>(
+      {
+        operation: 'newCard',
+        config: this.config,
+        input,
+      },
+      this.parseNow(now)
+    )
   }
 
   forget = (input: {
@@ -205,13 +215,16 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       this.schema.card,
       input.card
     ) as SchedulerCoreEnv<Env>['card']['output']
-    const now = this.parseNow(input.now ?? this.chronoCore.now())
+    const now = this.parseNow(input.now)
 
-    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>({
-      config: this.config,
-      time: now,
-      input: { card: Object.freeze(card) },
-    })
+    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>(
+      {
+        operation: 'forget',
+        config: this.config,
+        input: card,
+      },
+      now
+    )
   }
 
   review = (input: {
@@ -224,7 +237,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
   > => {
     const { card: inputCard, grade: inputGrade } = input
     const grade = parse(gradeSchema, inputGrade)
-    const now = this.parseNow(input.now ?? this.chronoCore.now())
+    const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
     const ctx: ReviewMiddlewareOperationContext<Env> = {
       config: this.config,
@@ -259,7 +272,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     SchedulerCoreEnv<Env>['revlog']['output']
   > => {
     const inputCard = input.card
-    const now = this.parseNow(input.now ?? this.chronoCore.now())
+    const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
 
     return createLazyIterable(grades, (grade) => {
@@ -496,7 +509,9 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     }
   }
 
-  private parseNow(now: unknown): SchedulerCoreEnv<Env>['chrono'] {
-    return parse(this.chrono.schema.time, now)
+  private parseNow(now?: unknown): SchedulerCoreEnv<Env>['chrono'] {
+    return now === undefined
+      ? this.chronoCore.now()
+      : parse(this.chrono.schema.time, now)
   }
 }
