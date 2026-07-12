@@ -10,6 +10,7 @@ import type {
   Prettify,
 } from '@/schema/index.js'
 import type {
+  MiddlewareCardInitInputOf,
   MiddlewareContextConfig,
   MiddlewareContextObjectOf,
   MiddlewareEnv,
@@ -31,10 +32,21 @@ export type RollbackMiddlewareResult<
 
 export interface MiddlewareContextBase<Env extends MiddlewareEnv> {
   readonly config: MiddlewareContextConfig<Env>
-  readonly input?: {
-    readonly card: MiddlewareContextObjectOf<Env, 'card'>
-  }
 }
+
+export type MiddlewareDefaultValueContext<
+  Env extends MiddlewareEnv = MiddlewareEnv,
+> = MiddlewareContextBase<Env> &
+  (
+    | {
+        readonly operation: 'newCard'
+        readonly input: MiddlewareCardInitInputOf<Env>
+      }
+    | {
+        readonly operation: 'forget'
+        readonly input: MiddlewareContextObjectOf<Env, 'card'>
+      }
+  )
 
 export interface ReviewCandidateContext {
   readonly step: (grade: Grade) => Readonly<Record<string, unknown>>
@@ -96,6 +108,7 @@ export interface Middleware<
 
   readonly schema?: {
     readonly config?: Env['config']
+    readonly cardInitInput?: Env['cardInitInput']
     readonly card?: Env['card']
     readonly revlog?: Env['revlog']
   }
@@ -103,12 +116,12 @@ export interface Middleware<
   readonly defaultValue?: {
     readonly card?: FieldDefault<
       MiddlewareSchemaOf<Env, 'card', AnyObjectSchema>,
-      MiddlewareContextBase<Env>
+      MiddlewareDefaultValueContext<Env>
     >
 
     readonly revlog?: FieldDefault<
       MiddlewareSchemaOf<Env, 'revlog', AnyObjectSchema>,
-      MiddlewareContextBase<Env>
+      MiddlewareDefaultValueContext<Env>
     >
   }
 
@@ -122,7 +135,7 @@ export type AnyMiddleware = Middleware<any, any>
 
 type MiddlewareDefinitionSchema = Pick<
   MiddlewareEnv,
-  'config' | 'card' | 'revlog'
+  'config' | 'cardInitInput' | 'card' | 'revlog'
 >
 
 type MiddlewareStatusEnv<Status extends string> = [Status] extends [never]

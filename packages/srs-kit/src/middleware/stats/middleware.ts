@@ -11,8 +11,11 @@ export const schedulerStatsMiddleware = defineMiddleware({
   },
   defaultValue: {
     card(ctx) {
-      const card = ctx.input?.card
-      if (card && ctx.config.clearStatsOnForget === false) {
+      if (
+        ctx.operation === 'forget' &&
+        ctx.config.clearStatsOnForget === false
+      ) {
+        const card = ctx.input
         return {
           reps: card.reps,
           lapses: card.lapses,

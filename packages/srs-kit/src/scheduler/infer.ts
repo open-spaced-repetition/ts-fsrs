@@ -8,6 +8,7 @@ import type {
 import type { MiddlewareConfigPart } from '@/middleware/config.js'
 import type {
   AnyMiddleware,
+  MiddlewareCardInitInputResolveOf,
   MiddlewareCardOf,
   MiddlewareRevlogOf,
   MiddlewareStatusOf,
@@ -26,6 +27,7 @@ import type {
   Mutable,
   Prettify,
   SchemaInput,
+  SchemaInputOf,
   SchemaOutput,
   SchemaOutputOf,
   SRSSchema,
@@ -37,11 +39,8 @@ import type {
 import type {
   AnyScheduler,
   BlankSchedulerEnv,
-  ComposableScheduler,
+  SchedulerCardInitSchema,
 } from './scheduler.js'
-
-type SchedulerEnvOf<T extends AnyScheduler> =
-  T extends ComposableScheduler<infer _Name, infer Env> ? Env : never
 
 export type SchedulerConfigOf<T extends AnyScheduler> = SchemaOutputOf<
   T,
@@ -77,6 +76,51 @@ type ExtendSchedulerConfigOutput<
 > = Prettify<
   Assign<SchemaOutput<Env['config']>, MiddlewareConfigPart<AddedMWs, 'output'>>
 >
+
+type MiddlewareCardInitInputFields<
+  MWs extends readonly AnyMiddleware[],
+  Mode extends 'input' | 'output',
+> = MergePart<
+  MergeAllObjects<MiddlewareCardInitInputResolveOf<MWs[number], Mode>>
+>
+
+type ExtendSchedulerCardInitInput<
+  Env extends BlankSchedulerEnv,
+  AddedMWs extends readonly AnyMiddleware[],
+> = Prettify<
+  Assign<
+    SchemaInput<Env['cardInitInput']>,
+    MiddlewareCardInitInputFields<AddedMWs, 'input'>
+  >
+>
+
+type SchedulerCardInitOutput<Env extends BlankSchedulerEnv> = SchemaOutput<
+  Env['cardInitInput']
+>['input']
+
+type ExtendSchedulerCardInitOutput<
+  Env extends BlankSchedulerEnv,
+  AddedMWs extends readonly AnyMiddleware[],
+> = Prettify<
+  Assign<
+    SchedulerCardInitOutput<Env>,
+    MiddlewareCardInitInputFields<AddedMWs, 'output'>
+  >
+>
+
+type ExtendSchedulerCardInitSchema<
+  Env extends BlankSchedulerEnv,
+  AddedMWs extends readonly AnyMiddleware[],
+> = [
+  | keyof MiddlewareCardInitInputFields<AddedMWs, 'input'>
+  | keyof MiddlewareCardInitInputFields<AddedMWs, 'output'>,
+] extends [never]
+  ? Env['cardInitInput']
+  : SchedulerCardInitSchema<
+      Env['chrono'],
+      ExtendSchedulerCardInitInput<Env, AddedMWs>,
+      ExtendSchedulerCardInitOutput<Env, AddedMWs>
+    >
 
 type SchedulerObjectKey = 'card' | 'revlog'
 
@@ -179,6 +223,7 @@ export type SchedulerEnvFor<
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
   }>
+  readonly cardInitInput: SchedulerCardInitSchema<ChronoTimeOf<C>>
   readonly card: SRSSchema<{
     input: Prettify<Readonly<SchedulerObjectFields<M, C, MWs, 'card', 'input'>>>
     output: Prettify<SchedulerCardFields<M, C, MWs>>
@@ -203,6 +248,7 @@ export type ExtendSchedulerEnv<
     input: ExtendSchedulerConfigInput<Env, AddedMWs>
     output: ExtendSchedulerConfigOutput<Env, AddedMWs>
   }>
+  readonly cardInitInput: ExtendSchedulerCardInitSchema<Env, AddedMWs>
   readonly card: SRSSchema<{
     input: ExtendSchedulerObject<Env, AddedMWs, 'card', 'input'>
     output: ExtendSchedulerObject<Env, AddedMWs, 'card', 'output'>
@@ -213,12 +259,16 @@ export type ExtendSchedulerEnv<
   }>
 }
 
-export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutput<
-  SchedulerEnvOf<T>['card']
+export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutputOf<T, 'card'>
+
+export type SchedulerCardInitInputOf<T extends AnyScheduler> = SchemaInputOf<
+  T,
+  'cardInitInput'
 >
 
-export type SchedulerCardInputOf<T extends AnyScheduler> = SchemaInput<
-  SchedulerEnvOf<T>['card']
+export type SchedulerCardInputOf<T extends AnyScheduler> = SchemaInputOf<
+  T,
+  'card'
 >
 
 export type SchedulerRevlogOf<T extends AnyScheduler> = SchemaOutputOf<
@@ -226,12 +276,17 @@ export type SchedulerRevlogOf<T extends AnyScheduler> = SchemaOutputOf<
   'revlog'
 >
 
-export type SchedulerRevlogInputOf<T extends AnyScheduler> = SchemaInput<
-  SchedulerEnvOf<T>['revlog']
+export type SchedulerRevlogInputOf<T extends AnyScheduler> = SchemaInputOf<
+  T,
+  'revlog'
 >
 
 export type SchedulerTimeOf<T extends AnyScheduler> =
-  SchedulerEnvOf<T>['chrono']
+  SchedulerCardInitInputOf<T> extends { readonly now?: infer Time }
+    ? Exclude<Time, undefined>
+    : never
 
-export type SchedulerStatusOf<T extends AnyScheduler> =
-  SchedulerEnvOf<T>['scheduleStatus']
+export type SchedulerStatusOf<T extends AnyScheduler> = SchemaOutputOf<
+  T,
+  'scheduleStatus'
+>

@@ -102,6 +102,7 @@ describe('defineScheduler type display', () => {
             readonly chrono: Record<string, never>;
         };
     }>;
+    readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
             readonly interval: number;
@@ -151,6 +152,7 @@ describe('defineScheduler type display', () => {
             readonly clearStatsOnForget: boolean;
         };
     }>;
+    readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
             readonly interval: number;
@@ -204,6 +206,7 @@ describe('defineScheduler type display', () => {
             readonly clearStatsOnForget: boolean;
         };
     }>;
+    readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
             readonly source?: string | undefined;
@@ -256,6 +259,9 @@ describe('defineScheduler type display', () => {
         readonly chrono: Record<string, never>;
         readonly clearStatsOnForget: boolean;
     };
+    readonly cardInitInput: {
+        readonly now?: number | undefined;
+    };
     readonly card: {
         readonly input: {
             readonly source?: string | undefined;
@@ -306,6 +312,9 @@ describe('defineScheduler type display', () => {
         readonly weights: readonly number[];
         readonly chrono: Record<string, never>;
         readonly clearStatsOnForget: boolean;
+    };
+    readonly cardInitInput: {
+        readonly now?: number | undefined;
     };
     readonly card: {
         readonly input: {
@@ -363,6 +372,7 @@ describe('defineScheduler type display', () => {
             readonly chrono: Record<string, never>;
         };
     }>;
+    readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
             readonly interval: number;
@@ -402,6 +412,9 @@ describe('defineScheduler type display', () => {
     readonly config: {
         readonly weights: readonly number[];
         readonly chrono: Record<string, never>;
+    };
+    readonly cardInitInput: {
+        readonly now?: number | undefined;
     };
     readonly card: {
         readonly input: {

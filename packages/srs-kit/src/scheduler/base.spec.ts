@@ -205,12 +205,79 @@ describe('SchedulerCore.newCard', () => {
     expect(() => core.newCard({ now: 'bad' as never })).toThrow(
       'Expected finite number'
     )
+    expect(() => core.newCard(null as never)).toThrow(
+      'Expected card init input object'
+    )
+  })
+
+  it('parses explicit and fallback now exactly once', () => {
+    let timeParses = 0
+    const timeSchema = defineSchema<number, number>((value) => {
+      timeParses += 1
+      return typeof value === 'number'
+        ? { value: value + 1 }
+        : { issues: [{ message: 'Expected test time' }] }
+    })
+    const cardSchema = defineSchema<
+      { readonly dueAt?: number },
+      { readonly dueAt: number }
+    >((value) =>
+      isObject(value) && typeof value.dueAt === 'number'
+        ? { value: { dueAt: value.dueAt } }
+        : { issues: [{ message: 'Expected test dueAt' }] }
+    )
+    const transformingChrono = defineChrono({
+      schema: { time: timeSchema, card: cardSchema },
+      projection(value) {
+        return {
+          value: { previous: value.time, current: value.time },
+        }
+      },
+      defaultValue: {
+        card({ time }) {
+          return { dueAt: time }
+        },
+      },
+      create() {
+        return {
+          now: () => 10,
+          difference: (from, to) => to - from,
+          add: (from, days) => from + days,
+        }
+      },
+    })
+    const transformingCore = defineScheduler({
+      model: SM2Model,
+      chrono: transformingChrono,
+    }).create({ config })
+
+    expect(transformingCore.newCard({ now: 1 }).dueAt).toBe(2)
+    expect(timeParses).toBe(1)
+    expect(transformingCore.newCard().dueAt).toBe(10)
+    expect(timeParses).toBe(1)
   })
 
   it('applies middleware card defaults', () => {
     const card = middlewareCore.newCard()
 
     expect(card.source).toBe('test-source')
+  })
+
+  it('allows middleware card fields to be injected', () => {
+    const card = middlewareCore.newCard({
+      now: 0,
+      source: 'injected-source',
+    })
+
+    expect(card.source).toBe('injected-source')
+  })
+
+  it('validates injected middleware card fields', () => {
+    expect(() =>
+      middlewareCore.newCard({
+        source: 1 as never,
+      })
+    ).toThrow('Expected source card init input')
   })
 
   it('applies middleware added through use()', () => {
@@ -991,12 +1058,12 @@ describe('SchedulerCore.forget', () => {
       },
       defaultValue: {
         card(ctx) {
-          seen.push(
-            Object.hasOwn(ctx, 'input')
-              ? (ctx.input?.card.scheduleStatus ?? 'undefined')
-              : 'none'
-          )
-          return { source: ctx.input?.card.source ?? 'fresh' }
+          if (ctx.operation === 'newCard') {
+            seen.push('none')
+            return { source: 'fresh' }
+          }
+          seen.push(ctx.input.scheduleStatus)
+          return { source: ctx.input.source }
         },
       },
     })
