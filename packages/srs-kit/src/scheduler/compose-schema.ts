@@ -135,14 +135,14 @@ export function composeSchema(ctx: {
       return { issues: [{ message: 'Expected card init input object' }] }
     }
 
-    const { now } = value
+    const { now, ...middlewareValue } = value
 
     let firstMiddlewareFields: Record<string, unknown> | undefined
     let combinedFields: Record<string, unknown> | undefined
     for (const middleware of middlewares) {
       const schema = middleware.schema?.cardInitInput
       if (!schema) continue
-      const middlewareResult = schema['~standard'].validate(value)
+      const middlewareResult = schema['~standard'].validate(middlewareValue)
       if (middlewareResult.issues) return middlewareResult
       const fields = middlewareResult.value as Record<string, unknown>
       if (firstMiddlewareFields === undefined) {
