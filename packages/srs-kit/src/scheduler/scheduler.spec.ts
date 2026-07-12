@@ -1,12 +1,14 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateChrono } from '@/chrono/presets/date/chrono.js'
+import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2Model } from '@/model/sm2.test.js'
 import { type Grade, Rating, State } from '@/primitives/index.js'
-import { defineSchema, numberSchema } from '@/schema/index.js'
+import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
 import type {
+  SchedulerCardInitInputOf,
   SchedulerCardInputOf,
   SchedulerCardOf,
   SchedulerConfigOf,
@@ -18,6 +20,8 @@ import type {
 import {
   config,
   createSM2NumericScheduler,
+  sourceCardSchema,
+  sourceConfigSchema,
   sourceMiddleware,
   statusMiddleware,
 } from './scheduler.test.js'
@@ -50,15 +54,127 @@ describe('defineScheduler', () => {
     expectTypeOf(scheduler.name).toEqualTypeOf<'sm2'>()
   })
 
+  it('types new-card input declared by middleware', () => {
+    usedCore.newCard({ source: 'injected-source' })
+    const invalidNewCard = () => {
+      usedCore.newCard({
+        // @ts-expect-error unknown fields are not declared new-card input
+        unknown: true,
+      })
+      core.newCard({
+        // @ts-expect-error schedulers without declared input do not accept it
+        input: {},
+      })
+    }
+
+    expectTypeOf(invalidNewCard).toBeFunction()
+  })
+
+  it('requires new-card input when middleware declares required fields', () => {
+    const requiredInputMiddleware = defineMiddleware({
+      name: 'requiredCardInitInput',
+      schema: {
+        cardInitInput: sourceConfigSchema,
+        card: sourceCardSchema,
+      },
+      defaultValue: {
+        card(ctx) {
+          return { source: ctx.input.source }
+        },
+      },
+    })
+    const requiredCore = createSM2NumericScheduler()
+      .use(requiredInputMiddleware)
+      .create({ config })
+
+    expect(requiredCore.newCard({ source: 'required' }).source).toBe('required')
+    const missingRequiredInput = () => {
+      // @ts-expect-error required middleware input makes options required
+      requiredCore.newCard()
+      // @ts-expect-error required middleware field cannot be omitted from options
+      requiredCore.newCard({ now: 0 })
+    }
+
+    expectTypeOf(missingRequiredInput).toBeFunction()
+  })
+
+  it('merges new-card input declared by multiple middlewares', () => {
+    const noteSchema = defineSchema<{ readonly note: string }>((value) =>
+      isObject(value) && typeof value.note === 'string'
+        ? { value: { note: value.note } }
+        : { issues: [{ message: 'Expected note' }] }
+    )
+    const noteMiddleware = defineMiddleware({
+      name: 'noteCardInitInput',
+      schema: { cardInitInput: noteSchema, card: noteSchema },
+      defaultValue: {
+        card(ctx) {
+          return { note: ctx.input.note }
+        },
+      },
+    })
+    const labelSchema = defineSchema<{ readonly label: string }>((value) =>
+      isObject(value) && typeof value.label === 'string'
+        ? { value: { label: value.label } }
+        : { issues: [{ message: 'Expected label' }] }
+    )
+    const labelMiddleware = defineMiddleware({
+      name: 'labelCardInitInput',
+      schema: { cardInitInput: labelSchema, card: labelSchema },
+      defaultValue: {
+        card(ctx) {
+          return { label: ctx.input.label }
+        },
+      },
+    })
+    const mergedScheduler = createSM2NumericScheduler().use(
+      sourceMiddleware,
+      noteMiddleware,
+      labelMiddleware
+    )
+    const mergedCore = mergedScheduler.create({
+      config: { ...config, source: 'config-source' },
+    })
+    const input = {
+      source: 'input-source',
+      note: 'input-note',
+      label: 'input-label',
+    }
+
+    expect(mergedScheduler.schema.cardInitInput.parse(input)).toStrictEqual({
+      input,
+      now: undefined,
+    })
+    expect(
+      mergedScheduler.schema.cardInitInput.parse({ ...input, now: 4 })
+    ).toEqual({ input, now: 4 })
+    expect(mergedCore.newCard(input)).toMatchObject({
+      source: 'input-source',
+      note: 'input-note',
+      label: 'input-label',
+    })
+  })
+
   it('exposes composed schemas', () => {
     expect(scheduler.schema.config).toBeDefined()
+    expect(scheduler.schema.cardInitInput).toBeDefined()
     expect(scheduler.schema.card).toBeDefined()
     expect(scheduler.schema.revlog).toBeDefined()
+    expect(() => scheduler.schema.cardInitInput.parse(null)).toThrow(
+      'Expected card init input object'
+    )
+    expect(
+      scheduler.schema.cardInitInput.parse({ now: 'raw-now' as never })
+    ).toStrictEqual({ input: {}, now: 'raw-now' })
   })
 
   it('uses middleware references from use() when schemas parse', () => {
     const dynamicScheduler = createSM2NumericScheduler()
     const schema = dynamicScheduler.schema
+    expect(schema.cardInitInput.parse({})).toStrictEqual({
+      input: {},
+      now: undefined,
+    })
 
     const dynamicSchedulerWithMiddleware = dynamicScheduler.use(
       sourceMiddleware,
@@ -84,6 +200,12 @@ describe('defineScheduler', () => {
         source: 'schema-source',
       }).source
     ).toBe('schema-source')
+    expect(
+      usedSchema.cardInitInput.parse({ source: 'schema-source' }).input.source
+    ).toBe('schema-source')
+    expect(() => usedSchema.cardInitInput.parse({ source: 1 })).toThrow(
+      'Expected source card init input'
+    )
     expect(usedSchema.card.parse(usedCore.newCard()).source).toBe('used-source')
     expect(
       usedSchema.revlog.parse({
@@ -267,6 +389,21 @@ describe('defineScheduler', () => {
       readonly chrono: Record<string, never>
       readonly source: string
       readonly clearStatsOnForget: boolean
+    }>()
+  })
+
+  it('infers the complete flat new-card input', () => {
+    expectTypeOf<
+      SchedulerCardInitInputOf<typeof usedScheduler>
+    >().toEqualTypeOf<{
+      readonly source?: string
+      readonly now?: number
+    }>()
+    expectTypeOf<
+      SchedulerCardInitInputOf<typeof chainedScheduler>
+    >().toEqualTypeOf<{
+      readonly source?: string
+      readonly now?: number
     }>()
   })
 

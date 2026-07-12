@@ -6,6 +6,7 @@ import type {
   AnyObjectSchema,
   AnySchema,
   Assign,
+  EmptyPart,
   Mutable,
   Prettify,
   SchemaInput,
@@ -42,6 +43,7 @@ export interface PreviewResult<Card, Revlog> {
 
 export type BlankSchedulerCoreEnv = {
   readonly config: object
+  readonly cardInitInput?: object
   readonly card: {
     readonly input: object
     readonly output: object
@@ -54,13 +56,26 @@ export type BlankSchedulerCoreEnv = {
   readonly scheduleStatus: string
 }
 
+type SchedulerCoreCardInitInput<Env extends BlankSchedulerCoreEnv> =
+  Env extends {
+    readonly cardInitInput: infer Input extends object
+  }
+    ? Input
+    : { readonly now?: Env['chrono'] }
+
+export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
+  Prettify<SchedulerCoreCardInitInput<Env>>
+
+export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
+  EmptyPart extends SchedulerNewCardOptions<Env>
+    ? (options?: SchedulerNewCardOptions<Env>) => Env['card']['output']
+    : (options: SchedulerNewCardOptions<Env>) => Env['card']['output']
+
 export interface SchedulerCore<
   Env extends BlankSchedulerCoreEnv = BlankSchedulerCoreEnv,
 > {
   readonly config: Readonly<Env['config']>
-  readonly newCard: (options?: {
-    readonly now?: Env['chrono']
-  }) => Env['card']['output']
+  readonly newCard: SchedulerNewCardFn<Env>
   readonly forget: (input: {
     readonly card: Env['card']['input']
     readonly now?: Env['chrono']
@@ -86,9 +101,28 @@ export type AnySchedulerCore = SchedulerCore<any>
 // Scheduler
 // ==========
 
+export type SchedulerCardInitSchema<
+  Time,
+  Input extends object = EmptyPart,
+  Output extends object = EmptyPart,
+> = SRSSchema<{
+  input: Prettify<Assign<Input, { readonly now?: Time }>>
+  output: {
+    readonly input: Output
+    readonly now?: unknown
+  }
+}>
+
 export type BlankSchedulerEnv = {
   readonly chrono: unknown
   readonly config: AnySchema
+  readonly cardInitInput: SRSSchema<{
+    input: object
+    output: {
+      readonly input: object
+      readonly now?: unknown
+    }
+  }>
   readonly card: AnyObjectSchema
   readonly revlog: AnyObjectSchema
   readonly scheduleStatus: string
@@ -121,6 +155,7 @@ export interface SchedulerSchema<
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
 > {
   readonly config: Env['config']
+  readonly cardInitInput: Env['cardInitInput']
   readonly card: Env['card']
   readonly revlog: Env['revlog']
   readonly scheduleStatus: SRSSchema<{
@@ -138,6 +173,7 @@ export type SchedulerUseFn<
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
+  readonly cardInitInput: SchemaInput<Env['cardInitInput']>
   readonly card: {
     readonly input: SchedulerCoreFieldSchemaPart<Env, 'card', 'input'>
     readonly output: SchedulerCoreFieldSchemaPart<Env, 'card', 'output'>

@@ -10,18 +10,22 @@ import { isFunction } from '@/schema/index.js'
 
 type DefaultValueConfig = Record<PropertyKey, unknown>
 
-type DefaultValueContext = {
-  readonly config: DefaultValueConfig
-  readonly input?: {
-    readonly card: Readonly<Record<string, unknown>>
-  }
-}
+type DefaultValueContext =
+  | {
+      readonly operation: 'newCard'
+      readonly config: DefaultValueConfig
+      readonly input: Readonly<object>
+    }
+  | {
+      readonly operation: 'forget'
+      readonly config: DefaultValueConfig
+      readonly input: Readonly<Record<string, unknown>>
+    }
 
 export type SchedulerDefaultValueFactory = {
   readonly newCard: <Card extends object = Record<string, unknown>>(
-    ctx: DefaultValueContext & {
-      readonly time: unknown
-    }
+    ctx: DefaultValueContext,
+    time: unknown
   ) => Card
 }
 
@@ -46,28 +50,24 @@ function resolveChronoDefault(
 
 function applyNewCardDefaults(ctx: {
   readonly target: Record<string, unknown>
-  readonly config: DefaultValueConfig
+  readonly defaultValue: DefaultValueContext
   readonly middlewares: readonly AnyMiddleware[]
   readonly chronoDefault?: ChronoDefaultRuntimeFn
   readonly time: ChronoDefaultCtx<unknown, unknown>['time']
-  readonly input?: DefaultValueContext['input']
 }) {
-  const { target, config, middlewares, chronoDefault, time } = ctx
-  const defaultCtx: DefaultValueContext = ctx.input
-    ? { config: ctx.config, input: ctx.input }
-    : { config: ctx.config }
+  const { target, defaultValue, middlewares, chronoDefault, time } = ctx
 
   if (chronoDefault) {
     Object.assign(
       target,
       chronoDefault({
-        config: config.chrono as Readonly<unknown>,
+        config: defaultValue.config.chrono as Readonly<unknown>,
         time,
       })
     )
   }
 
-  applyMiddlewareCardDefaults(target, middlewares, defaultCtx)
+  applyMiddlewareCardDefaults(target, middlewares, defaultValue)
 }
 
 export function useComposeDefaultValue(ctx: {
@@ -79,11 +79,11 @@ export function useComposeDefaultValue(ctx: {
   const chronoCardDefault = resolveChronoDefault(chrono.defaultValue?.card)
 
   return {
-    newCard<Card extends object = Record<string, unknown>>({
-      config,
-      time,
-      input,
-    }: DefaultValueContext & { readonly time: unknown }) {
+    newCard<Card extends object = Record<string, unknown>>(
+      defaultValue: DefaultValueContext,
+      time: unknown
+    ) {
+      const { config } = defaultValue
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
       })
@@ -91,11 +91,10 @@ export function useComposeDefaultValue(ctx: {
       card.scheduleStatus = 'new'
       applyNewCardDefaults({
         target: card,
-        config,
+        defaultValue,
         middlewares,
         chronoDefault: chronoCardDefault,
         time,
-        input,
       })
 
       return card as Card

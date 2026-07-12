@@ -17,6 +17,7 @@ import type { Middleware } from './middleware.js'
 
 export type MiddlewareEnv = {
   readonly config?: AnySchema
+  readonly cardInitInput?: AnyObjectSchema
   readonly card?: AnyObjectSchema
   readonly revlog?: AnyObjectSchema
   readonly scheduleStatus?: string
@@ -32,16 +33,20 @@ type MiddlewareSchemaResolveOf<
   Env extends MiddlewareEnv,
   Key extends keyof MiddlewareEnv,
   Schema extends AnySchema,
-  Fallback,
   Mode extends 'input' | 'output' = 'output',
 > = [MiddlewareSchemaOf<Env, Key, Schema>] extends [never]
-  ? Fallback
+  ? EmptyPart
   : Mode extends 'input'
     ? SchemaInput<MiddlewareSchemaOf<Env, Key, Schema>>
     : SchemaOutput<MiddlewareSchemaOf<Env, Key, Schema>>
 
 export type MiddlewareConfigOf<Env extends MiddlewareEnv> =
-  MiddlewareSchemaResolveOf<Env, 'config', AnySchema, EmptyPart>
+  MiddlewareSchemaResolveOf<Env, 'config', AnySchema>
+
+export type MiddlewareCardInitInputOf<
+  Env extends MiddlewareEnv,
+  Mode extends 'input' | 'output' = 'output',
+> = MiddlewareSchemaResolveOf<Env, 'cardInitInput', AnyObjectSchema, Mode>
 
 export type MiddlewareRuntimeConfig = Readonly<Record<PropertyKey, unknown>>
 
@@ -71,7 +76,7 @@ export type MiddlewareContextObjectOf<
   Key extends 'card' | 'revlog',
 > = Prettify<
   Assign<
-    MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema, EmptyPart>,
+    MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema>,
     Key extends 'card' ? SchedulerCoreFields : SchedulerRevlogCoreFields
   >
 >
@@ -92,30 +97,12 @@ type MiddlewareObjectOf<
   TMiddleware extends Middleware<any, infer Env>
     ? Mode extends 'input'
       ? IntersectAssign<
-          MiddlewareSchemaResolveOf<
-            Env,
-            Key,
-            AnyObjectSchema,
-            EmptyPart,
-            'input'
-          >,
+          MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema, 'input'>,
           Partial<
-            MiddlewareSchemaResolveOf<
-              Env,
-              Key,
-              AnyObjectSchema,
-              EmptyPart,
-              'output'
-            >
+            MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema, 'output'>
           >
         >
-      : MiddlewareSchemaResolveOf<
-          Env,
-          Key,
-          AnyObjectSchema,
-          EmptyPart,
-          'output'
-        >
+      : MiddlewareSchemaResolveOf<Env, Key, AnyObjectSchema, 'output'>
     : never
 
 export type MiddlewareCardOf<
@@ -128,12 +115,20 @@ export type MiddlewareRevlogOf<
   Mode extends 'input' | 'output' = 'output',
 > = MiddlewareObjectOf<TMiddleware, 'revlog', Mode>
 
+export type MiddlewareCardInitInputResolveOf<
+  TMiddleware,
+  Mode extends 'input' | 'output' = 'output',
+> =
+  TMiddleware extends Middleware<any, infer Env>
+    ? MiddlewareCardInitInputOf<Env, Mode>
+    : never
+
 export type MiddlewareConfigResolveOf<
   TMiddleware,
   Mode extends 'input' | 'output' = 'output',
 > =
   TMiddleware extends Middleware<any, infer Env>
-    ? MiddlewareSchemaResolveOf<Env, 'config', AnySchema, EmptyPart, Mode>
+    ? MiddlewareSchemaResolveOf<Env, 'config', AnySchema, Mode>
     : never
 
 export type MiddlewareStatusOf<TMiddleware> =

@@ -1,6 +1,7 @@
 import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
+import { defineSchema, isObject } from '@/schema/index.js'
 import {
   defineStringFieldOutputSchema,
   defineStringFieldSchema,
@@ -36,6 +37,18 @@ export const sourceCardSchema = defineStringFieldOutputSchema({
   message: 'Expected source card field',
 })
 
+export const sourceCardInitInputSchema = defineSchema<{
+  readonly source?: string
+}>((value) => {
+  if (!isObject(value)) {
+    return { issues: [{ message: 'Expected source card init input' }] }
+  }
+  if (value.source === undefined) return { value: {} }
+  return typeof value.source === 'string'
+    ? { value: { source: value.source } }
+    : { issues: [{ message: 'Expected source card init input' }] }
+})
+
 export const auditRevlogSchema = defineStringFieldOutputSchema({
   field: 'audit',
   message: 'Expected audit revlog field',
@@ -48,12 +61,18 @@ export const sourceMiddleware = defineMiddleware({
   name: sourceMiddlewareName,
   schema: {
     config: sourceConfigSchema,
+    cardInitInput: sourceCardInitInputSchema,
     card: sourceCardSchema,
     revlog: auditRevlogSchema,
   },
   defaultValue: {
     card(ctx) {
-      return { source: ctx.config.source }
+      return {
+        source:
+          ctx.operation === 'newCard'
+            ? (ctx.input.source ?? ctx.config.source)
+            : ctx.config.source,
+      }
     },
     revlog(ctx) {
       return { audit: ctx.config.source }

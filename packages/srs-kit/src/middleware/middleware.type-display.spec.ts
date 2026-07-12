@@ -1,5 +1,6 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
+import { defineSchema, isObject } from '@/schema/index.js'
 import {
   defineStringFieldOutputSchema,
   defineStringFieldSchema,
@@ -22,6 +23,35 @@ const displayRevlogSchema = defineStringFieldOutputSchema({
 })
 
 const displayMiddlewareName = Symbol('displayMiddleware')
+
+const displayCardInitInputSchema = defineSchema<
+  { readonly rawSource: string },
+  { readonly source: string }
+>((value) =>
+  isObject(value) && typeof value.rawSource === 'string'
+    ? { value: { source: value.rawSource } }
+    : { issues: [{ message: 'Expected rawSource' }] }
+)
+
+const cardInitInputMiddleware = defineMiddleware({
+  name: 'cardInitInputMiddleware',
+  schema: {
+    cardInitInput: displayCardInitInputSchema,
+    card: displayCardSchema,
+  },
+  defaultValue: {
+    card(ctx) {
+      if (ctx.operation === 'newCard') {
+        const cardInitInputHoverTarget = ctx.input
+        return { source: cardInitInputHoverTarget.source }
+      }
+      const forgetCardHoverTarget = ctx.input
+      return { source: forgetCardHoverTarget.source }
+    },
+  },
+})
+
+const cardInitInputMiddlewareHoverTarget = cardInitInputMiddleware
 
 const displayMiddleware = defineMiddleware({
   name: displayMiddlewareName,
@@ -66,6 +96,30 @@ describe('middleware type display', () => {
   const service = getTypeDisplayService()
 
   const expectedDefineMiddleware = {
+    cardInitInputMiddlewareHoverTarget: `const cardInitInputMiddlewareHoverTarget: Middleware<"cardInitInputMiddleware", {
+    readonly cardInitInput: SRSSchema<{
+        input: {
+            readonly rawSource: string;
+        };
+        output: {
+            readonly source: string;
+        };
+    }>;
+    readonly card: SRSSchema<{
+        input: {};
+        output: {
+            readonly source: string;
+        };
+    }>;
+}>`,
+    cardInitInputHoverTarget: `const cardInitInputHoverTarget: {
+    readonly source: string;
+}`,
+    forgetCardHoverTarget: `const forgetCardHoverTarget: {
+    readonly source: string;
+    readonly state: State;
+    readonly scheduleStatus: string;
+}`,
     middlewareHoverTarget: `const middlewareHoverTarget: Middleware<typeof displayMiddlewareName, {
     readonly scheduleStatus: "paused";
     readonly config: SRSSchema<{
