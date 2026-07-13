@@ -2,6 +2,7 @@ import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
 import type { IFSRSModel } from '../kit/index.js'
+import { withFuzzing } from '../middlewares/fuzzing/core.js'
 import { calculateLearningSteps } from '../middlewares/learning-steps/core.js'
 import type {
   LearningStepsConfig,
@@ -19,7 +20,6 @@ import {
   State,
 } from '../models'
 import { StrategyMode, type TStrategyHandler } from '../strategies'
-import { withFuzzing } from '../strategies/fuzz'
 import type { int } from '../types'
 
 export default class BasicScheduler extends AbstractScheduler {
@@ -249,8 +249,16 @@ export default class BasicScheduler extends AbstractScheduler {
   private scheduler_next_interval(card: Card, elapsed_days: number): int {
     const params = this.parameters
     const base = this.model.nextInterval(card, params.request_retention)
-    const interval = withFuzzing(base, elapsed_days, params, this._seed)
-    return interval
+    const interval = withFuzzing(
+      base,
+      elapsed_days,
+      {
+        enableFuzz: params.enable_fuzz,
+        maximumInterval: params.maximum_interval,
+      },
+      this._seed
+    )
+    return interval as int
   }
 
   /**

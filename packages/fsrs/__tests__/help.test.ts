@@ -18,6 +18,13 @@ test('FSRS-Grades', () => {
   ])
 })
 
+test('get_fuzz_range keeps the legacy return shape', () => {
+  expect(get_fuzz_range(10, 5, 36_500)).toEqual({
+    min_ivl: 8,
+    max_ivl: 12,
+  })
+})
+
 test('formatDate', () => {
   const now = new Date(2022, 11, 30, 12, 30, 0, 0)
   expect(formatDate(now)).toEqual('2022-12-30 12:30:00')
@@ -226,9 +233,4 @@ describe('default values can not be overwritten', () => {
     }).toThrow()
     expect(Grades.length).toEqual(4)
   })
-})
-
-it('get_fuzz_range should skip interval > elapsed_days branch when interval <= elapsed_days', () => {
-  const result = get_fuzz_range(5, 5, 100)
-  expect(result.min_ivl).toBeLessThanOrEqual(result.max_ivl)
 })
