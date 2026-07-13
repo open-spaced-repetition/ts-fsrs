@@ -3,6 +3,7 @@ import {
   date_scheduler,
   formatDate,
   Grades,
+  get_fuzz_range,
   Rating,
   State,
   TypeConvert,
@@ -15,6 +16,13 @@ test('FSRS-Grades', () => {
     Rating.Good,
     Rating.Easy,
   ])
+})
+
+test('get_fuzz_range keeps the legacy return shape', () => {
+  expect(get_fuzz_range(10, 5, 36_500)).toEqual({
+    min_ivl: 8,
+    max_ivl: 12,
+  })
 })
 
 test('formatDate', () => {
