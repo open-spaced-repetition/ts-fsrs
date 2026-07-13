@@ -2,6 +2,7 @@ import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
 import { withFuzzing } from '../middlewares/fuzzing/core.js'
+import { calculateScheduleDays } from '../middlewares/monotonic-interval/core.js'
 import {
   type Card,
   type Grade,
@@ -92,40 +93,32 @@ export default class LongTermScheduler extends AbstractScheduler {
     interval: number
   ): void {
     const { maximum_interval } = this.parameters
-    let again_interval: int,
-      hard_interval: int,
-      good_interval: int,
-      easy_interval: int
-    again_interval = this.scheduler_next_interval(next_again, interval)
-    hard_interval = this.scheduler_next_interval(next_hard, interval)
-    good_interval = this.scheduler_next_interval(next_good, interval)
-    easy_interval = this.scheduler_next_interval(next_easy, interval)
-
-    again_interval = Math.min(again_interval, hard_interval) as int
-    hard_interval = Math.min(
-      Math.max(hard_interval, again_interval + 1),
-      maximum_interval
-    ) as int
-    good_interval = Math.min(
-      Math.max(good_interval, hard_interval + 1),
-      maximum_interval
-    ) as int
-    easy_interval = Math.min(
-      Math.max(easy_interval, good_interval + 1),
-      maximum_interval
-    ) as int
+    const [again_interval, hard_interval, good_interval, easy_interval] =
+      calculateScheduleDays(
+        [
+          this.scheduler_next_interval(next_again, interval),
+          this.scheduler_next_interval(next_hard, interval),
+          this.scheduler_next_interval(next_good, interval),
+          this.scheduler_next_interval(next_easy, interval),
+        ],
+        maximum_interval
+      )
 
     next_again.scheduled_days = again_interval
-    next_again.due = date_scheduler(this.review_time, again_interval, true)
+    next_again.due = date_scheduler(
+      this.review_time,
+      again_interval as int,
+      true
+    )
 
     next_hard.scheduled_days = hard_interval
-    next_hard.due = date_scheduler(this.review_time, hard_interval, true)
+    next_hard.due = date_scheduler(this.review_time, hard_interval as int, true)
 
     next_good.scheduled_days = good_interval
-    next_good.due = date_scheduler(this.review_time, good_interval, true)
+    next_good.due = date_scheduler(this.review_time, good_interval as int, true)
 
     next_easy.scheduled_days = easy_interval
-    next_easy.due = date_scheduler(this.review_time, easy_interval, true)
+    next_easy.due = date_scheduler(this.review_time, easy_interval as int, true)
   }
 
   private scheduler_next_interval(card: Card, elapsed_days: number): int {
