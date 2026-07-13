@@ -13,12 +13,7 @@ import {
   type ReviewLog,
   State,
 } from './models'
-import { DefaultInitSeedStrategy } from './strategies'
-import {
-  StrategyMode,
-  type TSeedStrategy,
-  type TStrategyHandler,
-} from './strategies/types'
+import type { StrategyMode, TStrategyHandler } from './strategies/types'
 import type { IPreview, IScheduler } from './types'
 
 export abstract class AbstractScheduler implements IScheduler {
@@ -64,15 +59,9 @@ export abstract class AbstractScheduler implements IScheduler {
     this.elapsed_days = interval
     this.current.reps += 1
 
-    // init seed strategy
-    let seed_strategy = DefaultInitSeedStrategy
-    if (this.strategies) {
-      const custom_strategy = this.strategies.get(StrategyMode.SEED)
-      if (custom_strategy) {
-        seed_strategy = custom_strategy as TSeedStrategy
-      }
-    }
-    this._seed = (<TSeedStrategy>seed_strategy).call(this)
+    this._seed = `${this.review_time.getTime()}_${this.current.reps}_${
+      this.current.difficulty * this.current.stability
+    }`
   }
 
   public preview(): IPreview {

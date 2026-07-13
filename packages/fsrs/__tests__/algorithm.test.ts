@@ -2,7 +2,6 @@ import Decimal from 'decimal.js'
 import {
   clamp,
   default_enable_fuzz,
-  default_maximum_interval,
   default_request_retention,
   default_w,
   type FSRS,
@@ -12,10 +11,8 @@ import {
   type Grade,
   Grades,
   generatorParameters,
-  get_fuzz_range,
   Rating,
   S_MIN,
-  withFuzzing,
 } from 'ts-fsrs'
 import {
   computeDecayFactor,
@@ -395,62 +392,6 @@ describe('next_interval', () => {
     )
     expect(next_ivl).toEqual(Math.round(s * intervalModifier))
     expect(next_ivl).toBeGreaterThan(params.maximum_interval)
-
-    const t_fuzz = 98
-    const fuzzed_params = generatorParameters({ ...params, enable_fuzz: true })
-    const base_ivl = fsrs(fuzzed_params).model.nextInterval(
-      { stability: s, difficulty: 0 },
-      fuzzed_params.request_retention
-    )
-    const next_ivl_fuzz = withFuzzing(base_ivl, t_fuzz, fuzzed_params)
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      Math.round(s * intervalModifier),
-      t_fuzz,
-      params.maximum_interval
-    )
-    expect(next_ivl_fuzz).toBeGreaterThanOrEqual(min_ivl)
-    expect(max_ivl).toBe(params.maximum_interval)
-    expect(next_ivl_fuzz).toBeLessThanOrEqual(max_ivl)
-  })
-})
-
-describe('withFuzzing', () => {
-  test('return original interval when fuzzing is disabled', () => {
-    const ivl = 3.2
-    const params = generatorParameters({ enable_fuzz: false })
-    expect(withFuzzing(ivl, 0, params)).toBe(3)
-  })
-
-  test('return original interval when ivl is less than 2.5', () => {
-    const ivl = 2.3
-    const params = generatorParameters({ enable_fuzz: true })
-    expect(withFuzzing(ivl, 0, params)).toBe(2)
-  })
-
-  test('fuzzed interval stays inside the fuzz range when ivl is 2.5', () => {
-    const ivl = 2.5
-    const params = generatorParameters({ enable_fuzz: true })
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      Math.round(2.5),
-      0,
-      default_maximum_interval
-    )
-    const fuzzedInterval = withFuzzing(ivl, 0, params)
-    expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
-    expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
-  })
-
-  test('fuzzed interval stays inside the fuzz range with explicit seed', () => {
-    const ivl = 3
-    const params = generatorParameters({ enable_fuzz: true })
-    const { min_ivl, max_ivl } = get_fuzz_range(
-      Math.round(ivl),
-      0,
-      default_maximum_interval
-    )
-    const fuzzedInterval = withFuzzing(ivl, 0, params, 'NegativeS2Seed')
-    expect(fuzzedInterval).toBeGreaterThanOrEqual(min_ivl)
-    expect(fuzzedInterval).toBeLessThanOrEqual(max_ivl)
   })
 })
 

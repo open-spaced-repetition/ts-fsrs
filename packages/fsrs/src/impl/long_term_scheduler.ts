@@ -1,6 +1,7 @@
 import { AbstractScheduler } from '../abstract_scheduler'
 import { TypeConvert } from '../convert'
 import { date_scheduler } from '../help'
+import { withFuzzing } from '../middlewares/fuzzing/core.js'
 import {
   type Card,
   type Grade,
@@ -8,7 +9,6 @@ import {
   type RecordLogItem,
   State,
 } from '../models'
-import { withFuzzing } from '../strategies/fuzz'
 import type { int } from '../types'
 
 export default class LongTermScheduler extends AbstractScheduler {
@@ -134,8 +134,16 @@ export default class LongTermScheduler extends AbstractScheduler {
       { stability: card.stability, difficulty: card.difficulty },
       params.request_retention
     )
-    const interval = withFuzzing(base, elapsed_days, params, this._seed)
-    return interval
+    const interval = withFuzzing(
+      base,
+      elapsed_days,
+      {
+        enableFuzz: params.enable_fuzz,
+        maximumInterval: params.maximum_interval,
+      },
+      this._seed
+    )
+    return interval as int
   }
 
   /**

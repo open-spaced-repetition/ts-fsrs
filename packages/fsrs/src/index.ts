@@ -6,6 +6,7 @@ export * from './fsrs'
 export * from './help'
 export * from './impl/basic_scheduler'
 export * from './impl/long_term_scheduler'
+export * from './middlewares/fuzzing/core.js'
 export {
   defaultLearningSteps,
   defaultRelearningSteps,
