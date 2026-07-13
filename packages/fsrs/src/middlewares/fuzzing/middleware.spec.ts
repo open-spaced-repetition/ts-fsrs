@@ -203,18 +203,35 @@ describe('schedulerFuzzingMiddleware review', () => {
     expect(result.card.dueAt).toEqual(expected.card.dueAt)
   })
 
-  it('reuses one fuzz factor for every grade in a preview', () => {
+  it('derives stable intervals without caching the fuzz factor', () => {
+    const rng = vi.fn((_seed: string) => () => 0.5)
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(createSchedulerFuzzingMiddleware({ rng }))
+      .create({ config })
+    const plainCard = plainCore.newCard({ now })
+    const rawIntervals = Array.from(
+      plainCore.preview({ card: plainCard, now }),
+      (item) => scheduledDays(item.card.dueAt, now)
+    )
     const card = fuzzFirstCore.newCard({
       now,
       cardId: 'preview-card',
     })
 
-    const first = Array.from(fuzzFirstCore.preview({ card, now }))
-    const second = Array.from(fuzzFirstCore.preview({ card, now }))
+    const first = Array.from(core.preview({ card, now }))
+    const firstCallCount = rng.mock.calls.length
+    const second = Array.from(core.preview({ card, now }))
 
     expect(first).toHaveLength(4)
     expect(second.map((item) => item.card.dueAt)).toEqual(
       first.map((item) => item.card.dueAt)
+    )
+    expect(firstCallCount).toBe(
+      rawIntervals.filter((interval) => interval >= 2.5).length
+    )
+    expect(rng).toHaveBeenCalledTimes(firstCallCount * 2)
+    expect(rng.mock.calls.every(([seed]) => seed === 'preview-card1')).toBe(
+      true
     )
   })
 
