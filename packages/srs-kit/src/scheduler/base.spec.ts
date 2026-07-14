@@ -707,6 +707,103 @@ describe('SchedulerCore.review', () => {
 })
 
 describe('SchedulerCore middleware handlers', () => {
+  it('applies review and preview chrono defaults after middleware unwinds', () => {
+    const seen: unknown[] = []
+    const middleware = defineMiddleware({
+      name: Symbol('review-chrono-order'),
+      handlers: {
+        review(ctx, next) {
+          next()
+          seen.push(structuredClone(ctx.result.card))
+          ctx.scheduledDays = 5
+        },
+      },
+    })
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+      .use(middleware)
+      .create({ config })
+    const createdAt = new Date('2026-01-01T00:00:00.000Z')
+    const reviewedAt = new Date('2026-01-02T00:00:00.000Z')
+    const card = dateCore.newCard({ now: createdAt })
+
+    const result = dateCore.review({
+      card,
+      grade: Rating.Good,
+      now: reviewedAt,
+    })
+    const preview = Array.from(dateCore.preview({ card, now: reviewedAt }))
+
+    expect(seen).toHaveLength(5)
+    for (const draft of seen) expect(draft).not.toHaveProperty('dueAt')
+    expect(result.card.dueAt).toEqual(new Date('2026-01-07T00:00:00.000Z'))
+    expect(preview.map((item) => item.card.dueAt)).toEqual([
+      new Date('2026-01-07T00:00:00.000Z'),
+      new Date('2026-01-07T00:00:00.000Z'),
+      new Date('2026-01-07T00:00:00.000Z'),
+      new Date('2026-01-07T00:00:00.000Z'),
+    ])
+  })
+
+  it('requires short-circuiting review middleware to provide scheduledDays', () => {
+    const middleware = defineMiddleware({
+      name: Symbol('review-chrono-short-circuit'),
+      handlers: {
+        review() {},
+      },
+    })
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+      .use(middleware)
+      .create({ config })
+    const now = new Date('2026-01-01T00:00:00.000Z')
+    const card = dateCore.newCard({ now })
+
+    expect(() => dateCore.review({ card, grade: Rating.Good, now })).toThrow(
+      'Expected scheduledDays after review middleware'
+    )
+    expect(() => Array.from(dateCore.preview({ card, now }))).toThrow(
+      'Expected scheduledDays after review middleware'
+    )
+  })
+
+  it('applies rollback chrono defaults after middleware unwinds', () => {
+    const seen: unknown[] = []
+    const middleware = defineMiddleware({
+      name: Symbol('rollback-chrono-order'),
+      handlers: {
+        rollback(ctx, next) {
+          next()
+          seen.push(structuredClone(ctx.result.card))
+        },
+      },
+    })
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    })
+      .use(middleware)
+      .create({ config })
+    const card = dateCore.newCard({
+      now: new Date('2026-01-01T00:00:00.000Z'),
+    })
+    const reviewed = dateCore.review({
+      card,
+      grade: Rating.Good,
+      now: new Date('2026-01-02T00:00:00.000Z'),
+    })
+
+    const restored = dateCore.rollback(reviewed)
+
+    expect(seen[0]).not.toHaveProperty('dueAt')
+    expect(restored.dueAt).toEqual(reviewed.revlog.reviewTime)
+    expect(restored.lastReviewAt).toEqual(reviewed.revlog.dueAt)
+  })
+
   it('throws when review middleware mutates input fields', () => {
     const card = core.newCard({ now: 0 })
 
