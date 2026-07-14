@@ -90,6 +90,8 @@ export function createSchedulerFuzzingMiddleware(
           candidate[fuzzingDecoratorSymbol] = true
         }
 
+        // Leave this unset so finalizeReview resolves the decorated interval
+        // after downstream middleware has had a chance to override it.
         ctx.scheduledDays = undefined
         next()
         ctx.result.card.cardId = card.cardId
