@@ -1,4 +1,9 @@
-import { defineMiddleware, State } from '@open-spaced-repetition/srs-kit'
+import {
+  defineMiddleware,
+  type ReviewCandidateContext,
+  State,
+} from '@open-spaced-repetition/srs-kit'
+import type { Mutable } from '@open-spaced-repetition/srs-kit/schema'
 import { calculateLearningSteps } from './core.js'
 import {
   learningStepFieldsSchema,
@@ -7,7 +12,11 @@ import {
 import type { LearningStepsResult } from './types.js'
 
 const MINUTES_PER_DAY = 1440
-const resolvedSteps = new WeakMap<object, LearningStepsResult>()
+const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
+
+type LearningStepsCandidate = ReviewCandidateContext & {
+  [resolvedStepsSymbol]?: LearningStepsResult
+}
 
 export const schedulerLearningStepsMiddleware = defineMiddleware({
   name: Symbol('ts-fsrs.learning-steps'),
@@ -31,25 +40,26 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
         return
       }
 
-      let steps = resolvedSteps.get(card)
+      const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
+      let steps = candidate[resolvedStepsSymbol]
       if (!steps) {
         steps = calculateLearningSteps(
           ctx.config,
           card.state,
           card.learningStep
         )
-        resolvedSteps.set(card, steps)
+        candidate[resolvedStepsSymbol] = steps
       }
       const step = steps[ctx.input.grade]
       const scheduledMinutes = step
         ? Math.max(0, step.scheduledMinutes)
         : undefined
 
+      next()
+
       if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
         ctx.scheduledDays = Math.round(scheduledMinutes) / MINUTES_PER_DAY
       }
-
-      next()
 
       ctx.result.revlog.learningStep = card.learningStep
       ctx.result.card.learningStep = 0
