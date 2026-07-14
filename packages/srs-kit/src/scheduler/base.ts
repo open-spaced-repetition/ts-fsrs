@@ -252,6 +252,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
       this.finalizeReview(prepared, ctx)
     )
+    this.applyReviewChronoDefaults(prepared, ctx)
     return {
       card: parse(
         this.schema.card,
@@ -288,6 +289,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
         this.finalizeReview(prepared, ctx)
       )
+      this.applyReviewChronoDefaults(prepared, ctx)
       return {
         grade,
         card: parse(
@@ -328,6 +330,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     composeMiddleware(this.rollbackHandlers, ctx, (ctx) =>
       this.finalizeRollback(ctx)
     )
+    this.applyRollbackChronoDefaults(ctx.result, revlog)
 
     return parse(
       this.schema.card,
@@ -422,7 +425,6 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       newMemoryState,
       ctx.desiredRetention
     )
-    const scheduledDays = ctx.scheduledDays
 
     Object.assign(result.card, newMemoryState, {
       state: State.Review,
@@ -433,8 +435,6 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
       state: prepared.card.state,
       scheduleStatus: prepared.card.scheduleStatus,
     })
-    this.applyChronoDefaults(result, prepared, scheduledDays)
-
     return result
   }
 
@@ -447,9 +447,18 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     Object.assign(result.card, parse(this.model.schema.memoryState, revlog))
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
-    this.applyRollbackChronoDefaults(result, revlog)
 
     return result.card
+  }
+
+  private applyReviewChronoDefaults(
+    prepared: PreparedReview<Env>,
+    ctx: ReviewMiddlewareOperationContext<Env>
+  ): void {
+    if (ctx.scheduledDays === undefined) {
+      throw new Error('Expected scheduledDays after review middleware')
+    }
+    this.applyChronoDefaults(ctx.result, prepared, ctx.scheduledDays)
   }
 
   private applyChronoDefaults(
