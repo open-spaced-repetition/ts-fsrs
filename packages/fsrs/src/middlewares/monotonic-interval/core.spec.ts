@@ -13,6 +13,12 @@ describe('calculateScheduleDays', () => {
     expect(calculateScheduleDays([2, 4, 8, 16], 100)).toEqual([2, 4, 8, 16])
   })
 
+  it('allows zero-day intervals to remain equal', () => {
+    expect(calculateScheduleDays([0, 0, 2, 3], 100)).toEqual([0, 0, 2, 3])
+    expect(calculateScheduleDays([0, 0, 0, 0], 100)).toEqual([0, 0, 0, 0])
+    expect(calculateScheduleDays([0, 1, 1, 1], 100)).toEqual([0, 1, 2, 3])
+  })
+
   it('allows equal intervals once the maximum is reached', () => {
     expect(calculateScheduleDays([98, 99, 100, 101], 100)).toEqual([
       98, 99, 100, 100,
