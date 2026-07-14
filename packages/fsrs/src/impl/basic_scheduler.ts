@@ -9,6 +9,7 @@ import type {
   LearningStepsResolver,
   LearningStepsResult,
 } from '../middlewares/learning-steps/types.js'
+import { calculateScheduleDays } from '../middlewares/monotonic-interval/core.js'
 import {
   type Card,
   type CardInput,
@@ -221,29 +222,22 @@ export default class BasicScheduler extends AbstractScheduler {
     interval: number
   ): void {
     const { maximum_interval } = this.parameters
-    let hard_interval: int, good_interval: int
-    hard_interval = this.scheduler_next_interval(next_hard, interval)
-    good_interval = this.scheduler_next_interval(next_good, interval)
-    hard_interval = Math.min(hard_interval, good_interval) as int
-    good_interval = Math.min(
-      Math.max(good_interval, hard_interval + 1),
-      maximum_interval
-    ) as int
-    const easy_interval = Math.min(
-      Math.max(
+    const [hard_interval, good_interval, easy_interval] = calculateScheduleDays(
+      [
+        this.scheduler_next_interval(next_hard, interval),
+        this.scheduler_next_interval(next_good, interval),
         this.scheduler_next_interval(next_easy, interval),
-        good_interval + 1
-      ),
+      ],
       maximum_interval
-    ) as int
+    )
 
     next_hard.scheduled_days = hard_interval
-    next_hard.due = date_scheduler(this.review_time, hard_interval, true)
+    next_hard.due = date_scheduler(this.review_time, hard_interval as int, true)
     next_good.scheduled_days = good_interval
-    next_good.due = date_scheduler(this.review_time, good_interval, true)
+    next_good.due = date_scheduler(this.review_time, good_interval as int, true)
 
     next_easy.scheduled_days = easy_interval
-    next_easy.due = date_scheduler(this.review_time, easy_interval, true)
+    next_easy.due = date_scheduler(this.review_time, easy_interval as int, true)
   }
 
   private scheduler_next_interval(card: Card, elapsed_days: number): int {
