@@ -156,8 +156,13 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     )
   })
 
-  it('keeps the raw threshold but rounds decimal minutes for chrono', () => {
-    const core = createCore({ learningSteps: ['1439.6m'] })
+  it.each([
+    ['0.6m', State.Learning, 'learning', 1],
+    ['1439.4m', State.Learning, 'learning', 1439],
+    ['1439.6m', State.Review, 'review', 1440],
+    ['1440m', State.Review, 'review', 1440],
+  ] as const)('rounds %s before applying the day threshold', (step, state, scheduleStatus, scheduledMinutes) => {
+    const core = createCore({ learningSteps: [step] })
     const now = new Date(2022, 11, 29, 12, 30)
     const result = core.review({
       card: core.newCard({ now }),
@@ -165,9 +170,11 @@ describe('schedulerLearningStepsMiddleware integration', () => {
       now,
     })
 
-    expect(result.card.state).toBe(State.Learning)
-    expect(result.card.scheduleStatus).toBe('learning')
-    expect(result.card.dueAt.getTime() - now.getTime()).toBe(1440 * 60_000)
+    expect(result.card.state).toBe(state)
+    expect(result.card.scheduleStatus).toBe(scheduleStatus)
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(
+      scheduledMinutes * 60_000
+    )
   })
 
   it('graduates long learning delays while preserving the exact due time', () => {
@@ -185,8 +192,11 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(result.card.dueAt.getTime() - now.getTime()).toBe(2160 * 60_000)
   })
 
-  it('falls back to the model interval for a zero-minute step', () => {
-    const core = createCore({ learningSteps: ['0m'] })
+  it.each([
+    '0m',
+    '0.4m',
+  ] as const)('falls back to the model interval when %s rounds to zero minutes', (step) => {
+    const core = createCore({ learningSteps: [step] })
     const now = new Date(2022, 11, 29, 12, 30)
     const result = core.review({
       card: core.newCard({ now }),
