@@ -52,13 +52,13 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       }
       const step = steps[ctx.input.grade]
       const scheduledMinutes = step
-        ? Math.max(0, step.scheduledMinutes)
+        ? Math.round(Math.max(0, step.scheduledMinutes))
         : undefined
 
       next()
 
       if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-        ctx.scheduledDays = Math.round(scheduledMinutes) / MINUTES_PER_DAY
+        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
       }
 
       ctx.result.revlog.learningStep = card.learningStep

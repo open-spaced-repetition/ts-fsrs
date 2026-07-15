@@ -2,11 +2,13 @@ import {
   defineMiddleware,
   defineScheduler,
   Rating,
+  State,
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from '../../models/fsrs-6/constants.js'
 import { FSRS6Model } from '../../models/fsrs-6/model.js'
+import { schedulerLearningStepsMiddleware } from '../learning-steps/middleware.js'
 import { schedulerScheduledDaysMiddleware } from './middleware.js'
 
 const now = new Date('2026-01-01T00:00:00.000Z')
@@ -89,6 +91,30 @@ describe('schedulerScheduledDaysMiddleware', () => {
     })
 
     expect(result.card.scheduledDays).toBe(0)
+  })
+
+  it('stores a rounded learning interval at the day threshold', () => {
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(schedulerScheduledDaysMiddleware, schedulerLearningStepsMiddleware)
+      .create({
+        config: {
+          weights: [...FSRS6_DEFAULT_WEIGHTS],
+          enableShortTerm: true,
+          numRelearningSteps: 0,
+          learningSteps: ['1439.6m'],
+          relearningSteps: [],
+        },
+      })
+
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    })
+
+    expect(result.card.state).toBe(State.Review)
+    expect(result.card.scheduledDays).toBe(1)
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(1440 * 60_000)
   })
 
   it('restores scheduledDays during rollback', () => {
