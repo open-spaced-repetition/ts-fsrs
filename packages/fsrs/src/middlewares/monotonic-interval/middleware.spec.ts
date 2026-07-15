@@ -58,8 +58,11 @@ function createReviewContext({
     candidate: { step, nextInterval },
     result: { card: {}, revlog: {} },
   } as unknown as ReviewContext
+  const next = vi.fn(() => {
+    ctx.scheduledDays ??= intervals[grade]
+  })
 
-  return { ctx, nextInterval, step }
+  return { ctx, next, nextInterval, step }
 }
 
 function dueDays(dueAt: Date, reviewTime: Date): number {
@@ -68,23 +71,22 @@ function dueDays(dueAt: Date, reviewTime: Date): number {
 
 describe('schedulerMonotonicIntervalMiddleware handler', () => {
   const longTermIntervals = {
-    [Rating.Again]: 4,
-    [Rating.Hard]: 2,
-    [Rating.Good]: 8,
+    [Rating.Again]: 2,
+    [Rating.Hard]: 4,
+    [Rating.Good]: 3,
     [Rating.Easy]: 7,
   }
 
   it.each([
-    [Rating.Again, 4, [Rating.Again]],
-    [Rating.Hard, 5, [Rating.Again, Rating.Hard]],
-    [Rating.Good, 8, [Rating.Again, Rating.Hard, Rating.Good]],
-    [Rating.Easy, 9, grades],
+    [Rating.Again, 2, []],
+    [Rating.Hard, 4, [Rating.Again]],
+    [Rating.Good, 5, [Rating.Again, Rating.Hard]],
+    [Rating.Easy, 7, [Rating.Again, Rating.Hard, Rating.Good]],
   ] as const)('uses the required long-term candidates for grade %s', (grade, expected, expectedGrades) => {
-    const { ctx, nextInterval, step } = createReviewContext({
+    const { ctx, next, nextInterval, step } = createReviewContext({
       grade,
       intervals: longTermIntervals,
     })
-    const next = vi.fn()
 
     reviewHandler(ctx, next)
 
@@ -97,45 +99,48 @@ describe('schedulerMonotonicIntervalMiddleware handler', () => {
     expect(next).toHaveBeenCalledOnce()
   })
 
-  it('uses the candidate interval resolver for every required grade', () => {
-    const { ctx, step } = createReviewContext({
+  it('normalizes an interval selected by an earlier middleware', () => {
+    const { ctx, next, step } = createReviewContext({
       grade: Rating.Good,
       intervals: longTermIntervals,
       scheduledDays: 2,
     })
 
-    reviewHandler(ctx, vi.fn())
+    reviewHandler(ctx, next)
 
-    expect(ctx.scheduledDays).toBe(8)
+    expect(ctx.scheduledDays).toBe(5)
     expect(step.mock.calls.map(([rating]) => rating)).toEqual([
       Rating.Again,
       Rating.Hard,
-      Rating.Good,
     ])
+    expect(next).toHaveBeenCalledOnce()
   })
 
   it.each([
     State.New,
     State.Learning,
-    State.Relearning,
     State.Review,
-  ])('uses the same rating chain for card state %s', (state) => {
-    const { ctx, step } = createReviewContext({
+    State.Relearning,
+  ])('uses the full rating chain for card state %s', (state) => {
+    const { ctx, next, step } = createReviewContext({
       grade: Rating.Easy,
       intervals: longTermIntervals,
       state,
     })
-    const next = vi.fn()
 
     reviewHandler(ctx, next)
 
-    expect(ctx.scheduledDays).toBe(9)
-    expect(step.mock.calls.map(([rating]) => rating)).toEqual(grades)
+    expect(ctx.scheduledDays).toBe(7)
+    expect(step.mock.calls.map(([rating]) => rating)).toEqual([
+      Rating.Again,
+      Rating.Hard,
+      Rating.Good,
+    ])
     expect(next).toHaveBeenCalledOnce()
   })
 
   it('allows later ratings to share the maximum interval', () => {
-    const { ctx } = createReviewContext({
+    const { ctx, next } = createReviewContext({
       grade: Rating.Easy,
       maximum: 100,
       intervals: {
@@ -146,7 +151,7 @@ describe('schedulerMonotonicIntervalMiddleware handler', () => {
       },
     })
 
-    reviewHandler(ctx, vi.fn())
+    reviewHandler(ctx, next)
 
     expect(ctx.scheduledDays).toBe(100)
   })
@@ -298,8 +303,8 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(
         createSchedulerFuzzingMiddleware({ rng: () => () => 0.5 }),
-        schedulerMonotonicIntervalMiddleware,
-        schedulerLearningStepsMiddleware
+        schedulerLearningStepsMiddleware,
+        schedulerMonotonicIntervalMiddleware
       )
       .create({
         config: {
