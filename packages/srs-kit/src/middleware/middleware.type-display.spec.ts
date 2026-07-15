@@ -49,6 +49,12 @@ const cardInitInputMiddleware = defineMiddleware({
       return { source: forgetCardHoverTarget.source }
     },
   },
+  handlers: {
+    review(ctx, next) {
+      const defaultReviewStatusHoverTarget = ctx.input.card.scheduleStatus
+      next()
+    },
+  },
 })
 
 const cardInitInputMiddlewareHoverTarget = cardInitInputMiddleware
@@ -73,16 +79,19 @@ const displayMiddleware = defineMiddleware({
   handlers: {
     review(ctx, next) {
       const reviewConfigHoverTarget = ctx.config
-      const reviewCardHoverTarget = ctx.input.card
-      const reviewResultRevlogHoverTarget = ctx.result.revlog
+      const reviewCardSourceHoverTarget = ctx.input.card.source
+      const reviewStatusHoverTarget = ctx.input.card.scheduleStatus
+      const reviewResultAuditHoverTarget = ctx.result.revlog.audit
+      const reviewResultStatusHoverTarget = ctx.result.revlog.scheduleStatus
       next()
       ctx.result.card.source = reviewConfigHoverTarget.source
       ctx.result.revlog.audit = reviewConfigHoverTarget.source
     },
     rollback(ctx, next) {
-      const rollbackRevlogHoverTarget = ctx.input.revlog
+      const rollbackAuditHoverTarget = ctx.input.revlog.audit
+      const rollbackStatusHoverTarget = ctx.input.revlog.scheduleStatus
       next()
-      ctx.result.card.source = rollbackRevlogHoverTarget.audit
+      ctx.result.card.source = rollbackAuditHoverTarget
     },
   },
 })
@@ -120,6 +129,7 @@ describe('middleware type display', () => {
     readonly state: State;
     readonly scheduleStatus: string;
 }`,
+    defaultReviewStatusHoverTarget: `const defaultReviewStatusHoverTarget: "new" | "learning" | "review"`,
     middlewareHoverTarget: `const middlewareHoverTarget: Middleware<typeof displayMiddlewareName, {
     readonly scheduleStatus: "paused";
     readonly config: SRSSchema<{
@@ -189,24 +199,12 @@ describe('middleware type display', () => {
         };
     }>;
 }>`,
-    reviewCardHoverTarget: `const reviewCardHoverTarget: {
-    readonly source: string;
-    readonly state: State;
-    readonly scheduleStatus: string;
-}`,
-    reviewResultRevlogHoverTarget: `const reviewResultRevlogHoverTarget: {
-    [x: string]: unknown;
-    audit?: string | undefined;
-    state?: 0 | 1 | 2 | 3 | undefined;
-    scheduleStatus?: string | undefined;
-    rating?: 1 | 2 | 3 | 4 | undefined;
-}`,
-    rollbackRevlogHoverTarget: `const rollbackRevlogHoverTarget: {
-    readonly audit: string;
-    readonly state: State;
-    readonly scheduleStatus: string;
-    readonly rating: Grade;
-}`,
+    reviewCardSourceHoverTarget: `const reviewCardSourceHoverTarget: string`,
+    reviewStatusHoverTarget: `const reviewStatusHoverTarget: "new" | "learning" | "review" | "paused"`,
+    reviewResultAuditHoverTarget: `const reviewResultAuditHoverTarget: string | undefined`,
+    reviewResultStatusHoverTarget: `const reviewResultStatusHoverTarget: "new" | "learning" | "review" | "paused" | undefined`,
+    rollbackAuditHoverTarget: `const rollbackAuditHoverTarget: string`,
+    rollbackStatusHoverTarget: `const rollbackStatusHoverTarget: "new" | "learning" | "review" | "paused"`,
     scheduleStatusHoverTarget: `const scheduleStatusHoverTarget: readonly "paused"[] | undefined`,
   }
 
