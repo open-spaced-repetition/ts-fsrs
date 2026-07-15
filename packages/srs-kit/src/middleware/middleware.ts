@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyMiddleware */
 
 import type { Grade } from '@/primitives/rating.js'
+import type { ScheduleStatus } from '@/primitives/status.js'
 import type {
   AnyObjectSchema,
   Assign,
@@ -151,6 +152,23 @@ type MiddlewareDefinitionEnv<
   never
 >
 
+type MiddlewareStatusContext<
+  Status extends string,
+  InputKey extends 'card' | 'revlog',
+  ResultKey extends 'card' | 'revlog',
+> = {
+  readonly input: {
+    readonly [Key in InputKey]: {
+      readonly scheduleStatus: ScheduleStatus | Status
+    }
+  }
+  readonly result: {
+    readonly [Key in ResultKey]: {
+      scheduleStatus?: ScheduleStatus | Status
+    }
+  }
+}
+
 type MiddlewareDefinition<
   Schema extends MiddlewareDefinitionSchema,
   Name extends PropertyKey,
@@ -165,10 +183,12 @@ type MiddlewareDefinition<
   >['defaultValue']
   readonly handlers?: {
     readonly review?: MiddlewareHandler<
-      ReviewMiddlewareContext<MiddlewareDefinitionEnv<Schema, Status>>
+      ReviewMiddlewareContext<MiddlewareDefinitionEnv<Schema, Status>> &
+        MiddlewareStatusContext<Status, 'card', 'card' | 'revlog'>
     >
     readonly rollback?: MiddlewareHandler<
-      RollbackMiddlewareContext<MiddlewareDefinitionEnv<Schema, Status>>
+      RollbackMiddlewareContext<MiddlewareDefinitionEnv<Schema, Status>> &
+        MiddlewareStatusContext<Status, 'card' | 'revlog', 'card'>
     >
   }
 }
