@@ -6,7 +6,7 @@ import {
 import { calculateScheduleDay, type IntervalCandidates } from './core.js'
 import { monotonicIntervalConfigSchema } from './schema.js'
 
-/** Register after fuzzing, when present, and before learning steps. */
+/** Register after fuzzing and learning steps, when present. */
 export const schedulerMonotonicIntervalMiddleware = defineMiddleware({
   name: Symbol('ts-fsrs.monotonic-interval'),
   schema: {
@@ -23,21 +23,22 @@ export const schedulerMonotonicIntervalMiddleware = defineMiddleware({
       const schedule = (...candidates: IntervalCandidates): number =>
         calculateScheduleDay(candidates, ctx.config.maximumInterval)
 
+      next()
+
+      const scheduledDays = ctx.scheduledDays!
+
       switch (grade) {
         case Rating.Again:
-          ctx.scheduledDays = schedule(interval(Rating.Again))
+          ctx.scheduledDays = schedule(scheduledDays)
           break
         case Rating.Hard:
-          ctx.scheduledDays = schedule(
-            interval(Rating.Again),
-            interval(Rating.Hard)
-          )
+          ctx.scheduledDays = schedule(interval(Rating.Again), scheduledDays)
           break
         case Rating.Good:
           ctx.scheduledDays = schedule(
             interval(Rating.Again),
             interval(Rating.Hard),
-            interval(Rating.Good)
+            scheduledDays
           )
           break
         case Rating.Easy:
@@ -45,12 +46,10 @@ export const schedulerMonotonicIntervalMiddleware = defineMiddleware({
             interval(Rating.Again),
             interval(Rating.Hard),
             interval(Rating.Good),
-            interval(Rating.Easy)
+            scheduledDays
           )
           break
       }
-
-      next()
     },
   },
 })
