@@ -1,5 +1,6 @@
 {
   "name": "@open-spaced-repetition/srs-kit",
+  "private": false,
   "version": "0.0.0",
   "description": "Shared SRS framework primitives, schema helpers, and model contracts.",
   "type": "module",
@@ -136,7 +137,7 @@
     "unrun": "^0.3.1"
   },
   "author": "ishiko",
-  "license": "MIT",
+  "license": "BSD-3-Clause",
   "files": [
     "dist"
   ],
