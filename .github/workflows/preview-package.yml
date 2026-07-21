@@ -80,4 +80,4 @@ jobs:
         run: pnpm run test:coverage
 
       - name: Publish Preview Packages
-        run: pnpm dlx pkg-pr-new publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --compact --packageManager=pnpm
+        run: pnpm dlx pkg-pr-new@0.0.79 publish './packages/fsrs' './packages/binding' './packages/binding/npm/*' --previewVersion --compact --packageManager=pnpm
