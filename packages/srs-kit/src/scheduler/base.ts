@@ -21,13 +21,14 @@ import {
   parse,
   withCache,
 } from '@/schema/index.js'
-import type { SchedulerDefaultValueFactory } from './default-value.js'
 import type {
   BlankSchedulerEnv,
   PreviewResult,
   ScheduleResult,
   SchedulerCore,
   SchedulerCoreEnv,
+  SchedulerDefaultValue,
+  SchedulerDefaultValueContext,
   SchedulerNewCardFn,
   SchedulerNewCardOptions,
   SchedulerSchema,
@@ -41,7 +42,7 @@ export interface BaseSchedulerContext<
   readonly model: M
   readonly chrono: C
   readonly schema: SchedulerSchema<Env>
-  readonly defaultValue: SchedulerDefaultValueFactory
+  readonly defaultValue: SchedulerDefaultValue<Env>
   readonly middlewares?: readonly AnyMiddleware[]
   readonly config: SchemaInput<Env['config']>
 }
@@ -161,7 +162,7 @@ export class BaseScheduler<
   readonly chrono: ReturnType<C['create']>
   private readonly modelDef: M
   private readonly chronoDef: C
-  private readonly defaultValue: SchedulerDefaultValueFactory
+  private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
   private readonly reviewHandlers: readonly (
     | ReviewRuntimeHandler<Env>
@@ -203,16 +204,19 @@ export class BaseScheduler<
   newCard: SchedulerNewCardFn<SchedulerCoreEnv<Env>> = (
     options?: SchedulerNewCardOptions<SchedulerCoreEnv<Env>>
   ): SchedulerCoreEnv<Env>['card']['output'] => {
-    const { now, input } = parse(
+    const { now, input } = parse<Env['cardInitInput']>(
       this.schema.cardInitInput,
       options === undefined ? {} : options
     )
 
-    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>(
+    return this.defaultValue.newCard(
       {
         operation: 'newCard',
         config: this.config,
-        input,
+        input: input as Extract<
+          SchedulerDefaultValueContext<Env>,
+          { readonly operation: 'newCard' }
+        >['input'],
       },
       this.parseNow(now)
     )
@@ -228,7 +232,7 @@ export class BaseScheduler<
     ) as SchedulerCoreEnv<Env>['card']['output']
     const now = this.parseNow(input.now)
 
-    return this.defaultValue.newCard<SchedulerCoreEnv<Env>['card']['output']>(
+    return this.defaultValue.newCard(
       {
         operation: 'forget',
         config: this.config,

@@ -52,6 +52,7 @@ export function defineScheduler<
     name: model.name,
     modelDef: model,
     chronoDef: chrono,
+    defaultValue,
     schema: schedulerSchema,
     create(ctx) {
       locked = true

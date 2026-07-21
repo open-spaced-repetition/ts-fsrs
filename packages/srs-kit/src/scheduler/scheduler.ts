@@ -199,6 +199,25 @@ export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly scheduleStatus: Env['scheduleStatus']
 }
 
+export type SchedulerDefaultValueContext<Env extends BlankSchedulerEnv> =
+  | {
+      readonly operation: 'newCard'
+      readonly config: Readonly<SchemaOutput<Env['config']>>
+      readonly input: Readonly<SchemaOutput<Env['cardInitInput']>['input']>
+    }
+  | {
+      readonly operation: 'forget'
+      readonly config: Readonly<SchemaOutput<Env['config']>>
+      readonly input: Readonly<SchedulerCoreEnv<Env>['card']['output']>
+    }
+
+export interface SchedulerDefaultValue<Env extends BlankSchedulerEnv> {
+  readonly newCard: (
+    ctx: SchedulerDefaultValueContext<Env>,
+    time: Env['chrono']
+  ) => SchedulerCoreEnv<Env>['card']['output']
+}
+
 export type SchedulerCreate<
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
   M extends AnyModel = AnyModel,
@@ -224,6 +243,7 @@ export interface ComposableScheduler<
   readonly name: Name
   readonly modelDef: M
   readonly chronoDef: C
+  readonly defaultValue: SchedulerDefaultValue<Env>
   readonly schema: SchedulerSchema<Env>
   readonly create: SchedulerCreate<Env, M, C>
 

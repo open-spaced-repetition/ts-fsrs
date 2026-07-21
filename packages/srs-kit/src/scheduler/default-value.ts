@@ -1,3 +1,5 @@
+/** biome-ignore-all lint/suspicious/noExplicitAny: runtime generic dispatch */
+
 import type {
   AnyChrono,
   ChronoDefaultCtx,
@@ -7,27 +9,12 @@ import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
 import { State } from '@/primitives/state.js'
 import { isFunction } from '@/schema/index.js'
+import type {
+  SchedulerDefaultValue,
+  SchedulerDefaultValueContext,
+} from './scheduler.js'
 
-type DefaultValueConfig = Record<PropertyKey, unknown>
-
-type DefaultValueContext =
-  | {
-      readonly operation: 'newCard'
-      readonly config: DefaultValueConfig
-      readonly input: Readonly<object>
-    }
-  | {
-      readonly operation: 'forget'
-      readonly config: DefaultValueConfig
-      readonly input: Readonly<Record<string, unknown>>
-    }
-
-export type SchedulerDefaultValueFactory = {
-  readonly newCard: <Card extends object = Record<string, unknown>>(
-    ctx: DefaultValueContext,
-    time: unknown
-  ) => Card
-}
+type DefaultValueContext = SchedulerDefaultValueContext<any>
 
 function applyMiddlewareCardDefaults(
   target: Record<string, unknown>,
@@ -74,15 +61,12 @@ export function useComposeDefaultValue(ctx: {
   readonly model: AnyModel
   readonly chrono: AnyChrono
   readonly middlewares: readonly AnyMiddleware[]
-}): SchedulerDefaultValueFactory {
+}): SchedulerDefaultValue<any> {
   const { model, chrono, middlewares } = ctx
   const chronoCardDefault = resolveChronoDefault(chrono.defaultValue?.card)
 
   return {
-    newCard<Card extends object = Record<string, unknown>>(
-      defaultValue: DefaultValueContext,
-      time: unknown
-    ) {
+    newCard(defaultValue, time) {
       const { config } = defaultValue
       const card: Record<string, unknown> = model.defaultValue.memoryState({
         config,
@@ -97,7 +81,7 @@ export function useComposeDefaultValue(ctx: {
         time,
       })
 
-      return card as Card
+      return card as ReturnType<SchedulerDefaultValue<any>['newCard']>
     },
   }
 }

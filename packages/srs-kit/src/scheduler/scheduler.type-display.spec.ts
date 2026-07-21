@@ -86,6 +86,18 @@ const sm2NumericCoreWithMiddleware = sm2NumericSchedulerWithMiddleware.create({
   config: { weights: SM2_DEFAULT_WEIGHTS },
 })
 
+const defaultNewCard = sm2NumericSchedulerWithMiddleware.defaultValue.newCard(
+  {
+    operation: 'newCard',
+    config: sm2NumericSchedulerWithMiddleware.schema.config.parse({
+      weights: SM2_DEFAULT_WEIGHTS,
+    }),
+    input: sm2NumericSchedulerWithMiddleware.schema.cardInitInput.parse({})
+      .input,
+  },
+  0
+)
+
 const SELF = 'src/scheduler/scheduler.type-display.spec.ts'
 
 describe('defineScheduler type display', () => {
@@ -463,6 +475,19 @@ describe('defineScheduler type display', () => {
 }>, ChronoCore<number>>`,
   }
 
+  const expectedDefaultValues = {
+    defaultNewCard: `const defaultNewCard: {
+    source: string;
+    interval: number;
+    easeFactor: number;
+    reviewStep: number;
+    reps: number;
+    lapses: number;
+    state: State;
+    scheduleStatus: "new" | "learning" | "review";
+}`,
+  }
+
   const expectedSuspend = {
     sm2WithSuspend: `const sm2WithSuspend: ComposableScheduler<"sm2", {
     readonly chrono: number;
@@ -621,6 +646,12 @@ describe('defineScheduler type display', () => {
 
   it('shows SchedulerCore<T> for scheduler.create()', () => {
     for (const [marker, expected] of Object.entries(expectedCores)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('shows the composed card type for defaultValue.newCard()', () => {
+    for (const [marker, expected] of Object.entries(expectedDefaultValues)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })
