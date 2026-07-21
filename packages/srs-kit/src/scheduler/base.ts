@@ -1,13 +1,12 @@
 import type {
   AnyChrono,
-  AnyChronoCore,
   ChronoProjectionRuntimeSchema,
 } from '@/chrono/chrono.js'
 import type {
   AnyMiddleware,
   ReviewCandidateContext,
 } from '@/middleware/index.js'
-import type { AnyModel, AnyModelCore } from '@/model/model.js'
+import type { AnyModel } from '@/model/model.js'
 import { type Grade, gradeSchema, grades } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
 import {
@@ -34,9 +33,13 @@ import type {
   SchedulerSchema,
 } from './scheduler.js'
 
-export interface BaseSchedulerContext<Env extends BlankSchedulerEnv> {
-  readonly model: AnyModel
-  readonly chrono: AnyChrono
+export interface BaseSchedulerContext<
+  Env extends BlankSchedulerEnv,
+  M extends AnyModel,
+  C extends AnyChrono,
+> {
+  readonly model: M
+  readonly chrono: C
   readonly schema: SchedulerSchema<Env>
   readonly defaultValue: SchedulerDefaultValueFactory
   readonly middlewares?: readonly AnyMiddleware[]
@@ -141,16 +144,24 @@ class ReviewInput<Env extends BlankSchedulerEnv>
   }
 }
 
-export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
-  implements SchedulerCore<SchedulerCoreEnv<Env>>
+export class BaseScheduler<
+  Env extends BlankSchedulerEnv = BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
+> implements
+    SchedulerCore<
+      SchedulerCoreEnv<Env>,
+      ReturnType<M['create']>,
+      ReturnType<C['create']>
+    >
 {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
 
-  readonly model: AnyModel
-  readonly chrono: AnyChrono
+  readonly model: ReturnType<M['create']>
+  readonly chrono: ReturnType<C['create']>
+  private readonly modelDef: M
+  private readonly chronoDef: C
   private readonly defaultValue: SchedulerDefaultValueFactory
-  private readonly modelCore: AnyModelCore
-  private readonly chronoCore: AnyChronoCore
   private readonly schema: SchedulerSchema<Env>
   private readonly reviewHandlers: readonly (
     | ReviewRuntimeHandler<Env>
@@ -161,26 +172,26 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     | undefined
   )[]
 
-  constructor(ctx: BaseSchedulerContext<Env>) {
+  constructor(ctx: BaseSchedulerContext<Env, M, C>) {
     const { model, chrono, schema, defaultValue, middlewares = [] } = ctx
-    this.model = model
-    this.chrono = chrono
+    this.modelDef = model
+    this.chronoDef = chrono
     this.schema = schema
     this.defaultValue = defaultValue
 
     const config = parse(schema.config, ctx.config)
 
     this.config = config
-    this.modelCore = model.create({
+    this.model = model.create({
       config: getAttachedValue<typeof parsedModelConfigSymbol, typeof config>(
         config,
         parsedModelConfigSymbol
       ),
       bypass: true,
-    })
-    this.chronoCore = Reflect.apply(chrono.create, chrono, [
+    }) as ReturnType<M['create']>
+    this.chrono = Reflect.apply(chrono.create, chrono, [
       { config: config.chrono },
-    ])
+    ]) as ReturnType<C['create']>
     this.reviewHandlers = middlewares.map(
       (middleware) => middleware.handlers?.review
     ) as readonly (ReviewRuntimeHandler<Env> | undefined)[]
@@ -355,20 +366,20 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     }
 
     const card = Object.freeze(parsedCard)
-    const time = parse<ChronoProjectionRuntimeSchema>(this.chrono.projection, {
-      card,
-      time: now,
-    }) as PreparedReview<Env>['time']
+    const time = parse<ChronoProjectionRuntimeSchema>(
+      this.chronoDef.projection,
+      {
+        card,
+        time: now,
+      }
+    ) as PreparedReview<Env>['time']
 
-    const elapsedDays = this.chronoCore.difference(time.previous, time.current)
+    const elapsedDays = this.chrono.difference(time.previous, time.current)
 
-    const retrievability = this.modelCore.forgettingCurve(
-      memoryState,
-      elapsedDays
-    )
+    const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
     const step = withCache(
       (grade: Grade) =>
-        this.modelCore.step({
+        this.model.step({
           memoryState,
           rating: grade,
           elapsedDays,
@@ -392,10 +403,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
         inner = new Map()
         intervalCache.set(nextMemoryState, inner)
       }
-      const value = this.modelCore.nextInterval(
-        nextMemoryState,
-        desiredRetention
-      )
+      const value = this.model.nextInterval(nextMemoryState, desiredRetention)
       inner.set(desiredRetention, value)
       return value
     }
@@ -444,7 +452,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    Object.assign(result.card, parse(this.model.schema.memoryState, revlog))
+    Object.assign(result.card, parse(this.modelDef.schema.memoryState, revlog))
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
 
@@ -466,19 +474,19 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     prepared: PreparedReview<Env>,
     scheduledDays: number
   ): void {
-    const chronoCardDefault = this.chrono.defaultValue?.card
+    const chronoCardDefault = this.chronoDef.defaultValue?.card
     if (chronoCardDefault) {
       Object.assign(
         result.card,
         chronoCardDefault({
           config: this.config.chrono,
-          time: this.chronoCore.add(prepared.time.current, scheduledDays),
+          time: this.chrono.add(prepared.time.current, scheduledDays),
           previous: prepared.time,
         })
       )
     }
 
-    const chronoRevlogDefault = this.chrono.defaultValue?.revlog
+    const chronoRevlogDefault = this.chronoDef.defaultValue?.revlog
     if (chronoRevlogDefault) {
       Object.assign(
         result.revlog,
@@ -495,17 +503,17 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
     result: RollbackResultDraft<Env>,
     revlog: Readonly<SchedulerCoreEnv<Env>['revlog']['output']>
   ): void {
-    const chronoCardSchema = this.chrono.schema.card
+    const chronoCardSchema = this.chronoDef.schema.card
     if (!chronoCardSchema) {
       return
     }
     const projection = parse<ChronoProjectionRuntimeSchema>(
-      this.chrono.projection,
+      this.chronoDef.projection,
       {
         revlog,
       }
     )
-    const cardFields = this.chrono.defaultValue?.card?.({
+    const cardFields = this.chronoDef.defaultValue?.card?.({
       config: this.config.chrono,
       previous: {
         previous: 0,
@@ -520,7 +528,7 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
 
   private parseNow(now?: unknown): SchedulerCoreEnv<Env>['chrono'] {
     return now === undefined
-      ? this.chronoCore.now()
-      : parse(this.chrono.schema.time, now)
+      ? this.chrono.now()
+      : parse(this.chronoDef.schema.time, now)
   }
 }

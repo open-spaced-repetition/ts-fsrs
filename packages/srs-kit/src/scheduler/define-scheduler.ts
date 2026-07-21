@@ -50,12 +50,12 @@ export function defineScheduler<
     C
   > = {
     name: model.name,
-    model,
-    chrono,
+    modelDef: model,
+    chronoDef: chrono,
     schema: schedulerSchema,
     create(ctx) {
       locked = true
-      return new BaseScheduler<InitialSchedulerEnv<M, C>>({
+      return new BaseScheduler<InitialSchedulerEnv<M, C>, M, C>({
         model,
         chrono,
         schema: schedulerSchema,

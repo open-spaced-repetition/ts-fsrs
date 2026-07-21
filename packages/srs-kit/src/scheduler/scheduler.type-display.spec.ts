@@ -21,6 +21,8 @@ const sm2NumericCore = sm2NumericScheduler.create({
   config: { weights: SM2_DEFAULT_WEIGHTS },
 })
 
+const { model, chrono } = sm2NumericCore
+
 const sourceCardSchema = defineStringFieldOutputSchema({
   field: 'source',
   message: 'Expected source',
@@ -390,7 +392,16 @@ describe('defineScheduler type display', () => {
     };
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
-}>`,
+}, ModelCore<{
+    readonly config: {
+        readonly weights: readonly number[];
+    };
+    readonly memoryState: {
+        readonly interval: number;
+        readonly easeFactor: number;
+        readonly reviewStep: number;
+    };
+}>, ChronoCore<number>>`,
     sm2NumericCore: `const sm2NumericCore: SchedulerCore<{
     readonly config: {
         readonly weights: readonly number[];
@@ -440,7 +451,16 @@ describe('defineScheduler type display', () => {
     };
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
-}>`,
+}, ModelCore<{
+    readonly config: {
+        readonly weights: readonly number[];
+    };
+    readonly memoryState: {
+        readonly interval: number;
+        readonly easeFactor: number;
+        readonly reviewStep: number;
+    };
+}>, ChronoCore<number>>`,
   }
 
   const expectedSuspend = {
@@ -564,7 +584,16 @@ describe('defineScheduler type display', () => {
     };
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
-}>`,
+}, ModelCore<{
+    readonly config: {
+        readonly weights: readonly number[];
+    };
+    readonly memoryState: {
+        readonly interval: number;
+        readonly easeFactor: number;
+        readonly reviewStep: number;
+    };
+}>, ChronoCore<number>>`,
   }
 
   const expectedMiddlewares = {
