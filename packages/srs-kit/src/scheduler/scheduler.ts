@@ -1,6 +1,8 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyScheduler */
 
+import type { AnyChrono } from '@/chrono/chrono.js'
 import type { AnyMiddleware } from '@/middleware/index.js'
+import type { AnyModel } from '@/model/model.js'
 import type { Grade } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
@@ -167,9 +169,11 @@ export interface SchedulerSchema<
 export type SchedulerUseFn<
   Name extends string | symbol,
   Env extends BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
 > = <const AddedMWs extends readonly AnyMiddleware[]>(
   ...middlewares: AddedMWs
-) => ComposableScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>>
+) => ComposableScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>, M, C>
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
@@ -198,8 +202,12 @@ export type SchedulerCreate<Env extends BlankSchedulerEnv = BlankSchedulerEnv> =
 export interface ComposableScheduler<
   Name extends string | symbol = string | symbol,
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
 > {
   readonly name: Name
+  readonly model: M
+  readonly chrono: C
   readonly schema: SchedulerSchema<Env>
   readonly create: SchedulerCreate<Env>
 
@@ -209,7 +217,7 @@ export interface ComposableScheduler<
    * Must be called before the first create() call. Once create() has been
    * called, the scheduler is locked and use() throws.
    */
-  readonly use: SchedulerUseFn<Name, Env>
+  readonly use: SchedulerUseFn<Name, Env, M, C>
 }
 
-export type AnyScheduler = ComposableScheduler<any, any>
+export type AnyScheduler = ComposableScheduler<any, any, any, any>

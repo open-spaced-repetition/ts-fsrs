@@ -137,7 +137,35 @@ describe('defineScheduler type display', () => {
             rating: Grade;
         };
     }>;
-}>`,
+}, Model<{
+    readonly name: "sm2";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+        };
+    }>;
+    readonly memoryState: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+    }>;
+}>, Chrono<{
+    readonly time: SRSSchema<{
+        input: {};
+        output: number;
+    }>;
+    readonly fields: {};
+}>>`,
     sm2NumericScheduler: `const sm2NumericScheduler: ComposableScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
@@ -191,7 +219,35 @@ describe('defineScheduler type display', () => {
             rating: Grade;
         };
     }>;
-}>`,
+}, Model<{
+    readonly name: "sm2";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+        };
+    }>;
+    readonly memoryState: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+    }>;
+}>, Chrono<{
+    readonly time: SRSSchema<{
+        input: {};
+        output: number;
+    }>;
+    readonly fields: {};
+}>>`,
     sm2NumericSchedulerWithMiddleware: `const sm2NumericSchedulerWithMiddleware: ComposableScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
@@ -249,7 +305,35 @@ describe('defineScheduler type display', () => {
             rating: Grade;
         };
     }>;
-}>`,
+}, Model<{
+    readonly name: "sm2";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+        };
+    }>;
+    readonly memoryState: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+    }>;
+}>, Chrono<{
+    readonly time: SRSSchema<{
+        input: {};
+        output: number;
+    }>;
+    readonly fields: {};
+}>>`,
   }
 
   const expectedCores = {
@@ -407,7 +491,35 @@ describe('defineScheduler type display', () => {
             rating: Grade;
         };
     }>;
-}>`,
+}, Model<{
+    readonly name: "sm2";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+        };
+    }>;
+    readonly memoryState: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+    }>;
+}>, Chrono<{
+    readonly time: SRSSchema<{
+        input: {};
+        output: number;
+    }>;
+    readonly fields: {};
+}>>`,
     sm2WithSuspendCore: `const sm2WithSuspendCore: SchedulerCore<{
     readonly config: {
         readonly weights: readonly number[];

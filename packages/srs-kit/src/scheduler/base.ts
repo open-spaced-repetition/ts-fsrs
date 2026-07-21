@@ -146,8 +146,8 @@ export class BaseScheduler<Env extends BlankSchedulerEnv = BlankSchedulerEnv>
 {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
 
-  private readonly model: AnyModel
-  private readonly chrono: AnyChrono
+  readonly model: AnyModel
+  readonly chrono: AnyChrono
   private readonly defaultValue: SchedulerDefaultValueFactory
   private readonly modelCore: AnyModelCore
   private readonly chronoCore: AnyChronoCore
