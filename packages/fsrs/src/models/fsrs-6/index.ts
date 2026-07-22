@@ -14,6 +14,7 @@ export type { FSRS6Config } from './parameters.js'
 export {
   checkFSRS6Parameters,
   clipFSRS6Parameters,
+  decaySchema,
   fsrs6ConfigSchema,
   migrateFSRS6Parameters,
 } from './parameters.js'

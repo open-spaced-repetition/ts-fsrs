@@ -1,8 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { FSRS6_DEFAULT_WEIGHTS } from './constants.js'
-import { checkFSRS6Parameters, clipFSRS6Parameters } from './parameters.js'
+import { FSRS6_DECAY, FSRS6_DEFAULT_WEIGHTS } from './constants.js'
+import {
+  checkFSRS6Parameters,
+  clipFSRS6Parameters,
+  decaySchema,
+} from './parameters.js'
 
 describe('FSRS-6 parameters', () => {
+  it('validates decay', () => {
+    expect(decaySchema.parse(FSRS6_DECAY)).toBe(FSRS6_DECAY)
+    expect(decaySchema.parse(0.1)).toBe(0.1)
+    expect(decaySchema.parse(0.8)).toBe(0.8)
+    expect(() => decaySchema.parse('0.1542')).toThrow()
+    expect(() => decaySchema.parse(0.09)).toThrow()
+    expect(() => decaySchema.parse(0.81)).toThrow()
+    expect(() => decaySchema.parse(Number.NaN)).toThrow()
+  })
+
   it('checks default weights with default options', () => {
     const weights = Array.from(FSRS6_DEFAULT_WEIGHTS)
 

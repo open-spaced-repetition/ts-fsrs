@@ -9,6 +9,12 @@ import {
   FSRS6ParameterBounds,
 } from './constants'
 
+export const decaySchema = defineSchema<unknown, number>((value) =>
+  typeof value === 'number' && value >= 0.1 && value <= 0.8
+    ? { value }
+    : { issues: [{ message: 'Expected decay between 0.1 and 0.8' }] }
+)
+
 export const clipFSRS6Parameters = (
   parameters: number[],
   numRelearningSteps = 0,
