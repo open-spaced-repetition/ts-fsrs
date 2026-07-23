@@ -185,52 +185,75 @@ describe('defineScheduler', () => {
     ).toStrictEqual({ input: {}, now: 'raw-now' })
   })
 
-  it('uses middleware references from use() when schemas parse', () => {
-    const dynamicScheduler = createSM2NumericScheduler()
-    const schema = dynamicScheduler.schema
-    expect(schema.cardInitInput.parse({})).toStrictEqual({
-      input: {},
-      now: undefined,
+  it('keeps schema and default-value branches isolated after use()', () => {
+    const baseScheduler = createSM2NumericScheduler()
+    const baseSchema = baseScheduler.schema
+    const baseDefaultValue = baseScheduler.defaultValue
+    const sourceScheduler = baseScheduler.use(sourceMiddleware)
+    const statsScheduler = baseScheduler.use(schedulerStatsMiddleware)
+    const sourceSchema = sourceScheduler.schema
+    const statsSchema = statsScheduler.schema
+    const sourceDefaultValue = sourceScheduler.defaultValue
+    const statsDefaultValue = statsScheduler.defaultValue
+
+    expect(sourceScheduler).not.toBe(baseScheduler)
+    expect(statsScheduler).not.toBe(baseScheduler)
+    expect(statsScheduler).not.toBe(sourceScheduler)
+    expect(baseScheduler.use()).toBe(baseScheduler)
+    expect(sourceSchema).not.toBe(baseSchema)
+    expect(statsSchema).not.toBe(baseSchema)
+    expect(sourceSchema).not.toBe(statsSchema)
+    expect(sourceDefaultValue).not.toBe(baseDefaultValue)
+    expect(statsDefaultValue).not.toBe(baseDefaultValue)
+    expect(sourceScheduler.schema).toBe(sourceSchema)
+    expect(statsScheduler.schema).toBe(statsSchema)
+    expect(sourceScheduler.defaultValue).toBe(sourceDefaultValue)
+    expect(statsScheduler.defaultValue).toBe(statsDefaultValue)
+
+    const baseCard = baseDefaultValue.newCard(
+      {
+        operation: 'newCard',
+        config: baseSchema.config.parse(config),
+        input: {},
+      },
+      0
+    )
+    const sourceCard = sourceDefaultValue.newCard(
+      {
+        operation: 'newCard',
+        config: sourceSchema.config.parse({
+          ...config,
+          source: 'source-branch',
+        }),
+        input: {},
+      },
+      0
+    )
+    const statsCard = statsDefaultValue.newCard(
+      {
+        operation: 'newCard',
+        config: statsSchema.config.parse(config),
+        input: {},
+      },
+      0
+    )
+
+    expect(baseScheduler.schema).toBe(baseSchema)
+    expect(baseScheduler.defaultValue).toBe(baseDefaultValue)
+    expect(baseCard).not.toHaveProperty('source')
+    expect(baseCard).not.toHaveProperty('reps')
+    expect(sourceCard).toHaveProperty('source', 'source-branch')
+    expect(sourceCard).not.toHaveProperty('reps')
+    expect(sourceSchema.card.parse(sourceCard)).toHaveProperty(
+      'source',
+      'source-branch'
+    )
+    expect(statsCard).toMatchObject({ reps: 0, lapses: 0 })
+    expect(statsCard).not.toHaveProperty('source')
+    expect(statsSchema.card.parse(statsCard)).toMatchObject({
+      reps: 0,
+      lapses: 0,
     })
-
-    const dynamicSchedulerWithMiddleware = dynamicScheduler.use(
-      sourceMiddleware,
-      schedulerStatsMiddleware
-    )
-    const usedSchema = dynamicSchedulerWithMiddleware.schema
-
-    expect(dynamicSchedulerWithMiddleware).toBe(dynamicScheduler)
-    expect(usedSchema).toBe(schema)
-    expect(() => usedSchema.card.parse(core.newCard())).toThrow(
-      'Expected source card field'
-    )
-    expect(() =>
-      usedSchema.revlog.parse({
-        ...core.newCard(),
-        rating: Rating.Good,
-      })
-    ).toThrow('Expected audit revlog field')
-
-    expect(
-      usedSchema.config.parse({
-        ...config,
-        source: 'schema-source',
-      }).source
-    ).toBe('schema-source')
-    expect(
-      usedSchema.cardInitInput.parse({ source: 'schema-source' }).input.source
-    ).toBe('schema-source')
-    expect(() => usedSchema.cardInitInput.parse({ source: 1 })).toThrow(
-      'Expected source card init input'
-    )
-    expect(usedSchema.card.parse(usedCore.newCard()).source).toBe('used-source')
-    expect(
-      usedSchema.revlog.parse({
-        ...usedCore.newCard(),
-        rating: Rating.Good,
-        audit: 'schema-source',
-      }).audit
-    ).toBe('schema-source')
   })
 
   it('validates scheduler config input before composing config fields', () => {
@@ -313,6 +336,24 @@ describe('defineScheduler', () => {
     )
     expect(() => scheduler.schema.revlog.parse(null)).toThrow(
       'Expected revlog object'
+    )
+  })
+
+  it('validates middleware card and revlog fields', () => {
+    const card = usedCore.newCard()
+    const review = usedCore.review({
+      card,
+      grade: Rating.Good,
+      now: 1,
+    })
+    const { source: _source, ...cardWithoutSource } = card
+    const { audit: _audit, ...revlogWithoutAudit } = review.revlog
+
+    expect(() => usedScheduler.schema.card.parse(cardWithoutSource)).toThrow(
+      'Expected source card field'
+    )
+    expect(() => usedScheduler.schema.revlog.parse(revlogWithoutAudit)).toThrow(
+      'Expected audit revlog field'
     )
   })
 
