@@ -54,6 +54,23 @@ describe('defineScheduler', () => {
     expectTypeOf(scheduler.name).toEqualTypeOf<'sm2'>()
   })
 
+  it('exposes composed default values', () => {
+    const emptyCard = scheduler.defaultValue.newCard(
+      {
+        operation: 'newCard',
+        config: scheduler.schema.config.parse(config),
+        input: {},
+      },
+      0
+    )
+    expect(emptyCard).toMatchObject({
+      state: State.New,
+      interval: 0,
+      reps: 0,
+      lapses: 0,
+    })
+  })
+
   it('types new-card input declared by middleware', () => {
     usedCore.newCard({ source: 'injected-source' })
     const invalidNewCard = () => {

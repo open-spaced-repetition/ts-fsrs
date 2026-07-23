@@ -25,7 +25,7 @@ export function defineScheduler<
 >(definition: {
   readonly model: M
   readonly chrono: C
-}): ComposableScheduler<SchedulerNameOf<M>, InitialSchedulerEnv<M, C>> {
+}): ComposableScheduler<SchedulerNameOf<M>, InitialSchedulerEnv<M, C>, M, C> {
   const { model, chrono } = definition
 
   /**
@@ -45,13 +45,18 @@ export function defineScheduler<
   let locked = false
   const scheduler: ComposableScheduler<
     SchedulerNameOf<M>,
-    InitialSchedulerEnv<M, C>
+    InitialSchedulerEnv<M, C>,
+    M,
+    C
   > = {
     name: model.name,
+    modelDef: model,
+    chronoDef: chrono,
+    defaultValue,
     schema: schedulerSchema,
     create(ctx) {
       locked = true
-      return new BaseScheduler<InitialSchedulerEnv<M, C>>({
+      return new BaseScheduler<InitialSchedulerEnv<M, C>, M, C>({
         model,
         chrono,
         schema: schedulerSchema,
