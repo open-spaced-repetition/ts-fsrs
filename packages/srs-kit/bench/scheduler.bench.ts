@@ -7,8 +7,12 @@ import { defineScheduler } from '@/scheduler/index.js'
 
 let _schedulerSink: unknown
 
-function consumeSchedulerName(value: string | symbol): void {
+function consumeScheduler<T>(value: T): void {
   _schedulerSink = value
+}
+
+const config = {
+  weights: SM2_DEFAULT_WEIGHTS,
 }
 
 describe('SM2 numeric scheduler', () => {
@@ -17,9 +21,6 @@ describe('SM2 numeric scheduler', () => {
     chrono: numericChrono,
   }).use(schedulerStatsMiddleware)
 
-  const config = {
-    weights: SM2_DEFAULT_WEIGHTS,
-  }
   const core = scheduler.create({ config })
   const newCard = core.newCard({ now: 0 })
   const reviewCard = core.review({
@@ -62,19 +63,100 @@ describe('SM2 numeric scheduler', () => {
 })
 
 describe('defineScheduler composition', () => {
-  bench('defineScheduler()', () => {
-    const scheduler = defineScheduler({
-      model: SM2Model,
-      chrono: numericChrono,
-    })
-    consumeSchedulerName(scheduler.name)
+  const cachedScheduler = defineScheduler({
+    model: SM2Model,
+    chrono: numericChrono,
+  }).use(schedulerStatsMiddleware)
+  cachedScheduler.create({ config })
+
+  const cachedBaseScheduler = defineScheduler({
+    model: SM2Model,
+    chrono: numericChrono,
+  })
+  cachedBaseScheduler.create({ config })
+
+  type RuntimeBranch = {
+    use(...middlewares: (typeof schedulerStatsMiddleware)[]): RuntimeBranch
+  }
+  const runtimeBaseScheduler = cachedBaseScheduler as unknown as RuntimeBranch
+  let deepScheduler = runtimeBaseScheduler
+  for (let depth = 0; depth < 8; depth++) {
+    deepScheduler = deepScheduler.use(schedulerStatsMiddleware)
+  }
+
+  bench('use branch (base)', () => {
+    consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware))
   })
 
-  bench('defineScheduler().use(stats)', () => {
-    const scheduler = defineScheduler({
-      model: SM2Model,
-      chrono: numericChrono,
-    }).use(schedulerStatsMiddleware)
-    consumeSchedulerName(scheduler.name)
+  bench('use branch (8 ancestors)', () => {
+    consumeScheduler(deepScheduler.use(schedulerStatsMiddleware))
+  })
+
+  bench('use branch (4 added)', () => {
+    consumeScheduler(
+      runtimeBaseScheduler.use(
+        schedulerStatsMiddleware,
+        schedulerStatsMiddleware,
+        schedulerStatsMiddleware,
+        schedulerStatsMiddleware
+      )
+    )
+  })
+
+  bench('define/use (unmaterialized)', () => {
+    consumeScheduler(
+      defineScheduler({
+        model: SM2Model,
+        chrono: numericChrono,
+      }).use(schedulerStatsMiddleware)
+    )
+  })
+
+  bench('define/use (name-only legacy workload)', () => {
+    consumeScheduler(
+      defineScheduler({
+        model: SM2Model,
+        chrono: numericChrono,
+      }).use(schedulerStatsMiddleware).name
+    )
+  })
+
+  bench('define/use/create (cold)', () => {
+    consumeScheduler(
+      defineScheduler({
+        model: SM2Model,
+        chrono: numericChrono,
+      })
+        .use(schedulerStatsMiddleware)
+        .create({ config })
+    )
+  })
+
+  bench('create (cached composition)', () => {
+    consumeScheduler(cachedScheduler.create({ config }))
+  })
+
+  bench('schema getter (cached)', () => {
+    consumeScheduler(cachedScheduler.schema)
+  })
+
+  bench('defaultValue getter (cached)', () => {
+    consumeScheduler(cachedScheduler.defaultValue)
+  })
+
+  bench('schema getter (cold branch)', () => {
+    consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware).schema)
+  })
+
+  bench('defaultValue getter (cold branch)', () => {
+    consumeScheduler(
+      cachedBaseScheduler.use(schedulerStatsMiddleware).defaultValue
+    )
+  })
+
+  bench('use/create branch (cached base)', () => {
+    consumeScheduler(
+      cachedBaseScheduler.use(schedulerStatsMiddleware).create({ config })
+    )
   })
 })
