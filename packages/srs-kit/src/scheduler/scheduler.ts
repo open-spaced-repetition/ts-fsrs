@@ -1,6 +1,8 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyScheduler */
 
+import type { AnyChrono, AnyChronoCore } from '@/chrono/chrono.js'
 import type { AnyMiddleware } from '@/middleware/index.js'
+import type { AnyModel, AnyModelCore } from '@/model/model.js'
 import type { Grade } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
@@ -73,7 +75,11 @@ export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
 
 export interface SchedulerCore<
   Env extends BlankSchedulerCoreEnv = BlankSchedulerCoreEnv,
+  M extends AnyModelCore = AnyModelCore,
+  C extends AnyChronoCore = AnyChronoCore,
 > {
+  readonly model: M
+  readonly chrono: C
   readonly config: Readonly<Env['config']>
   readonly newCard: SchedulerNewCardFn<Env>
   readonly forget: (input: {
@@ -167,9 +173,16 @@ export interface SchedulerSchema<
 export type SchedulerUseFn<
   Name extends string | symbol,
   Env extends BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
 > = <const AddedMWs extends readonly AnyMiddleware[]>(
   ...middlewares: AddedMWs
-) => ComposableScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>>
+) => ComposableScheduler<
+  Name,
+  Prettify<ExtendSchedulerEnv<Env, AddedMWs>>,
+  M,
+  C
+>
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
@@ -186,10 +199,36 @@ export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly scheduleStatus: Env['scheduleStatus']
 }
 
-export type SchedulerCreate<Env extends BlankSchedulerEnv = BlankSchedulerEnv> =
-  (ctx: {
-    readonly config: SchemaInput<Env['config']>
-  }) => SchedulerCore<Prettify<SchedulerCoreEnv<Env>>>
+export type SchedulerDefaultValueContext<Env extends BlankSchedulerEnv> =
+  | {
+      readonly operation: 'newCard'
+      readonly config: Readonly<SchemaOutput<Env['config']>>
+      readonly input: Readonly<SchemaOutput<Env['cardInitInput']>['input']>
+    }
+  | {
+      readonly operation: 'forget'
+      readonly config: Readonly<SchemaOutput<Env['config']>>
+      readonly input: Readonly<SchedulerCoreEnv<Env>['card']['output']>
+    }
+
+export interface SchedulerDefaultValue<Env extends BlankSchedulerEnv> {
+  readonly newCard: (
+    ctx: SchedulerDefaultValueContext<Env>,
+    time: Env['chrono']
+  ) => SchedulerCoreEnv<Env>['card']['output']
+}
+
+export type SchedulerCreate<
+  Env extends BlankSchedulerEnv = BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
+> = (ctx: {
+  readonly config: SchemaInput<Env['config']>
+}) => SchedulerCore<
+  Prettify<SchedulerCoreEnv<Env>>,
+  ReturnType<M['create']>,
+  ReturnType<C['create']>
+>
 
 /**
  * Scheduler definition that can be extended with middleware before it is
@@ -198,10 +237,15 @@ export type SchedulerCreate<Env extends BlankSchedulerEnv = BlankSchedulerEnv> =
 export interface ComposableScheduler<
   Name extends string | symbol = string | symbol,
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
+  M extends AnyModel = AnyModel,
+  C extends AnyChrono = AnyChrono,
 > {
   readonly name: Name
+  readonly modelDef: M
+  readonly chronoDef: C
+  readonly defaultValue: SchedulerDefaultValue<Env>
   readonly schema: SchedulerSchema<Env>
-  readonly create: SchedulerCreate<Env>
+  readonly create: SchedulerCreate<Env, M, C>
 
   /**
    * Adds middleware to this scheduler instance.
@@ -209,7 +253,7 @@ export interface ComposableScheduler<
    * Must be called before the first create() call. Once create() has been
    * called, the scheduler is locked and use() throws.
    */
-  readonly use: SchedulerUseFn<Name, Env>
+  readonly use: SchedulerUseFn<Name, Env, M, C>
 }
 
-export type AnyScheduler = ComposableScheduler<any, any>
+export type AnyScheduler = ComposableScheduler<any, any, any, any>
