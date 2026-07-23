@@ -1,5 +1,4 @@
 ---
-"@open-spaced-repetition/srs-kit": minor
 "ts-fsrs": major
 ---
 
