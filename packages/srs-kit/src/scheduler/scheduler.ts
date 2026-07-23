@@ -231,8 +231,8 @@ export type SchedulerCreate<
 >
 
 /**
- * Scheduler definition that can be extended with middleware before it is
- * materialized with create().
+ * Scheduler definition that can be extended into independent middleware
+ * branches and materialized with create().
  */
 export interface ComposableScheduler<
   Name extends string | symbol = string | symbol,
@@ -248,10 +248,8 @@ export interface ComposableScheduler<
   readonly create: SchedulerCreate<Env, M, C>
 
   /**
-   * Adds middleware to this scheduler instance.
-   *
-   * Must be called before the first create() call. Once create() has been
-   * called, the scheduler is locked and use() throws.
+   * Returns a new scheduler definition extended with the supplied middleware.
+   * The current scheduler and any cores created from it remain unchanged.
    */
   readonly use: SchedulerUseFn<Name, Env, M, C>
 }

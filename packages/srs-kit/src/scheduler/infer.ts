@@ -22,6 +22,7 @@ import type { AnyModel } from '@/model/model.js'
 import type { ScheduleStatus } from '@/primitives/status.js'
 import type {
   Assign,
+  HasSchema,
   MergeAllObjects,
   MergePart,
   Mutable,
@@ -36,13 +37,9 @@ import type {
   SchedulerCoreFields,
   SchedulerRevlogCoreFields,
 } from './fields.js'
-import type {
-  AnyScheduler,
-  BlankSchedulerEnv,
-  SchedulerCardInitSchema,
-} from './scheduler.js'
+import type { BlankSchedulerEnv, SchedulerCardInitSchema } from './scheduler.js'
 
-export type SchedulerConfigOf<T extends AnyScheduler> = SchemaOutputOf<
+export type SchedulerConfigOf<T extends HasSchema<'config'>> = SchemaOutputOf<
   T,
   'config'
 >
@@ -259,34 +256,31 @@ export type ExtendSchedulerEnv<
   }>
 }
 
-export type SchedulerCardOf<T extends AnyScheduler> = SchemaOutputOf<T, 'card'>
-
-export type SchedulerCardInitInputOf<T extends AnyScheduler> = SchemaInputOf<
-  T,
-  'cardInitInput'
->
-
-export type SchedulerCardInputOf<T extends AnyScheduler> = SchemaInputOf<
+export type SchedulerCardOf<T extends HasSchema<'card'>> = SchemaOutputOf<
   T,
   'card'
 >
 
-export type SchedulerRevlogOf<T extends AnyScheduler> = SchemaOutputOf<
+export type SchedulerCardInitInputOf<T extends HasSchema<'cardInitInput'>> =
+  SchemaInputOf<T, 'cardInitInput'>
+
+export type SchedulerCardInputOf<T extends HasSchema<'card'>> = SchemaInputOf<
+  T,
+  'card'
+>
+
+export type SchedulerRevlogOf<T extends HasSchema<'revlog'>> = SchemaOutputOf<
   T,
   'revlog'
 >
 
-export type SchedulerRevlogInputOf<T extends AnyScheduler> = SchemaInputOf<
-  T,
-  'revlog'
->
+export type SchedulerRevlogInputOf<T extends HasSchema<'revlog'>> =
+  SchemaInputOf<T, 'revlog'>
 
-export type SchedulerTimeOf<T extends AnyScheduler> =
+export type SchedulerTimeOf<T extends HasSchema<'cardInitInput'>> =
   SchedulerCardInitInputOf<T> extends { readonly now?: infer Time }
     ? Exclude<Time, undefined>
     : never
 
-export type SchedulerStatusOf<T extends AnyScheduler> = SchemaOutputOf<
-  T,
-  'scheduleStatus'
->
+export type SchedulerStatusOf<T extends HasSchema<'scheduleStatus'>> =
+  SchemaOutputOf<T, 'scheduleStatus'>

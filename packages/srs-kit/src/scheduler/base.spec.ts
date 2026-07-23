@@ -15,7 +15,6 @@ import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
 import { useComposeDefaultValue } from './default-value.js'
 import { defineScheduler } from './define-scheduler.js'
-import { SRSSchedulerError } from './error.js'
 import {
   config,
   createSM2NumericScheduler,
@@ -66,6 +65,13 @@ describe('SchedulerCore.create', () => {
     expect(core.model.config).toEqual({ weights: SM2_DEFAULT_WEIGHTS })
     expect(core.chrono).not.toBe(numericChrono)
     expect(core.chrono.now).toBeTypeOf('function')
+  })
+
+  it('supports destructured create()', () => {
+    const { create } = createSM2NumericScheduler()
+    const destructuredCore = create({ config })
+
+    expect(destructuredCore.newCard()).toHaveProperty('state', State.New)
   })
 
   it('does not expose desiredRetention on config', () => {
@@ -173,20 +179,48 @@ describe('SchedulerCore.newCard', () => {
     expect(secondCard).toStrictEqual(firstCard)
   })
 
-  it('rejects middleware added after create()', () => {
-    const dynamicScheduler = createSM2NumericScheduler()
-    const dynamicCore = dynamicScheduler.create({ config })
+  it('keeps created cores isolated when deriving a middleware scheduler', () => {
+    const baseScheduler = createSM2NumericScheduler()
+    const baseCoreBefore = baseScheduler.create({ config })
+    const derivedCore = baseScheduler
+      .use(sourceMiddleware, schedulerStatsMiddleware)
+      .create({
+        config: {
+          ...config,
+          source: 'derived-source',
+        },
+      })
+    const baseCoreAfter = baseScheduler.create({ config })
 
-    expect(dynamicCore.newCard()).toHaveProperty('state', State.New)
+    const beforeCard = baseCoreBefore.newCard()
+    const derivedCard = derivedCore.newCard()
+    const afterCard = baseCoreAfter.newCard()
+    const beforeReview = baseCoreBefore.review({
+      card: beforeCard,
+      grade: Rating.Good,
+      now: 1,
+    })
+    const derivedReview = derivedCore.review({
+      card: derivedCard,
+      grade: Rating.Good,
+      now: 1,
+    })
+    const afterReview = baseCoreAfter.review({
+      card: afterCard,
+      grade: Rating.Good,
+      now: 1,
+    })
 
-    expect(() => dynamicScheduler.use(schedulerStatsMiddleware)).toThrow(
-      SRSSchedulerError
-    )
-    expect(() => dynamicScheduler.use(schedulerStatsMiddleware)).toThrow(
-      /Cannot add middleware after scheduler\.create\(\)/
-    )
-
-    expect(dynamicCore.newCard()).toHaveProperty('state', State.New)
+    expect(beforeReview.card).not.toHaveProperty('source')
+    expect(beforeReview.card).not.toHaveProperty('reps')
+    expect(derivedReview.card).toMatchObject({
+      source: 'derived-source',
+      reps: 1,
+      lapses: 0,
+    })
+    expect(derivedReview.revlog).toHaveProperty('audit', 'derived-source')
+    expect(afterReview.card).not.toHaveProperty('source')
+    expect(afterReview.card).not.toHaveProperty('reps')
   })
 
   it('creates distinct cards for different now input', () => {
@@ -1506,7 +1540,8 @@ describe('card schema validation', () => {
           : { issues: [{ message: 'Expected card object' }] }
     )
     const scheduler = createSM2NumericScheduler()
-    const unmarkedCore = new BaseScheduler({
+    // biome-ignore lint/suspicious/noExplicitAny: malformed schema runtime test
+    const unmarkedCore = new BaseScheduler<any>({
       model: SM2Model,
       chrono: numericChrono,
       schema: {
