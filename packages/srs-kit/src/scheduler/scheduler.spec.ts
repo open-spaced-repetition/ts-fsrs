@@ -339,6 +339,24 @@ describe('defineScheduler', () => {
     )
   })
 
+  it('validates middleware card and revlog fields', () => {
+    const card = usedCore.newCard()
+    const review = usedCore.review({
+      card,
+      grade: Rating.Good,
+      now: 1,
+    })
+    const { source: _source, ...cardWithoutSource } = card
+    const { audit: _audit, ...revlogWithoutAudit } = review.revlog
+
+    expect(() => usedScheduler.schema.card.parse(cardWithoutSource)).toThrow(
+      'Expected source card field'
+    )
+    expect(() => usedScheduler.schema.revlog.parse(revlogWithoutAudit)).toThrow(
+      'Expected audit revlog field'
+    )
+  })
+
   it('validates composed chrono and model revlog fields', () => {
     const dateScheduler = defineScheduler({
       model: SM2Model,
