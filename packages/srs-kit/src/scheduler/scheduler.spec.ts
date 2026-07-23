@@ -199,6 +199,7 @@ describe('defineScheduler', () => {
     expect(sourceScheduler).not.toBe(baseScheduler)
     expect(statsScheduler).not.toBe(baseScheduler)
     expect(statsScheduler).not.toBe(sourceScheduler)
+    expect(baseScheduler.use()).toBe(baseScheduler)
     expect(sourceSchema).not.toBe(baseSchema)
     expect(statsSchema).not.toBe(baseSchema)
     expect(sourceSchema).not.toBe(statsSchema)
