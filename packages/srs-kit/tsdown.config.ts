@@ -20,7 +20,7 @@ const shared = {
       'src/chrono/presets/temporal-instant/index.ts',
     'scheduler/index': 'src/scheduler/index.ts',
   },
-  dts: true,
+  dts: { sourcemap: true },
   clean: true,
   sourcemap: true,
   minify: false,

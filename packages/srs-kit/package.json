@@ -139,7 +139,8 @@
   "author": "ishiko",
   "license": "BSD-3-Clause",
   "files": [
-    "dist"
+    "dist",
+    "!dist/**/*.d.ts.map"
   ],
   "repository": {
     "type": "git",
