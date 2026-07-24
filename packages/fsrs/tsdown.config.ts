@@ -13,7 +13,7 @@ export default defineConfig([
     },
     format: ['esm', 'cjs'],
     outDir: 'dist',
-    dts: true
+    dts: true,
     clean: true,
     sourcemap: false,
     minify: false,
