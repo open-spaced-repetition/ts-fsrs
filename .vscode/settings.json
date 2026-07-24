@@ -1,9 +1,9 @@
 {
-  "typescript.preferences.importModuleSpecifier": "non-relative",
-  "typescript.preferences.quoteStyle": "single",
-  "typescript.preferences.importModuleSpecifierEnding": "js",
-  // "typescript.preferGoToSourceDefinition": true,
-  "typescript.tsdk": "./node_modules/typescript/lib",
+  "js/ts.preferences.importModuleSpecifier": "non-relative",
+  "js/ts.preferences.quoteStyle": "single",
+  "js/ts.preferences.importModuleSpecifierEnding": "js",
+  "js/ts.preferGoToSourceDefinition": true,
+  "js/ts.tsdk.path": "./node_modules/typescript/lib",
   "editor.defaultFormatter": "biomejs.biome",
   "editor.codeActionsOnSave": {
     "source.fixAll.biome": "explicit",
