@@ -44,6 +44,7 @@ export type ModelBounds<MemoryState extends object> = Prettify<
 export type BlankModelCoreEnv = {
   readonly config?: unknown
   readonly memoryState: object
+  readonly algorithm: unknown
 }
 
 type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
@@ -55,6 +56,7 @@ type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
 export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
   readonly config: ModelCoreConfig<Env>
   readonly bounds: ModelBounds<Env['memoryState']>
+  readonly algorithm: Env['algorithm']
   readonly step: (
     input: ModelStepInput<Env['memoryState']>
   ) => Env['memoryState']
@@ -89,7 +91,10 @@ export interface ModelSchema<
   readonly memoryState: Schema['memoryState']
 }
 
-export type ModelCreate<Schema extends BlankModelSchema> = (ctx: {
+export type ModelCreate<
+  Schema extends BlankModelSchema,
+  Algorithm = unknown,
+> = (ctx: {
   readonly config:
     | SchemaInput<Schema['config']>
     | SchemaOutput<Schema['config']>
@@ -104,12 +109,14 @@ export type ModelCreate<Schema extends BlankModelSchema> = (ctx: {
 }) => ModelCore<{
   readonly config: SchemaOutput<Schema['config']>
   readonly memoryState: SchemaOutput<Schema['memoryState']>
+  readonly algorithm: Algorithm
 }>
 
 export type BlankModelEnv = {
   readonly name: string | symbol
   readonly config: AnySchema
   readonly memoryState: AnyObjectSchema
+  readonly algorithm: unknown
 }
 
 export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
@@ -120,7 +127,7 @@ export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
       readonly config: SchemaOutput<Env['config']>
     }) => SchemaInput<Env['memoryState']>
   }
-  readonly create: ModelCreate<Env>
+  readonly create: ModelCreate<Env, Env['algorithm']>
 }
 
 export type AnyModel = Model<any>
@@ -129,16 +136,27 @@ export function defineModel<
   const Name extends string | symbol,
   const ConfigSchema extends AnySchema,
   const MemoryStateSchema extends AnyObjectSchema,
->(
-  definition: Model<{
-    readonly name: Name
+  const Algorithm,
+>(definition: {
+  readonly name: Name
+  readonly schema: ModelSchema<{
     readonly config: ConfigSchema
     readonly memoryState: MemoryStateSchema
   }>
-): Model<{
-  readonly name: Name
-  readonly config: ConfigSchema
-  readonly memoryState: MemoryStateSchema
-}> {
-  return definition
+  readonly defaultValue: {
+    readonly memoryState: (ctx: {
+      readonly config: SchemaOutput<ConfigSchema>
+    }) => SchemaInput<MemoryStateSchema>
+  }
+  readonly create: ModelCreate<
+    { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
+    Algorithm
+  >
+}) {
+  return definition as Model<{
+    readonly name: Name
+    readonly config: ConfigSchema
+    readonly memoryState: MemoryStateSchema
+    readonly algorithm: Algorithm
+  }>
 }

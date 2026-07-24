@@ -15,12 +15,13 @@ import {
   migrateFSRS5Parameters,
 } from './parameters.js'
 
-const createFSRS5Model = (
-  config: FSRS5Config
-): ModelCore<{
+export type FSRS5ModelCore = ModelCore<{
   readonly config: FSRS5Config
   readonly memoryState: FSRSState
-}> => {
+  readonly algorithm: FSRS5Algorithm
+}>
+
+const createFSRS5Model = (config: FSRS5Config): FSRS5ModelCore => {
   const bounds = FSRS5_MODEL_BOUNDS
 
   const algo = new FSRS5Algorithm(
@@ -72,6 +73,7 @@ const createFSRS5Model = (
   return {
     config,
     bounds,
+    algorithm: algo,
     step,
     nextInterval,
     forgettingCurve,

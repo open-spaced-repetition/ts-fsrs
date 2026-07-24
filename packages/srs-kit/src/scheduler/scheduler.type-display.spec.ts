@@ -173,6 +173,7 @@ describe('defineScheduler type display', () => {
             readonly reviewStep: number;
         };
     }>;
+    readonly algorithm: null;
 }>, Chrono<{
     readonly time: SRSSchema<{
         input: {};
@@ -255,6 +256,7 @@ describe('defineScheduler type display', () => {
             readonly reviewStep: number;
         };
     }>;
+    readonly algorithm: null;
 }>, Chrono<{
     readonly time: SRSSchema<{
         input: {};
@@ -341,6 +343,7 @@ describe('defineScheduler type display', () => {
             readonly reviewStep: number;
         };
     }>;
+    readonly algorithm: null;
 }>, Chrono<{
     readonly time: SRSSchema<{
         input: {};
@@ -413,6 +416,7 @@ describe('defineScheduler type display', () => {
         readonly easeFactor: number;
         readonly reviewStep: number;
     };
+    readonly algorithm: null;
 }>, ChronoCore<number>>`,
     sm2NumericCore: `const sm2NumericCore: SchedulerCore<{
     readonly config: {
@@ -472,6 +476,7 @@ describe('defineScheduler type display', () => {
         readonly easeFactor: number;
         readonly reviewStep: number;
     };
+    readonly algorithm: null;
 }>, ChronoCore<number>>`,
   }
 
@@ -558,6 +563,7 @@ describe('defineScheduler type display', () => {
             readonly reviewStep: number;
         };
     }>;
+    readonly algorithm: null;
 }>, Chrono<{
     readonly time: SRSSchema<{
         input: {};
@@ -618,6 +624,7 @@ describe('defineScheduler type display', () => {
         readonly easeFactor: number;
         readonly reviewStep: number;
     };
+    readonly algorithm: null;
 }>, ChronoCore<number>>`,
   }
 

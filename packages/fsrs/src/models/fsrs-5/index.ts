@@ -9,6 +9,7 @@ export {
   FSRS5_MODEL_BOUNDS,
   FSRS5_W17_W18_CEILING,
 } from './constants.js'
+export type { FSRS5ModelCore } from './model.js'
 export { FSRS5Model } from './model.js'
 export type { FSRS5Config } from './parameters.js'
 export {

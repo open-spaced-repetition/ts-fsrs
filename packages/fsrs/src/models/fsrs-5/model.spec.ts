@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { type Grade, Rating } from '../../models.js'
+import { FSRS5Algorithm } from './algorithm.js'
 import { FSRS5_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS5Model } from './model.js'
 import { migrateFSRS5Parameters } from './parameters.js'
@@ -55,6 +56,17 @@ describe('FSRS5Model', () => {
         elapsedDays: 1,
       })
     )
+  })
+
+  it('exposes the underlying algorithm instance', () => {
+    const model = FSRS5Model.create({
+      config: {
+        weights: FSRS5_DEFAULT_WEIGHTS,
+        enableShortTerm: true,
+      },
+    })
+
+    expect(model.algorithm).toBeInstanceOf(FSRS5Algorithm)
   })
 
   it('validates config with schema before creating model runtime', () => {

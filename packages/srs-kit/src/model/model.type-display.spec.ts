@@ -37,6 +37,7 @@ describe('defineModel type display', () => {
             readonly reviewStep: number;
         };
     }>;
+    readonly algorithm: null;
 }>`,
   }
 
@@ -73,6 +74,7 @@ describe('defineModel type display', () => {
         readonly easeFactor: number;
         readonly reviewStep: number;
     };
+    readonly algorithm: null;
 }>`,
   }
 
