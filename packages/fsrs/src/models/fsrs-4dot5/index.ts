@@ -8,6 +8,7 @@ export {
   FSRS4Dot5_FACTOR,
   FSRS4Dot5_MODEL_BOUNDS,
 } from './constants.js'
+export type { FSRS4Dot5ModelCore } from './model.js'
 export { FSRS4Dot5Model } from './model.js'
 export type { FSRS4Dot5Config } from './parameters.js'
 export {

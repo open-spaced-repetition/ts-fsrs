@@ -4,6 +4,7 @@ import type {
   ModelMemoryOf,
 } from '@open-spaced-repetition/srs-kit/model'
 import { describe, expect, it } from 'vitest'
+import { FSRS4Algorithm } from './algorithm.js'
 import { FSRS4_DEFAULT_WEIGHTS, FSRS4Model, forgettingCurve } from './index.js'
 
 type FSRSState = ModelMemoryOf<typeof FSRS4Model>
@@ -81,6 +82,16 @@ describe('FSRS-4 model', () => {
     expect(Number.isFinite(model.nextInterval(initialState, 0.9))).toBe(true)
     expect(Number.isFinite(model.forgettingCurve(initialState, 14))).toBe(true)
     expect(states).toHaveLength(2)
+  })
+
+  it('exposes the underlying algorithm instance', () => {
+    const model = FSRS4Model.create({
+      config: {
+        weights,
+      },
+    })
+
+    expect(model.algorithm).toBeInstanceOf(FSRS4Algorithm)
   })
 
   it('uses FSRS-4 default weights', () => {

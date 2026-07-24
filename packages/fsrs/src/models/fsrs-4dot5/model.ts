@@ -15,12 +15,13 @@ import {
   migrateFSRS4Dot5Parameters,
 } from './parameters.js'
 
-const createFSRS4Dot5Model = (
-  config: FSRS4Dot5Config
-): ModelCore<{
+export type FSRS4Dot5ModelCore = ModelCore<{
   readonly config: FSRS4Dot5Config
   readonly memoryState: FSRSState
-}> => {
+  readonly algorithm: FSRS4Dot5Algorithm
+}>
+
+const createFSRS4Dot5Model = (config: FSRS4Dot5Config): FSRS4Dot5ModelCore => {
   const bounds = FSRS4Dot5_MODEL_BOUNDS
 
   const algo = new FSRS4Dot5Algorithm(config.weights, FSRS4Dot5_MODEL_BOUNDS)
@@ -68,6 +69,7 @@ const createFSRS4Dot5Model = (
   return {
     config,
     bounds,
+    algorithm: algo,
     step,
     nextInterval,
     forgettingCurve,

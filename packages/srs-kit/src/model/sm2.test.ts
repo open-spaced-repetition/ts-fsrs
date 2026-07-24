@@ -88,9 +88,11 @@ function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
 }
 
-function createSM2Core(
-  config: SM2Config
-): ModelCore<{ readonly config: SM2Config; readonly memoryState: SM2State }> {
+function createSM2Core(config: SM2Config): ModelCore<{
+  readonly config: SM2Config
+  readonly memoryState: SM2State
+  readonly algorithm: null
+}> {
   const w = config.weights
   const bounds = SM2_MODEL_BOUNDS
 
@@ -165,6 +167,7 @@ function createSM2Core(
   return {
     config,
     bounds,
+    algorithm: null,
     step,
     nextInterval,
     forgettingCurve,

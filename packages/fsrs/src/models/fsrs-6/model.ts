@@ -15,12 +15,13 @@ import {
   migrateFSRS6Parameters,
 } from './parameters.js'
 
-const createFSRS6Model = (
-  config: FSRS6Config
-): ModelCore<{
+export type FSRS6ModelCore = ModelCore<{
   readonly config: FSRS6Config
   readonly memoryState: FSRSState
-}> => {
+  readonly algorithm: FSRS6Algorithm
+}>
+
+const createFSRS6Model = (config: FSRS6Config): FSRS6ModelCore => {
   const bounds = FSRS6_MODEL_BOUNDS
 
   const algo = new FSRS6Algorithm(
@@ -72,6 +73,7 @@ const createFSRS6Model = (
   return {
     config,
     bounds,
+    algorithm: algo,
     step,
     nextInterval,
     forgettingCurve,

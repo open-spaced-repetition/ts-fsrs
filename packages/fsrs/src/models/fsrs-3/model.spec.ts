@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { type Grade, Rating } from '../../models.js'
+import { FSRS3Algorithm } from './algorithm.js'
 import { FSRS3_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS3Model } from './model.js'
 import { migrateFSRS3Parameters } from './parameters.js'
@@ -41,6 +42,16 @@ describe('FSRS3Model', () => {
       { difficulty: 4.8527, stability: 4.4073 },
       { difficulty: 4.8527, stability: 7.4609786 },
     ])
+  })
+
+  it('exposes the underlying algorithm instance', () => {
+    const model = FSRS3Model.create({
+      config: {
+        weights: FSRS3_DEFAULT_WEIGHTS,
+      },
+    })
+
+    expect(model.algorithm).toBeInstanceOf(FSRS3Algorithm)
   })
 
   it('validates config with schema before creating model runtime', () => {
