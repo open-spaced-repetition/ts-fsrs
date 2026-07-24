@@ -137,24 +137,22 @@ export function defineModel<
   const ConfigSchema extends AnySchema,
   const MemoryStateSchema extends AnyObjectSchema,
   const Algorithm,
->(
-  definition: {
-    readonly name: Name
-    readonly schema: ModelSchema<{
-      readonly config: ConfigSchema
-      readonly memoryState: MemoryStateSchema
-    }>
-    readonly defaultValue: {
-      readonly memoryState: (ctx: {
-        readonly config: SchemaOutput<ConfigSchema>
-      }) => SchemaInput<MemoryStateSchema>
-    }
-    readonly create: ModelCreate<
-      { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
-      Algorithm
-    >
+>(definition: {
+  readonly name: Name
+  readonly schema: ModelSchema<{
+    readonly config: ConfigSchema
+    readonly memoryState: MemoryStateSchema
+  }>
+  readonly defaultValue: {
+    readonly memoryState: (ctx: {
+      readonly config: SchemaOutput<ConfigSchema>
+    }) => SchemaInput<MemoryStateSchema>
   }
-) {
+  readonly create: ModelCreate<
+    { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
+    Algorithm
+  >
+}) {
   return definition as Model<{
     readonly name: Name
     readonly config: ConfigSchema
