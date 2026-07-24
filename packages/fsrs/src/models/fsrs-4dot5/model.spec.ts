@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Rating } from '../../models.js'
+import { FSRS4Dot5Algorithm } from './algorithm.js'
 import { FSRS4Dot5_DEFAULT_WEIGHTS, FSRS4Dot5Model } from './index.js'
 
 describe('FSRS-4.5 model', () => {
@@ -54,6 +55,16 @@ describe('FSRS-4.5 model', () => {
         } as never,
       }).config
     ).toEqual(model.config)
+  })
+
+  it('exposes the underlying algorithm instance', () => {
+    const model = FSRS4Dot5Model.create({
+      config: {
+        weights,
+      },
+    })
+
+    expect(model.algorithm).toBeInstanceOf(FSRS4Dot5Algorithm)
   })
 
   it('exposes the FSRS-4.5 model runtime methods', () => {

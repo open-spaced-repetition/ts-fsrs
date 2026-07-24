@@ -6,6 +6,7 @@ export {
   FSRS4_DEFAULT_WEIGHTS,
   FSRS4_MODEL_BOUNDS,
 } from './constants.js'
+export type { FSRS4ModelCore } from './model.js'
 export { FSRS4Model } from './model.js'
 export type { FSRS4Config } from './parameters.js'
 export {

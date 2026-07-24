@@ -1,10 +1,23 @@
 import { describe, expect, it } from 'vitest'
 import { FSRS5_DEFAULT_WEIGHTS } from '../fsrs-5/constants.js'
+import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS6Model } from './model.js'
 import { migrateFSRS6Parameters } from './parameters.js'
 
 describe('FSRS6Model', () => {
+  it('exposes the underlying algorithm instance', () => {
+    const model = FSRS6Model.create({
+      config: {
+        weights: FSRS6_DEFAULT_WEIGHTS,
+        enableShortTerm: true,
+        numRelearningSteps: 0,
+      },
+    })
+
+    expect(model.algorithm).toBeInstanceOf(FSRS6Algorithm)
+  })
+
   it('validates config with schema before creating model runtime', () => {
     expect(() =>
       FSRS6Model.create({
