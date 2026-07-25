@@ -42,5 +42,6 @@ export type {
   Steps,
 } from './models'
 export { Rating, State } from './models'
+export * from './rescheduler.js'
 export * from './strategies'
 export type * from './types'
