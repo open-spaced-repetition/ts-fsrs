@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-darwin-x64
 
+## 0.6.0-beta.0
+
 ## 0.5.0
 
 ## 0.4.0

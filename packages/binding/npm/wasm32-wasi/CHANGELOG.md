@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-wasm32-wasi
 
+## 0.6.0-beta.0
+
 ## 0.5.0
 
 ## 0.4.0
