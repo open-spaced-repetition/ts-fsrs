@@ -94,7 +94,7 @@ jobs:
       # Ensure npm 11.5.1 or later is installed
       # https://docs.npmjs.com/trusted-publishers#step-2-configure-your-cicd-workflow
       - name: Update npm
-        run: npm install -g npm@latest
+        run: npm install -g npm@11
       - name: Enter beta prerelease mode (preview only)
         if: github.ref == 'refs/heads/preview'
         run: '[ -f .changeset/pre.json ] || pnpm exec changeset pre enter beta'
