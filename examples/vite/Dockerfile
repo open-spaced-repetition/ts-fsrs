@@ -2,6 +2,8 @@
 
 FROM node:26-alpine AS base
 
+RUN npm install --global corepack
+
 # Install dependencies only when needed
 FROM base AS deps
 RUN apk add --no-cache libc6-compat
