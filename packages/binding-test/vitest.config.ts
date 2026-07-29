@@ -5,6 +5,11 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     include: ['src/**/*.spec.ts', 'src/**/*.test.ts'],
+    server: {
+      deps: {
+        inline: ['@emnapi/runtime', '@napi-rs/wasm-runtime'],
+      },
+    },
     testTimeout: 1_000 * 60 * 4,
     coverage: {
       provider: 'istanbul',

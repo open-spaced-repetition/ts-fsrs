@@ -1,9 +1,9 @@
-// @ts-nocheck — this file is copied to dist/ at build time, where ./index resolves correctly
-import type * as binding from './index'
+// @ts-nocheck — this file is copied to dist/ at build time, where ./index.js resolves correctly
+import type * as binding from './index.js'
 
 export interface InitOptimizerOptions {
-  /** wasm binary: ArrayBuffer, Uint8Array (including Node.js Buffer), file path, URL, or fetch Response */
-  wasm: ArrayBuffer | Uint8Array | string | URL | Response
+  /** wasm binary, file path, URL, or fetch Response */
+  wasm: BufferSource | string | URL | Response
   /** Worker factory function (called multiple times for thread pool) or path/URL to worker script */
   worker: (() => Worker) | string | URL
   /** Whether to emit custom events for errors in worker (browser only) */
