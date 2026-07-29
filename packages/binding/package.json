@@ -79,7 +79,6 @@
       }
     },
     "targets": [
-      "i686-pc-windows-msvc",
       "x86_64-pc-windows-msvc",
       "aarch64-unknown-linux-gnu",
       "x86_64-unknown-linux-gnu",
@@ -114,7 +113,6 @@
     "@open-spaced-repetition/binding-linux-x64-musl": "workspace:^",
     "@open-spaced-repetition/binding-wasm32-wasi": "workspace:^",
     "@open-spaced-repetition/binding-win32-arm64-msvc": "workspace:^",
-    "@open-spaced-repetition/binding-win32-ia32-msvc": "workspace:^",
     "@open-spaced-repetition/binding-win32-x64-msvc": "workspace:^"
   }
 }
