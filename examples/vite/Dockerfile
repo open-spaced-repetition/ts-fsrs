@@ -1,6 +1,8 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:20-alpine AS base
+FROM node:26-alpine AS base
+
+RUN npm install --global corepack --force
 
 # Install dependencies only when needed
 FROM base AS deps

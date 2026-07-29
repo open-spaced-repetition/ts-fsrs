@@ -41,7 +41,7 @@ jobs:
       (github.event_name == 'pull_request_review' && needs.check.outputs.has-permissions == 'true')
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: 22
+      node-version: 26
     secrets: inherit
   release:
     name: Release
@@ -50,12 +50,12 @@ jobs:
       - build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: 22
+          node-version: 26
 
       - name: Run checks
         run: pnpm run check
@@ -64,7 +64,7 @@ jobs:
         uses: ./.github/actions/build-packages
       - name: Cache test data
         id: cache-revlog
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: packages/binding-test/src/revlog.csv
           key: revlog-csv-v1

@@ -14,7 +14,7 @@ on:
     inputs:
       node-version:
         type: string
-        default: '22'
+        default: '26'
 
 jobs:
   build:
@@ -54,7 +54,7 @@ jobs:
     runs-on: ${{ matrix.settings.host }}
     name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -70,7 +70,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry/index/
@@ -108,7 +108,7 @@ jobs:
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: matrix.settings.target != 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}
@@ -120,7 +120,7 @@ jobs:
             packages/binding/dist/*.mjs
           if-no-files-found: error
       - name: Upload WASI artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: matrix.settings.target == 'wasm32-wasip1-threads'
         with:
           name: bindings-${{ matrix.settings.target }}

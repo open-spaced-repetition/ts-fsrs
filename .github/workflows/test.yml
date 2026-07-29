@@ -33,7 +33,7 @@ jobs:
           'ubuntu-latest' }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Setup pnpm & node
         uses: ./.github/actions/setup-node-pnpm
@@ -43,7 +43,7 @@ jobs:
 
       - name: Cache test data
         id: cache-revlog
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: packages/binding-test/src/revlog.csv
           key: revlog-csv-v1
@@ -56,7 +56,7 @@ jobs:
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
 
       - name: Download artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: bindings-${{ inputs.target }}
           path: packages/binding/dist
@@ -93,7 +93,7 @@ jobs:
           echo "PNPM_STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
         if: contains(inputs.target, 'armv7')
         with:
           platforms: all
@@ -108,7 +108,7 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
           run: |
-            sh -lc "corepack enable pnpm && pnpm test"
+            sh -lc "npm install --global corepack --force && corepack enable pnpm && pnpm test"
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
@@ -116,10 +116,9 @@ jobs:
 
       - name: Upload coverage to Codecov
         if: (!cancelled()) && inputs.target == 'aarch64-apple-darwin'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v7
         with:
           use_oidc: ${{ !(github.event_name == 'pull_request' && github.event.pull_request.head.repo.fork) }}
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           codecov_yml_path: .github/codecov.yml
-

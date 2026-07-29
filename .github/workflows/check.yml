@@ -6,6 +6,12 @@ concurrency:
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
     branches:
       - main
       - preview
@@ -44,7 +50,7 @@ jobs:
   build:
     strategy:
       matrix:
-        node: [20]
+        node: [26]
         platform: [ubuntu-latest, macos-latest, windows-latest]
     name: '${{matrix.platform}} / Node.js ${{ matrix.node }}'
     runs-on: ${{matrix.platform}}
@@ -57,7 +63,7 @@ jobs:
           git config --global core.eol lf
 
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
