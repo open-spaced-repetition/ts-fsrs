@@ -1,4 +1,7 @@
-import { computeParameters } from '@open-spaced-repetition/binding'
+import {
+  computeParameters,
+  convertCsvToFsrsItems,
+} from '@open-spaced-repetition/binding'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { streamSSE } from 'hono/streaming'
@@ -75,7 +78,8 @@ app.post(
         const fsrsItems = await convertFSRSItemByFile(
           file,
           nextDayStartsAt,
-          timezone
+          timezone,
+          convertCsvToFsrsItems
         )
 
         const parseEndTime = performance.now()

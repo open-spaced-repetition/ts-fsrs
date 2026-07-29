@@ -1,6 +1,6 @@
-import { computeParameters } from '@open-spaced-repetition/binding'
 import { useCallback, useId, useRef, useState } from 'react'
 
+import { getOptimizer } from '../binding'
 import type { OptimizationResult, TrainingStats } from '../types/training'
 import { convertFSRSItemsByFile } from '../utils/convert'
 
@@ -81,6 +81,8 @@ export default function ClientTraining({
     onProcessingChange?.(true)
 
     try {
+      const { computeParameters } = await getOptimizer()
+
       // Read CSV file
       console.time('parsing csv time')
       const parseStartTime = performance.now()

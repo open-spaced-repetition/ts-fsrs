@@ -1,8 +1,8 @@
 'use client'
 
-import { computeParameters } from '@open-spaced-repetition/binding'
 import { useEffect, useId, useRef, useState } from 'react'
 
+import { getOptimizer } from '@/lib/client-binding'
 import type { OptimizationResult, TrainingStats } from '@/types/training'
 import { convertFSRSItemByFile } from '@/utils/convert'
 
@@ -88,6 +88,8 @@ export default function ClientTraining({
     onProcessingChange?.(true)
 
     try {
+      const { computeParameters, convertCsvToFsrsItems } = await getOptimizer()
+
       // Read CSV file
       console.time('parsing csv time')
       const parseStartTime = performance.now()
@@ -96,7 +98,8 @@ export default function ClientTraining({
       const fsrsItems = await convertFSRSItemByFile(
         csvFile,
         nextDayStartsAt,
-        timezone
+        timezone,
+        convertCsvToFsrsItems
       )
 
       const parseEndTime = performance.now()
