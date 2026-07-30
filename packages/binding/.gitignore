@@ -3,6 +3,11 @@
 browser.js
 fsrs-binding.wasi-browser.js
 fsrs-binding.wasi.cjs
+fsrs-binding.wasip1*
+fsrs-binding.wasm32-wasip1.*
+# Generated once by `napi create-npm-dirs`, never by a build; the threadless
+# flavor package lists it in `files`, so it has to be tracked
+!npm/wasm32-wasip1/fsrs-binding.wasm32-wasip1.wasm.d.ts
 index.js
 index.d.ts
 wasi-worker-browser.mjs

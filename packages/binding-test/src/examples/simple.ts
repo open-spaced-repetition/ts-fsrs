@@ -1,4 +1,4 @@
-#!/usr/bin/env NAPI_RS_FORCE_WASI=1 tsx
+#!/usr/bin/env -S NAPI_RS_FORCE_WASI=true tsx
 
 import { readFileSync } from 'node:fs'
 import {

@@ -1,12 +1,39 @@
 use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
 use napi_derive::napi;
+#[cfg(not(threadless_wasm))]
 use std::sync::{Arc, Mutex};
 
-use crate::{
-  ComputeParametersOptions, FSRSItem, ModelEvaluation, prepare_items,
-  progress::{self, ProgressState},
-};
+use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation};
+#[cfg(not(threadless_wasm))]
+use crate::{prepare_items, progress};
 
+/// Evaluate parameters using time-series splits.
+#[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
+pub fn evaluate_with_time_series_splits(
+  train_set: Vec<&FSRSItem>,
+  #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
+) -> AsyncTask<EvaluateParametersTask> {
+  AsyncTask::new(EvaluateParametersTask::new(train_set, options.as_ref()))
+}
+
+impl Task for EvaluateParametersTask {
+  type Output = fsrs::ModelEvaluation;
+  type JsValue = ModelEvaluation;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    self.evaluate()
+  }
+
+  fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
+    Ok(output.into())
+  }
+}
+
+// ============================================================================
+// Native and threaded wasm: evaluation runs with a progress poller
+// ============================================================================
+
+#[cfg(not(threadless_wasm))]
 pub struct EvaluateParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
   pub(crate) state: Arc<Mutex<progress::ProgressState>>,
@@ -17,24 +44,47 @@ pub struct EvaluateParametersTask {
   pub(crate) timeout_ms: u32,
   #[cfg(not(target_arch = "wasm32"))]
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
-  #[cfg(target_arch = "wasm32")]
+  #[cfg(threaded_wasm)]
   pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
 }
 
-impl Task for EvaluateParametersTask {
-  type Output = fsrs::ModelEvaluation;
-  type JsValue = ModelEvaluation;
+#[cfg(not(threadless_wasm))]
+impl EvaluateParametersTask {
+  fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
+    let resolved = ComputeParametersOptions::resolve(options);
+    let state = Arc::new(Mutex::new(progress::ProgressState::default()));
 
-  fn compute(&mut self) -> Result<Self::Output> {
+    // wasm: start polling here, because the task itself cannot spawn threads
+    #[cfg(threaded_wasm)]
+    let progress_thread = Some(progress::spawn_progress_poller(
+      Arc::clone(&state),
+      resolved.timeout_ms,
+      progress::build_callback(options),
+    ));
+
+    Self {
+      train: prepare_items(train_set),
+      state,
+      enable_short_term: resolved.enable_short_term,
+      num_relearning_steps: resolved.num_relearning_steps,
+      training_config: resolved.training_config,
+      // non-wasm reuses the TSFN in the task; wasm already consumed it above
+      #[cfg(not(target_arch = "wasm32"))]
+      timeout_ms: resolved.timeout_ms,
+      #[cfg(not(target_arch = "wasm32"))]
+      progress_cb: progress::build_callback(options),
+      #[cfg(threaded_wasm)]
+      progress_thread,
+    }
+  }
+
+  fn evaluate(&mut self) -> Result<fsrs::ModelEvaluation> {
     #[cfg(not(target_arch = "wasm32"))]
-    let _progress_thread = {
-      use crate::progress::spawn_progress_poller;
-      spawn_progress_poller(
-        Arc::clone(&self.state),
-        self.timeout_ms,
-        self.progress_cb.take(),
-      )
-    };
+    let progress_thread = progress::spawn_progress_poller(
+      Arc::clone(&self.state),
+      self.timeout_ms,
+      self.progress_cb.take(),
+    );
 
     let state = Arc::clone(&self.state);
     let input = fsrs::ComputeParametersInput {
@@ -60,74 +110,40 @@ impl Task for EvaluateParametersTask {
     }
 
     #[cfg(not(target_arch = "wasm32"))]
-    let _ = _progress_thread.join().ok();
+    let _ = progress_thread.join().ok();
 
     // WASM: join the progress thread
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(threaded_wasm)]
     if let Some(handle) = self.progress_thread.take() {
       let _ = handle.join().ok();
     }
 
     result
   }
-
-  fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
-    Ok(ModelEvaluation {
-      log_loss: output.log_loss as f64,
-      rmse_bins: output.rmse_bins as f64,
-    })
-  }
 }
 
-/// Evaluate parameters using time-series splits.
-#[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
-pub fn evaluate_with_time_series_splits(
-  train_set: Vec<&FSRSItem>,
-  #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
-) -> AsyncTask<EvaluateParametersTask> {
-  let items = prepare_items(train_set);
+// ============================================================================
+// Threadless wasm: the API needs threads, so it always rejects
+// ============================================================================
 
-  let enable_short_term = options
-    .as_ref()
-    .map(|x| x.enable_short_term)
-    .unwrap_or(true);
+#[cfg(threadless_wasm)]
+pub struct EvaluateParametersTask {
+  pub(crate) error: &'static str,
+}
 
-  let num_relearning_steps = options
-    .as_ref()
-    .and_then(|x| x.num_relearning_steps)
-    .map(|x| x as usize);
-  let training_config = options
-    .as_ref()
-    .and_then(|x| x.training_config.as_ref())
-    .map(|x| x.to_fsrs_config());
-  let timeout = options.as_ref().and_then(|x| x.timeout).unwrap_or(500);
+#[cfg(threadless_wasm)]
+impl EvaluateParametersTask {
+  fn new(_train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
+    // Report the progress callback first: it is the more actionable of the two.
+    let error = if ComputeParametersOptions::resolve(options).progress_requested {
+      crate::threadless::PROGRESS_ERROR
+    } else {
+      crate::threadless::EVALUATE_ERROR
+    };
+    Self { error }
+  }
 
-  let state = Arc::new(Mutex::new(ProgressState::default()));
-
-  let progress_tsfn = options
-    .as_ref()
-    .and_then(|x| x.progress.as_ref())
-    .and_then(|cb| cb.build_threadsafe_function().weak::<true>().build().ok());
-
-  // wasm: start polling here and do not pass callback into task
-  #[cfg(target_arch = "wasm32")]
-  let progress_thread_handle =
-    { progress::spawn_progress_poller(Arc::clone(&state), timeout, progress_tsfn) };
-  // non-wasm reuses TSFN in task; wasm sets it to None (unused).
-  #[cfg(not(target_arch = "wasm32"))]
-  let progress_tsfn_for_task = progress_tsfn;
-
-  AsyncTask::new(EvaluateParametersTask {
-    train: items,
-    state,
-    #[cfg(not(target_arch = "wasm32"))]
-    timeout_ms: timeout,
-    #[cfg(not(target_arch = "wasm32"))]
-    progress_cb: progress_tsfn_for_task,
-    enable_short_term,
-    num_relearning_steps,
-    training_config,
-    #[cfg(target_arch = "wasm32")]
-    progress_thread: Some(progress_thread_handle),
-  })
+  fn evaluate(&mut self) -> Result<fsrs::ModelEvaluation> {
+    Err(napi::Error::from_reason(self.error))
+  }
 }
