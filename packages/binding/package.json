@@ -40,7 +40,8 @@
   "scripts": {
     "artifacts": "napi artifacts -d ./artifacts",
     "build": "napi build --platform --release --esm -o ./dist",
-    "build:wasm": "napi build --platform --release --esm --dts index.d.cts --target wasm32-wasip1-threads -o ./dist",
+    "build:wasm": "bash ./build-wasm-threads.sh && pnpm build:dynamic",
+    "build:wasm:threadless": "bash ./build-wasm-threadless.sh && pnpm build:dynamic",
     "build:dynamic": "node copy-dynamic.js",
     "build:debug": "napi build --platform --esm",
     "check": "run-p check:biome check:rs check:toml",
@@ -53,7 +54,7 @@
     "@emnapi/core": "2.0.0-alpha.3",
     "@emnapi/runtime": "2.0.0-alpha.3",
     "@napi-rs/cli": "3.8.0",
-    "@napi-rs/wasm-runtime": "1.2.0",
+    "@napi-rs/wasm-runtime": "^1.2.0",
     "@taplo/cli": "^0.7.0",
     "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
@@ -96,7 +97,8 @@
       "aarch64-unknown-linux-musl",
       "aarch64-linux-android",
       "aarch64-pc-windows-msvc",
-      "wasm32-wasip1-threads"
+      "wasm32-wasip1-threads",
+      "wasm32-wasip1"
     ]
   },
   "engines": {
@@ -120,6 +122,7 @@
     "@open-spaced-repetition/binding-linux-x64-gnu": "workspace:^",
     "@open-spaced-repetition/binding-linux-x64-musl": "workspace:^",
     "@open-spaced-repetition/binding-wasm32-wasi": "workspace:^",
+    "@open-spaced-repetition/binding-wasm32-wasip1": "workspace:^",
     "@open-spaced-repetition/binding-win32-arm64-msvc": "workspace:^",
     "@open-spaced-repetition/binding-win32-x64-msvc": "workspace:^"
   }
