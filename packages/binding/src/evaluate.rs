@@ -3,9 +3,9 @@ use napi_derive::napi;
 #[cfg(not(threadless_wasm))]
 use std::sync::{Arc, Mutex};
 
-use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation};
 #[cfg(not(threadless_wasm))]
-use crate::{prepare_items, progress};
+use crate::progress;
+use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation, prepare_items};
 
 /// Evaluate parameters using time-series splits.
 #[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
@@ -123,27 +123,49 @@ impl EvaluateParametersTask {
 }
 
 // ============================================================================
-// Threadless wasm: the API needs threads, so it always rejects
+// Threadless wasm: evaluation runs serially without progress reporting
 // ============================================================================
 
 #[cfg(threadless_wasm)]
 pub struct EvaluateParametersTask {
-  pub(crate) error: &'static str,
+  pub(crate) train: Vec<fsrs::FSRSItem>,
+  pub(crate) enable_short_term: bool,
+  pub(crate) num_relearning_steps: Option<usize>,
+  pub(crate) training_config: Option<fsrs::TrainingConfig>,
+  pub(crate) progress_error: Option<&'static str>,
 }
 
 #[cfg(threadless_wasm)]
 impl EvaluateParametersTask {
-  fn new(_train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
-    // Report the progress callback first: it is the more actionable of the two.
-    let error = if ComputeParametersOptions::resolve(options).progress_requested {
-      crate::threadless::PROGRESS_ERROR
-    } else {
-      crate::threadless::EVALUATE_ERROR
-    };
-    Self { error }
+  fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
+    let resolved = ComputeParametersOptions::resolve(options);
+    Self {
+      train: prepare_items(train_set),
+      enable_short_term: resolved.enable_short_term,
+      num_relearning_steps: resolved.num_relearning_steps,
+      training_config: resolved.training_config,
+      progress_error: resolved
+        .progress_requested
+        .then_some(crate::threadless::PROGRESS_ERROR),
+    }
   }
 
   fn evaluate(&mut self) -> Result<fsrs::ModelEvaluation> {
-    Err(napi::Error::from_reason(self.error))
+    if let Some(reason) = self.progress_error {
+      return Err(napi::Error::from_reason(reason));
+    }
+
+    fsrs::evaluate_with_time_series_splits(
+      fsrs::ComputeParametersInput {
+        card_ids: None,
+        train_set: std::mem::take(&mut self.train),
+        progress: None,
+        enable_short_term: self.enable_short_term,
+        num_relearning_steps: self.num_relearning_steps,
+        training_config: self.training_config,
+      },
+      |_| true,
+    )
+    .map_err(|e| napi::Error::from_reason(format!("evaluate_with_time_series_splits failed: {e}")))
   }
 }

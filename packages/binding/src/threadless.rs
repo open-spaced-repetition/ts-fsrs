@@ -5,6 +5,3 @@
 
 pub const PROGRESS_ERROR: &str =
   "Progress callbacks are not supported by the threadless wasm32-wasip1 target";
-
-pub const EVALUATE_ERROR: &str =
-  "evaluateWithTimeSeriesSplits is not supported by the threadless wasm32-wasip1 target";
