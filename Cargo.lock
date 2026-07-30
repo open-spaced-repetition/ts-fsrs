@@ -136,10 +136,10 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 
 [[package]]
 name = "fsrs"
-version = "6.5.0"
-source = "git+https://github.com/open-spaced-repetition/fsrs-rs?tag=v6.5.0#999b8b0f06c2b7299fe5e0752d85ebe005bb31cb"
+version = "6.6.2"
+source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1#f859784ddf105faf35446369a637d5f225da3ba3"
 dependencies = [
- "itertools",
+ "itertools 0.15.0",
  "log",
  "ndarray",
  "priority-queue",
@@ -156,7 +156,7 @@ version = "0.0.2"
 dependencies = [
  "csv",
  "fsrs",
- "itertools",
+ "itertools 0.14.0",
  "jiff",
  "napi",
  "napi-build",
@@ -312,6 +312,15 @@ name = "itertools"
 version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
 dependencies = [
  "either",
 ]
