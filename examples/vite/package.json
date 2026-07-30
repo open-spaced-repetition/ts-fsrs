@@ -11,10 +11,10 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@open-spaced-repetition/binding": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding@75f5eb9",
-    "@open-spaced-repetition/binding-wasm32-wasi": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding-wasm32-wasi@75f5eb9",
+    "@open-spaced-repetition/binding-wasm32-wasip1": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding-wasm32-wasip1@49a4d90",
     "@tailwindcss/postcss": "^4.1.17",
     "autoprefixer": "^10.4.22",
+    "comlink": "^4.4.2",
     "postcss": "^8.5.10",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",

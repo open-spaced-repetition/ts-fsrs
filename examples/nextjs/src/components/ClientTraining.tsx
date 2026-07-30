@@ -1,10 +1,13 @@
 'use client'
 
+import { type Remote, releaseProxy, transfer, wrap } from 'comlink'
 import { useEffect, useId, useRef, useState } from 'react'
 
-import { getOptimizer } from '@/lib/client-binding'
-import type { OptimizationResult, TrainingStats } from '@/types/training'
-import { convertFSRSItemByFile } from '@/utils/convert'
+import type {
+  ClientOptimizationResult,
+  OptimizerWorker,
+} from '@/lib/optimizer.worker'
+import type { TrainingStats } from '@/types/training'
 
 interface TimezoneOption {
   value: string
@@ -13,6 +16,25 @@ interface TimezoneOption {
 
 interface ClientTrainingProps {
   onProcessingChange?: (isProcessing: boolean) => void
+}
+
+class TrainingCancelledError extends Error {}
+
+interface ActiveTraining {
+  worker: Worker
+  optimizer: Remote<OptimizerWorker>
+  cancel: () => void
+}
+
+function disposeTraining({ worker, optimizer }: ActiveTraining) {
+  optimizer[releaseProxy]()
+  worker.terminate()
+}
+
+const INITIAL_STATS: TrainingStats = {
+  parseTime: '',
+  trainingTime: '',
+  fsrsItemsCount: 0,
 }
 
 export default function ClientTraining({
@@ -25,7 +47,6 @@ export default function ClientTraining({
 
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
-  const abortedRef = useRef(false)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
   const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
   const [timezone, setTimezone] = useState<string>(() => {
@@ -40,12 +61,9 @@ export default function ClientTraining({
     return 'Asia/Shanghai' // SSR fallback
   })
   const [timezones, setTimezones] = useState<TimezoneOption[]>([])
-  const [results, setResults] = useState<OptimizationResult[]>([])
-  const [stats, setStats] = useState<TrainingStats>({
-    parseTime: '',
-    trainingTime: '',
-    fsrsItemsCount: 0,
-  })
+  const [results, setResults] = useState<ClientOptimizationResult[]>([])
+  const [stats, setStats] = useState<TrainingStats>(INITIAL_STATS)
+  const activeTrainingRef = useRef<ActiveTraining | null>(null)
 
   // Fetch timezone options
   useEffect(() => {
@@ -54,6 +72,17 @@ export default function ClientTraining({
       .then((data) => setTimezones(data))
       .catch((err) => console.error('Failed to fetch timezones:', err))
   }, [])
+
+  useEffect(
+    () => () => {
+      const activeTraining = activeTrainingRef.current
+      if (activeTraining) {
+        activeTrainingRef.current = null
+        activeTraining.cancel()
+      }
+    },
+    []
+  )
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -69,11 +98,7 @@ export default function ClientTraining({
       setCsvFile(file)
       // Reset previous results
       setResults([])
-      setStats({
-        parseTime: '',
-        trainingTime: '',
-        fsrsItemsCount: 0,
-      })
+      setStats(INITIAL_STATS)
     }
   }
 
@@ -84,127 +109,95 @@ export default function ClientTraining({
     }
 
     setIsProcessing(true)
-    abortedRef.current = false
     onProcessingChange?.(true)
 
+    let activeTraining: ActiveTraining | undefined
     try {
-      const { computeParameters, convertCsvToFsrsItems } = await getOptimizer()
-
-      // Read CSV file
-      console.time('parsing csv time')
-      const parseStartTime = performance.now()
-
-      // Convert CSV to FSRS items
-      const fsrsItems = await convertFSRSItemByFile(
-        csvFile,
-        nextDayStartsAt,
-        timezone,
-        convertCsvToFsrsItems
-      )
-
-      const parseEndTime = performance.now()
-      const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`
-      console.timeEnd('parsing csv time')
-
-      setStats((prev) => ({
-        ...prev,
-        parseTime: parseDuration,
-        fsrsItemsCount: fsrsItems.length,
-      }))
-
-      console.log(`fsrs_items.len() = ${fsrsItems.length}`)
-
-      // Start training
-      console.time('full training time')
-      const trainingStartTime = performance.now()
-
-      // Initialize results for both short-term enabled and disabled
       setResults([
         {
           enableShortTerm: true,
           parameters: [],
-          progress: '0/0',
           completed: false,
         },
         {
           enableShortTerm: false,
           parameters: [],
-          progress: '0/0',
           completed: false,
         },
       ])
 
-      // Compute parameters wrapper
-      const computeParametersWrapper = async (enableShortTerm: boolean) => {
-        const optimizedParameters = await computeParameters(fsrsItems, {
-          enableShortTerm,
-          numRelearningSteps,
-          progress: (cur, total) => {
-            console.debug(
-              `[enableShortTerm = ${
-                enableShortTerm ? 1 : 0
-              }] Progress: ${cur}/${total}`
-            )
-            if (abortedRef.current) {
-              return false
-            }
-
-            // Update progress in real-time
-            setResults((prev) =>
-              prev.map((r) =>
-                r.enableShortTerm === enableShortTerm
-                  ? { ...r, progress: `${cur}/${total}` }
-                  : r
-              )
-            )
-          },
-        })
-
-        console.log(
-          `[enableShortTerm = ${enableShortTerm}] optimized parameters:`,
-          optimizedParameters
+      const worker = new Worker(
+        new URL('../lib/optimizer.worker.ts', import.meta.url),
+        { type: 'module' }
+      )
+      const workerReady = new Promise<void>((resolve) => {
+        worker.addEventListener('message', () => resolve(), { once: true })
+      })
+      const optimizer = wrap<OptimizerWorker>(worker)
+      let rejectWorker: (reason?: unknown) => void = () => {}
+      const workerStopped = new Promise<never>((_, reject) => {
+        rejectWorker = reject
+        worker.addEventListener(
+          'error',
+          (event) => reject(new Error(event.message)),
+          { once: true }
         )
-
-        // Update results with completed parameters
-        setResults((prev) =>
-          prev.map((r) =>
-            r.enableShortTerm === enableShortTerm
-              ? { ...r, parameters: optimizedParameters, completed: true }
-              : r
-          )
-        )
+      })
+      activeTraining = {
+        worker,
+        optimizer,
+        cancel: () => {
+          optimizer[releaseProxy]()
+          worker.terminate()
+          rejectWorker(new TrainingCancelledError())
+        },
       }
+      activeTrainingRef.current = activeTraining
 
-      // Run computations sequentially to reduce memory pressure
-      // Running in parallel may cause WebAssembly memory access errors with large datasets
-      await computeParametersWrapper(true)
-      if (abortedRef.current) {
-        throw new Error('Aborted by user')
-      }
-      await computeParametersWrapper(false)
+      await Promise.race([workerReady, workerStopped])
+      const csv = await Promise.race([csvFile.arrayBuffer(), workerStopped])
+      const output = await Promise.race([
+        optimizer.train(
+          transfer(csv, [csv]),
+          nextDayStartsAt,
+          timezone,
+          numRelearningSteps
+        ),
+        workerStopped,
+      ])
 
-      const trainingEndTime = performance.now()
-      const trainingDuration = `${(trainingEndTime - trainingStartTime).toFixed(
-        2
-      )}ms`
-      setStats((prev) => ({
-        ...prev,
-        trainingTime: trainingDuration,
-      }))
-      console.timeEnd('full training time')
+      setResults(output.results)
+      setStats(output.stats)
     } catch (error) {
-      if (abortedRef.current) {
-        console.debug('Training cancelled by user.')
-        setResults([])
-        setStats({ parseTime: '', trainingTime: '', fsrsItemsCount: 0 })
+      if (error instanceof TrainingCancelledError) {
         return
       }
       console.error('Error processing CSV file:', error)
-      alert(`Processing failed: ${error}`)
+      const message = error instanceof Error ? error.message : String(error)
+      alert(`Processing failed: ${message}`)
     } finally {
-      setIsProcessing(false)
-      onProcessingChange?.(false)
+      if (!activeTraining || activeTrainingRef.current === activeTraining) {
+        if (activeTraining) {
+          activeTrainingRef.current = null
+          disposeTraining(activeTraining)
+        }
+        setIsProcessing(false)
+        onProcessingChange?.(false)
+      }
     }
+  }
+
+  const handleCancel = () => {
+    const activeTraining = activeTrainingRef.current
+    if (!activeTraining) {
+      return
+    }
+    activeTrainingRef.current = null
+    activeTraining.cancel()
+    setResults([])
+    setStats(INITIAL_STATS)
+    setIsProcessing(false)
+    onProcessingChange?.(false)
   }
 
   return (
@@ -213,7 +206,7 @@ export default function ClientTraining({
         Client-Side FSRS Training
       </h1>
 
-      <div className="mb-6">
+      <div className="mb-6 flex flex-wrap gap-3">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
           1. Select CSV File and Configuration
         </h2>
@@ -314,10 +307,8 @@ export default function ClientTraining({
         {isProcessing && (
           <button
             type="button"
-            onClick={() => {
-              abortedRef.current = true
-            }}
-            className="ml-3 px-6 py-3 text-base font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white"
+            onClick={handleCancel}
+            className="px-6 py-3 text-base font-medium rounded-lg transition-colors bg-red-600 hover:bg-red-700 text-white"
           >
             Cancel
           </button>
@@ -342,74 +333,46 @@ export default function ClientTraining({
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-            {results.map((result) => {
-              const [current, total] = result.progress.split('/').map(Number)
-              const progressPercentage =
-                total > 0 ? Math.round((current / total) * 100) : 0
+            {results.map((result) => (
+              <div
+                key={
+                  result.enableShortTerm
+                    ? 'short-term-enabled'
+                    : 'short-term-disabled'
+                }
+                className={`p-5 border rounded-lg ${
+                  result.completed
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
+                    : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
+                }`}
+              >
+                <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
+                  {result.enableShortTerm
+                    ? 'Short-Term Enabled'
+                    : 'Short-Term Disabled'}
+                </h3>
 
-              return (
-                <div
-                  key={
-                    result.enableShortTerm
-                      ? 'short-term-enabled'
-                      : 'short-term-disabled'
-                  }
-                  className={`p-5 border rounded-lg ${
-                    result.completed
-                      ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
-                      : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-700'
-                  }`}
-                >
-                  <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-                    {result.enableShortTerm
-                      ? 'Short-Term Enabled'
-                      : 'Short-Term Disabled'}
-                  </h3>
+                {result.completed && (
+                  <div>
+                    <p className="mb-2 text-green-700 dark:text-green-400 font-medium">
+                      ✓ Completed
+                    </p>
+                    <p className="mb-2 text-gray-900 dark:text-gray-100">
+                      <strong>Optimized Parameters:</strong>
+                    </p>
+                    <pre className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 rounded-md overflow-auto text-sm">
+                      {JSON.stringify(result.parameters, null, 2)}
+                    </pre>
+                  </div>
+                )}
 
-                  {/* Progress bar */}
-                  {!result.completed && result.progress !== '0/0' && (
-                    <div className="mb-4">
-                      <div className="flex justify-between items-center mb-2">
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          Progress: {result.progress}
-                        </span>
-                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                          {progressPercentage}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3 overflow-hidden">
-                        <div
-                          className="bg-blue-600 dark:bg-blue-500 h-3 rounded-full transition-all duration-300 ease-out"
-                          style={{ width: `${progressPercentage}%` }}
-                        />
-                      </div>
-                    </div>
-                  )}
-
-                  {result.completed && (
-                    <div>
-                      <p className="mb-2 text-green-700 dark:text-green-400 font-medium">
-                        ✓ Completed
-                      </p>
-                      <p className="mb-2 text-gray-900 dark:text-gray-100">
-                        <strong>Optimized Parameters:</strong>
-                      </p>
-                      <pre className="bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100 p-4 rounded-md overflow-auto text-sm">
-                        {JSON.stringify(result.parameters, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-
-                  {!result.completed &&
-                    isProcessing &&
-                    result.progress === '0/0' && (
-                      <p className="text-orange-600 dark:text-orange-400">
-                        Waiting to start...
-                      </p>
-                    )}
-                </div>
-              )
-            })}
+                {!result.completed && isProcessing && (
+                  <p className="text-orange-600 dark:text-orange-400">
+                    Waiting to start...
+                  </p>
+                )}
+              </div>
+            ))}
           </div>
 
           {stats.trainingTime && (
@@ -444,7 +407,8 @@ export default function ClientTraining({
             optimization
           </li>
           <li>
-            Wait for computation to complete and view the optimized results
+            Wait for computation to complete and view the optimized results. Use
+            &quot;Cancel&quot; to stop the worker.
           </li>
         </ol>
       </div>

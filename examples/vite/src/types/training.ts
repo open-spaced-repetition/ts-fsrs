@@ -3,7 +3,6 @@
 export interface OptimizationResult {
   enableShortTerm: boolean
   parameters: number[]
-  progress: string
   completed: boolean
 }
 
