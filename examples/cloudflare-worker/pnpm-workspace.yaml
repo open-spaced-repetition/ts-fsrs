@@ -1,0 +1,10 @@
+allowBuilds:
+  esbuild: true
+  workerd: true
+
+confirmModulesPurge: false
+
+supportedArchitectures:
+  cpu:
+    - current
+    - wasm32

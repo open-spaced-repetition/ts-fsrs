@@ -1,0 +1,56 @@
+name: Cloudflare Worker
+
+on:
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
+    branches:
+      - preview
+    paths:
+      - '.github/workflows/cloudflare.yml'
+      - 'examples/cloudflare-worker/**'
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: examples/cloudflare-worker
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup pnpm
+        run: npm install -g corepack@0.35.0 --force && corepack enable pnpm
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+          cache: pnpm
+          cache-dependency-path: examples/cloudflare-worker/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm check
+
+      - name: Validate bundle
+        run: pnpm dry-run
+
+      - name: Download revlog
+        run: curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o revlog.csv
+
+      - name: Run local workerd smoke
+        run: pnpm smoke
+        env:
+          REVLOG_PATH: revlog.csv

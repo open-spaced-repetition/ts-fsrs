@@ -1,0 +1,21 @@
+{
+  "name": "fsrs-cloudflare-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check:bundle": "node scripts/check-bundle.mjs",
+    "check": "tsc --noEmit",
+    "dev": "wrangler dev",
+    "dry-run": "wrangler deploy --dry-run --outdir dist && pnpm check:bundle",
+    "deploy": "wrangler deploy",
+    "smoke": "node scripts/smoke.mjs"
+  },
+  "dependencies": {
+    "@open-spaced-repetition/binding-wasm32-wasip1": "https://pkg.pr.new/open-spaced-repetition/ts-fsrs/@open-spaced-repetition/binding-wasm32-wasip1@49a4d90"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "wrangler": "^4.115.0"
+  }
+}
