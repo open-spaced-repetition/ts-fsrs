@@ -17,7 +17,7 @@ runs:
       run: |
         pnpm -F @open-spaced-repetition/binding artifacts
         mkdir -p packages/binding/dist
-        cp packages/binding/artifacts/bindings-aarch64-unknown-linux-musl/*.{js,cjs,mjs,d.ts} packages/binding/dist/ || true
+        cp packages/binding/artifacts/bindings-aarch64-unknown-linux-musl/*.{js,d.ts} packages/binding/dist/
         pnpm exec turbo run build:dynamic --filter=@open-spaced-repetition/binding
         cp packages/binding/npm/wasm32-wasi/{fsrs-binding.wasm32-wasi.wasm,fsrs-binding.wasi.cjs,fsrs-binding.wasi-browser.js,wasi-worker.mjs,wasi-worker-browser.mjs} packages/binding/dist/
       shell: bash
