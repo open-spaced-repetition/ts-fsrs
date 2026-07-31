@@ -70,23 +70,21 @@ describe('FSRS compute_parameters', () => {
     console.log('Minimal data parameters:', parameters)
   })
 
-  test('compute_parameters rejects invalid external training config', async () => {
+  test('compute_parameters passes external training config', async () => {
     const item = createMinimalTestItem()
 
     await expect(
-      Promise.resolve().then(() =>
-        computeParameters([item], {
-          enableShortTerm: true,
-          trainingConfig: {
-            numEpochs: 5,
-            batchSize: 0,
-            seed: 2023,
-            maxSeqLen: 256,
-            learningRate: 0.04,
-            gamma: 0.0001,
-          },
-        })
-      )
+      computeParameters([item], {
+        enableShortTerm: true,
+        trainingConfig: {
+          numEpochs: 5,
+          batchSize: 0,
+          seed: 2023,
+          maxSeqLen: 256,
+          learningRate: 0.04,
+          gamma: 0.0001,
+        },
+      })
     ).rejects.toThrow('compute_parameters failed')
   })
 
