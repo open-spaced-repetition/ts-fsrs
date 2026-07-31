@@ -17,12 +17,17 @@ This example demonstrates how to use the FSRS parameter optimizer with Vite and 
 
 ### Prerequisites
 
-- Node.js 20 or higher
+- Node.js 24 or higher
 - pnpm (recommended package manager)
 
 ### Installation
 
+Build the locally linked threadless binding from the repository root first:
+
 ```bash
+pnpm install
+pnpm --filter @open-spaced-repetition/binding build:wasm:threadless
+cd examples/vite
 pnpm install
 ```
 
@@ -42,43 +47,16 @@ pnpm build
 
 ## Important Configuration
 
-This example requires special Vite configuration to work with WebAssembly:
-
-### 1. Response Headers (COOP/COEP)
-
-The `@open-spaced-repetition/binding` package uses WebAssembly with `SharedArrayBuffer`, which requires specific HTTP headers for security reasons:
+This example runs the threadless WASI binding in a dedicated module worker. Training therefore does not block the page and does not require `SharedArrayBuffer`, COOP, or COEP headers.
 
 ```typescript
 // vite.config.ts
-{
-  name: 'configure-response-headers',
-  enforce: 'pre',
-  configureServer: (server) => {
-    server.middlewares.use((_req, res, next) => {
-      res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp')
-      res.setHeader('Cross-Origin-Opener-Policy', 'same-origin')
-      next()
-    })
-  },
+worker: {
+  format: 'es',
 }
 ```
 
-These headers enable cross-origin isolation, which is required for `SharedArrayBuffer` to work in modern browsers.
-
-### 2. Optimization Dependencies
-
-The binding package must be excluded from Vite's dependency optimization to prevent issues with WebAssembly loading:
-
-```typescript
-// vite.config.ts
-optimizeDeps: {
-  exclude: ['@open-spaced-repetition/binding'],
-}
-```
-
-This ensures that the WASM files are loaded correctly without being processed by Vite's optimizer.
-
-### 3. PNPM Configuration
+### PNPM Configuration
 
 The `package.json` includes a special configuration to support WebAssembly binaries:
 
@@ -111,7 +89,7 @@ This example uses the local system timezone automatically. The binding resolves 
 
 ### WASM Loading
 
-The WebAssembly binary is loaded from the `@open-spaced-repetition/binding-wasm32-wasi` package, which is automatically installed as an optional dependency when the architecture supports it.
+The WebAssembly binary is loaded from `@open-spaced-repetition/binding-wasm32-wasip1` inside `optimizer.worker.ts`. Comlink handles the training RPC, result, and errors; Rust progress checkpoints are forwarded to the page with `postMessage`.
 
 ## Code Quality
 

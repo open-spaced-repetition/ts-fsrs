@@ -1,19 +1,18 @@
-import { useCallback, useId, useRef, useState } from 'react'
+import { transfer, wrap } from 'comlink'
+import { useEffect, useId, useRef, useState } from 'react'
 
-import { getOptimizer } from '../binding'
+import type { OptimizerWorker, WorkerTrainingEvent } from '../optimizer.worker'
 import type { OptimizationResult, TrainingStats } from '../types/training'
-import { convertFSRSItemsByFile } from '../utils/convert'
 
 interface ClientTrainingProps {
   onProcessingChange?: (isProcessing: boolean) => void
 }
 
-// Sentinel error used to signal that training was aborted by the user.
-class AbortTrainingError extends Error {
-  constructor() {
-    super('Training aborted by user')
-    this.name = 'AbortTrainingError'
-  }
+class TrainingCancelledError extends Error {}
+
+interface ActiveTraining {
+  worker: Worker
+  cancel: () => void
 }
 
 const INITIAL_STATS: TrainingStats = {
@@ -38,12 +37,19 @@ export default function ClientTraining({
   const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
   const [results, setResults] = useState<OptimizationResult[]>([])
   const [stats, setStats] = useState<TrainingStats>(INITIAL_STATS)
-
-  // Signals that the user has requested the in-flight training to abort.
-  // Read inside the progress callback to short-circuit back to the binding.
-  const abortedRef = useRef(false)
-  // Track last UI update time per training run for throttling.
+  const activeTrainingRef = useRef<ActiveTraining | null>(null)
   const lastUpdateTimeRef = useRef<Record<string, number>>({})
+
+  useEffect(
+    () => () => {
+      const activeTraining = activeTrainingRef.current
+      if (activeTraining) {
+        activeTrainingRef.current = null
+        activeTraining.cancel()
+      }
+    },
+    []
+  )
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -65,10 +71,6 @@ export default function ClientTraining({
     setStats(INITIAL_STATS)
   }
 
-  const handleCancel = useCallback(() => {
-    abortedRef.current = true
-  }, [])
-
   const handleProcessCSV = async () => {
     if (!csvFile) {
       alert('Please select a CSV file first')
@@ -76,41 +78,11 @@ export default function ClientTraining({
     }
 
     setIsProcessing(true)
-    abortedRef.current = false
     lastUpdateTimeRef.current = {}
     onProcessingChange?.(true)
 
+    let activeTraining: ActiveTraining | undefined
     try {
-      const { computeParameters } = await getOptimizer()
-
-      // Read CSV file
-      console.time('parsing csv time')
-      const parseStartTime = performance.now()
-
-      // Convert CSV to FSRS items
-      const fsrsItems = await convertFSRSItemsByFile(csvFile, nextDayStartsAt)
-
-      const parseEndTime = performance.now()
-      const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`
-      console.timeEnd('parsing csv time')
-
-      if (abortedRef.current) {
-        throw new AbortTrainingError()
-      }
-
-      setStats((prev) => ({
-        ...prev,
-        parseTime: parseDuration,
-        fsrsItemsCount: fsrsItems.length,
-      }))
-
-      console.log(`fsrs_items.len() = ${fsrsItems.length}`)
-
-      // Start training
-      console.time('full training time')
-      const trainingStartTime = performance.now()
-
-      // Initialize results for both short-term enabled and disabled
       setResults([
         {
           enableShortTerm: true,
@@ -126,120 +98,112 @@ export default function ClientTraining({
         },
       ])
 
-      // Compute parameters wrapper.
-      // Returns `false` from the progress callback to abort the in-flight
-      // training in the binding layer; the Promise then rejects and we
-      // surface it as an AbortTrainingError.
-      const computeParametersWrapper = async (
-        enableShortTerm: boolean
-      ): Promise<void> => {
-        const key = `enableShortTerm_${enableShortTerm}`
+      const worker = new Worker(
+        new URL('../optimizer.worker.ts', import.meta.url),
+        { type: 'module' }
+      )
+      const optimizer = wrap<OptimizerWorker>(worker)
+      let rejectWorker: (reason?: unknown) => void = () => {}
+      const workerStopped = new Promise<never>((_, reject) => {
+        rejectWorker = reject
+        worker.addEventListener(
+          'error',
+          (event) => reject(new Error(event.message)),
+          { once: true }
+        )
+      })
+      activeTraining = {
+        worker,
+        cancel: () => {
+          worker.terminate()
+          rejectWorker(new TrainingCancelledError())
+        },
+      }
+      activeTrainingRef.current = activeTraining
 
-        // Track progress state to avoid redundant updates
-        let lastProgressUpdate = { cur: -1, total: -1 }
-
-        const optimizedParameters = await computeParameters(fsrsItems, {
-          enableShortTerm,
-          numRelearningSteps,
-          progress: (cur, total) => {
-            // Propagate abort request to the native training loop.
-            if (abortedRef.current) {
-              return false
-            }
-
-            // Skip if progress hasn't changed
+      const csv = await Promise.race([csvFile.arrayBuffer(), workerStopped])
+      worker.addEventListener(
+        'message',
+        ({ data }: MessageEvent<WorkerTrainingEvent>) => {
+          if (data.type === 'progress') {
+            const key = String(data.enableShortTerm)
+            const now = Date.now()
+            const lastUpdate = lastUpdateTimeRef.current[key] ?? 0
             if (
-              lastProgressUpdate.cur === cur &&
-              lastProgressUpdate.total === total
+              data.current !== data.total &&
+              now - lastUpdate < UPDATE_THROTTLE_MS
             ) {
               return
             }
-
-            // Throttle UI updates to avoid excessive re-renders
-            const now = Date.now()
-            const lastUpdate = lastUpdateTimeRef.current[key] ?? 0
-
-            // Always update on first call, last call, or after throttle interval
-            const shouldUpdate =
-              cur === 0 ||
-              cur === total ||
-              now - lastUpdate >= UPDATE_THROTTLE_MS
-
-            if (!shouldUpdate) {
-              return
-            }
-
-            console.debug(
-              `[enableShortTerm = ${
-                enableShortTerm ? 1 : 0
-              }] Progress: ${cur}/${total}`
-            )
-
             lastUpdateTimeRef.current[key] = now
-            lastProgressUpdate = { cur, total }
-
-            // Update progress in real-time using functional update
-            // to ensure we always work with the latest state
-            setResults((prev) =>
-              prev.map((r) =>
-                r.enableShortTerm === enableShortTerm
-                  ? { ...r, progress: `${cur}/${total}` }
-                  : r
+            setResults((previous) =>
+              previous.map((result) =>
+                result.enableShortTerm === data.enableShortTerm
+                  ? {
+                      ...result,
+                      progress: `${data.current}/${data.total}`,
+                    }
+                  : result
               )
             )
-          },
-        })
-
-        console.log(
-          `[enableShortTerm = ${enableShortTerm}] optimized parameters:`,
-          optimizedParameters
-        )
-
-        // Update results with completed parameters using functional update
-        setResults((prev) =>
-          prev.map((r) =>
-            r.enableShortTerm === enableShortTerm
-              ? { ...r, parameters: optimizedParameters, completed: true }
-              : r
+          } else if (data.type === 'completed') {
+            setResults((previous) =>
+              previous.map((result) =>
+                result.enableShortTerm === data.result.enableShortTerm
+                  ? data.result
+                  : result
+              )
+            )
+          }
+        }
+      )
+      const output = await Promise.race([
+        optimizer.train(
+          transfer(
+            {
+              csv,
+              nextDayStartsAt,
+              timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+              numRelearningSteps,
+            },
+            [csv]
           )
-        )
-      }
+        ),
+        workerStopped,
+      ])
 
-      // Run computations sequentially to reduce memory pressure.
-      // Running in parallel may cause WebAssembly memory access errors with
-      // large datasets.
-      await computeParametersWrapper(true)
-      if (abortedRef.current) {
-        throw new AbortTrainingError()
-      }
-      await computeParametersWrapper(false)
-
-      const trainingEndTime = performance.now()
-      const trainingDuration = `${(trainingEndTime - trainingStartTime).toFixed(
-        2
-      )}ms`
-      setStats((prev) => ({
-        ...prev,
-        trainingTime: trainingDuration,
-      }))
-      console.timeEnd('full training time')
+      setResults(output.results)
+      setStats(output.stats)
     } catch (error) {
-      // Either an explicit abort, or the binding returned early because the
-      // progress callback returned `false`. Reset UI to a clean state.
-      if (abortedRef.current || error instanceof AbortTrainingError) {
-        console.debug('Training cancelled by user.')
-        setResults([])
-        setStats(INITIAL_STATS)
+      if (error instanceof TrainingCancelledError) {
         return
       }
       console.error('Error processing CSV file:', error)
       const message = error instanceof Error ? error.message : String(error)
       alert(`Processing failed: ${message}`)
     } finally {
-      setIsProcessing(false)
-      abortedRef.current = false
-      onProcessingChange?.(false)
+      if (!activeTraining || activeTrainingRef.current === activeTraining) {
+        if (activeTraining) {
+          activeTrainingRef.current = null
+          activeTraining.worker.terminate()
+        }
+        setIsProcessing(false)
+        onProcessingChange?.(false)
+      }
     }
+  }
+
+  const handleCancel = () => {
+    const activeTraining = activeTrainingRef.current
+    if (!activeTraining) {
+      return
+    }
+    activeTrainingRef.current = null
+    activeTraining.cancel()
+    setResults([])
+    setStats(INITIAL_STATS)
+    setIsProcessing(false)
+    onProcessingChange?.(false)
   }
 
   return (
@@ -278,7 +242,11 @@ export default function ClientTraining({
               id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) =>
-                setNextDayStartsAt(e.target.value === '' ? nextDayStartsAt : Number(e.target.value))
+                setNextDayStartsAt(
+                  e.target.value === ''
+                    ? nextDayStartsAt
+                    : Number(e.target.value)
+                )
               }
               disabled={isProcessing}
               min={0}
