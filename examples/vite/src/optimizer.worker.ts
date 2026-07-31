@@ -41,7 +41,7 @@ async function train(
   const results: OptimizationResult[] = []
   for (const enableShortTerm of [true, false]) {
     let progress = '0/0'
-    const parameters = computeParameters(fsrsItems, {
+    const parameters = await computeParameters(fsrsItems, {
       enableShortTerm,
       numRelearningSteps: data.numRelearningSteps,
       progress: (current, total) => {

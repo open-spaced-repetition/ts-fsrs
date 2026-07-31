@@ -1,6 +1,8 @@
-use napi::bindgen_prelude::Result;
+#[cfg(threadless_wasm)]
+use napi::bindgen_prelude::PromiseRaw;
 #[cfg(not(threadless_wasm))]
-use napi::bindgen_prelude::{AsyncTask, Env, Task};
+use napi::bindgen_prelude::{AsyncTask, Task};
+use napi::bindgen_prelude::{Env, Result};
 use napi_derive::napi;
 #[cfg(not(threadless_wasm))]
 use std::sync::{Arc, Mutex};
@@ -19,13 +21,14 @@ pub fn evaluate_with_time_series_splits(
   AsyncTask::new(EvaluateParametersTask::new(train_set, options.as_ref()))
 }
 
-/// Evaluate parameters synchronously inside a threadless WASM worker.
+/// Evaluate parameters on the current thread inside a threadless WASM worker.
 #[cfg(threadless_wasm)]
-#[napi(catch_unwind)]
-pub fn evaluate_with_time_series_splits(
+#[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
+pub fn evaluate_with_time_series_splits<'env>(
+  env: &'env Env,
   train_set: Vec<&FSRSItem>,
   #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
-) -> Result<ModelEvaluation> {
+) -> Result<PromiseRaw<'env, ModelEvaluation>> {
   let resolved = ComputeParametersOptions::resolve(options.as_ref());
   let callback = options
     .as_ref()
@@ -60,9 +63,12 @@ pub fn evaluate_with_time_series_splits(
   });
 
   if let Some(error) = callback_error {
-    return Err(error);
+    return PromiseRaw::reject(env, error);
   }
-  result
+  match result {
+    Ok(metrics) => PromiseRaw::resolve(env, metrics),
+    Err(error) => PromiseRaw::reject(env, error),
+  }
 }
 
 #[cfg(not(threadless_wasm))]

@@ -26,19 +26,23 @@ function createTrainingItems() {
 }
 
 describeThreadless('threadless WASI binding', () => {
-  test('computes parameters without progress', () => {
-    const parameters = computeParameters([createItem()], {
+  test('computes parameters without progress', async () => {
+    const result = computeParameters([createItem()], {
       enableShortTerm: true,
     })
+    expect(result).toBeInstanceOf(Promise)
 
+    const parameters = await result
     expect(parameters).toHaveLength(21)
   })
 
-  test('evaluates time-series splits without progress', () => {
-    const metrics = evaluateWithTimeSeriesSplits(createTrainingItems(), {
+  test('evaluates time-series splits without progress', async () => {
+    const result = evaluateWithTimeSeriesSplits(createTrainingItems(), {
       enableShortTerm: true,
     })
+    expect(result).toBeInstanceOf(Promise)
 
+    const metrics = await result
     expect(metrics).toEqual(
       expect.objectContaining({
         logLoss: expect.any(Number),
@@ -47,9 +51,9 @@ describeThreadless('threadless WASI binding', () => {
     )
   })
 
-  test('reports training progress', () => {
+  test('reports training progress', async () => {
     const updates: Array<[number, number]> = []
-    const parameters = computeParameters(createTrainingItems(), {
+    const parameters = await computeParameters(createTrainingItems(), {
       enableShortTerm: true,
       progress: (current, total) => {
         updates.push([current, total])
@@ -61,9 +65,9 @@ describeThreadless('threadless WASI binding', () => {
     expect(updates.at(-1)?.[0]).toBe(updates.at(-1)?.[1])
   })
 
-  test('reports each time-series split', () => {
+  test('reports each time-series split', async () => {
     const updates: Array<[number, number]> = []
-    const metrics = evaluateWithTimeSeriesSplits(createTrainingItems(), {
+    const metrics = await evaluateWithTimeSeriesSplits(createTrainingItems(), {
       enableShortTerm: true,
       progress: (current, total) => {
         updates.push([current, total])
@@ -85,12 +89,12 @@ describeThreadless('threadless WASI binding', () => {
     ])
   })
 
-  test('progress can stop training', () => {
-    expect(() =>
+  test('progress can stop training', async () => {
+    await expect(
       computeParameters(createTrainingItems(), {
         enableShortTerm: true,
         progress: () => false,
       })
-    ).toThrow('compute_parameters failed')
+    ).rejects.toThrow('compute_parameters failed')
   })
 })
