@@ -1,4 +1,6 @@
-use napi::bindgen_prelude::{AsyncTask, Env, Result, Task};
+use napi::bindgen_prelude::Result;
+#[cfg(not(threadless_wasm))]
+use napi::bindgen_prelude::{AsyncTask, Env, Task};
 use napi_derive::napi;
 #[cfg(not(threadless_wasm))]
 use std::sync::{Arc, Mutex};
@@ -8,6 +10,7 @@ use crate::progress;
 use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation, prepare_items};
 
 /// Evaluate parameters using time-series splits.
+#[cfg(not(threadless_wasm))]
 #[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
 pub fn evaluate_with_time_series_splits(
   train_set: Vec<&FSRSItem>,
@@ -16,6 +19,53 @@ pub fn evaluate_with_time_series_splits(
   AsyncTask::new(EvaluateParametersTask::new(train_set, options.as_ref()))
 }
 
+/// Evaluate parameters synchronously inside a threadless WASM worker.
+#[cfg(threadless_wasm)]
+#[napi(catch_unwind)]
+pub fn evaluate_with_time_series_splits(
+  train_set: Vec<&FSRSItem>,
+  #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
+) -> Result<ModelEvaluation> {
+  let resolved = ComputeParametersOptions::resolve(options.as_ref());
+  let callback = options
+    .as_ref()
+    .and_then(|options| options.progress.as_ref());
+  let mut callback_error = None;
+  let result = fsrs::evaluate_with_time_series_splits(
+    fsrs::ComputeParametersInput {
+      card_ids: None,
+      train_set: prepare_items(train_set),
+      progress: None,
+      enable_short_term: resolved.enable_short_term,
+      num_relearning_steps: resolved.num_relearning_steps,
+      training_config: resolved.training_config,
+    },
+    |progress| match callback {
+      Some(callback) => {
+        match callback.call((progress.current as u32, progress.total as u32).into()) {
+          Ok(Some(false)) => false,
+          Ok(_) => true,
+          Err(error) => {
+            callback_error = Some(error);
+            false
+          }
+        }
+      }
+      None => true,
+    },
+  )
+  .map(ModelEvaluation::from)
+  .map_err(|error| {
+    napi::Error::from_reason(format!("evaluate_with_time_series_splits failed: {error}"))
+  });
+
+  if let Some(error) = callback_error {
+    return Err(error);
+  }
+  result
+}
+
+#[cfg(not(threadless_wasm))]
 impl Task for EvaluateParametersTask {
   type Output = fsrs::ModelEvaluation;
   type JsValue = ModelEvaluation;
@@ -119,53 +169,5 @@ impl EvaluateParametersTask {
     }
 
     result
-  }
-}
-
-// ============================================================================
-// Threadless wasm: evaluation runs serially without progress reporting
-// ============================================================================
-
-#[cfg(threadless_wasm)]
-pub struct EvaluateParametersTask {
-  pub(crate) train: Vec<fsrs::FSRSItem>,
-  pub(crate) enable_short_term: bool,
-  pub(crate) num_relearning_steps: Option<usize>,
-  pub(crate) training_config: Option<fsrs::TrainingConfig>,
-  pub(crate) progress_error: Option<&'static str>,
-}
-
-#[cfg(threadless_wasm)]
-impl EvaluateParametersTask {
-  fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
-    let resolved = ComputeParametersOptions::resolve(options);
-    Self {
-      train: prepare_items(train_set),
-      enable_short_term: resolved.enable_short_term,
-      num_relearning_steps: resolved.num_relearning_steps,
-      training_config: resolved.training_config,
-      progress_error: resolved
-        .progress_requested
-        .then_some(crate::threadless::PROGRESS_ERROR),
-    }
-  }
-
-  fn evaluate(&mut self) -> Result<fsrs::ModelEvaluation> {
-    if let Some(reason) = self.progress_error {
-      return Err(napi::Error::from_reason(reason));
-    }
-
-    fsrs::evaluate_with_time_series_splits(
-      fsrs::ComputeParametersInput {
-        card_ids: None,
-        train_set: std::mem::take(&mut self.train),
-        progress: None,
-        enable_short_term: self.enable_short_term,
-        num_relearning_steps: self.num_relearning_steps,
-        training_config: self.training_config,
-      },
-      |_| true,
-    )
-    .map_err(|e| napi::Error::from_reason(format!("evaluate_with_time_series_splits failed: {e}")))
   }
 }

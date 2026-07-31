@@ -137,7 +137,7 @@ checksum = "d9c4f5dac5e15c24eb999c26181a6ca40b39fe946cbe4c263c7209467bc83af2"
 [[package]]
 name = "fsrs"
 version = "6.6.2"
-source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1#f859784ddf105faf35446369a637d5f225da3ba3"
+source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1#48b2ff3251a040dbc339fd8095262a1cd0f6b380"
 dependencies = [
  "itertools 0.15.0",
  "log",
