@@ -55,11 +55,33 @@ describeThreadless('threadless WASI binding', () => {
           )
 
           ;(async () => {
+            const updates = []
+            let completed = false
+            let lateProgress = false
             const parameters = await computeParameters(items, {
               enableShortTerm: true,
+              timeout: 10,
+              progress: (current, total) => {
+                if (completed) lateProgress = true
+                updates.push([current, total])
+              },
             })
+            completed = true
+            const updatesAtCompletion = updates.length
+            await new Promise((resolve) => setTimeout(resolve, 50))
+
             if (parameters.length !== 21) {
               throw new Error('CommonJS computeParameters returned invalid parameters')
+            }
+            if (updates.length < 2) {
+              throw new Error('CommonJS computeParameters reported insufficient progress')
+            }
+            const [current, total] = updates.at(-1)
+            if (current !== total) {
+              throw new Error('CommonJS computeParameters did not report completion')
+            }
+            if (lateProgress || updates.length !== updatesAtCompletion) {
+              throw new Error('CommonJS computeParameters reported progress after completion')
             }
 
             const metrics = await evaluateWithTimeSeriesSplits(items, {
