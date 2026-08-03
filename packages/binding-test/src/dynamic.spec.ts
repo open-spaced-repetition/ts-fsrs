@@ -1,11 +1,34 @@
 import { existsSync, readFileSync } from 'node:fs'
+import { execFile } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
+import { promisify } from 'node:util'
 import { Worker } from 'node:worker_threads'
+import { initOptimizer as initOptimizerNew } from '@open-spaced-repetition/binding/dynamic'
 import { initOptimizer } from '@open-spaced-repetition/binding/dynamic-wasi'
 
 const require = createRequire(import.meta.url)
+const execFileAsync = promisify(execFile)
+const disposeSymbol = Symbol.for('napi.rs.wasi.dispose')
+const initializedBindings: object[] = []
+
+async function initialize(
+  options: Parameters<typeof initOptimizer>[0]
+): ReturnType<typeof initOptimizer> {
+  const binding = await initOptimizer(options)
+  initializedBindings.push(binding)
+  return binding
+}
+
+afterEach(async () => {
+  await Promise.all(
+    initializedBindings.splice(0).map((binding) => {
+      const dispose = Reflect.get(binding, disposeSymbol)
+      return typeof dispose === 'function' ? dispose() : undefined
+    })
+  )
+})
 
 /**
  * Resolve wasm and worker paths.
@@ -57,8 +80,12 @@ const hasWasm = assets != null
 const describeIfWasm = hasWasm ? describe : describe.skip
 
 describeIfWasm('initOptimizer', () => {
+  test('keeps dynamic-wasi as an alias of dynamic', () => {
+    expect(initOptimizerNew).toBe(initOptimizer)
+  })
+
   test('initializes with file path strings', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmPath!,
       worker: workerPath!,
     })
@@ -75,7 +102,7 @@ describeIfWasm('initOptimizer', () => {
 
   test('initializes with Buffer wasm', async () => {
     const wasmBuffer = readFileSync(wasmPath!)
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmBuffer,
       worker: workerPath!,
     })
@@ -84,7 +111,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('initializes with worker factory', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmPath!,
       worker: () => new Worker(workerPath!, { env: process.env }),
     })
@@ -92,7 +119,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('nextStates works after init', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmPath!,
       worker: workerPath!,
     })
@@ -105,7 +132,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('memoryStateFromSM2 works after init', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmPath!,
       worker: workerPath!,
     })
@@ -117,7 +144,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('computeParameters works after init', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: wasmPath!,
       worker: workerPath!,
     })
@@ -135,7 +162,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('initializes with URL objects', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: pathToFileURL(wasmPath!),
       worker: pathToFileURL(workerPath!),
     })
@@ -143,7 +170,7 @@ describeIfWasm('initOptimizer', () => {
   })
 
   test('initializes with file:// URL strings', async () => {
-    const binding = await initOptimizer({
+    const binding = await initialize({
       wasm: pathToFileURL(wasmPath!).href,
       worker: pathToFileURL(workerPath!).href,
     })
@@ -155,5 +182,47 @@ describeIfWasm('initOptimizer', () => {
       // biome-ignore lint/suspicious/noExplicitAny: test
       initOptimizer({ wasm: 123 as any, worker: workerPath! })
     ).rejects.toThrow(TypeError)
+  })
+
+  test('rolls back a failed initialization', async () => {
+    await expect(
+      initOptimizer({
+        wasm: new Uint8Array([0]),
+        worker: workerPath!,
+      })
+    ).rejects.toThrow()
+
+    const binding = await initialize({
+      wasm: wasmPath!,
+      worker: workerPath!,
+    })
+    expect(binding.FSRSBinding).toBeDefined()
+  })
+
+  test('disposes workers and lets a child process exit', async () => {
+    const dynamicUrl = pathToFileURL(
+      join(
+        dirname(require.resolve('@open-spaced-repetition/binding')),
+        'dynamic-node.js'
+      )
+    ).href
+    const script = `
+      import { initOptimizer } from ${JSON.stringify(dynamicUrl)}
+      const binding = await initOptimizer({
+        wasm: ${JSON.stringify(wasmPath)},
+        worker: ${JSON.stringify(workerPath)},
+      })
+      await binding[Symbol.for('napi.rs.wasi.dispose')]()
+    `
+
+    await expect(
+      execFileAsync(
+        process.execPath,
+        ['--input-type=module', '--eval', script],
+        {
+          timeout: 5_000,
+        }
+      )
+    ).resolves.toBeDefined()
   })
 })

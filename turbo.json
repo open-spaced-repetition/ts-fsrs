@@ -43,9 +43,9 @@
     },
     "@open-spaced-repetition/binding#build:dynamic": {
       "outputs": [
-        "dist/dynamic-wasi.cjs",
-        "dist/dynamic-wasi-browser.js",
-        "dist/dynamic-wasi.d.ts"
+        "dist/dynamic-node.js",
+        "dist/dynamic-browser.js",
+        "dist/dynamic.d.ts"
       ]
     },
     "test:coverage": {

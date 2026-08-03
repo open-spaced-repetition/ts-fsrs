@@ -3,17 +3,17 @@
   "version": "0.6.0-beta.0",
   "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
   "type": "module",
-  "main": "dist/index.cjs",
-  "module": "dist/index.mjs",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "browser": "dist/browser.js",
   "exports": {
     ".": {
       "browser": "./dist/browser.js",
       "types": "./dist/index.d.ts",
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs",
-      "default": "./dist/index.mjs"
+      "require": "./dist/index.js",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
     },
     "./emnapi": {
       "browser": "./dist/browser.js",
@@ -21,20 +21,28 @@
       "require": "./dist/fsrs-binding.wasi.cjs",
       "default": "./dist/fsrs-binding.wasi-browser.js"
     },
+    "./dynamic": {
+      "browser": "./dist/dynamic-browser.js",
+      "types": "./dist/dynamic.d.ts",
+      "require": "./dist/dynamic-node.js",
+      "import": "./dist/dynamic-node.js",
+      "default": "./dist/dynamic-node.js"
+    },
     "./dynamic-wasi": {
-      "browser": "./dist/dynamic-wasi-browser.js",
-      "types": "./dist/dynamic-wasi.d.ts",
-      "require": "./dist/dynamic-wasi.cjs",
-      "default": "./dist/dynamic-wasi.cjs"
+      "browser": "./dist/dynamic-browser.js",
+      "types": "./dist/dynamic.d.ts",
+      "require": "./dist/dynamic-node.js",
+      "import": "./dist/dynamic-node.js",
+      "default": "./dist/dynamic-node.js"
     }
   },
   "license": "MIT",
   "scripts": {
-    "artifacts": "napi artifacts -d ./artifacts --build-output-dir .",
-    "build": "napi build --platform --release -o ./dist",
-    "build:wasm": "napi build --platform --release --target wasm32-wasip1-threads -o ./dist",
+    "artifacts": "napi artifacts -d ./artifacts",
+    "build": "napi build --platform --release --esm -o ./dist",
+    "build:wasm": "napi build --platform --release --esm --dts index.d.cts --target wasm32-wasip1-threads -o ./dist",
     "build:dynamic": "node copy-dynamic.js",
-    "build:debug": "napi build --platform",
+    "build:debug": "napi build --platform --esm",
     "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
     "check:fix": "biome format --write",
@@ -42,15 +50,14 @@
     "check:rs": "cargo fmt && cargo clippy"
   },
   "devDependencies": {
-    "@emnapi/core": "^1.10.0",
-    "@emnapi/runtime": "^1.10.0",
-    "@napi-rs/cli": "^3.4.1",
-    "@napi-rs/wasm-runtime": "^1.1.4",
+    "@emnapi/core": "2.0.0-alpha.3",
+    "@emnapi/runtime": "2.0.0-alpha.3",
+    "@napi-rs/cli": "3.8.0",
+    "@napi-rs/wasm-runtime": "1.2.0",
     "@taplo/cli": "^0.7.0",
-    "@tybys/wasm-util": "^0.10.2",
     "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
-    "emnapi": "^1.10.0",
+    "emnapi": "2.0.0-alpha.3",
     "npm-run-all2": "^8.0.4",
     "papaparse": "^5.5.3",
     "tinybench": "^6.0.1"
@@ -75,6 +82,7 @@
     "binaryName": "fsrs-binding",
     "wasm": {
       "browser": {
+        "asyncInit": true,
         "errorEvent": true
       }
     },
@@ -92,7 +100,7 @@
     ]
   },
   "engines": {
-    "node": ">= 20"
+    "node": ">=24"
   },
   "publishConfig": {
     "registry": "https://registry.npmjs.org/",
