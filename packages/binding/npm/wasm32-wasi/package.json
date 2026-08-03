@@ -1,9 +1,6 @@
 {
   "name": "@open-spaced-repetition/binding-wasm32-wasi",
   "version": "0.6.0-beta.0",
-  "cpu": [
-    "wasm32"
-  ],
   "main": "fsrs-binding.wasi.cjs",
   "exports": {
     ".": {
@@ -23,6 +20,7 @@
   "files": [
     "fsrs-binding.wasm32-wasi.wasm",
     "fsrs-binding.wasi.cjs",
+    "fsrs-binding.wasi.d.cts",
     "fsrs-binding.wasi-browser.js",
     "wasi-worker.mjs",
     "wasi-worker-browser.mjs"
@@ -38,7 +36,7 @@
   ],
   "license": "MIT",
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=24"
   },
   "repository": {
     "type": "git",
@@ -49,9 +47,11 @@
     "registry": "https://registry.npmjs.org/",
     "access": "public"
   },
+  "types": "fsrs-binding.wasi.d.cts",
   "browser": "fsrs-binding.wasi-browser.js",
+  "type": "module",
   "dependencies": {
-    "@napi-rs/wasm-runtime": "1.2.0",
+    "@napi-rs/wasm-runtime": "^1.2.0",
     "@emnapi/core": "2.0.0-alpha.3",
     "@emnapi/runtime": "2.0.0-alpha.3"
   }

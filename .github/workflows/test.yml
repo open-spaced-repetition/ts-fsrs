@@ -66,10 +66,14 @@ jobs:
         shell: bash
 
       - name: Test WASI binding
-        if: inputs.target == 'wasm32-wasip1-threads'
+        if: startsWith(inputs.target, 'wasm32-')
         run: pnpm test
+        # Flavor names match their target, except the threaded one, whose
+        # generated flavor is still called wasm32-wasi. Anything unmapped is
+        # passed through so the loader rejects it instead of silently falling
+        # back to the threaded flavor.
         env:
-          NAPI_RS_FORCE_WASI: 1
+          NAPI_RS_WASI_FLAVOR: ${{ inputs.target == 'wasm32-wasip1-threads' && 'wasm32-wasi' || inputs.target }}
 
       - name: Determine docker params
         if: contains(inputs.target, 'unknown-linux-gnu') == true || contains(inputs.target, 'unknown-linux-musl') == true

@@ -7,6 +7,9 @@ import {
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
 
+const isThreadless = process.env.NAPI_RS_WASI_FLAVOR === 'wasm32-wasip1'
+const testWithThreads = isThreadless ? test.skip : test
+
 describe('FSRS compute_parameters', () => {
   function createMinimalTestItem(): FSRSBindingItem {
     return new FSRSBindingItem([
@@ -29,12 +32,16 @@ describe('FSRS compute_parameters', () => {
       try {
         const parameters = await computeParameters(allItems, {
           enableShortTerm: shortTerm,
-          progress: (current: number, total: number) => {
-            console.debug(
-              `[shortTerm: ${shortTerm}] Progress: ${current}/${total}`
-            )
-          },
-          timeout: 500,
+          ...(isThreadless
+            ? {}
+            : {
+                progress: (current: number, total: number) => {
+                  console.debug(
+                    `[shortTerm: ${shortTerm}] Progress: ${current}/${total}`
+                  )
+                },
+                timeout: 500,
+              }),
         })
 
         expect(parameters).toBeDefined()
@@ -81,24 +88,28 @@ describe('FSRS compute_parameters', () => {
     ).rejects.toThrow('compute_parameters failed')
   })
 
-  test('evaluate_parameters with time series splits', async () => {
-    if (allItems.length === 0) {
-      throw new Error('No valid items parsed from CSV, skipping test')
-    }
+  testWithThreads(
+    'evaluate_parameters with time series splits',
+    async () => {
+      if (allItems.length === 0) {
+        throw new Error('No valid items parsed from CSV, skipping test')
+      }
 
-    const metrics = await evaluateWithTimeSeriesSplits(allItems, {
-      enableShortTerm: true,
-      progress: (current: number, total: number) => {
-        console.debug(`[evaluate] Progress: ${current}/${total}`)
-      },
-      timeout: 500,
-    })
+      const metrics = await evaluateWithTimeSeriesSplits(allItems, {
+        enableShortTerm: true,
+        progress: (current: number, total: number) => {
+          console.debug(`[evaluate] Progress: ${current}/${total}`)
+        },
+        timeout: 500,
+      })
 
-    expect(metrics.logLoss).toBeCloseTo(0.32699051, 4)
-    expect(metrics.rmseBins).toBeCloseTo(0.026878573, 4)
-  }, 180_000)
+      expect(metrics.logLoss).toBeCloseTo(0.32699051, 4)
+      expect(metrics.rmseBins).toBeCloseTo(0.026878573, 4)
+    },
+    180_000
+  )
 
-  test('returning false aborts computation', async () => {
+  testWithThreads('returning false aborts computation', async () => {
     let callCount = 0
     const result = computeParameters(allItems, {
       enableShortTerm: true,
@@ -115,7 +126,7 @@ describe('FSRS compute_parameters', () => {
     expect(callCount).toBeGreaterThanOrEqual(2)
   })
 
-  test.each([
+  testWithThreads.each([
     { name: 'computeParameters', fn: computeParameters },
     {
       name: 'evaluateWithTimeSeriesSplits',

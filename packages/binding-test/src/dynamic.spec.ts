@@ -1,5 +1,5 @@
-import { existsSync, readFileSync } from 'node:fs'
 import { execFile } from 'node:child_process'
+import { existsSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
@@ -76,8 +76,9 @@ const assets = resolveWasiAssets()
 const wasmPath = assets?.wasmPath
 const workerPath = assets?.workerPath
 const hasWasm = assets != null
+const isThreadless = process.env.NAPI_RS_WASI_FLAVOR === 'wasm32-wasip1'
 
-const describeIfWasm = hasWasm ? describe : describe.skip
+const describeIfWasm = hasWasm && !isThreadless ? describe : describe.skip
 
 describeIfWasm('initOptimizer', () => {
   test('keeps dynamic-wasi as an alias of dynamic', () => {

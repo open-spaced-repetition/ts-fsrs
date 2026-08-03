@@ -10,6 +10,15 @@ type ProgressArgs = FnArgs<(u32, u32)>;
 pub type ProgressCallback =
   ThreadsafeFunction<ProgressArgs, Option<bool>, ProgressArgs, Status, false, true>;
 
+/// Builds the threadsafe function backing `options.progress`, if one was passed.
+pub fn build_callback(
+  options: Option<&crate::ComputeParametersOptions>,
+) -> Option<ProgressCallback> {
+  options
+    .and_then(|x| x.progress.as_ref())
+    .and_then(|cb| cb.build_threadsafe_function().weak::<true>().build().ok())
+}
+
 // ============================================================================
 // Unified progress state trait
 // ============================================================================

@@ -54,6 +54,8 @@ const parameters = await computeParameters(items, {
 console.log(parameters)
 ```
 
+When using the threadless `wasm32-wasip1` package, `computeParameters` and `evaluateWithTimeSeriesSplits` run synchronously on the current worker and wrap the completed result in a `Promise` for API compatibility. In browser applications, call these methods from a dedicated Worker so the main thread stays responsive. Progress callbacks are supported; return `false` to stop the operation.
+
 ### CSV Timezone Input
 
 The third `convertCsvToFsrsItems` argument is `timezoneOrOffset`.

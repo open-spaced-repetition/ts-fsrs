@@ -59,7 +59,7 @@ importers:
         specifier: 3.8.0
         version: 3.8.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)(@types/node@25.6.2)
       '@napi-rs/wasm-runtime':
-        specifier: 1.2.0
+        specifier: ^1.2.0
         version: 1.2.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       '@taplo/cli':
         specifier: ^0.7.0
@@ -107,6 +107,9 @@ importers:
       '@open-spaced-repetition/binding-wasm32-wasi':
         specifier: workspace:^
         version: link:npm/wasm32-wasi
+      '@open-spaced-repetition/binding-wasm32-wasip1':
+        specifier: workspace:^
+        version: link:npm/wasm32-wasip1
       '@open-spaced-repetition/binding-win32-arm64-msvc':
         specifier: workspace:^
         version: link:npm/win32-arm64-msvc
@@ -127,7 +130,7 @@ importers:
         specifier: 2.0.0-alpha.3
         version: 2.0.0-alpha.3
       '@napi-rs/wasm-runtime':
-        specifier: 1.2.0
+        specifier: ^1.2.0
         version: 1.2.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
       '@types/papaparse':
         specifier: ^5.5.2
@@ -168,7 +171,19 @@ importers:
         specifier: 2.0.0-alpha.3
         version: 2.0.0-alpha.3
       '@napi-rs/wasm-runtime':
-        specifier: 1.2.0
+        specifier: ^1.2.0
+        version: 1.2.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
+
+  packages/binding/npm/wasm32-wasip1:
+    dependencies:
+      '@emnapi/core':
+        specifier: 2.0.0-alpha.3
+        version: 2.0.0-alpha.3
+      '@emnapi/runtime':
+        specifier: 2.0.0-alpha.3
+        version: 2.0.0-alpha.3
+      '@napi-rs/wasm-runtime':
+        specifier: ^1.2.0
         version: 1.2.0(@emnapi/core@2.0.0-alpha.3)(@emnapi/runtime@2.0.0-alpha.3)
 
   packages/binding/npm/win32-arm64-msvc: {}

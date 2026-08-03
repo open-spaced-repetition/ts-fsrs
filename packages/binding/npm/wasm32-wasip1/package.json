@@ -1,0 +1,65 @@
+{
+  "name": "@open-spaced-repetition/binding-wasm32-wasip1",
+  "version": "0.6.0-beta.0",
+  "main": "fsrs-binding.wasip1.cjs",
+  "files": [
+    "fsrs-binding.wasm32-wasip1.wasm",
+    "fsrs-binding.wasip1.cjs",
+    "fsrs-binding.wasip1.d.cts",
+    "fsrs-binding.wasip1-browser.js",
+    "fsrs-binding.wasip1-deferred.js",
+    "fsrs-binding.wasip1-deferred.d.ts",
+    "fsrs-binding.wasm32-wasip1.wasm.d.ts"
+  ],
+  "description": "Node.js bindings for the FSRS Optimizer implemented in Rust and compiled to WASI.",
+  "keywords": [
+    "napi-rs",
+    "NAPI",
+    "N-API",
+    "Rust",
+    "node-addon",
+    "node-addon-api"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/binding"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org/",
+    "access": "public"
+  },
+  "types": "fsrs-binding.wasip1.d.cts",
+  "browser": "fsrs-binding.wasip1-browser.js",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./fsrs-binding.wasip1.d.cts",
+      "browser": "./fsrs-binding.wasip1-browser.js",
+      "require": "./fsrs-binding.wasip1.cjs",
+      "default": "./fsrs-binding.wasip1.cjs"
+    },
+    "./workerd": {
+      "types": "./fsrs-binding.wasip1-deferred.d.ts",
+      "default": "./fsrs-binding.wasip1-deferred.js"
+    },
+    "./wasm": {
+      "types": "./fsrs-binding.wasm32-wasip1.wasm.d.ts",
+      "default": "./fsrs-binding.wasm32-wasip1.wasm"
+    },
+    "./wasm.wasm": {
+      "types": "./fsrs-binding.wasm32-wasip1.wasm.d.ts",
+      "default": "./fsrs-binding.wasm32-wasip1.wasm"
+    },
+    "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@napi-rs/wasm-runtime": "^1.2.0",
+    "@emnapi/core": "2.0.0-alpha.3",
+    "@emnapi/runtime": "2.0.0-alpha.3"
+  }
+}
