@@ -15,6 +15,9 @@ on:
     branches:
       - main
       - preview
+      # TEMPORARY: run checks for the stacked wasm32-wasip1 branches. Remove
+      # before this lands on main.
+      - 'wasm32-wasip1-todo*'
 
     paths-ignore:
       - '.devcontainer/**'
