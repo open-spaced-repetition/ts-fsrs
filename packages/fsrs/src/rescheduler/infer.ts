@@ -1,7 +1,4 @@
-import type {
-  AnySchedulerCore,
-  Rating as RatingValue,
-} from '@open-spaced-repetition/srs-kit'
+import type { AnySchedulerCore, Rating } from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['model']['forward']
@@ -12,7 +9,7 @@ export type TimeOf<Scheduler extends AnySchedulerCore> = ReturnType<
 >
 
 export interface ReschedulerReview<Time> {
-  readonly rating: RatingValue
+  readonly rating: Rating
   readonly reviewTime: Time
 }
 

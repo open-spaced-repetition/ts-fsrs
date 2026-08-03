@@ -3,6 +3,7 @@ import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 import { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { FSRSValidationError } from './error.js'
 import { FSRS6_DEFAULT_WEIGHTS } from './models/fsrs-6/constants.js'
 import { FSRS6Model } from './models/fsrs-6/model.js'
 import type { FSRSState } from './models.js'
@@ -10,6 +11,7 @@ import { Rescheduler } from './rescheduler/index.js'
 
 const DAY_MS = 86_400_000
 const DAY_NS = 86_400_000_000_000n
+const HOUR_NS = 3_600_000_000_000n
 const modelConfig = {
   weights: FSRS6_DEFAULT_WEIGHTS,
   enableShortTerm: true,
@@ -61,7 +63,7 @@ describe('Rescheduler', () => {
         history: [],
         initialState,
       })
-    ).toThrow('Rescheduler requires a non-empty review history')
+    ).toThrow(FSRSValidationError)
   })
 
   it('rejects history that contains only manual ratings', () => {
@@ -74,7 +76,7 @@ describe('Rescheduler', () => {
       new Rescheduler(scheduler).reschedule({
         history: [{ rating: Rating.Manual, reviewTime: 0 }],
       })
-    ).toThrow('Rescheduler requires at least one non-manual review')
+    ).toThrow(FSRSValidationError)
   })
 
   it('uses the configured numeric chronology', () => {
@@ -118,6 +120,30 @@ describe('Rescheduler', () => {
       history: [
         { rating: Rating.Good, deltaT: 0 },
         { rating: Rating.Easy, deltaT: 5.5 },
+      ],
+      initialState: undefined,
+    })
+  })
+
+  it('preserves intra-day ordering while sorting', () => {
+    const scheduler = defineScheduler({
+      model: FSRS6Model,
+      chrono: dateChrono,
+    }).create({ config: modelConfig })
+    const forward = vi.spyOn(scheduler.model, 'forward')
+    const day = DAY_MS * 3
+
+    new Rescheduler(scheduler).reschedule({
+      history: [
+        { rating: Rating.Easy, reviewTime: new Date(day + 2 * 60 * 60 * 1000) },
+        { rating: Rating.Good, reviewTime: new Date(day + 60 * 60 * 1000) },
+      ],
+    })
+
+    expect(forward).toHaveBeenCalledWith({
+      history: [
+        { rating: Rating.Good, deltaT: 0 },
+        { rating: Rating.Easy, deltaT: 0 },
       ],
       initialState: undefined,
     })
@@ -176,6 +202,41 @@ describe('Rescheduler', () => {
       initialState: undefined,
     })
     expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
+  })
+
+  it('preserves Temporal.Instant intra-day ordering while sorting', () => {
+    const scheduler = defineScheduler({
+      model: FSRS6Model,
+      chrono: temporalInstantChrono,
+    }).create({
+      config: {
+        ...modelConfig,
+        chrono: { timezone: 'UTC', fractionalDays: false },
+      },
+    })
+    const forward = vi.spyOn(scheduler.model, 'forward')
+    const day = DAY_NS * 3n
+
+    new Rescheduler(scheduler).reschedule({
+      history: [
+        {
+          rating: Rating.Easy,
+          reviewTime: Temporal.Instant.fromEpochNanoseconds(day + 2n * HOUR_NS),
+        },
+        {
+          rating: Rating.Good,
+          reviewTime: Temporal.Instant.fromEpochNanoseconds(day + HOUR_NS),
+        },
+      ],
+    })
+
+    expect(forward).toHaveBeenCalledWith({
+      history: [
+        { rating: Rating.Good, deltaT: 0 },
+        { rating: Rating.Easy, deltaT: 0 },
+      ],
+      initialState: undefined,
+    })
   })
 
   it('rejects review times that move backwards', () => {

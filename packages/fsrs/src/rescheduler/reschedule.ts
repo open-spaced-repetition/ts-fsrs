@@ -3,6 +3,7 @@ import {
   type ModelReview,
   Rating,
 } from '@open-spaced-repetition/srs-kit'
+import { FSRSValidationError } from '../error.js'
 import type {
   MemoryStateOf,
   RescheduleInput,
@@ -11,6 +12,10 @@ import type {
   ReschedulerReview,
   TimeOf,
 } from './infer.js'
+
+type NonManualReview<Time> = ReschedulerReview<Time> & {
+  readonly rating: Exclude<Rating, typeof Rating.Manual>
+}
 
 /**
  * Rebuilds model memory from review history using an existing srs-kit
@@ -27,63 +32,102 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
     options: ReschedulerOptions = {}
   ): RescheduleResult<MemoryStateOf<Scheduler>> {
     if (input.history.length === 0) {
-      throw new Error('Rescheduler requires a non-empty review history')
+      throw new FSRSValidationError(
+        'Rescheduler requires a non-empty review history'
+      )
     }
 
-    const memoryStates = [
-      ...this.scheduler.model.forward({
-        history: this.prepareHistory(input.history, options.enableSort ?? true),
-        initialState: input.initialState,
-      }),
-    ] as MemoryStateOf<Scheduler>[]
+    const reviews = input.history.filter(
+      (review): review is NonManualReview<TimeOf<Scheduler>> =>
+        review.rating !== Rating.Manual
+    )
+    if (reviews.length === 0) {
+      throw new FSRSValidationError(
+        'Rescheduler requires at least one non-manual review'
+      )
+    }
+
+    if (options.enableSort ?? true) {
+      reviews.sort((left, right) =>
+        this.compareReviewTimes(left.reviewTime, right.reviewTime)
+      )
+    }
+
+    const memoryStates = this.scheduler.model.forward({
+      history: this.prepareHistory(reviews),
+      initialState: input.initialState,
+    }) as MemoryStateOf<Scheduler>[]
     const memoryState = memoryStates[memoryStates.length - 1]
 
     if (!memoryState) {
-      throw new Error('Rescheduler requires at least one non-manual review')
+      throw new FSRSValidationError(
+        'Rescheduler requires at least one non-manual review'
+      )
     }
 
     return { memoryState, memoryStates }
   }
 
   private prepareHistory(
-    history: readonly ReschedulerReview<TimeOf<Scheduler>>[],
-    enableSort: boolean
+    history: readonly NonManualReview<TimeOf<Scheduler>>[]
   ): ModelReview[] {
-    const reviews = history.filter((review) => review.rating !== Rating.Manual)
-
-    if (enableSort) {
-      reviews.sort((left, right) =>
-        this.scheduler.chrono.difference(right.reviewTime, left.reviewTime)
-      )
+    const iterator = history[Symbol.iterator]()
+    const first = iterator.next()
+    if (first.done) {
+      return []
     }
 
-    const modelHistory: ModelReview[] = []
-    let previousReviewTime: TimeOf<Scheduler> | undefined
+    const firstReview = first.value
+    const modelHistory: ModelReview[] = [
+      { rating: firstReview.rating, deltaT: 0 },
+    ]
+    let previousReviewTime = firstReview.reviewTime
 
-    for (const review of reviews) {
-      const rating = review.rating
-      if (rating === Rating.Manual) {
-        continue
-      }
-
-      const deltaT =
-        previousReviewTime === undefined
-          ? 0
-          : this.scheduler.chrono.difference(
-              previousReviewTime,
-              review.reviewTime
-            )
+    for (const review of iterator) {
+      const deltaT = this.scheduler.chrono.difference(
+        previousReviewTime,
+        review.reviewTime
+      )
 
       if (!Number.isFinite(deltaT) || deltaT < 0) {
-        throw new RangeError(
+        throw new FSRSValidationError(
           'Review times must produce finite non-negative intervals'
         )
       }
 
       previousReviewTime = review.reviewTime
-      modelHistory.push({ rating, deltaT })
+      modelHistory.push({ rating: review.rating, deltaT })
     }
 
     return modelHistory
+  }
+
+  private compareReviewTimes(
+    left: TimeOf<Scheduler>,
+    right: TimeOf<Scheduler>
+  ): number {
+    const leftValue = left as unknown
+    const rightValue = right as unknown
+
+    if (typeof left === 'number' && typeof right === 'number') {
+      return left - right
+    }
+
+    if (leftValue instanceof Date && rightValue instanceof Date) {
+      return leftValue.getTime() - rightValue.getTime()
+    }
+
+    if (
+      typeof Temporal !== 'undefined' &&
+      leftValue instanceof Temporal.Instant &&
+      rightValue instanceof Temporal.Instant
+    ) {
+      return Temporal.Instant.compare(
+        leftValue as Temporal.Instant,
+        rightValue as Temporal.Instant
+      )
+    }
+
+    return this.scheduler.chrono.difference(right, left)
   }
 }
