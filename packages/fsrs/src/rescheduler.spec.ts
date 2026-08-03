@@ -6,7 +6,7 @@ import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from './models/fsrs-6/constants.js'
 import { FSRS6Model } from './models/fsrs-6/model.js'
 import type { FSRSState } from './models.js'
-import { Rescheduler } from './rescheduler.js'
+import { Rescheduler } from './rescheduler/index.js'
 
 const DAY_MS = 86_400_000
 const DAY_NS = 86_400_000_000_000n
@@ -40,35 +40,41 @@ describe('Rescheduler', () => {
       ],
       initialState: undefined,
     })
-    expect(result.memoryState).toEqual(forward.mock.results[0].value.at(-1))
-    expect(Object.keys(result)).toEqual(['memoryState'])
+    expect(result.memoryStates).toEqual(forward.mock.results[0].value)
+    expect(result.memoryState).toEqual(
+      result.memoryStates[result.memoryStates.length - 1]
+    )
+    expect(Object.keys(result)).toEqual(['memoryState', 'memoryStates'])
+    expectTypeOf(result.memoryStates).toEqualTypeOf<FSRSState[]>()
     expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
   })
 
-  it('returns an initial state when history is empty', () => {
+  it('rejects empty history even when an initial state is provided', () => {
     const scheduler = defineScheduler({
       model: FSRS6Model,
       chrono: numericChrono,
     }).create({ config: modelConfig })
     const initialState = { stability: 12, difficulty: 6 }
 
-    const result = new Rescheduler(scheduler).reschedule({
-      history: [],
-      initialState,
-    })
-
-    expect(result).toEqual({ memoryState: initialState })
+    expect(() =>
+      new Rescheduler(scheduler).reschedule({
+        history: [],
+        initialState,
+      })
+    ).toThrow('Rescheduler requires a non-empty review history')
   })
 
-  it('requires history or an initial state', () => {
+  it('rejects history that contains only manual ratings', () => {
     const scheduler = defineScheduler({
       model: FSRS6Model,
       chrono: numericChrono,
     }).create({ config: modelConfig })
 
     expect(() =>
-      new Rescheduler(scheduler).reschedule({ history: [] })
-    ).toThrow('Rescheduler requires history or an initialState')
+      new Rescheduler(scheduler).reschedule({
+        history: [{ rating: Rating.Manual, reviewTime: 0 }],
+      })
+    ).toThrow('Rescheduler requires at least one non-manual review')
   })
 
   it('uses the configured numeric chronology', () => {
@@ -92,6 +98,54 @@ describe('Rescheduler', () => {
       ],
       initialState: undefined,
     })
+  })
+
+  it('sorts review history by default', () => {
+    const scheduler = defineScheduler({
+      model: FSRS6Model,
+      chrono: numericChrono,
+    }).create({ config: modelConfig })
+    const forward = vi.spyOn(scheduler.model, 'forward')
+
+    new Rescheduler(scheduler).reschedule({
+      history: [
+        { rating: Rating.Easy, reviewTime: 8.5 },
+        { rating: Rating.Good, reviewTime: 3 },
+      ],
+    })
+
+    expect(forward).toHaveBeenCalledWith({
+      history: [
+        { rating: Rating.Good, deltaT: 0 },
+        { rating: Rating.Easy, deltaT: 5.5 },
+      ],
+      initialState: undefined,
+    })
+  })
+
+  it('filters manual ratings before calling model.forward', () => {
+    const scheduler = defineScheduler({
+      model: FSRS6Model,
+      chrono: numericChrono,
+    }).create({ config: modelConfig })
+    const forward = vi.spyOn(scheduler.model, 'forward')
+
+    const result = new Rescheduler(scheduler).reschedule({
+      history: [
+        { rating: Rating.Good, reviewTime: 3 },
+        { rating: Rating.Manual, reviewTime: 4 },
+        { rating: Rating.Again, reviewTime: 8.5 },
+      ],
+    })
+
+    expect(forward).toHaveBeenCalledWith({
+      history: [
+        { rating: Rating.Good, deltaT: 0 },
+        { rating: Rating.Again, deltaT: 5.5 },
+      ],
+      initialState: undefined,
+    })
+    expect(result.memoryStates).toHaveLength(2)
   })
 
   it('uses the configured Temporal.Instant chronology', () => {
@@ -131,12 +185,15 @@ describe('Rescheduler', () => {
     }).create({ config: modelConfig })
 
     expect(() =>
-      new Rescheduler(scheduler).reschedule({
-        history: [
-          { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
-          { rating: Rating.Easy, reviewTime: new Date(0) },
-        ],
-      })
+      new Rescheduler(scheduler).reschedule(
+        {
+          history: [
+            { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+            { rating: Rating.Easy, reviewTime: new Date(0) },
+          ],
+        },
+        { enableSort: false }
+      )
     ).toThrow('Review times must produce finite non-negative intervals')
   })
 
