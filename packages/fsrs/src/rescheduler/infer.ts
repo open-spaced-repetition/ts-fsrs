@@ -18,11 +18,18 @@ export interface RescheduleInput<MemoryState extends object, Time> {
   readonly initialState?: Readonly<MemoryState> | null
 }
 
-export interface ReschedulerOptions {
+export interface ReschedulerOptions<Time = unknown> {
   readonly enableSort?: boolean
+  /**
+   * Provides exact ordering for chronology time values when needed.
+   *
+   * When omitted, Rescheduler delegates ordering to the chronology's
+   * difference() method.
+   */
+  readonly compareReviewTimes?: (left: Time, right: Time) => number
 }
 
 export interface RescheduleResult<MemoryState extends object> {
   readonly memoryState: MemoryState
-  readonly memoryStates: MemoryState[]
+  readonly memoryStates: readonly MemoryState[]
 }
