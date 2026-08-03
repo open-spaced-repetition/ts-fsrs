@@ -315,9 +315,6 @@ pub(crate) struct ResolvedOptions {
   /// Progress poll interval; only meaningful where a poller can run.
   #[cfg(not(threadless_wasm))]
   pub(crate) timeout_ms: u32,
-  /// Whether the caller asked for progress reports, which the threadless target rejects.
-  #[cfg(threadless_wasm)]
-  pub(crate) progress_requested: bool,
 }
 
 impl ComputeParametersOptions<'_> {
@@ -338,8 +335,6 @@ impl ComputeParametersOptions<'_> {
       timeout_ms: options
         .and_then(|x| x.timeout)
         .unwrap_or(Self::DEFAULT_TIMEOUT_MS),
-      #[cfg(threadless_wasm)]
-      progress_requested: options.and_then(|x| x.progress.as_ref()).is_some(),
     }
   }
 }

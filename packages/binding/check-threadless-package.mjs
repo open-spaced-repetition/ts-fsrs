@@ -184,6 +184,23 @@ function nextStatesSnapshot(label, FSRSBinding) {
 
 function smokeTestThreadlessEntry() {
   const binding = require('@open-spaced-repetition/binding-wasm32-wasip1')
+  for (const name of ['computeParameters', 'evaluateWithTimeSeriesSplits']) {
+    assert.equal(
+      typeof binding[name],
+      'function',
+      `Threadless default entry is missing ${name}`
+    )
+  }
+  for (const name of [
+    'computeParametersSync',
+    'evaluateWithTimeSeriesSplitsSync',
+  ]) {
+    assert.equal(
+      binding[name],
+      undefined,
+      `Threadless default entry still exposes ${name}`
+    )
+  }
   return nextStatesSnapshot('Threadless default entry', binding.FSRSBinding)
 }
 
