@@ -50,6 +50,7 @@ jobs:
             target: aarch64-linux-android
           - host: ubuntu-latest
             target: wasm32-wasip1-threads
+            extra_flags: --dts index.d.cts
 
     runs-on: ${{ matrix.settings.host }}
     name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}
@@ -116,6 +117,7 @@ jobs:
             packages/binding/dist/*.node
             packages/binding/dist/*.js
             packages/binding/dist/*.d.ts
+            packages/binding/dist/*.d.cts
             packages/binding/dist/*.cjs
             packages/binding/dist/*.mjs
           if-no-files-found: error
@@ -128,6 +130,7 @@ jobs:
             packages/binding/dist/*.wasm
             packages/binding/dist/*.js
             packages/binding/dist/*.d.ts
+            packages/binding/dist/*.d.cts
             packages/binding/dist/*.cjs
             packages/binding/dist/*.mjs
           if-no-files-found: error
