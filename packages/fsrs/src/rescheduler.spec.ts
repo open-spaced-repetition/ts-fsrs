@@ -11,7 +11,6 @@ import { Rescheduler } from './rescheduler/index.js'
 
 const DAY_MS = 86_400_000
 const DAY_NS = 86_400_000_000_000n
-const HOUR_NS = 3_600_000_000_000n
 const modelConfig = {
   weights: FSRS6_DEFAULT_WEIGHTS,
   enableShortTerm: true,
@@ -47,7 +46,7 @@ describe('Rescheduler', () => {
       result.memoryStates[result.memoryStates.length - 1]
     )
     expect(Object.keys(result)).toEqual(['memoryState', 'memoryStates'])
-    expectTypeOf(result.memoryStates).toEqualTypeOf<readonly FSRSState[]>()
+    expectTypeOf(result.memoryStates).toEqualTypeOf<FSRSState[]>()
     expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
   })
 
@@ -128,68 +127,6 @@ describe('Rescheduler', () => {
     expect(history).toEqual(originalHistory)
   })
 
-  it('uses a supplied comparator for custom chronology ordering', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
-    const compareReviewTimes = vi.fn((left: number, right: number) => {
-      return left - right
-    })
-
-    new Rescheduler(scheduler).reschedule(
-      {
-        history: [
-          { rating: Rating.Easy, reviewTime: 8.5 },
-          { rating: Rating.Good, reviewTime: 3 },
-        ],
-      },
-      { compareReviewTimes }
-    )
-
-    expect(compareReviewTimes).toHaveBeenCalled()
-    expect(forward).toHaveBeenCalledWith({
-      history: [
-        { rating: Rating.Good, deltaT: 0 },
-        { rating: Rating.Easy, deltaT: 5.5 },
-      ],
-      initialState: undefined,
-    })
-  })
-
-  it('preserves intra-day ordering while sorting', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: dateChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
-    const day = DAY_MS * 3
-
-    new Rescheduler(scheduler).reschedule(
-      {
-        history: [
-          {
-            rating: Rating.Easy,
-            reviewTime: new Date(day + 2 * 60 * 60 * 1000),
-          },
-          { rating: Rating.Good, reviewTime: new Date(day + 60 * 60 * 1000) },
-        ],
-      },
-      {
-        compareReviewTimes: (left, right) => left.getTime() - right.getTime(),
-      }
-    )
-
-    expect(forward).toHaveBeenCalledWith({
-      history: [
-        { rating: Rating.Good, deltaT: 0 },
-        { rating: Rating.Easy, deltaT: 0 },
-      ],
-      initialState: undefined,
-    })
-  })
-
   it('filters manual ratings before calling model.forward', () => {
     const scheduler = defineScheduler({
       model: FSRS6Model,
@@ -243,49 +180,6 @@ describe('Rescheduler', () => {
       initialState: undefined,
     })
     expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
-  })
-
-  it('preserves Temporal.Instant intra-day ordering while sorting', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: temporalInstantChrono,
-    }).create({
-      config: {
-        ...modelConfig,
-        chrono: { timezone: 'UTC', fractionalDays: false },
-      },
-    })
-    const forward = vi.spyOn(scheduler.model, 'forward')
-    const day = DAY_NS * 3n
-
-    new Rescheduler(scheduler).reschedule(
-      {
-        history: [
-          {
-            rating: Rating.Easy,
-            reviewTime: Temporal.Instant.fromEpochNanoseconds(
-              day + 2n * HOUR_NS
-            ),
-          },
-          {
-            rating: Rating.Good,
-            reviewTime: Temporal.Instant.fromEpochNanoseconds(day + HOUR_NS),
-          },
-        ],
-      },
-      {
-        compareReviewTimes: (left, right) =>
-          Temporal.Instant.compare(left, right),
-      }
-    )
-
-    expect(forward).toHaveBeenCalledWith({
-      history: [
-        { rating: Rating.Good, deltaT: 0 },
-        { rating: Rating.Easy, deltaT: 0 },
-      ],
-      initialState: undefined,
-    })
   })
 
   it('rejects review times that move backwards', () => {

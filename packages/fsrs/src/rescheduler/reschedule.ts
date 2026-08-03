@@ -29,7 +29,7 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
 
   reschedule(
     input: RescheduleInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
-    options: ReschedulerOptions<TimeOf<Scheduler>> = {}
+    options: ReschedulerOptions = {}
   ): RescheduleResult<MemoryStateOf<Scheduler>> {
     if (input.history.length === 0) {
       throw new FSRSValidationError(
@@ -43,22 +43,15 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
     )
 
     if (options.enableSort ?? true) {
-      const compareReviewTimes = options.compareReviewTimes
-      if (compareReviewTimes) {
-        reviews.sort((left, right) =>
-          compareReviewTimes(left.reviewTime, right.reviewTime)
-        )
-      } else {
-        reviews.sort((left, right) =>
-          this.scheduler.chrono.difference(right.reviewTime, left.reviewTime)
-        )
-      }
+      reviews.sort((left, right) =>
+        this.scheduler.chrono.difference(right.reviewTime, left.reviewTime)
+      )
     }
 
     const memoryStates = this.scheduler.model.forward({
       history: this.prepareHistory(reviews),
       initialState: input.initialState,
-    })
+    }) as MemoryStateOf<Scheduler>[]
     const memoryState = memoryStates[memoryStates.length - 1]
 
     if (!memoryState) {
