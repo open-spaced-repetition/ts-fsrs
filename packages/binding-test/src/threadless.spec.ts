@@ -11,14 +11,20 @@ import {
 
 const describeThreadless =
   process.env.NAPI_RS_WASI_FLAVOR === 'wasm32-wasip1' ? describe : describe.skip
-const progressError =
-  'Progress callbacks are not supported by the threadless wasm32-wasip1 target'
 
 function createItem() {
   return new FSRSBindingItem([
     new FSRSBindingReview(3, 0),
     new FSRSBindingReview(4, 1),
   ])
+}
+
+function createTrainingItems() {
+  return convertCsvToFsrsItems(
+    fs.readFileSync(new URL('./revlog.csv', import.meta.url)),
+    4,
+    'Asia/Shanghai'
+  )
 }
 
 describeThreadless('threadless WASI binding', () => {
@@ -49,11 +55,33 @@ describeThreadless('threadless WASI binding', () => {
           )
 
           ;(async () => {
+            const updates = []
+            let completed = false
+            let lateProgress = false
             const parameters = await computeParameters(items, {
               enableShortTerm: true,
+              timeout: 10,
+              progress: (current, total) => {
+                if (completed) lateProgress = true
+                updates.push([current, total])
+              },
             })
+            completed = true
+            const updatesAtCompletion = updates.length
+            await new Promise((resolve) => setTimeout(resolve, 50))
+
             if (parameters.length !== 21) {
               throw new Error('CommonJS computeParameters returned invalid parameters')
+            }
+            if (updates.length < 2) {
+              throw new Error('CommonJS computeParameters reported insufficient progress')
+            }
+            const [current, total] = updates.at(-1)
+            if (current !== total) {
+              throw new Error('CommonJS computeParameters did not report completion')
+            }
+            if (lateProgress || updates.length !== updatesAtCompletion) {
+              throw new Error('CommonJS computeParameters reported progress after completion')
             }
 
             const metrics = await evaluateWithTimeSeriesSplits(items, {
@@ -73,40 +101,74 @@ describeThreadless('threadless WASI binding', () => {
   })
 
   test('computes parameters without progress', async () => {
-    const parameters = await computeParameters([createItem()], {
+    const result = computeParameters([createItem()], {
       enableShortTerm: true,
     })
+    expect(result).toBeInstanceOf(Promise)
 
+    const parameters = await result
     expect(parameters).toHaveLength(21)
   })
 
   test('evaluates time-series splits without progress', async () => {
-    const items = convertCsvToFsrsItems(
-      fs.readFileSync(new URL('./revlog.csv', import.meta.url)),
-      4,
-      'Asia/Shanghai'
-    )
-    const metrics = await evaluateWithTimeSeriesSplits(items, {
+    const result = evaluateWithTimeSeriesSplits(createTrainingItems(), {
       enableShortTerm: true,
     })
+    expect(result).toBeInstanceOf(Promise)
 
-    expect(Number.isFinite(metrics.logLoss)).toBe(true)
-    expect(Number.isFinite(metrics.rmseBins)).toBe(true)
+    const metrics = await result
+    expect(metrics).toEqual(
+      expect.objectContaining({
+        logLoss: expect.any(Number),
+        rmseBins: expect.any(Number),
+      })
+    )
   })
 
-  test.each([
-    ['computeParameters', computeParameters],
-    ['evaluateWithTimeSeriesSplits', evaluateWithTimeSeriesSplits],
-  ])('rejects progress before running %s', async (_name, run) => {
-    let called = false
-    const result = run([createItem()], {
+  test('reports training progress', async () => {
+    const updates: Array<[number, number]> = []
+    const parameters = await computeParameters(createTrainingItems(), {
       enableShortTerm: true,
-      progress: () => {
-        called = true
+      progress: (current, total) => {
+        updates.push([current, total])
       },
     })
 
-    await expect(result).rejects.toThrow(progressError)
-    expect(called).toBe(false)
+    expect(parameters).toHaveLength(21)
+    expect(updates.length).toBeGreaterThan(1)
+    expect(updates.at(-1)?.[0]).toBe(updates.at(-1)?.[1])
+  })
+
+  test('reports each time-series split', async () => {
+    const updates: Array<[number, number]> = []
+    const metrics = await evaluateWithTimeSeriesSplits(createTrainingItems(), {
+      enableShortTerm: true,
+      progress: (current, total) => {
+        updates.push([current, total])
+      },
+    })
+
+    expect(metrics).toEqual(
+      expect.objectContaining({
+        logLoss: expect.any(Number),
+        rmseBins: expect.any(Number),
+      })
+    )
+    expect(updates).toEqual([
+      [1, 5],
+      [2, 5],
+      [3, 5],
+      [4, 5],
+      [5, 5],
+    ])
+  })
+
+  test('progress can stop training', async () => {
+    await expect(
+      computeParameters(createTrainingItems(), {
+        enableShortTerm: true,
+        progress: () => false,
+      })
+    ).rejects.toThrow('compute_parameters failed')
   })
 })

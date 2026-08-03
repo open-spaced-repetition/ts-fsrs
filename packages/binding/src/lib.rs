@@ -8,8 +8,6 @@ mod model;
 #[cfg(not(threadless_wasm))]
 mod progress;
 mod steps;
-#[cfg(threadless_wasm)]
-mod threadless;
 mod timezone;
 mod train;
 pub use convert::*;
