@@ -10,7 +10,7 @@ import {
   type SM2Config,
   SM2Model,
 } from '@/model/sm2.test.js'
-import { Rating, State } from '@/primitives/index.js'
+import { gradeSchema, Rating, State } from '@/primitives/index.js'
 import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
 import { useComposeDefaultValue } from './default-value.js'
@@ -1155,6 +1155,27 @@ describe('SchedulerCore.forward', () => {
     expect(results[2].revlog.rating).toBe(Rating.Again)
     expect(results[2].card.reps).toBe(3)
     expect(results[2].card.lapses).toBe(1)
+  })
+
+  it('reuses parsed cards and typed grades', () => {
+    const cardValidate = vi.spyOn(
+      scheduler.schema.card['~standard'],
+      'validate'
+    )
+    const gradeValidate = vi.spyOn(gradeSchema['~standard'], 'validate')
+
+    core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Hard, reviewTime: 1 },
+        { rating: Rating.Easy, reviewTime: 3 },
+      ],
+    })
+
+    expect(cardValidate).toHaveBeenCalledTimes(4)
+    expect(gradeValidate).toHaveBeenCalledTimes(3)
+    cardValidate.mockRestore()
+    gradeValidate.mockRestore()
   })
 
   it('matches an equivalent chain of review calls', () => {

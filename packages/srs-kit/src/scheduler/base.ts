@@ -252,28 +252,26 @@ export class BaseScheduler<
     if (history.length === 0) return []
 
     const results: ForwardResult[] = new Array(history.length)
-    let card =
+    const initialCard =
       input.initialCard == null
-        ? (this.newCard({
+        ? this.newCard({
             now: history[0].reviewTime,
-          } as SchedulerNewCardOptions<
-            SchedulerCoreEnv<Env>
-          >) as SchedulerCoreEnv<Env>['card']['input'])
-        : (parse(
-            this.schema.card,
-            input.initialCard
-          ) as SchedulerCoreEnv<Env>['card']['input'])
+          } as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
+        : (input.initialCard as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
+    let card = parse(
+      this.schema.card,
+      initialCard
+    ) as SchedulerCoreEnv<Env>['card']['output']
 
     for (let index = 0; index < history.length; index++) {
       const review = history[index]
-      const result = this.review({
-        card,
-        grade: review.rating,
-        now: review.reviewTime,
-      })
+      const prepared = this.prepareParsedReview(card, review.reviewTime)
+      const result = this.parseReviewResult(
+        this.runReview(prepared, review.rating, review.reviewTime)
+      )
 
       results[index] = result
-      card = result.card as SchedulerCoreEnv<Env>['card']['input']
+      card = result.card as SchedulerCoreEnv<Env>['card']['output']
     }
 
     return results
@@ -311,30 +309,7 @@ export class BaseScheduler<
     const grade = parse(gradeSchema, inputGrade)
     const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
-    const ctx: ReviewMiddlewareOperationContext<Env> = {
-      config: this.config,
-      input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-      desiredRetention: DEFAULT_DESIRED_RETENTION,
-      elapsedDays: prepared.elapsedDays,
-      scheduledDays: undefined,
-      candidate: prepared.candidate,
-      result: { card: {}, revlog: {} },
-    }
-
-    composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
-      this.finalizeReview(prepared, ctx)
-    )
-    this.applyReviewChronoDefaults(prepared, ctx)
-    return {
-      card: parse(
-        this.schema.card,
-        ctx.result.card
-      ) as SchedulerCoreEnv<Env>['card']['output'],
-      revlog: parse(
-        this.schema.revlog,
-        ctx.result.revlog
-      ) as SchedulerCoreEnv<Env>['revlog']['output'],
-    }
+    return this.parseReviewResult(this.runReview(prepared, grade, now))
   }
 
   preview = (input: {
@@ -349,29 +324,13 @@ export class BaseScheduler<
     const prepared = this.prepareReview(inputCard, now)
 
     return createLazyIterable(grades, (grade) => {
-      const ctx: ReviewMiddlewareOperationContext<Env> = {
-        config: this.config,
-        input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-        desiredRetention: DEFAULT_DESIRED_RETENTION,
-        elapsedDays: prepared.elapsedDays,
-        scheduledDays: undefined,
-        candidate: prepared.candidate,
-        result: { card: {}, revlog: {} },
-      }
-      composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
-        this.finalizeReview(prepared, ctx)
+      const { card, revlog } = this.parseReviewResult(
+        this.runReview(prepared, grade, now)
       )
-      this.applyReviewChronoDefaults(prepared, ctx)
       return {
         grade,
-        card: parse(
-          this.schema.card,
-          ctx.result.card
-        ) as SchedulerCoreEnv<Env>['card']['output'],
-        revlog: parse(
-          this.schema.revlog,
-          ctx.result.revlog
-        ) as SchedulerCoreEnv<Env>['revlog']['output'],
+        card,
+        revlog,
       }
     })
   }
@@ -418,6 +377,13 @@ export class BaseScheduler<
       this.schema.card,
       inputCard
     ) as SchedulerCoreEnv<Env>['card']['output']
+    return this.prepareParsedReview(parsedCard, now)
+  }
+
+  private prepareParsedReview(
+    parsedCard: SchedulerCoreEnv<Env>['card']['output'],
+    now: SchedulerCoreEnv<Env>['chrono']
+  ): PreparedReview<Env> {
     const memoryState = getAttachedValue<
       typeof parsedCardMemoryStateSymbol,
       PreparedReview<Env>['memoryState']
@@ -479,6 +445,46 @@ export class BaseScheduler<
         step,
         nextInterval,
       },
+    }
+  }
+
+  private runReview(
+    prepared: PreparedReview<Env>,
+    grade: Grade,
+    now: SchedulerCoreEnv<Env>['chrono']
+  ): ReviewResultDraft<Env> {
+    const ctx: ReviewMiddlewareOperationContext<Env> = {
+      config: this.config,
+      input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
+      desiredRetention: DEFAULT_DESIRED_RETENTION,
+      elapsedDays: prepared.elapsedDays,
+      scheduledDays: undefined,
+      candidate: prepared.candidate,
+      result: { card: {}, revlog: {} },
+    }
+
+    composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
+      this.finalizeReview(prepared, ctx)
+    )
+    this.applyReviewChronoDefaults(prepared, ctx)
+    return ctx.result
+  }
+
+  private parseReviewResult(
+    result: ReviewResultDraft<Env>
+  ): ScheduleResult<
+    SchedulerCoreEnv<Env>['card']['output'],
+    SchedulerCoreEnv<Env>['revlog']['output']
+  > {
+    return {
+      card: parse(
+        this.schema.card,
+        result.card
+      ) as SchedulerCoreEnv<Env>['card']['output'],
+      revlog: parse(
+        this.schema.revlog,
+        result.revlog
+      ) as SchedulerCoreEnv<Env>['revlog']['output'],
     }
   }
 
