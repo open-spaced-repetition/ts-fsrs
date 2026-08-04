@@ -1,5 +1,5 @@
 ---
-"@open-spaced-repetition/srs-kit": minor
+"@open-spaced-repetition/srs-kit": patch
 ---
 
 feat(kit): add an optional precise `compare` operation to chronology cores and
