@@ -1206,17 +1206,17 @@ describe('SchedulerCore.forward', () => {
     ).toThrow()
   })
 
-  it('validates the initial card even without any review', () => {
-    expect(() =>
+  it('returns an empty array for an empty history', () => {
+    expect(core.forward({ history: [] })).toEqual([])
+  })
+
+  it('skips the initial card entirely when there is no review', () => {
+    expect(
       core.forward({
         initialCard: { state: 'not-a-state' } as never,
         history: [],
       })
-    ).toThrow()
-  })
-
-  it('returns an empty array for an empty history', () => {
-    expect(core.forward({ history: [] })).toEqual([])
+    ).toEqual([])
   })
 })
 

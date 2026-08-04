@@ -245,11 +245,17 @@ export class BaseScheduler<
     >
 
     const { history } = input
+
+    // Nothing to replay: skip both the card initialization, which would
+    // otherwise read the current time from the chronology, and the initial
+    // card validation, for a result that stays empty either way.
+    if (history.length === 0) return []
+
     const results: ForwardResult[] = new Array(history.length)
     let card =
       input.initialCard == null
         ? (this.newCard({
-            now: history[0]?.reviewTime,
+            now: history[0].reviewTime,
           } as SchedulerNewCardOptions<
             SchedulerCoreEnv<Env>
           >) as SchedulerCoreEnv<Env>['card']['input'])
