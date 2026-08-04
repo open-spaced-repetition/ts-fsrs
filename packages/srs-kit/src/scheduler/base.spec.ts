@@ -1139,6 +1139,87 @@ describe('SchedulerCore.preview', () => {
   })
 })
 
+describe('SchedulerCore.forward', () => {
+  it('returns one card and revlog per review', () => {
+    const results = core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Good, reviewTime: 1 },
+        { rating: Rating.Again, reviewTime: 4 },
+      ],
+    })
+
+    expect(results).toHaveLength(3)
+    expect(results[0].revlog.rating).toBe(Rating.Good)
+    expect(results[0].revlog.state).toBe(State.New)
+    expect(results[2].revlog.rating).toBe(Rating.Again)
+    expect(results[2].card.reps).toBe(3)
+    expect(results[2].card.lapses).toBe(1)
+  })
+
+  it('matches an equivalent chain of review calls', () => {
+    const history = [
+      { rating: Rating.Good, reviewTime: 0 },
+      { rating: Rating.Hard, reviewTime: 2 },
+      { rating: Rating.Easy, reviewTime: 7 },
+    ] as const
+
+    const forwarded = core.forward({ history })
+
+    let card = core.newCard({ now: history[0].reviewTime })
+    const expected = history.map((review) => {
+      const result = core.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+      card = result.card
+      return result
+    })
+
+    expect(forwarded).toEqual(expected)
+  })
+
+  it('starts from the given initial card', () => {
+    const seeded = core.review({
+      card: core.newCard({ now: 0 }),
+      grade: Rating.Good,
+      now: 0,
+    })
+
+    const results = core.forward({
+      initialCard: seeded.card,
+      history: [{ rating: Rating.Good, reviewTime: 1 }],
+    })
+
+    expect(results).toHaveLength(1)
+    expect(results[0].revlog.state).toBe(State.Review)
+    expect(results[0].card.reps).toBe(2)
+  })
+
+  it('rejects an invalid initial card', () => {
+    expect(() =>
+      core.forward({
+        initialCard: { state: 'not-a-state' } as never,
+        history: [{ rating: Rating.Good, reviewTime: 0 }],
+      })
+    ).toThrow()
+  })
+
+  it('validates the initial card even without any review', () => {
+    expect(() =>
+      core.forward({
+        initialCard: { state: 'not-a-state' } as never,
+        history: [],
+      })
+    ).toThrow()
+  })
+
+  it('returns an empty array for an empty history', () => {
+    expect(core.forward({ history: [] })).toEqual([])
+  })
+})
+
 describe('SchedulerCore.forget', () => {
   it('resets a reviewed card through new-card defaults without a revlog', () => {
     const card = core.newCard({ now: 0 })

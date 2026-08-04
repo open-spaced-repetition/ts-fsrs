@@ -29,6 +29,7 @@ import type {
   SchedulerCoreEnv,
   SchedulerDefaultValue,
   SchedulerDefaultValueContext,
+  SchedulerForwardInput,
   SchedulerNewCardFn,
   SchedulerNewCardOptions,
   SchedulerSchema,
@@ -220,6 +221,56 @@ export class BaseScheduler<
       },
       this.parseNow(now)
     )
+  }
+
+  /**
+   * Replays a review history and returns the card and revlog produced by each
+   * review.
+   *
+   * The history is consumed as given: it must already be sorted by review time
+   * and must not contain manual ratings.
+   */
+  forward = (
+    input: SchedulerForwardInput<
+      SchedulerCoreEnv<Env>['chrono'],
+      SchedulerCoreEnv<Env>['card']['input']
+    >
+  ): ScheduleResult<
+    SchedulerCoreEnv<Env>['card']['output'],
+    SchedulerCoreEnv<Env>['revlog']['output']
+  >[] => {
+    type ForwardResult = ScheduleResult<
+      SchedulerCoreEnv<Env>['card']['output'],
+      SchedulerCoreEnv<Env>['revlog']['output']
+    >
+
+    const { history } = input
+    const results: ForwardResult[] = new Array(history.length)
+    let card =
+      input.initialCard == null
+        ? (this.newCard({
+            now: history[0]?.reviewTime,
+          } as SchedulerNewCardOptions<
+            SchedulerCoreEnv<Env>
+          >) as SchedulerCoreEnv<Env>['card']['input'])
+        : (parse(
+            this.schema.card,
+            input.initialCard
+          ) as SchedulerCoreEnv<Env>['card']['input'])
+
+    for (let index = 0; index < history.length; index++) {
+      const review = history[index]
+      const result = this.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+
+      results[index] = result
+      card = result.card as SchedulerCoreEnv<Env>['card']['input']
+    }
+
+    return results
   }
 
   forget = (input: {
