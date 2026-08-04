@@ -47,6 +47,7 @@ describe('defineChrono', () => {
     expect('revlog' in chrono.schema).toBe(false)
     expect(chrono.defaultValue).toEqual({})
     expect(instance.now()).toBe(0)
+    expect(instance.compare).toBeUndefined()
     expect(instance.difference(3, 3)).toBe(0)
   })
 

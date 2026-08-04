@@ -22,7 +22,7 @@ describe('dateChrono', () => {
     const now = new Date('2026-06-20T00:00:00.000Z')
     const later = new Date('2026-06-21T12:00:00.000Z')
     const epoch = new Date(0)
-    const { add, difference, now: getCurrent } = dateChrono.create()
+    const { add, compare, difference, now: getCurrent } = dateChrono.create()
     const current = getCurrent()
 
     expect(current).toBeInstanceOf(Date)
@@ -186,6 +186,15 @@ describe('dateChrono', () => {
       )
     ).toBe(0)
     expect(difference(later, later)).toBe(0)
+    expect(compare!(now, later)).toBe(-1)
+    expect(compare!(later, now)).toBe(1)
+    expect(compare!(later, later)).toBe(0)
+    expect(
+      compare!(
+        new Date('2026-06-20T00:01:00.000Z'),
+        new Date('2026-06-20T23:59:00.000Z')
+      )
+    ).toBe(-1)
     expect(add(now, 2.25)).toEqual(new Date('2026-06-22T06:00:00.000Z'))
     expect(
       dateChrono.defaultValue.card!({

@@ -110,6 +110,7 @@ export const temporalInstantChrono = defineChrono({
 
     return {
       now,
+      compare,
       difference: (from, to) =>
         differenceByMode[differenceMode](from, to, timezone),
       add: (from, days) => addByMode[addMode](from, days, timezone),
@@ -118,6 +119,12 @@ export const temporalInstantChrono = defineChrono({
 })
 
 const now = () => Temporal.Now.instant()
+
+function compare(left: Temporal.Instant, right: Temporal.Instant): number {
+  if (left.epochNanoseconds < right.epochNanoseconds) return -1
+  if (left.epochNanoseconds > right.epochNanoseconds) return 1
+  return 0
+}
 
 function zonedDateDifferenceInDays(
   from: Temporal.Instant,
