@@ -29,20 +29,20 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
 
   reschedule(
     input: RescheduleInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
-    options: ReschedulerOptions = {}
+    { sortHistory = true }: ReschedulerOptions = {}
   ): RescheduleResult<MemoryStateOf<Scheduler>> {
-    if (input.history.length === 0) {
-      throw new FSRSValidationError(
-        'Rescheduler requires a non-empty review history'
-      )
-    }
-
     const reviews = input.history.filter(
       (review): review is NonManualReview<TimeOf<Scheduler>> =>
         review.rating !== Rating.Manual
     )
 
-    if (options.enableSort ?? true) {
+    if (reviews.length === 0) {
+      throw new FSRSValidationError(
+        'Rescheduler requires at least one non-manual review'
+      )
+    }
+
+    if (sortHistory) {
       reviews.sort((left, right) =>
         this.scheduler.chrono.difference(right.reviewTime, left.reviewTime)
       )
@@ -52,33 +52,24 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
       history: this.prepareHistory(reviews),
       initialState: input.initialState,
     }) as MemoryStateOf<Scheduler>[]
-    const memoryState = memoryStates[memoryStates.length - 1]
 
-    if (!memoryState) {
-      throw new FSRSValidationError(
-        'Rescheduler requires at least one non-manual review'
-      )
-    }
-
-    return { memoryState, memoryStates }
+    return { memoryState: memoryStates[memoryStates.length - 1], memoryStates }
   }
 
+  /**
+   * Maps every review onto one model review, so the returned history always
+   * has the same length as the given reviews. The first review has no
+   * predecessor and therefore carries `deltaT: 0`.
+   */
   private prepareHistory(
     history: readonly NonManualReview<TimeOf<Scheduler>>[]
   ): ModelReview[] {
-    const iterator = history[Symbol.iterator]()
-    const first = iterator.next()
-    if (first.done) {
-      return []
-    }
+    const modelHistory: ModelReview[] = new Array(history.length)
+    modelHistory[0] = { rating: history[0].rating, deltaT: 0 }
+    let previousReviewTime = history[0].reviewTime
 
-    const firstReview = first.value
-    const modelHistory: ModelReview[] = [
-      { rating: firstReview.rating, deltaT: 0 },
-    ]
-    let previousReviewTime = firstReview.reviewTime
-
-    for (const review of iterator) {
+    for (let index = 1; index < history.length; index++) {
+      const review = history[index]
       const deltaT = this.scheduler.chrono.difference(
         previousReviewTime,
         review.reviewTime
@@ -91,7 +82,7 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
       }
 
       previousReviewTime = review.reviewTime
-      modelHistory.push({ rating: review.rating, deltaT })
+      modelHistory[index] = { rating: review.rating, deltaT }
     }
 
     return modelHistory

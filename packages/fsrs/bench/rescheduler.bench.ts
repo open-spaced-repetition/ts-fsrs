@@ -1,9 +1,9 @@
 import { defineScheduler, Rating } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
-import { bench, describe } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
 import { Rescheduler } from 'ts-fsrs/rescheduler'
+import { bench, describe } from 'vitest'
 
 const DAY_MS = 86_400_000
 const HISTORY_SIZE = 100
@@ -18,12 +18,7 @@ const scheduler = defineScheduler({
   },
 })
 const rescheduler = new Rescheduler(scheduler)
-const ratings = [
-  Rating.Good,
-  Rating.Hard,
-  Rating.Easy,
-  Rating.Again,
-] as const
+const ratings = [Rating.Good, Rating.Hard, Rating.Easy, Rating.Again] as const
 const history = Array.from({ length: HISTORY_SIZE }, (_, index) => ({
   rating: ratings[index % ratings.length],
   reviewTime: new Date(index * DAY_MS),

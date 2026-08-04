@@ -196,7 +196,7 @@ describe('Rescheduler', () => {
             { rating: Rating.Easy, reviewTime: new Date(0) },
           ],
         },
-        { enableSort: false }
+        { sortHistory: false }
       )
     ).toThrow('Review times must produce finite non-negative intervals')
   })

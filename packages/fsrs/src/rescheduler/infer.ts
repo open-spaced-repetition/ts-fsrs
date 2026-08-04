@@ -19,7 +19,13 @@ export interface RescheduleInput<MemoryState extends object, Time> {
 }
 
 export interface ReschedulerOptions {
-  readonly enableSort?: boolean
+  /**
+   * Sorts the review history by `reviewTime` in ascending order before
+   * rebuilding memory. Disable it when the history is already sorted.
+   *
+   * @default true
+   */
+  readonly sortHistory?: boolean
 }
 
 export interface RescheduleResult<MemoryState extends object> {
