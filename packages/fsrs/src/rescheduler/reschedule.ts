@@ -51,20 +51,15 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
     input: RescheduleInput<CardOf<Scheduler>, TimeOf<Scheduler>>,
     options: RescheduleOptions = {}
   ): RescheduleResult<Scheduler> {
-    const reviews = this.prepareReviews(input.history, options)
+    const history = this.prepareReviews(input.history, options)
     const collections = this.scheduler.forward({
-      history: reviews,
+      history,
       initialCard: input.initialCard,
     }) as RescheduleResult<Scheduler>['collections']
 
     return { collections, card: collections[collections.length - 1].card }
   }
 
-  /**
-   * Drops manual ratings and, unless disabled, sorts the remaining reviews by
-   * ascending review time. Both scheduler entry points consume an already
-   * prepared history.
-   */
   private prepareReviews(
     history: readonly {
       readonly rating: Rating
@@ -92,23 +87,16 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
     return reviews
   }
 
-  /**
-   * Maps every review onto one model review, so the returned history always
-   * has the same length as the given reviews. The first review has no
-   * predecessor and therefore carries `deltaT: 0`.
-   */
   private toModelHistory(
     history: readonly NonManualReview<TimeOf<Scheduler>>[]
   ): ModelReview[] {
     const modelHistory: ModelReview[] = new Array(history.length)
     modelHistory[0] = { rating: history[0].rating, deltaT: 0 }
-    let previousReviewTime = history[0].reviewTime
 
     for (let index = 1; index < history.length; index++) {
-      const review = history[index]
       const deltaT = this.scheduler.chrono.difference(
-        previousReviewTime,
-        review.reviewTime
+        history[index - 1].reviewTime,
+        history[index].reviewTime
       )
 
       if (!Number.isFinite(deltaT) || deltaT < 0) {
@@ -117,8 +105,7 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
         )
       }
 
-      previousReviewTime = review.reviewTime
-      modelHistory[index] = { rating: review.rating, deltaT }
+      modelHistory[index] = { rating: history[index].rating, deltaT }
     }
 
     return modelHistory

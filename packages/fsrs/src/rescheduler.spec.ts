@@ -1,4 +1,9 @@
-import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
+import {
+  defineScheduler,
+  Rating,
+  SRSSchemaError,
+  State,
+} from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 import { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
@@ -163,27 +168,30 @@ describe('Reschedule', () => {
     expect(result.memoryStates).toHaveLength(2)
   })
 
-  it('uses the configured Temporal.Instant chronology', () => {
-    const { scheduler, reschedule } = temporal()
-    const forward = vi.spyOn(scheduler.model, 'forward')
-    const first = Temporal.Instant.fromEpochNanoseconds(0n)
-    const second = Temporal.Instant.fromEpochNanoseconds(DAY_NS * 3n)
-    const result = reschedule.replay({
-      history: [
-        { rating: Rating.Good, reviewTime: first },
-        { rating: Rating.Easy, reviewTime: second },
-      ],
-    })
+  it.skipIf(globalThis.Temporal?.Instant === undefined)(
+    'uses the configured Temporal.Instant chronology',
+    () => {
+      const { scheduler, reschedule } = temporal()
+      const forward = vi.spyOn(scheduler.model, 'forward')
+      const first = Temporal.Instant.fromEpochNanoseconds(0n)
+      const second = Temporal.Instant.fromEpochNanoseconds(DAY_NS * 3n)
+      const result = reschedule.replay({
+        history: [
+          { rating: Rating.Good, reviewTime: first },
+          { rating: Rating.Easy, reviewTime: second },
+        ],
+      })
 
-    expect(forward).toHaveBeenCalledWith({
-      history: [
-        { rating: Rating.Good, deltaT: 0 },
-        { rating: Rating.Easy, deltaT: 3 },
-      ],
-      initialState: undefined,
-    })
-    expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
-  })
+      expect(forward).toHaveBeenCalledWith({
+        history: [
+          { rating: Rating.Good, deltaT: 0 },
+          { rating: Rating.Easy, deltaT: 3 },
+        ],
+        initialState: undefined,
+      })
+      expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
+    }
+  )
 
   it('rejects review times that move backwards', () => {
     expect(() =>
@@ -238,6 +246,21 @@ describe('Reschedule', () => {
 })
 
 describe('Reschedule.reschedule', () => {
+  it('passes reviews to scheduler.forward without model intervals', () => {
+    const forward = vi.spyOn(numericScheduler, 'forward')
+    const history = [
+      { rating: Rating.Good, reviewTime: 1 },
+      { rating: Rating.Easy, reviewTime: 3 },
+    ] as const
+
+    numericReschedule.reschedule({ history }, { sortHistory: false })
+
+    expect(forward).toHaveBeenCalledWith({
+      history,
+      initialCard: undefined,
+    })
+  })
+
   it('returns one card and revlog per review', () => {
     const result = dateReschedule.reschedule({
       history: [
@@ -312,5 +335,27 @@ describe('Reschedule.reschedule', () => {
         history: [{ rating: Rating.Manual, reviewTime: new Date(DAY_MS) }],
       })
     ).toThrow(FSRSValidationError)
+  })
+
+  it('rejects review times that move backwards', () => {
+    const history = [
+      { rating: Rating.Good, reviewTime: new Date(DAY_MS * 10) },
+      { rating: Rating.Good, reviewTime: new Date(0) },
+    ] as const
+
+    expect(() =>
+      dateReschedule.reschedule({ history }, { sortHistory: false })
+    ).toThrow(SRSSchemaError)
+  })
+
+  it('rejects review times that produce non-finite intervals', () => {
+    expect(() =>
+      numericReschedule.reschedule({
+        history: [
+          { rating: Rating.Good, reviewTime: 0 },
+          { rating: Rating.Easy, reviewTime: Number.NaN },
+        ],
+      })
+    ).toThrow(SRSSchemaError)
   })
 })

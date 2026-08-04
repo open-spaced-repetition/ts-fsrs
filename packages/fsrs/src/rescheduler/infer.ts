@@ -1,4 +1,8 @@
-import type { AnySchedulerCore, Rating } from '@open-spaced-repetition/srs-kit'
+import type {
+  AnySchedulerCore,
+  ForwardItem,
+  Rating,
+} from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['model']['forward']
@@ -16,14 +20,15 @@ export type ScheduleResultOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['forward']
 >[number]
 
-export interface RescheduleReview<Time> {
+/**
+ * A review the scheduler can replay, widened to accept manual ratings so they
+ * can be filtered out instead of rejected.
+ */
+export type RescheduleReview<Time> = Omit<ForwardItem<Time>, 'rating'> & {
   readonly rating: Rating
-  readonly reviewTime: Time
 }
 
-export type NonManualReview<Time> = RescheduleReview<Time> & {
-  readonly rating: Exclude<Rating, typeof Rating.Manual>
-}
+export type NonManualReview<Time> = ForwardItem<Time>
 
 export interface ReplayInput<MemoryState extends object, Time> {
   readonly history: readonly RescheduleReview<Time>[]
@@ -39,6 +44,11 @@ export interface RescheduleOptions {
   /**
    * Sorts the review history by `reviewTime` in ascending order before
    * replaying it. Disable it when the history is already sorted.
+   *
+   * Reviews are ordered through the chronology, so a chronology that measures
+   * whole days cannot order reviews that fall on the same day: they compare
+   * equal and keep their input order. Pass an already sorted history when the
+   * order within a day matters.
    *
    * @default true
    */
