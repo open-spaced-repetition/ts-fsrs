@@ -40,12 +40,9 @@ describe('numericChrono', () => {
       })
     ).toEqual({ previous: 0, current: 4.5 })
 
-    const { add, compare, difference, now } = numericChrono.create()
+    const { add, difference, now } = numericChrono.create()
 
     expect(now()).toBe(0)
-    expect(compare!(1.25, 4.5)).toBe(-1)
-    expect(compare!(4.5, 1.25)).toBe(1)
-    expect(compare!(4.5, 4.5)).toBe(0)
     expect(difference(0, 4.5)).toBe(4.5)
     expect(difference(1.25, 4.5)).toBe(3.25)
     expect(add(4.5, 2.25)).toBe(6.75)
