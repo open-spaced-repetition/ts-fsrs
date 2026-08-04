@@ -68,6 +68,7 @@ describe('temporalInstantChrono', () => {
     })
     const {
       add,
+      compare,
       difference,
       now: getCurrent,
     } = temporalInstantChrono.create({
@@ -248,6 +249,12 @@ describe('temporalInstantChrono', () => {
     ).toThrow()
     expect(difference(now, later)).toBe(1)
     expect(difference(later, later)).toBe(0)
+    expect(compare!(now, later)).toBe(-1)
+    expect(compare!(later, now)).toBe(1)
+    expect(compare!(later, later)).toBe(0)
+    const sameDayLater = createInstant(NS_PER_DAY / 4n)
+    expect(difference(now, sameDayLater)).toBe(0)
+    expect(compare!(now, sameDayLater)).toBe(-1)
     const { difference: fractionalDifference } = temporalInstantChrono.create({
       config: parse(temporalInstantChrono.schema.config, {
         fractionalDays: true,

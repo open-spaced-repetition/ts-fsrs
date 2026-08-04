@@ -66,6 +66,7 @@ export const dateChrono = defineChrono({
   create() {
     return {
       now,
+      compare,
       difference,
       add,
     }
@@ -73,6 +74,11 @@ export const dateChrono = defineChrono({
 })
 
 const now = (): Date => new Date()
+const compare = (left: Date, right: Date): number => {
+  const leftTime = left.getTime()
+  const rightTime = right.getTime()
+  return leftTime < rightTime ? -1 : leftTime > rightTime ? 1 : 0
+}
 const difference = (from: Date, to: Date): number => dateDiffInDays(from, to)
 const add = (from: Date, days: number): Date =>
   new Date(from.getTime() + days * MS_PER_DAY)
