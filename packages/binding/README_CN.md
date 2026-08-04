@@ -19,7 +19,7 @@
 
 ## 要求
 
-- Node.js `>=20`
+- Node.js `>=24`
 
 ## 安装
 
@@ -53,6 +53,8 @@ const parameters = await computeParameters(items, {
 
 console.log(parameters)
 ```
+
+使用无线程的 `wasm32-wasip1` 包时，`computeParameters` 和 `evaluateWithTimeSeriesSplits` 会在当前 Worker 中同步执行，完成后的结果再包装成 `Promise` 以保持 API 兼容。在浏览器应用中，请从独立的 Worker 调用这些方法，避免阻塞主线程。该模式支持进度回调；回调返回 `false` 可以停止操作。
 
 ### CSV 时区参数
 

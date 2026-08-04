@@ -14,7 +14,7 @@ on:
     inputs:
       node-version:
         type: string
-        default: '22'
+        default: '26'
 
 jobs:
   build:
@@ -26,8 +26,6 @@ jobs:
             target: x86_64-apple-darwin
           - host: windows-latest
             target: x86_64-pc-windows-msvc
-          - host: windows-latest
-            target: i686-pc-windows-msvc
           - host: windows-latest
             target: aarch64-pc-windows-msvc
           - host: ubuntu-latest
@@ -52,11 +50,15 @@ jobs:
             target: aarch64-linux-android
           - host: ubuntu-latest
             target: wasm32-wasip1-threads
+            extra_flags: --dts index.d.cts
+          - host: ubuntu-latest
+            target: wasm32-wasip1
+            extra_flags: --dts index.d.cts
 
     runs-on: ${{ matrix.settings.host }}
     name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -72,7 +74,7 @@ jobs:
           targets: ${{ matrix.settings.target }}
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: |
             ~/.cargo/registry/index/
@@ -100,55 +102,52 @@ jobs:
         if: ${{ matrix.settings.setup }}
         shell: bash
 
-      - name: Setup pnpm (x86)
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        shell: bash
-        run: npm install -g corepack@0.32.0 --force && corepack enable pnpm
-
-      - name: Setup node x86
-        uses: actions/setup-node@v4
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        with:
-          node-version: 22
-          cache: 'pnpm'
-          architecture: x86
-
       - name: Build
-        if: matrix.settings.target != 'i686-pc-windows-msvc'
         run: pnpm exec turbo run build --filter=@open-spaced-repetition/binding -- --target ${{ matrix.settings.target }} ${{ matrix.settings.extra_flags }}
         shell: bash
         env:
           NAPI_TARGET: ${{ matrix.settings.target }}
-      # Turborepo does not support windows ia32 architecture, fall back to direct napi build
-      - name: Build (i686)
-        if: matrix.settings.target == 'i686-pc-windows-msvc'
-        run: pnpm -F @open-spaced-repetition/binding exec napi build --platform --release --target i686-pc-windows-msvc -o ./dist
-        shell: bash
       - name: Copy dynamic loader files
-        run: node packages/binding/copy-dynamic.js
+        if: matrix.settings.target != 'wasm32-wasip1'
+        run: pnpm exec turbo run build:dynamic --filter=@open-spaced-repetition/binding
         shell: bash
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        if: matrix.settings.target != 'wasm32-wasip1-threads'
+        uses: actions/upload-artifact@v7
+        if: contains(matrix.settings.target, 'wasm32-wasip1') == false
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
             packages/binding/dist/*.node
             packages/binding/dist/*.js
             packages/binding/dist/*.d.ts
+            packages/binding/dist/*.d.cts
             packages/binding/dist/*.cjs
             packages/binding/dist/*.mjs
           if-no-files-found: error
       - name: Upload WASI artifact
-        uses: actions/upload-artifact@v4
-        if: matrix.settings.target == 'wasm32-wasip1-threads'
+        uses: actions/upload-artifact@v7
+        if: contains(matrix.settings.target, 'wasm32-wasip1')
         with:
           name: bindings-${{ matrix.settings.target }}
           path: |
             packages/binding/dist/*.wasm
             packages/binding/dist/*.js
-            packages/binding/dist/*.d.ts
+            packages/binding/dist/*.d.*
             packages/binding/dist/*.cjs
             packages/binding/dist/*.mjs
           if-no-files-found: error
+
+  validate-packages:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node & pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: ${{ inputs.node-version }}
+
+      - name: Validate release packages
+        uses: ./.github/actions/build-packages

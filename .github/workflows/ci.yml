@@ -12,16 +12,27 @@ env:
 
 on:
   pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+      - converted_to_draft
     branches:
       - main
       - preview
+      # TEMPORARY: run CI for the stacked wasm32-wasip1 branches. Remove before
+      # this lands on main.
+      - 'wasm32-wasip1-todo*'
 
     paths:
       - 'packages/**'
       - '.github/workflows/ci.yml'
       - '.github/workflows/build-napi.yml'
       - '.github/workflows/test.yml'
+      - '.github/actions/**'
       - 'pnpm-lock.yaml'
+      - 'turbo.json'
 
 permissions:
   contents: read
@@ -32,7 +43,7 @@ jobs:
   build:
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: 22
+      node-version: 26
     secrets: inherit
   test:
     needs: build
@@ -48,9 +59,10 @@ jobs:
           - aarch64-unknown-linux-gnu
           - aarch64-unknown-linux-musl
           - wasm32-wasip1-threads
+          - wasm32-wasip1
         node:
-          - '22'
           - '24'
+          - '26'
 
     uses: ./.github/workflows/test.yml
     with:

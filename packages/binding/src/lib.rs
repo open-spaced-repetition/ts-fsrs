@@ -5,6 +5,7 @@ use napi_derive::napi;
 mod convert;
 mod evaluate;
 mod model;
+#[cfg(not(threadless_wasm))]
 mod progress;
 mod steps;
 mod timezone;
@@ -61,18 +62,11 @@ impl FSRS {
     let items = prepare_items(train_set);
 
     // Because the computation finishes very quickly, progress reporting is not supported here
-    let result = self.inner.evaluate(items, |_| true);
-
-    match result {
-      Ok(eval) => Ok(ModelEvaluation {
-        log_loss: eval.log_loss as f64,
-        rmse_bins: eval.rmse_bins as f64,
-      }),
-      Err(e) => Err(napi::Error::from_reason(format!(
-        "Evaluation failed: {}",
-        e
-      ))),
-    }
+    self
+      .inner
+      .evaluate(items, |_| true)
+      .map(ModelEvaluation::from)
+      .map_err(|e| napi::Error::from_reason(format!("Evaluation failed: {}", e)))
   }
 
   #[napi(js_name = "memoryStateFromSM2")]

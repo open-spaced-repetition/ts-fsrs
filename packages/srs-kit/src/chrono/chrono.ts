@@ -17,6 +17,14 @@ import type {
 export interface ChronoCore<Time> {
   readonly now: () => Time
   /**
+   * Compares two time values in chronological order.
+   *
+   * Returns a negative number when `left` is earlier than `right`, zero when
+   * they are equal, and a positive number when `left` is later than `right`.
+   * Callers decide how to compare values when a chronology omits this method.
+   */
+  readonly compare?: (left: Time, right: Time) => number
+  /**
    * Returns the distance from the previous review time to the current time.
    */
   readonly difference: (from: Time, to: Time) => number

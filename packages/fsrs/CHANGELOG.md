@@ -1,5 +1,158 @@
 # ts-fsrs
 
+## 6.0.0-beta.0
+
+### Major Changes
+
+- [#375](https://github.com/open-spaced-repetition/ts-fsrs/pull/375) [`17afe2a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/17afe2aaedc0467cc778b5fba9ea5e3d92834077) Thanks [@ishiko732](https://github.com/ishiko732)! - - feat: Add optional `desired_retention` to `FSRSAlgorithm.next_interval`.
+
+  `next_interval(stability)` is now `next_interval(stability, desired_retention?)`. When omitted, `desired_retention` defaults to `parameters.request_retention`. The algorithm layer no longer clamps by `parameters.maximum_interval`; scheduler paths continue to read `request_retention` from parameters and apply maximum interval limits.
+
+  - **BREAKING CHANGE:** The `interval_modifier` getter and `calculate_interval_modifier()` method have been removed.
+
+- [#377](https://github.com/open-spaced-repetition/ts-fsrs/pull/377) [`21c86ff`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21c86ffda267cbdf11b4fe80eccd1296d562cc87) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move FSRS-6 algorithm operations out of the root `FSRSAlgorithm` API and into the model layer.
+
+  - `FSRSAlgorithm` and the root-level algorithm helpers have been removed. Use the new `ts-fsrs/models/fsrs-6` entry for FSRS-6 model, algorithm, parameter migration, and clipping helpers.
+  - `next_state`, `next_interval`, `forgetting_curve`, and `get_retrievability` have been removed from the `FSRS` facade/root exports. Use model methods (`step`, `nextInterval`, `forgettingCurve`, `forward`) or import `forgettingCurve` from `ts-fsrs/models/fsrs-6` instead.
+  - `clipParameters` and `migrateParameters` have been removed from the root export. Use `clipFSRS6Parameters` and `migrateFSRS6Parameters` from `ts-fsrs/models/fsrs-6`.
+  - `retrievability(card, now?)` now returns a number only. Format percentages at the call site when needed.
+  - `IFSRS`, `FSRS`, and `fsrs()` are now deprecated and will be removed after the tests are migrated and passing. Use Scheduler going forward.
+
+  Migration:
+
+  ```ts
+  // Before
+  import { forgetting_curve, fsrs, migrateParameters } from "ts-fsrs";
+
+  const f = fsrs();
+  const state = f.next_state(memoryState, elapsedDays, rating);
+  const interval = f.next_interval(state.stability);
+  const retention = f.get_retrievability(card, now);
+  const recall = f.forgetting_curve(elapsedDays, state.stability);
+  const recallFromHelper = forgetting_curve(decay, elapsedDays, stability);
+  const weights = migrateParameters(w);
+
+  // After
+  import { fsrs } from "ts-fsrs";
+  import {
+    forgettingCurve,
+    migrateFSRS6Parameters,
+  } from "ts-fsrs/models/fsrs-6";
+
+  const f = fsrs();
+  const state = f.model.step({ memoryState, elapsedDays, rating });
+  const interval = f.model.nextInterval(state, f.parameters.request_retention);
+  const retention = f.retrievability(card, now);
+  const recall = f.model.forgettingCurve(state, elapsedDays);
+  const recallFromHelper = forgettingCurve(decay, elapsedDays, stability);
+  const weights = migrateFSRS6Parameters(w);
+  ```
+
+- [#409](https://github.com/open-spaced-repetition/ts-fsrs/pull/409) [`e376d55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e376d558c118e4e5c6d1ccb695d87ba88e969602) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add deterministic `cardId + reps` fuzzing middleware and a single flat `newCard({ now, ...fields })` input contract.
+
+  `createSchedulerFuzzingMiddleware({ fuzzingRange, rng })` supports custom fuzz-range tables and seeded RNG implementations without adding functions to scheduler runtime config.
+
+  The default seeded RNG now uses FNV-1a with Mulberry32 instead of Alea.
+
+  Card initialization schemas now live at `schema.cardInitInput`; the composed schema parses the flat options into `{ input, now }`, and `defaultValue.card` receives the parsed card initialization input or forgotten card directly as `ctx.input`.
+
+  Card initialization input types are carried separately from `SchedulerEnvFor` and `SchedulerCoreEnv`, keeping ordinary scheduler and core type displays compact.
+
+  Legacy fuzzing now reuses the same core. The deprecated `DefaultInitSeedStrategy`, `GenSeedStrategyWithCardId`, `StrategyMode.SEED`, and `TSeedStrategy` APIs have been removed.
+
+- [#407](https://github.com/open-spaced-repetition/ts-fsrs/pull/407) [`7162601`](https://github.com/open-spaced-repetition/ts-fsrs/commit/71626013513e6e16c7f7101eeae9c463e71ba5f4) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(fsrs): refactor learning steps and update its API.
+
+- [#374](https://github.com/open-spaced-repetition/ts-fsrs/pull/374) [`e09aee2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e09aee252f5fb55efaa3254ef4e6ffc5455b1a97) Thanks [@copilot-swe-agent](https://github.com/apps/copilot-swe-agent)! - - **BREAKING CHANGE:** Removed `afterHandler` callback parameter from `createEmptyCard()`, `repeat()`, `next()`, `rollback()`, and `forget()` methods. Transform results externally after calling these methods instead.
+
+  - **BREAKING CHANGE:** `reschedule` no longer accepts or applies `recordLogHandler`.
+
+  Migration:
+
+  ```ts
+  // Before
+  const card = createEmptyCard(now, cardAfterHandler);
+  const result = f.repeat(card, now, repeatAfterHandler);
+  const rescheduled = f.reschedule(card, reviews, { recordLogHandler: fn });
+
+  // After
+  const card = createEmptyCard(now);
+  const result = repeatAfterHandler(f.repeat(card, now));
+  const rescheduled = f.reschedule(card, reviews);
+  // transform rescheduled.collections externally
+  ```
+
+- [#341](https://github.com/open-spaced-repetition/ts-fsrs/pull/341) [`620575b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/620575bdeb1b252dfb39b75d051c0ee7275aea16) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** Removed global `Date.prototype` extensions (`scheduler`, `diff`, `format`, `dueFormat`). Use the standalone functions `date_scheduler()`, `date_diff()`, `formatDate()`, and `show_diff_message()` instead.
+
+  - **BREAKING CHANGE:** Removed deprecated helper functions `fixDate()`, `fixState()`, and `fixRating()`. Use `TypeConvert.time()`, `TypeConvert.state()`, and `TypeConvert.rating()` instead.
+
+- [#342](https://github.com/open-spaced-repetition/ts-fsrs/pull/342) [`dce1523`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dce1523f1e319be35a92cd9116ca095d817da8d4) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Remove deprecated `elapsed_days` field from `Card` interface and `elapsed_days`/`last_elapsed_days` fields from `ReviewLog` interface.
+
+  These fields were marked as deprecated since v5 and scheduled for removal in v6.0.0. When needed, `card.elapsed_days` can be derived from `card.last_review`.
+
+  Migration: Remove any references to `card.elapsed_days`, `log.elapsed_days`, and `log.last_elapsed_days` from your code. If you still need an elapsed-days value, derive card values from `card.last_review` using `date_diff()`, and for review logs replace `log.elapsed_days` with `date_diff(log.review, log.due, 'days')`.
+
+- [#356](https://github.com/open-spaced-repetition/ts-fsrs/pull/356) [`24b9f87`](https://github.com/open-spaced-repetition/ts-fsrs/commit/24b9f870daa884eb786bc63b9d2b4604373a7335) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move fuzz handling out of `FSRSAlgorithm` into the scheduler/strategy layer.
+
+  - `FSRSAlgorithm.apply_fuzz` and the `FSRSAlgorithm.seed` setter have been removed. The fuzz seed now lives internally on the scheduler instance (`AbstractScheduler#_seed`).
+  - `FSRSAlgorithm.next_interval(s, elapsed_days)` is now `next_interval(s)` and returns the base interval (no fuzzing). Use the new `withFuzzing` helper if you need to apply fuzz manually; `repeat()` / `next()` still apply fuzz automatically through the scheduler.
+  - Added `withFuzzing(interval, elapsedDays, config, seed?)` as the canonical camelCase entry point for fuzz application.
+
+  Migration:
+
+  ```ts
+  // Before
+  const interval = scheduler.next_interval(stability, elapsedDays);
+
+  // After
+  import { withFuzzing } from "ts-fsrs";
+  const base = scheduler.next_interval(stability);
+  const interval = withFuzzing(
+    base,
+    elapsedDays,
+    {
+      enableFuzz: scheduler.parameters.enable_fuzz,
+      maximumInterval: scheduler.parameters.maximum_interval,
+    },
+    seed
+  );
+  ```
+
+### Minor Changes
+
+- [#401](https://github.com/open-spaced-repetition/ts-fsrs/pull/401) [`15d910d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/15d910d24269676f740571dd53e958596aaa1e74) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add `ts-fsrs/models/fsrs-3` as a dedicated FSRS-3 model entry.
+
+- [#400](https://github.com/open-spaced-repetition/ts-fsrs/pull/400) [`4235e55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4235e558463ccdaa55b77563c95ace64f2d92e60) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add FSRS-4 model support through the new `ts-fsrs/models/fsrs-4` entry.
+
+- [#399](https://github.com/open-spaced-repetition/ts-fsrs/pull/399) [`8f7e9a0`](https://github.com/open-spaced-repetition/ts-fsrs/commit/8f7e9a02bb399799ad3e8d9c730632c8aa529133) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add the `ts-fsrs/models/fsrs-4dot5` entrypoint with FSRS-4.5 model, algorithm, default weights, parameter helpers, and tests.
+
+- [`06810cd`](https://github.com/open-spaced-repetition/ts-fsrs/commit/06810cd7ac27245a6fc58a95b177dfaa21054845) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineScheduler`, `defineChrono`, and chrono presets
+
+- [#378](https://github.com/open-spaced-repetition/ts-fsrs/pull/378) [`12d7154`](https://github.com/open-spaced-repetition/ts-fsrs/commit/12d7154f81ae0b1692bfc94de219dd66fcff1d65) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add `ts-fsrs/models/fsrs-5` as a dedicated FSRS-5 model entry.
+
+  The new entry exports the FSRS-5 algorithm, default weights, model binding, and parameter migration/clipping helpers based on the v4.7.1 implementation.
+
+- [#398](https://github.com/open-spaced-repetition/ts-fsrs/pull/398) [`4b2501a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4b2501a916d46c97f4351560af50f729a5b602ac) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): add model creation options for migration, parameter checking, and scheduler-side
+  config reuse.
+
+### Patch Changes
+
+- [#412](https://github.com/open-spaced-repetition/ts-fsrs/pull/412) [`c3b5f87`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c3b5f8718a13d135ee46795cb7d4547a0b98f59e) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add configurable leech suspension through scheduler middleware.
+
+- [#346](https://github.com/open-spaced-repetition/ts-fsrs/pull/346) [`e3b6dff`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e3b6dffeddcdfdb8fcd038f59e1af1d0b17aeaf1) Thanks [@ishiko732](https://github.com/ishiko732)! - Migrate build toolchain from Rollup + esbuild to tsdown (powered by Rolldown). Remove sourcemap generation and code minification. Remove unnecessary dependencies (rollup, @rollup/plugin-\*, rollup-plugin-esbuild, rollup-plugin-dts, tslib).
+
+- [#411](https://github.com/open-spaced-repetition/ts-fsrs/pull/411) [`a95f12e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a95f12e46a2d056482b15b5e364ca4b8c3f934e0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): share monotonic interval scheduling and compose fuzzing and learning steps through scheduler middleware.
+
+- [#415](https://github.com/open-spaced-repetition/ts-fsrs/pull/415) [`a9c0979`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a9c0979cf5c0d01b81105cbbc6544df535348f66) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): optimize learning step scheduling.
+
+- [#416](https://github.com/open-spaced-repetition/ts-fsrs/pull/416) [`218f653`](https://github.com/open-spaced-repetition/ts-fsrs/commit/218f6533daa4f814ef688a4f7feec8ce69787bce) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): optimize monotonic interval scheduling.
+
+- [#414](https://github.com/open-spaced-repetition/ts-fsrs/pull/414) [`ef92894`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ef928947369d9ec616be256561288b0491c9cea7) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): add scheduled days middleware.
+
+- [#422](https://github.com/open-spaced-repetition/ts-fsrs/pull/422) [`f37e90a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/f37e90acad8c1cf926e0459855af1977ab7fe2cc) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add validation for FSRS-6 decay values.
+
+- Updated dependencies [[`784cfdb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/784cfdbbee0e7bda5070bb3e3142c6ce14a3e7c3), [`784cfdb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/784cfdbbee0e7bda5070bb3e3142c6ce14a3e7c3), [`85eeb71`](https://github.com/open-spaced-repetition/ts-fsrs/commit/85eeb7164779c1d6a21150e1962fe451c02748df)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.0
+
 ## 5.4.1
 
 ### Patch Changes

@@ -18,8 +18,8 @@
       "@open-spaced-repetition/binding-linux-x64-gnu",
       "@open-spaced-repetition/binding-linux-x64-musl",
       "@open-spaced-repetition/binding-wasm32-wasi",
+      "@open-spaced-repetition/binding-wasm32-wasip1",
       "@open-spaced-repetition/binding-win32-arm64-msvc",
-      "@open-spaced-repetition/binding-win32-ia32-msvc",
       "@open-spaced-repetition/binding-win32-x64-msvc"
     ]
   ],

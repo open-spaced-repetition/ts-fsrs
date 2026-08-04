@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-win32-x64-msvc
 
+## 0.6.0-beta.0
+
 ## 0.5.0
 
 ## 0.4.0

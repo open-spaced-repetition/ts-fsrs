@@ -219,6 +219,15 @@ pub struct ModelEvaluation {
   pub rmse_bins: f64,
 }
 
+impl From<fsrs::ModelEvaluation> for ModelEvaluation {
+  fn from(value: fsrs::ModelEvaluation) -> Self {
+    Self {
+      log_loss: value.log_loss as f64,
+      rmse_bins: value.rmse_bins as f64,
+    }
+  }
+}
+
 #[napi(object)]
 pub struct StepRatingStats {
   /// Number of data points for this rating
@@ -296,4 +305,36 @@ pub struct ComputeParametersOptions<'env> {
   pub progress: Option<ProgressFunc<'env>>,
   #[napi(ts_type = "number")]
   pub timeout: Option<u32>,
+}
+
+/// `ComputeParametersOptions` translated into fsrs-rs types, with defaults applied.
+pub(crate) struct ResolvedOptions {
+  pub(crate) enable_short_term: bool,
+  pub(crate) num_relearning_steps: Option<usize>,
+  pub(crate) training_config: Option<fsrs::TrainingConfig>,
+  /// Progress poll interval; only meaningful where a poller can run.
+  #[cfg(not(threadless_wasm))]
+  pub(crate) timeout_ms: u32,
+}
+
+impl ComputeParametersOptions<'_> {
+  /// Default progress poll interval in milliseconds.
+  #[cfg(not(threadless_wasm))]
+  const DEFAULT_TIMEOUT_MS: u32 = 500;
+
+  pub(crate) fn resolve(options: Option<&Self>) -> ResolvedOptions {
+    ResolvedOptions {
+      enable_short_term: options.map(|x| x.enable_short_term).unwrap_or(true),
+      num_relearning_steps: options
+        .and_then(|x| x.num_relearning_steps)
+        .map(|x| x as usize),
+      training_config: options
+        .and_then(|x| x.training_config.as_ref())
+        .map(|x| x.to_fsrs_config()),
+      #[cfg(not(threadless_wasm))]
+      timeout_ms: options
+        .and_then(|x| x.timeout)
+        .unwrap_or(Self::DEFAULT_TIMEOUT_MS),
+    }
+  }
 }

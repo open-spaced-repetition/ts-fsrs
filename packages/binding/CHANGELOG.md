@@ -1,5 +1,13 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.0
+
+### Minor Changes
+
+- [#384](https://github.com/open-spaced-repetition/ts-fsrs/pull/384) [`1457ee0`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1457ee03b3fccce4aebb56ce5e1c24956e859ff5) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** `convertCsvToFsrsItems` now resolves IANA timezones in Rust and no longer accepts the JavaScript offset-provider callback.
+
+  Use `convertCsvToFsrsItems(data, nextDayStartsAt, timezone)` instead of passing `(ms, timezone) => offsetMinutes`. The binding now applies the timezone offset for each review timestamp internally, including daylight saving time transitions.
+
 ## 0.5.0
 
 ### Minor Changes

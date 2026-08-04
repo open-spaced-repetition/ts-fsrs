@@ -19,7 +19,7 @@
 
 ## 要件
 
-- Node.js `>=20`
+- Node.js `>=24`
 
 ## インストール
 
@@ -53,6 +53,8 @@ const parameters = await computeParameters(items, {
 
 console.log(parameters)
 ```
+
+スレッドレスの `wasm32-wasip1` パッケージを使う場合、`computeParameters` と `evaluateWithTimeSeriesSplits` は現在の Worker 上で同期的に実行され、完了した結果を API 互換性のため `Promise` にラップして返します。ブラウザではメインスレッドをブロックしないよう、専用 Worker からこれらのメソッドを呼び出してください。進捗コールバックにも対応しており、`false` を返すと処理を停止できます。
 
 ### CSV のタイムゾーン入力
 
