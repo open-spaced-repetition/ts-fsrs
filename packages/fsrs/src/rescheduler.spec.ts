@@ -270,9 +270,9 @@ describe('Reschedule.reschedule', () => {
       ],
     })
 
-    expect(result.collections).toHaveLength(3)
-    expect(result.card).toEqual(result.collections[2].card)
-    expect(result.collections[2].revlog.rating).toBe(Rating.Again)
+    expect(result.results).toHaveLength(3)
+    expect(result.card).toEqual(result.results[2].card)
+    expect(result.results[2].revlog.rating).toBe(Rating.Again)
     expect(result.card.state).toBe(State.Review)
     expect(result.card.dueAt.getTime()).toBeGreaterThan(DAY_MS * 6)
   })
@@ -283,7 +283,7 @@ describe('Reschedule.reschedule', () => {
       { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 4) },
     ] as const
 
-    const { collections } = dateReschedule.reschedule({ history })
+    const { results } = dateReschedule.reschedule({ history })
 
     let card = dateScheduler.newCard({ now: history[0].reviewTime })
     const expected = history.map((review) => {
@@ -296,11 +296,11 @@ describe('Reschedule.reschedule', () => {
       return item
     })
 
-    expect(collections).toEqual(expected)
+    expect(results).toEqual(expected)
   })
 
   it('sorts and filters the history like replay does', () => {
-    const { collections } = dateReschedule.reschedule({
+    const { results } = dateReschedule.reschedule({
       history: [
         { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 4) },
         { rating: Rating.Manual, reviewTime: new Date(DAY_MS * 2) },
@@ -308,9 +308,9 @@ describe('Reschedule.reschedule', () => {
       ],
     })
 
-    expect(collections).toHaveLength(2)
-    expect(collections[0].revlog.rating).toBe(Rating.Good)
-    expect(collections[1].revlog.rating).toBe(Rating.Easy)
+    expect(results).toHaveLength(2)
+    expect(results[0].revlog.rating).toBe(Rating.Good)
+    expect(results[1].revlog.rating).toBe(Rating.Easy)
   })
 
   it('starts from the given initial card', () => {
@@ -320,13 +320,13 @@ describe('Reschedule.reschedule', () => {
       now: new Date(DAY_MS),
     })
 
-    const { collections } = dateReschedule.reschedule({
+    const { results } = dateReschedule.reschedule({
       initialCard: seeded.card,
       history: [{ rating: Rating.Good, reviewTime: new Date(DAY_MS * 3) }],
     })
 
-    expect(collections).toHaveLength(1)
-    expect(collections[0].revlog.state).toBe(State.Review)
+    expect(results).toHaveLength(1)
+    expect(results[0].revlog.state).toBe(State.Review)
   })
 
   it('rejects history without a non-manual review', () => {

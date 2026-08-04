@@ -1201,6 +1201,49 @@ describe('SchedulerCore.forward', () => {
     expect(forwarded).toEqual(expected)
   })
 
+  it('parses each review time like review', () => {
+    const timeSchema = defineSchema<number, number>((value) =>
+      typeof value === 'number'
+        ? { value: value + 1 }
+        : { issues: [{ message: 'Expected test time' }] }
+    )
+    const transformingChrono = defineChrono({
+      schema: { time: timeSchema },
+      projection(value) {
+        return { value: { previous: 0, current: value.time } }
+      },
+      create() {
+        return {
+          now: () => 0,
+          difference: (from, to) => to - from,
+          add: (from, days) => from + days,
+        }
+      },
+    })
+    const transformingCore = defineScheduler({
+      model: SM2Model,
+      chrono: transformingChrono,
+    }).create({ config })
+    const history = [
+      { rating: Rating.Good, reviewTime: 1 },
+      { rating: Rating.Hard, reviewTime: 3 },
+    ] as const
+
+    const forwarded = transformingCore.forward({ history })
+    let card = transformingCore.newCard({ now: history[0].reviewTime })
+    const expected = history.map((review) => {
+      const result = transformingCore.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+      card = result.card
+      return result
+    })
+
+    expect(forwarded).toEqual(expected)
+  })
+
   it('starts from the given initial card', () => {
     const seeded = core.review({
       card: core.newCard({ now: 0 }),

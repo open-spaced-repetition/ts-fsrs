@@ -61,6 +61,6 @@ export interface ReplayResult<MemoryState extends object> {
 }
 
 export interface RescheduleResult<Scheduler extends AnySchedulerCore> {
-  readonly collections: ScheduleResultOf<Scheduler>[]
+  readonly results: ScheduleResultOf<Scheduler>[]
   readonly card: ScheduleResultOf<Scheduler>['card']
 }

@@ -52,12 +52,12 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
     options: RescheduleOptions = {}
   ): RescheduleResult<Scheduler> {
     const history = this.prepareReviews(input.history, options)
-    const collections = this.scheduler.forward({
+    const results = this.scheduler.forward({
       history,
       initialCard: input.initialCard,
-    }) as RescheduleResult<Scheduler>['collections']
+    }) as RescheduleResult<Scheduler>['results']
 
-    return { collections, card: collections[collections.length - 1].card }
+    return { results, card: results[results.length - 1].card }
   }
 
   private prepareReviews(
