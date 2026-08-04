@@ -1,13 +1,13 @@
-import { defineScheduler, Rating } from '@open-spaced-repetition/srs-kit'
+import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 import { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
-import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { FSRSValidationError } from './error.js'
 import { FSRS6_DEFAULT_WEIGHTS } from './models/fsrs-6/constants.js'
 import { FSRS6Model } from './models/fsrs-6/model.js'
 import type { FSRSState } from './models.js'
-import { Rescheduler } from './rescheduler/index.js'
+import { Reschedule } from './rescheduler/index.js'
 
 const DAY_MS = 86_400_000
 const DAY_NS = 86_400_000_000_000n
@@ -17,20 +17,52 @@ const modelConfig = {
   numRelearningSteps: 1,
 }
 
-describe('Rescheduler', () => {
+const dateScheduler = defineScheduler({
+  model: FSRS6Model,
+  chrono: dateChrono,
+}).create({ config: modelConfig })
+const numericScheduler = defineScheduler({
+  model: FSRS6Model,
+  chrono: numericChrono,
+}).create({ config: modelConfig })
+const dateReschedule = new Reschedule(dateScheduler)
+const numericReschedule = new Reschedule(numericScheduler)
+
+/**
+ * Built on first use: `Temporal` is only available on Node.js 26+, and
+ * creating the scheduler at module scope would fail the whole file on older
+ * runtimes instead of just the Temporal test.
+ */
+const createTemporalFixture = () => {
+  const scheduler = defineScheduler({
+    model: FSRS6Model,
+    chrono: temporalInstantChrono,
+  }).create({
+    config: {
+      ...modelConfig,
+      chrono: { timezone: 'UTC', fractionalDays: false },
+    },
+  })
+
+  return { scheduler, reschedule: new Reschedule(scheduler) }
+}
+let temporalFixture: ReturnType<typeof createTemporalFixture> | undefined
+const temporal = () => (temporalFixture ??= createTemporalFixture())
+
+beforeEach(() => {
+  vi.restoreAllMocks()
+})
+
+describe('Reschedule', () => {
   it('rebuilds memory with one model.forward call', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: dateChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
+    const forward = vi.spyOn(dateScheduler.model, 'forward')
     const history = [
       { rating: Rating.Good, reviewTime: new Date(0) },
       { rating: Rating.Hard, reviewTime: new Date(DAY_MS) },
       { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 5) },
     ] as const
 
-    const result = new Rescheduler(scheduler).reschedule({ history })
+    const result = dateReschedule.replay({ history })
 
     expect(forward).toHaveBeenCalledOnce()
     expect(forward).toHaveBeenCalledWith({
@@ -51,14 +83,10 @@ describe('Rescheduler', () => {
   })
 
   it('rejects empty history even when an initial state is provided', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
     const initialState = { stability: 12, difficulty: 6 }
 
     expect(() =>
-      new Rescheduler(scheduler).reschedule({
+      numericReschedule.replay({
         history: [],
         initialState,
       })
@@ -66,26 +94,17 @@ describe('Rescheduler', () => {
   })
 
   it('rejects history that contains only manual ratings', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-
     expect(() =>
-      new Rescheduler(scheduler).reschedule({
+      numericReschedule.replay({
         history: [{ rating: Rating.Manual, reviewTime: 0 }],
       })
     ).toThrow(FSRSValidationError)
   })
 
   it('uses the configured numeric chronology', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
+    const forward = vi.spyOn(numericScheduler.model, 'forward')
 
-    new Rescheduler(scheduler).reschedule({
+    numericReschedule.replay({
       history: [
         { rating: Rating.Good, reviewTime: 3 },
         { rating: Rating.Again, reviewTime: 8.5 },
@@ -102,18 +121,14 @@ describe('Rescheduler', () => {
   })
 
   it('sorts review history by default', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
+    const forward = vi.spyOn(numericScheduler.model, 'forward')
     const history = [
       { rating: Rating.Easy, reviewTime: 8.5 },
       { rating: Rating.Good, reviewTime: 3 },
     ] as const
     const originalHistory = [...history]
 
-    new Rescheduler(scheduler).reschedule({
+    numericReschedule.replay({
       history,
     })
 
@@ -128,13 +143,9 @@ describe('Rescheduler', () => {
   })
 
   it('filters manual ratings before calling model.forward', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-    const forward = vi.spyOn(scheduler.model, 'forward')
+    const forward = vi.spyOn(numericScheduler.model, 'forward')
 
-    const result = new Rescheduler(scheduler).reschedule({
+    const result = numericReschedule.replay({
       history: [
         { rating: Rating.Good, reviewTime: 3 },
         { rating: Rating.Manual, reviewTime: 4 },
@@ -153,19 +164,11 @@ describe('Rescheduler', () => {
   })
 
   it('uses the configured Temporal.Instant chronology', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: temporalInstantChrono,
-    }).create({
-      config: {
-        ...modelConfig,
-        chrono: { timezone: 'UTC', fractionalDays: false },
-      },
-    })
+    const { scheduler, reschedule } = temporal()
     const forward = vi.spyOn(scheduler.model, 'forward')
     const first = Temporal.Instant.fromEpochNanoseconds(0n)
     const second = Temporal.Instant.fromEpochNanoseconds(DAY_NS * 3n)
-    const result = new Rescheduler(scheduler).reschedule({
+    const result = reschedule.replay({
       history: [
         { rating: Rating.Good, reviewTime: first },
         { rating: Rating.Easy, reviewTime: second },
@@ -183,13 +186,8 @@ describe('Rescheduler', () => {
   })
 
   it('rejects review times that move backwards', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: dateChrono,
-    }).create({ config: modelConfig })
-
     expect(() =>
-      new Rescheduler(scheduler).reschedule(
+      dateReschedule.replay(
         {
           history: [
             { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
@@ -202,13 +200,8 @@ describe('Rescheduler', () => {
   })
 
   it('rejects review times that produce non-finite intervals', () => {
-    const scheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-
     expect(() =>
-      new Rescheduler(scheduler).reschedule({
+      numericReschedule.replay({
         history: [
           { rating: Rating.Good, reviewTime: 0 },
           { rating: Rating.Easy, reviewTime: Number.NaN },
@@ -218,17 +211,8 @@ describe('Rescheduler', () => {
   })
 
   it('infers review time from the scheduler chronology', () => {
-    const dateScheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: dateChrono,
-    }).create({ config: modelConfig })
-    const numericScheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: numericChrono,
-    }).create({ config: modelConfig })
-
     const invalidDateReview = () =>
-      new Rescheduler(dateScheduler).reschedule({
+      dateReschedule.replay({
         history: [
           {
             rating: Rating.Good,
@@ -238,7 +222,7 @@ describe('Rescheduler', () => {
         ],
       })
     const invalidNumericReview = () =>
-      new Rescheduler(numericScheduler).reschedule({
+      numericReschedule.replay({
         history: [
           {
             rating: Rating.Good,
@@ -250,5 +234,83 @@ describe('Rescheduler', () => {
 
     expectTypeOf(invalidDateReview).toBeFunction()
     expectTypeOf(invalidNumericReview).toBeFunction()
+  })
+})
+
+describe('Reschedule.reschedule', () => {
+  it('returns one card and revlog per review', () => {
+    const result = dateReschedule.reschedule({
+      history: [
+        { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+        { rating: Rating.Hard, reviewTime: new Date(DAY_MS * 2) },
+        { rating: Rating.Again, reviewTime: new Date(DAY_MS * 6) },
+      ],
+    })
+
+    expect(result.collections).toHaveLength(3)
+    expect(result.card).toEqual(result.collections[2].card)
+    expect(result.collections[2].revlog.rating).toBe(Rating.Again)
+    expect(result.card.state).toBe(State.Review)
+    expect(result.card.dueAt.getTime()).toBeGreaterThan(DAY_MS * 6)
+  })
+
+  it('matches an equivalent chain of scheduler.review calls', () => {
+    const history = [
+      { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+      { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 4) },
+    ] as const
+
+    const { collections } = dateReschedule.reschedule({ history })
+
+    let card = dateScheduler.newCard({ now: history[0].reviewTime })
+    const expected = history.map((review) => {
+      const item = dateScheduler.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+      card = item.card
+      return item
+    })
+
+    expect(collections).toEqual(expected)
+  })
+
+  it('sorts and filters the history like replay does', () => {
+    const { collections } = dateReschedule.reschedule({
+      history: [
+        { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 4) },
+        { rating: Rating.Manual, reviewTime: new Date(DAY_MS * 2) },
+        { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+      ],
+    })
+
+    expect(collections).toHaveLength(2)
+    expect(collections[0].revlog.rating).toBe(Rating.Good)
+    expect(collections[1].revlog.rating).toBe(Rating.Easy)
+  })
+
+  it('starts from the given initial card', () => {
+    const seeded = dateScheduler.review({
+      card: dateScheduler.newCard({ now: new Date(DAY_MS) }),
+      grade: Rating.Good,
+      now: new Date(DAY_MS),
+    })
+
+    const { collections } = dateReschedule.reschedule({
+      initialCard: seeded.card,
+      history: [{ rating: Rating.Good, reviewTime: new Date(DAY_MS * 3) }],
+    })
+
+    expect(collections).toHaveLength(1)
+    expect(collections[0].revlog.state).toBe(State.Review)
+  })
+
+  it('rejects history without a non-manual review', () => {
+    expect(() =>
+      dateReschedule.reschedule({
+        history: [{ rating: Rating.Manual, reviewTime: new Date(DAY_MS) }],
+      })
+    ).toThrow(FSRSValidationError)
   })
 })

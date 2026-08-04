@@ -5,40 +5,81 @@ import {
 } from '@open-spaced-repetition/srs-kit'
 import { FSRSValidationError } from '../error.js'
 import type {
+  CardOf,
   MemoryStateOf,
+  NonManualReview,
+  ReplayInput,
+  ReplayResult,
   RescheduleInput,
+  RescheduleOptions,
   RescheduleResult,
-  ReschedulerOptions,
-  ReschedulerReview,
   TimeOf,
 } from './infer.js'
 
-type NonManualReview<Time> = ReschedulerReview<Time> & {
-  readonly rating: Exclude<Rating, typeof Rating.Manual>
-}
-
 /**
- * Rebuilds model memory from review history using an existing srs-kit
- * scheduler core.
+ * Replays a review history on top of an existing srs-kit scheduler core.
  *
  * The scheduler instance keeps the model and chronology coupled, allowing the
- * review-time and memory-state types to be inferred from the selected core.
+ * review-time, card and memory-state types to be inferred from the selected
+ * core.
  */
-export class Rescheduler<Scheduler extends AnySchedulerCore> {
+export class Reschedule<Scheduler extends AnySchedulerCore> {
   constructor(readonly scheduler: Scheduler) {}
 
+  /**
+   * Rebuilds model memory from the review history and returns the memory state
+   * after each review.
+   */
+  replay(
+    input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
+    options: RescheduleOptions = {}
+  ): ReplayResult<MemoryStateOf<Scheduler>> {
+    const reviews = this.prepareReviews(input.history, options)
+    const memoryStates = this.scheduler.model.forward({
+      history: this.toModelHistory(reviews),
+      initialState: input.initialState,
+    }) as MemoryStateOf<Scheduler>[]
+
+    return { memoryState: memoryStates[memoryStates.length - 1], memoryStates }
+  }
+
+  /**
+   * Replays the review history through the scheduler and returns the card and
+   * revlog produced by each review.
+   */
   reschedule(
-    input: RescheduleInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
-    { sortHistory = true }: ReschedulerOptions = {}
-  ): RescheduleResult<MemoryStateOf<Scheduler>> {
-    const reviews = input.history.filter(
+    input: RescheduleInput<CardOf<Scheduler>, TimeOf<Scheduler>>,
+    options: RescheduleOptions = {}
+  ): RescheduleResult<Scheduler> {
+    const reviews = this.prepareReviews(input.history, options)
+    const collections = this.scheduler.forward({
+      history: reviews,
+      initialCard: input.initialCard,
+    }) as RescheduleResult<Scheduler>['collections']
+
+    return { collections, card: collections[collections.length - 1].card }
+  }
+
+  /**
+   * Drops manual ratings and, unless disabled, sorts the remaining reviews by
+   * ascending review time. Both scheduler entry points consume an already
+   * prepared history.
+   */
+  private prepareReviews(
+    history: readonly {
+      readonly rating: Rating
+      readonly reviewTime: TimeOf<Scheduler>
+    }[],
+    { sortHistory = true }: RescheduleOptions
+  ): NonManualReview<TimeOf<Scheduler>>[] {
+    const reviews = history.filter(
       (review): review is NonManualReview<TimeOf<Scheduler>> =>
         review.rating !== Rating.Manual
     )
 
     if (reviews.length === 0) {
       throw new FSRSValidationError(
-        'Rescheduler requires at least one non-manual review'
+        'Reschedule requires at least one non-manual review'
       )
     }
 
@@ -48,12 +89,7 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
       )
     }
 
-    const memoryStates = this.scheduler.model.forward({
-      history: this.prepareHistory(reviews),
-      initialState: input.initialState,
-    }) as MemoryStateOf<Scheduler>[]
-
-    return { memoryState: memoryStates[memoryStates.length - 1], memoryStates }
+    return reviews
   }
 
   /**
@@ -61,7 +97,7 @@ export class Rescheduler<Scheduler extends AnySchedulerCore> {
    * has the same length as the given reviews. The first review has no
    * predecessor and therefore carries `deltaT: 0`.
    */
-  private prepareHistory(
+  private toModelHistory(
     history: readonly NonManualReview<TimeOf<Scheduler>>[]
   ): ModelReview[] {
     const modelHistory: ModelReview[] = new Array(history.length)

@@ -2,7 +2,7 @@ import { defineScheduler, Rating } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
-import { Rescheduler } from 'ts-fsrs/rescheduler'
+import { Reschedule } from 'ts-fsrs/rescheduler'
 import { bench, describe } from 'vitest'
 
 const DAY_MS = 86_400_000
@@ -17,11 +17,11 @@ const scheduler = defineScheduler({
     numRelearningSteps: 1,
   },
 })
-const rescheduler = new Rescheduler(scheduler)
+const reschedule = new Reschedule(scheduler)
 const ratings = [Rating.Good, Rating.Hard, Rating.Easy, Rating.Again] as const
 const history = Array.from({ length: HISTORY_SIZE }, (_, index) => ({
   rating: ratings[index % ratings.length],
-  reviewTime: new Date(index * DAY_MS),
+  reviewTime: new Date((index + 1) * DAY_MS),
 }))
 const modelHistory = history.map((review, index) => ({
   rating: review.rating,
@@ -29,17 +29,28 @@ const modelHistory = history.map((review, index) => ({
 }))
 let sink = 0
 
-function consume(memoryState: { readonly stability: number }): void {
-  sink = (sink + memoryState.stability) % Number.MAX_SAFE_INTEGER
+function consume(stability: number): void {
+  sink = (sink + stability) % Number.MAX_SAFE_INTEGER
 }
 
-describe(`reschedule ${HISTORY_SIZE} reviews`, () => {
+describe(`replay ${HISTORY_SIZE} reviews (memory only)`, () => {
   bench('model.forward', () => {
     const states = scheduler.model.forward({ history: modelHistory })
-    consume(states[states.length - 1])
+    consume(states[states.length - 1].stability)
   })
 
-  bench('Rescheduler.reschedule', () => {
-    consume(rescheduler.reschedule({ history }).memoryState)
+  bench('Reschedule.replay', () => {
+    consume(reschedule.replay({ history }).memoryState.stability)
+  })
+})
+
+describe(`reschedule ${HISTORY_SIZE} reviews (card + revlog)`, () => {
+  bench('scheduler.forward', () => {
+    const results = scheduler.forward({ history })
+    consume(results[results.length - 1].card.stability)
+  })
+
+  bench('Reschedule.reschedule', () => {
+    consume(reschedule.reschedule({ history }).card.stability)
   })
 })

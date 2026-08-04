@@ -19,6 +19,17 @@
       },
       "default": "./dist/index.mjs"
     },
+    "./rescheduler": {
+      "require": {
+        "types": "./dist/rescheduler.d.cts",
+        "default": "./dist/rescheduler.cjs"
+      },
+      "import": {
+        "types": "./dist/rescheduler.d.mts",
+        "default": "./dist/rescheduler.mjs"
+      },
+      "default": "./dist/rescheduler.mjs"
+    },
     "./models/fsrs-3": {
       "require": {
         "types": "./dist/models/fsrs-3.d.cts",
