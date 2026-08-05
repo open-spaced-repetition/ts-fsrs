@@ -1159,6 +1159,17 @@ describe('SchedulerCore.forward', () => {
     expect(results[2].card.lapses).toBe(1)
   })
 
+  it('returns mutable cards', () => {
+    const results = core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Hard, reviewTime: 1 },
+      ],
+    })
+
+    expect(results.every(({ card }) => !Object.isFrozen(card))).toBe(true)
+  })
+
   it('reuses parsed cards and typed grades', () => {
     const cardValidate = vi.spyOn(
       scheduler.schema.card['~standard'],

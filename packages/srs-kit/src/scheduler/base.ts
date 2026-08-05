@@ -116,6 +116,7 @@ type ReviewInputContext<Env extends BlankSchedulerEnv> =
   ReviewMiddlewareOperationContext<Env>['input']
 
 const DEFAULT_DESIRED_RETENTION = 0.9
+const FORWARD_PREPARE_OPTIONS = { freezeCard: false } as const
 
 class ReviewInput<Env extends BlankSchedulerEnv>
   implements ReviewInputContext<Env>
@@ -269,7 +270,11 @@ export class BaseScheduler<
     for (let index = 0; index < history.length; index++) {
       const review = history[index]
       const now = review.reviewTime
-      const prepared = this.prepareParsedReview(card, now)
+      const prepared = this.prepareParsedReview(
+        card,
+        now,
+        FORWARD_PREPARE_OPTIONS
+      )
       const result = this.parseReviewResult(
         this.runReview(prepared, review.rating, now)
       )
@@ -386,7 +391,8 @@ export class BaseScheduler<
 
   private prepareParsedReview(
     parsedCard: SchedulerCoreEnv<Env>['card']['output'],
-    now: SchedulerCoreEnv<Env>['chrono']
+    now: SchedulerCoreEnv<Env>['chrono'],
+    { freezeCard = true }: { freezeCard?: boolean } = {}
   ): PreparedReview<Env> {
     const memoryState = getAttachedValue<
       typeof parsedCardMemoryStateSymbol,
@@ -396,7 +402,7 @@ export class BaseScheduler<
       throw new Error('Parsed scheduler card is missing model memory state')
     }
 
-    const card = Object.freeze(parsedCard)
+    const card = freezeCard ? Object.freeze(parsedCard) : parsedCard
     const time = parse<ChronoProjectionRuntimeSchema>(
       this.schedulerDefinition.chrono.projection,
       {
