@@ -1,5 +1,12 @@
 # @open-spaced-repetition/srs-kit
 
+## 0.1.0-beta.1
+
+### Patch Changes
+
+- [#435](https://github.com/open-spaced-repetition/ts-fsrs/pull/435) [`5915e9e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5915e9e8807d319a5e268a378ea8f337fca0d350) Thanks [@Eijnewgnaw](https://github.com/Eijnewgnaw)! - feat(kit): add an optional precise `compare` operation to chronology cores and
+  implement it for the Date and Temporal.Instant presets.
+
 ## 0.1.0-beta.0
 
 ### Minor Changes

@@ -1,5 +1,19 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.1
+
+### Minor Changes
+
+- [#432](https://github.com/open-spaced-repetition/ts-fsrs/pull/432) [`87dd1ba`](https://github.com/open-spaced-repetition/ts-fsrs/commit/87dd1ba4d75c00c6a099e58c46fc3e4d0ddc2b80) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): add the threadless `wasm32-wasip1` flavor and public workerd exports.
+
+  The threadless target keeps the Promise-based `computeParameters` and `evaluateWithTimeSeriesSplits` APIs, but executes the work synchronously on the current worker before wrapping the result in a Promise. Browser callers should use a dedicated Worker to keep the main thread responsive. Progress callbacks are supported, and returning `false` stops the operation.
+
+- [#431](https://github.com/open-spaced-repetition/ts-fsrs/pull/431) [`7f5df43`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7f5df43ce8175389aa35fad074c3f2f2619dd8a0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): migrate the native and threaded WASI loaders to napi-rs 3.12 and emnapi v2.
+
+  The package now requires Node.js 24, publishes one ESM default loader, and exposes the rebuilt threaded loader through `./dynamic`. The existing `./dynamic-wasi` subpath remains as an alias.
+
+- [#429](https://github.com/open-spaced-repetition/ts-fsrs/pull/429) [`42f5347`](https://github.com/open-spaced-repetition/ts-fsrs/commit/42f53471644ef8d6bb3189871266980997b60616) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): remove i686 Windows support and the `@open-spaced-repetition/binding-win32-ia32-msvc` package.
+
 ## 0.6.0-beta.0
 
 ### Minor Changes

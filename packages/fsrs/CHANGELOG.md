@@ -1,5 +1,17 @@
 # ts-fsrs
 
+## 6.0.0-beta.1
+
+### Minor Changes
+
+- [#426](https://github.com/open-spaced-repetition/ts-fsrs/pull/426) [`5bc6a40`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5bc6a406ee93fb505a7fab70d86d7c2b901905d6) Thanks [@Eijnewgnaw](https://github.com/Eijnewgnaw)! - feat(kit): add a `Reschedule` class that replays a review history into memory
+  states (`replay`) or into the card and revlog of each review (`reschedule`).
+
+### Patch Changes
+
+- Updated dependencies [[`5915e9e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5915e9e8807d319a5e268a378ea8f337fca0d350)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.1
+
 ## 6.0.0-beta.0
 
 ### Major Changes
