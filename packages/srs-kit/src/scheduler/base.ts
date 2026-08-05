@@ -29,6 +29,8 @@ import type {
   SchedulerCoreEnv,
   SchedulerDefaultValue,
   SchedulerDefaultValueContext,
+  SchedulerDefinition,
+  SchedulerForwardInput,
   SchedulerNewCardFn,
   SchedulerNewCardOptions,
   SchedulerSchema,
@@ -114,6 +116,7 @@ type ReviewInputContext<Env extends BlankSchedulerEnv> =
   ReviewMiddlewareOperationContext<Env>['input']
 
 const DEFAULT_DESIRED_RETENTION = 0.9
+const FORWARD_PREPARE_OPTIONS = { freezeCard: false } as const
 
 class ReviewInput<Env extends BlankSchedulerEnv>
   implements ReviewInputContext<Env>
@@ -160,8 +163,7 @@ export class BaseScheduler<
 
   readonly model: ReturnType<M['create']>
   readonly chrono: ReturnType<C['create']>
-  private readonly modelDef: M
-  private readonly chronoDef: C
+  private readonly schedulerDefinition: SchedulerDefinition<M, C>
   private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
   private readonly reviewHandlers: readonly (
@@ -175,8 +177,7 @@ export class BaseScheduler<
 
   constructor(ctx: BaseSchedulerContext<Env, M, C>) {
     const { model, chrono, schema, defaultValue, middlewares = [] } = ctx
-    this.modelDef = model
-    this.chronoDef = chrono
+    this.schedulerDefinition = Object.freeze({ model, chrono })
     this.schema = schema
     this.defaultValue = defaultValue
 
@@ -201,6 +202,10 @@ export class BaseScheduler<
     ) as readonly (RollbackRuntimeHandler<Env> | undefined)[]
   }
 
+  get definition(): SchedulerDefinition<M, C> {
+    return this.schedulerDefinition
+  }
+
   newCard: SchedulerNewCardFn<SchedulerCoreEnv<Env>> = (
     options?: SchedulerNewCardOptions<SchedulerCoreEnv<Env>>
   ): SchedulerCoreEnv<Env>['card']['output'] => {
@@ -220,6 +225,65 @@ export class BaseScheduler<
       },
       this.parseNow(now)
     )
+  }
+
+  /**
+   * Replays a review history and returns the card and revlog produced by each
+   * review.
+   *
+   * The history is consumed as given: it must already be sorted by review time
+   * and must not contain manual ratings.
+   */
+  forward = (
+    input: SchedulerForwardInput<
+      SchedulerCoreEnv<Env>['chrono'],
+      SchedulerCoreEnv<Env>['card']['input']
+    >
+  ): ScheduleResult<
+    SchedulerCoreEnv<Env>['card']['output'],
+    SchedulerCoreEnv<Env>['revlog']['output']
+  >[] => {
+    type ForwardResult = ScheduleResult<
+      SchedulerCoreEnv<Env>['card']['output'],
+      SchedulerCoreEnv<Env>['revlog']['output']
+    >
+
+    const { history } = input
+
+    // Nothing to replay: skip both the card initialization, which would
+    // otherwise read the current time from the chronology, and the initial
+    // card validation, for a result that stays empty either way.
+    if (history.length === 0) return []
+
+    const results: ForwardResult[] = new Array(history.length)
+    const initialCard =
+      input.initialCard == null
+        ? this.newCard({
+            now: history[0].reviewTime,
+          } as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
+        : (input.initialCard as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
+    let card = parse(
+      this.schema.card,
+      initialCard
+    ) as SchedulerCoreEnv<Env>['card']['output']
+
+    for (let index = 0; index < history.length; index++) {
+      const review = history[index]
+      const now = review.reviewTime
+      const prepared = this.prepareParsedReview(
+        card,
+        now,
+        FORWARD_PREPARE_OPTIONS
+      )
+      const result = this.parseReviewResult(
+        this.runReview(prepared, review.rating, now)
+      )
+
+      results[index] = result
+      card = result.card as SchedulerCoreEnv<Env>['card']['output']
+    }
+
+    return results
   }
 
   forget = (input: {
@@ -254,30 +318,7 @@ export class BaseScheduler<
     const grade = parse(gradeSchema, inputGrade)
     const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
-    const ctx: ReviewMiddlewareOperationContext<Env> = {
-      config: this.config,
-      input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-      desiredRetention: DEFAULT_DESIRED_RETENTION,
-      elapsedDays: prepared.elapsedDays,
-      scheduledDays: undefined,
-      candidate: prepared.candidate,
-      result: { card: {}, revlog: {} },
-    }
-
-    composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
-      this.finalizeReview(prepared, ctx)
-    )
-    this.applyReviewChronoDefaults(prepared, ctx)
-    return {
-      card: parse(
-        this.schema.card,
-        ctx.result.card
-      ) as SchedulerCoreEnv<Env>['card']['output'],
-      revlog: parse(
-        this.schema.revlog,
-        ctx.result.revlog
-      ) as SchedulerCoreEnv<Env>['revlog']['output'],
-    }
+    return this.parseReviewResult(this.runReview(prepared, grade, now))
   }
 
   preview = (input: {
@@ -292,29 +333,13 @@ export class BaseScheduler<
     const prepared = this.prepareReview(inputCard, now)
 
     return createLazyIterable(grades, (grade) => {
-      const ctx: ReviewMiddlewareOperationContext<Env> = {
-        config: this.config,
-        input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-        desiredRetention: DEFAULT_DESIRED_RETENTION,
-        elapsedDays: prepared.elapsedDays,
-        scheduledDays: undefined,
-        candidate: prepared.candidate,
-        result: { card: {}, revlog: {} },
-      }
-      composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
-        this.finalizeReview(prepared, ctx)
+      const { card, revlog } = this.parseReviewResult(
+        this.runReview(prepared, grade, now)
       )
-      this.applyReviewChronoDefaults(prepared, ctx)
       return {
         grade,
-        card: parse(
-          this.schema.card,
-          ctx.result.card
-        ) as SchedulerCoreEnv<Env>['card']['output'],
-        revlog: parse(
-          this.schema.revlog,
-          ctx.result.revlog
-        ) as SchedulerCoreEnv<Env>['revlog']['output'],
+        card,
+        revlog,
       }
     })
   }
@@ -361,6 +386,14 @@ export class BaseScheduler<
       this.schema.card,
       inputCard
     ) as SchedulerCoreEnv<Env>['card']['output']
+    return this.prepareParsedReview(parsedCard, now)
+  }
+
+  private prepareParsedReview(
+    parsedCard: SchedulerCoreEnv<Env>['card']['output'],
+    now: SchedulerCoreEnv<Env>['chrono'],
+    { freezeCard = true }: { freezeCard?: boolean } = {}
+  ): PreparedReview<Env> {
     const memoryState = getAttachedValue<
       typeof parsedCardMemoryStateSymbol,
       PreparedReview<Env>['memoryState']
@@ -369,9 +402,9 @@ export class BaseScheduler<
       throw new Error('Parsed scheduler card is missing model memory state')
     }
 
-    const card = Object.freeze(parsedCard)
+    const card = freezeCard ? Object.freeze(parsedCard) : parsedCard
     const time = parse<ChronoProjectionRuntimeSchema>(
-      this.chronoDef.projection,
+      this.schedulerDefinition.chrono.projection,
       {
         card,
         time: now,
@@ -425,6 +458,46 @@ export class BaseScheduler<
     }
   }
 
+  private runReview(
+    prepared: PreparedReview<Env>,
+    grade: Grade,
+    now: SchedulerCoreEnv<Env>['chrono']
+  ): ReviewResultDraft<Env> {
+    const ctx: ReviewMiddlewareOperationContext<Env> = {
+      config: this.config,
+      input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
+      desiredRetention: DEFAULT_DESIRED_RETENTION,
+      elapsedDays: prepared.elapsedDays,
+      scheduledDays: undefined,
+      candidate: prepared.candidate,
+      result: { card: {}, revlog: {} },
+    }
+
+    composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
+      this.finalizeReview(prepared, ctx)
+    )
+    this.applyReviewChronoDefaults(prepared, ctx)
+    return ctx.result
+  }
+
+  private parseReviewResult(
+    result: ReviewResultDraft<Env>
+  ): ScheduleResult<
+    SchedulerCoreEnv<Env>['card']['output'],
+    SchedulerCoreEnv<Env>['revlog']['output']
+  > {
+    return {
+      card: parse(
+        this.schema.card,
+        result.card
+      ) as SchedulerCoreEnv<Env>['card']['output'],
+      revlog: parse(
+        this.schema.revlog,
+        result.revlog
+      ) as SchedulerCoreEnv<Env>['revlog']['output'],
+    }
+  }
+
   private finalizeReview(
     prepared: PreparedReview<Env>,
     ctx: ReviewMiddlewareOperationContext<Env>
@@ -456,7 +529,10 @@ export class BaseScheduler<
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    Object.assign(result.card, parse(this.modelDef.schema.memoryState, revlog))
+    Object.assign(
+      result.card,
+      parse(this.schedulerDefinition.model.schema.memoryState, revlog)
+    )
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
 
@@ -478,7 +554,7 @@ export class BaseScheduler<
     prepared: PreparedReview<Env>,
     scheduledDays: number
   ): void {
-    const chronoCardDefault = this.chronoDef.defaultValue?.card
+    const chronoCardDefault = this.schedulerDefinition.chrono.defaultValue?.card
     if (chronoCardDefault) {
       Object.assign(
         result.card,
@@ -490,7 +566,8 @@ export class BaseScheduler<
       )
     }
 
-    const chronoRevlogDefault = this.chronoDef.defaultValue?.revlog
+    const chronoRevlogDefault =
+      this.schedulerDefinition.chrono.defaultValue?.revlog
     if (chronoRevlogDefault) {
       Object.assign(
         result.revlog,
@@ -507,17 +584,17 @@ export class BaseScheduler<
     result: RollbackResultDraft<Env>,
     revlog: Readonly<SchedulerCoreEnv<Env>['revlog']['output']>
   ): void {
-    const chronoCardSchema = this.chronoDef.schema.card
+    const chronoCardSchema = this.schedulerDefinition.chrono.schema.card
     if (!chronoCardSchema) {
       return
     }
     const projection = parse<ChronoProjectionRuntimeSchema>(
-      this.chronoDef.projection,
+      this.schedulerDefinition.chrono.projection,
       {
         revlog,
       }
     )
-    const cardFields = this.chronoDef.defaultValue?.card?.({
+    const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
       config: this.config.chrono,
       previous: {
         previous: 0,
@@ -533,6 +610,6 @@ export class BaseScheduler<
   private parseNow(now?: unknown): SchedulerCoreEnv<Env>['chrono'] {
     return now === undefined
       ? this.chrono.now()
-      : parse(this.chronoDef.schema.time, now)
+      : parse(this.schedulerDefinition.chrono.schema.time, now)
   }
 }

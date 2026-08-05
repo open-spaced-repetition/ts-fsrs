@@ -73,6 +73,24 @@ export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
     ? (options?: SchedulerNewCardOptions<Env>) => Env['card']['output']
     : (options: SchedulerNewCardOptions<Env>) => Env['card']['output']
 
+export interface ForwardItem<Time> {
+  readonly rating: Grade
+  readonly reviewTime: Time
+}
+
+export interface SchedulerForwardInput<Time, Card> {
+  readonly history: readonly ForwardItem<Time>[]
+  readonly initialCard?: Card
+}
+
+export interface SchedulerDefinition<
+  Model extends AnyModel = AnyModel,
+  Chrono extends AnyChrono = AnyChrono,
+> {
+  readonly model: Model
+  readonly chrono: Chrono
+}
+
 export interface SchedulerCore<
   Env extends BlankSchedulerCoreEnv = BlankSchedulerCoreEnv,
   M extends AnyModelCore = AnyModelCore,
@@ -80,8 +98,12 @@ export interface SchedulerCore<
 > {
   readonly model: M
   readonly chrono: C
+  readonly definition: SchedulerDefinition
   readonly config: Readonly<Env['config']>
   readonly newCard: SchedulerNewCardFn<Env>
+  readonly forward: (
+    input: SchedulerForwardInput<Env['chrono'], Env['card']['input']>
+  ) => ScheduleResult<Env['card']['output'], Env['revlog']['output']>[]
   readonly forget: (input: {
     readonly card: Env['card']['input']
     readonly now?: Env['chrono']

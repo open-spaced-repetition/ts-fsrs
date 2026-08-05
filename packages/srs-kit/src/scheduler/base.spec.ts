@@ -10,7 +10,7 @@ import {
   type SM2Config,
   SM2Model,
 } from '@/model/sm2.test.js'
-import { Rating, State } from '@/primitives/index.js'
+import { gradeSchema, Rating, State } from '@/primitives/index.js'
 import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
 import { useComposeDefaultValue } from './default-value.js'
@@ -62,8 +62,10 @@ describe('SchedulerCore.create', () => {
       clearStatsOnForget: true,
     })
     expect(core.model).not.toBe(SM2Model)
+    expect(core.definition.model).toBe(scheduler.modelDef)
     expect(core.model.config).toEqual({ weights: SM2_DEFAULT_WEIGHTS })
     expect(core.chrono).not.toBe(numericChrono)
+    expect(core.definition.chrono).toBe(scheduler.chronoDef)
     expect(core.chrono.now).toBeTypeOf('function')
   })
 
@@ -1136,6 +1138,162 @@ describe('SchedulerCore.preview', () => {
     expect(
       Array.from(core.preview({ card })).map((item) => item.grade)
     ).toEqual([Rating.Again, Rating.Hard, Rating.Good, Rating.Easy])
+  })
+})
+
+describe('SchedulerCore.forward', () => {
+  it('returns one card and revlog per review', () => {
+    const results = core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Good, reviewTime: 1 },
+        { rating: Rating.Again, reviewTime: 4 },
+      ],
+    })
+
+    expect(results).toHaveLength(3)
+    expect(results[0].revlog.rating).toBe(Rating.Good)
+    expect(results[0].revlog.state).toBe(State.New)
+    expect(results[2].revlog.rating).toBe(Rating.Again)
+    expect(results[2].card.reps).toBe(3)
+    expect(results[2].card.lapses).toBe(1)
+  })
+
+  it('returns mutable cards', () => {
+    const results = core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Hard, reviewTime: 1 },
+      ],
+    })
+
+    expect(results.every(({ card }) => !Object.isFrozen(card))).toBe(true)
+  })
+
+  it('reuses parsed cards and typed grades', () => {
+    const cardValidate = vi.spyOn(
+      scheduler.schema.card['~standard'],
+      'validate'
+    )
+    const gradeValidate = vi.spyOn(gradeSchema['~standard'], 'validate')
+
+    core.forward({
+      history: [
+        { rating: Rating.Good, reviewTime: 0 },
+        { rating: Rating.Hard, reviewTime: 1 },
+        { rating: Rating.Easy, reviewTime: 3 },
+      ],
+    })
+
+    expect(cardValidate).toHaveBeenCalledTimes(4)
+    expect(gradeValidate).toHaveBeenCalledTimes(3)
+    cardValidate.mockRestore()
+    gradeValidate.mockRestore()
+  })
+
+  it('matches an equivalent chain of review calls', () => {
+    const history = [
+      { rating: Rating.Good, reviewTime: 0 },
+      { rating: Rating.Hard, reviewTime: 2 },
+      { rating: Rating.Easy, reviewTime: 7 },
+    ] as const
+
+    const forwarded = core.forward({ history })
+
+    let card = core.newCard({ now: history[0].reviewTime })
+    const expected = history.map((review) => {
+      const result = core.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+      card = result.card
+      return result
+    })
+
+    expect(forwarded).toEqual(expected)
+  })
+
+  it('parses each review time like review', () => {
+    const timeSchema = defineSchema<number, number>((value) =>
+      typeof value === 'number'
+        ? { value: value + 1 }
+        : { issues: [{ message: 'Expected test time' }] }
+    )
+    const transformingChrono = defineChrono({
+      schema: { time: timeSchema },
+      projection(value) {
+        return { value: { previous: 0, current: value.time } }
+      },
+      create() {
+        return {
+          now: () => 0,
+          difference: (from, to) => to - from,
+          add: (from, days) => from + days,
+        }
+      },
+    })
+    const transformingCore = defineScheduler({
+      model: SM2Model,
+      chrono: transformingChrono,
+    }).create({ config })
+    const history = [
+      { rating: Rating.Good, reviewTime: 1 },
+      { rating: Rating.Hard, reviewTime: 3 },
+    ] as const
+
+    const forwarded = transformingCore.forward({ history })
+    let card = transformingCore.newCard({ now: history[0].reviewTime })
+    const expected = history.map((review) => {
+      const result = transformingCore.review({
+        card,
+        grade: review.rating,
+        now: review.reviewTime,
+      })
+      card = result.card
+      return result
+    })
+
+    expect(forwarded).toEqual(expected)
+  })
+
+  it('starts from the given initial card', () => {
+    const seeded = core.review({
+      card: core.newCard({ now: 0 }),
+      grade: Rating.Good,
+      now: 0,
+    })
+
+    const results = core.forward({
+      initialCard: seeded.card,
+      history: [{ rating: Rating.Good, reviewTime: 1 }],
+    })
+
+    expect(results).toHaveLength(1)
+    expect(results[0].revlog.state).toBe(State.Review)
+    expect(results[0].card.reps).toBe(2)
+  })
+
+  it('rejects an invalid initial card', () => {
+    expect(() =>
+      core.forward({
+        initialCard: { state: 'not-a-state' } as never,
+        history: [{ rating: Rating.Good, reviewTime: 0 }],
+      })
+    ).toThrow()
+  })
+
+  it('returns an empty array for an empty history', () => {
+    expect(core.forward({ history: [] })).toEqual([])
+  })
+
+  it('skips the initial card entirely when there is no review', () => {
+    expect(
+      core.forward({
+        initialCard: { state: 'not-a-state' } as never,
+        history: [],
+      })
+    ).toEqual([])
   })
 })
 
