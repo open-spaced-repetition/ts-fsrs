@@ -3,6 +3,7 @@
 browser.js
 fsrs-binding.wasi-browser.js
 fsrs-binding.wasi.cjs
+fsrs-binding.wasi.d.cts
 fsrs-binding.wasip1*
 fsrs-binding.wasm32-wasip1.*
 # Generated once by `napi create-npm-dirs`, never by a build; the threadless
