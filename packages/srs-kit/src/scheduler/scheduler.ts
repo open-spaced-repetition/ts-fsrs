@@ -83,6 +83,14 @@ export interface SchedulerForwardInput<Time, Card> {
   readonly initialCard?: Card
 }
 
+export interface SchedulerDefinition<
+  Model extends AnyModel = AnyModel,
+  Chrono extends AnyChrono = AnyChrono,
+> {
+  readonly model: Model
+  readonly chrono: Chrono
+}
+
 export interface SchedulerCore<
   Env extends BlankSchedulerCoreEnv = BlankSchedulerCoreEnv,
   M extends AnyModelCore = AnyModelCore,
@@ -90,6 +98,7 @@ export interface SchedulerCore<
 > {
   readonly model: M
   readonly chrono: C
+  readonly definition: SchedulerDefinition
   readonly config: Readonly<Env['config']>
   readonly newCard: SchedulerNewCardFn<Env>
   readonly forward: (

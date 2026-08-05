@@ -29,6 +29,7 @@ import type {
   SchedulerCoreEnv,
   SchedulerDefaultValue,
   SchedulerDefaultValueContext,
+  SchedulerDefinition,
   SchedulerForwardInput,
   SchedulerNewCardFn,
   SchedulerNewCardOptions,
@@ -161,8 +162,7 @@ export class BaseScheduler<
 
   readonly model: ReturnType<M['create']>
   readonly chrono: ReturnType<C['create']>
-  private readonly modelDef: M
-  private readonly chronoDef: C
+  private readonly schedulerDefinition: SchedulerDefinition<M, C>
   private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
   private readonly reviewHandlers: readonly (
@@ -176,8 +176,7 @@ export class BaseScheduler<
 
   constructor(ctx: BaseSchedulerContext<Env, M, C>) {
     const { model, chrono, schema, defaultValue, middlewares = [] } = ctx
-    this.modelDef = model
-    this.chronoDef = chrono
+    this.schedulerDefinition = Object.freeze({ model, chrono })
     this.schema = schema
     this.defaultValue = defaultValue
 
@@ -200,6 +199,10 @@ export class BaseScheduler<
     this.rollbackHandlers = middlewares.map(
       (middleware) => middleware.handlers?.rollback
     ) as readonly (RollbackRuntimeHandler<Env> | undefined)[]
+  }
+
+  get definition(): SchedulerDefinition<M, C> {
+    return this.schedulerDefinition
   }
 
   newCard: SchedulerNewCardFn<SchedulerCoreEnv<Env>> = (
@@ -395,7 +398,7 @@ export class BaseScheduler<
 
     const card = Object.freeze(parsedCard)
     const time = parse<ChronoProjectionRuntimeSchema>(
-      this.chronoDef.projection,
+      this.schedulerDefinition.chrono.projection,
       {
         card,
         time: now,
@@ -520,7 +523,10 @@ export class BaseScheduler<
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    Object.assign(result.card, parse(this.modelDef.schema.memoryState, revlog))
+    Object.assign(
+      result.card,
+      parse(this.schedulerDefinition.model.schema.memoryState, revlog)
+    )
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
 
@@ -542,7 +548,7 @@ export class BaseScheduler<
     prepared: PreparedReview<Env>,
     scheduledDays: number
   ): void {
-    const chronoCardDefault = this.chronoDef.defaultValue?.card
+    const chronoCardDefault = this.schedulerDefinition.chrono.defaultValue?.card
     if (chronoCardDefault) {
       Object.assign(
         result.card,
@@ -554,7 +560,8 @@ export class BaseScheduler<
       )
     }
 
-    const chronoRevlogDefault = this.chronoDef.defaultValue?.revlog
+    const chronoRevlogDefault =
+      this.schedulerDefinition.chrono.defaultValue?.revlog
     if (chronoRevlogDefault) {
       Object.assign(
         result.revlog,
@@ -571,17 +578,17 @@ export class BaseScheduler<
     result: RollbackResultDraft<Env>,
     revlog: Readonly<SchedulerCoreEnv<Env>['revlog']['output']>
   ): void {
-    const chronoCardSchema = this.chronoDef.schema.card
+    const chronoCardSchema = this.schedulerDefinition.chrono.schema.card
     if (!chronoCardSchema) {
       return
     }
     const projection = parse<ChronoProjectionRuntimeSchema>(
-      this.chronoDef.projection,
+      this.schedulerDefinition.chrono.projection,
       {
         revlog,
       }
     )
-    const cardFields = this.chronoDef.defaultValue?.card?.({
+    const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
       config: this.config.chrono,
       previous: {
         previous: 0,
@@ -597,6 +604,6 @@ export class BaseScheduler<
   private parseNow(now?: unknown): SchedulerCoreEnv<Env>['chrono'] {
     return now === undefined
       ? this.chrono.now()
-      : parse(this.chronoDef.schema.time, now)
+      : parse(this.schedulerDefinition.chrono.schema.time, now)
   }
 }

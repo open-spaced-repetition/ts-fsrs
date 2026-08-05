@@ -62,8 +62,10 @@ describe('SchedulerCore.create', () => {
       clearStatsOnForget: true,
     })
     expect(core.model).not.toBe(SM2Model)
+    expect(core.definition.model).toBe(scheduler.modelDef)
     expect(core.model.config).toEqual({ weights: SM2_DEFAULT_WEIGHTS })
     expect(core.chrono).not.toBe(numericChrono)
+    expect(core.definition.chrono).toBe(scheduler.chronoDef)
     expect(core.chrono.now).toBeTypeOf('function')
   })
 
