@@ -45,10 +45,9 @@ export interface RescheduleOptions {
    * Sorts the review history by `reviewTime` in ascending order before
    * replaying it. Disable it when the history is already sorted.
    *
-   * Reviews are ordered through the chronology, so a chronology that measures
-   * whole days cannot order reviews that fall on the same day: they compare
-   * equal and keep their input order. Pass an already sorted history when the
-   * order within a day matters.
+   * Reviews are ordered through the chronology's optional `compare` operation.
+   * When it is omitted, the input order is preserved and the history must
+   * already be sorted.
    *
    * @default true
    */

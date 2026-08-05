@@ -1,7 +1,9 @@
 import {
   type AnySchedulerCore,
   type ModelReview,
+  parse,
   Rating,
+  ratingSchema,
 } from '@open-spaced-repetition/srs-kit'
 import { FSRSValidationError } from '../error.js'
 import type {
@@ -34,7 +36,7 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
     input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
     options: RescheduleOptions = {}
   ): ReplayResult<MemoryStateOf<Scheduler>> {
-    const reviews = this.prepareReviews(input.history, options)
+    const reviews = this.prepareReviews(input.history, options, true)
     const memoryStates = this.scheduler.model.forward({
       history: this.toModelHistory(reviews),
       initialState: input.initialState,
@@ -65,12 +67,28 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
       readonly rating: Rating
       readonly reviewTime: TimeOf<Scheduler>
     }[],
-    { sortHistory = true }: RescheduleOptions
+    { sortHistory = true }: RescheduleOptions,
+    canonicalizeTime = false
   ): NonManualReview<TimeOf<Scheduler>>[] {
-    const reviews = history.filter(
-      (review): review is NonManualReview<TimeOf<Scheduler>> =>
-        review.rating !== Rating.Manual
-    )
+    const reviews: NonManualReview<TimeOf<Scheduler>>[] = []
+    const { chrono: chronoDefinition } = this.scheduler.definition
+
+    for (const review of history) {
+      const rating = parse(ratingSchema, review.rating)
+      if (rating === Rating.Manual) continue
+
+      reviews.push(
+        canonicalizeTime
+          ? {
+              rating,
+              reviewTime: parse(
+                chronoDefinition.schema.time,
+                review.reviewTime
+              ),
+            }
+          : (review as NonManualReview<TimeOf<Scheduler>>)
+      )
+    }
 
     if (reviews.length === 0) {
       throw new FSRSValidationError(
@@ -78,10 +96,9 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
       )
     }
 
-    if (sortHistory) {
-      reviews.sort((left, right) =>
-        this.scheduler.chrono.difference(right.reviewTime, left.reviewTime)
-      )
+    const compare = this.scheduler.chrono.compare
+    if (sortHistory && compare) {
+      reviews.sort((left, right) => compare(left.reviewTime, right.reviewTime))
     }
 
     return reviews

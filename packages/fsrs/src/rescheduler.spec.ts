@@ -1,5 +1,7 @@
 import {
+  defineChrono,
   defineScheduler,
+  defineSchema,
   Rating,
   SRSSchemaError,
   State,
@@ -62,9 +64,9 @@ describe('Reschedule', () => {
   it('rebuilds memory with one model.forward call', () => {
     const forward = vi.spyOn(dateScheduler.model, 'forward')
     const history = [
-      { rating: Rating.Good, reviewTime: new Date(0) },
-      { rating: Rating.Hard, reviewTime: new Date(DAY_MS) },
-      { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 5) },
+      { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+      { rating: Rating.Hard, reviewTime: new Date(DAY_MS * 2) },
+      { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 6) },
     ] as const
 
     const result = dateReschedule.replay({ history })
@@ -106,6 +108,14 @@ describe('Reschedule', () => {
     ).toThrow(FSRSValidationError)
   })
 
+  it('validates review ratings', () => {
+    expect(() =>
+      numericReschedule.replay({
+        history: [{ rating: 5 as Rating, reviewTime: 0 }],
+      })
+    ).toThrow(SRSSchemaError)
+  })
+
   it('uses the configured numeric chronology', () => {
     const forward = vi.spyOn(numericScheduler.model, 'forward')
 
@@ -125,22 +135,45 @@ describe('Reschedule', () => {
     })
   })
 
-  it('sorts review history by default', () => {
-    const forward = vi.spyOn(numericScheduler.model, 'forward')
+  it('parses review times before sorting and calculating intervals', () => {
+    const compare = vi.fn((left: number, right: number) => left - right)
+    const chrono = defineChrono({
+      schema: {
+        time: defineSchema<number, number>((value) =>
+          typeof value === 'number'
+            ? { value: value * 2 }
+            : { issues: [{ message: 'Expected numeric review time' }] }
+        ),
+      },
+      projection(value) {
+        return { value: { previous: value.time, current: value.time } }
+      },
+      create() {
+        return {
+          now: () => 0,
+          compare,
+          difference: (from, to) => to - from,
+          add: (from, days) => from + days,
+        }
+      },
+    })
+    const scheduler = defineScheduler({ model: FSRS6Model, chrono }).create({
+      config: modelConfig,
+    })
+    const forward = vi.spyOn(scheduler.model, 'forward')
     const history = [
-      { rating: Rating.Easy, reviewTime: 8.5 },
-      { rating: Rating.Good, reviewTime: 3 },
+      { rating: Rating.Easy, reviewTime: 3 },
+      { rating: Rating.Good, reviewTime: 1 },
     ] as const
     const originalHistory = [...history]
 
-    numericReschedule.replay({
-      history,
-    })
+    new Reschedule(scheduler).replay({ history })
 
+    expect(compare).toHaveBeenCalledWith(2, 6)
     expect(forward).toHaveBeenCalledWith({
       history: [
         { rating: Rating.Good, deltaT: 0 },
-        { rating: Rating.Easy, deltaT: 5.5 },
+        { rating: Rating.Easy, deltaT: 4 },
       ],
       initialState: undefined,
     })
@@ -198,8 +231,8 @@ describe('Reschedule', () => {
       dateReschedule.replay(
         {
           history: [
-            { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
-            { rating: Rating.Easy, reviewTime: new Date(0) },
+            { rating: Rating.Good, reviewTime: new Date(DAY_MS * 2) },
+            { rating: Rating.Easy, reviewTime: new Date(DAY_MS) },
           ],
         },
         { sortHistory: false }
@@ -208,11 +241,13 @@ describe('Reschedule', () => {
   })
 
   it('rejects review times that produce non-finite intervals', () => {
+    vi.spyOn(numericScheduler.chrono, 'difference').mockReturnValue(Number.NaN)
+
     expect(() =>
       numericReschedule.replay({
         history: [
           { rating: Rating.Good, reviewTime: 0 },
-          { rating: Rating.Easy, reviewTime: Number.NaN },
+          { rating: Rating.Easy, reviewTime: 1 },
         ],
       })
     ).toThrow('Review times must produce finite non-negative intervals')
