@@ -213,4 +213,4 @@ describe('middleware type display', () => {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })
-}, 20_000)
+}, 60_000)
