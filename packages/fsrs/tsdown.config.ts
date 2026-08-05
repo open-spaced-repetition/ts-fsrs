@@ -10,6 +10,7 @@ export default defineConfig([
       'models/fsrs-4dot5': 'src/models/fsrs-4dot5/index.ts',
       'models/fsrs-5': 'src/models/fsrs-5/index.ts',
       'models/fsrs-6': 'src/models/fsrs-6/index.ts',
+      rescheduler: 'src/rescheduler/index.ts',
     },
     format: ['esm', 'cjs'],
     outDir: 'dist',

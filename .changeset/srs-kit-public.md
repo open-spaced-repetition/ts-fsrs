@@ -11,4 +11,5 @@ This initial public release includes the shared SRS framework primitives used by
 - model contracts with config validation, migration hooks, parameter clipping, and scheduler reuse support;
 - chrono contracts and presets for numeric elapsed days, `Date`, and `Temporal.Instant`;
 - middleware definition and composition helpers;
-- scheduler creation APIs for review, rollback, forget, card initialization, chrono defaults, and middleware finalization.
+- scheduler creation APIs for review, rollback, forget, card initialization, chrono defaults, and middleware finalization;
+- `SchedulerCore.forward` for replaying a review history into one card and revlog per review.
