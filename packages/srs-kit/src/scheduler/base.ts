@@ -268,7 +268,7 @@ export class BaseScheduler<
 
     for (let index = 0; index < history.length; index++) {
       const review = history[index]
-      const now = this.parseNow(review.reviewTime)
+      const now = review.reviewTime
       const prepared = this.prepareParsedReview(card, now)
       const result = this.parseReviewResult(
         this.runReview(prepared, review.rating, now)

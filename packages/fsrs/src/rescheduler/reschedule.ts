@@ -36,7 +36,7 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
     input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
     options: RescheduleOptions = {}
   ): ReplayResult<MemoryStateOf<Scheduler>> {
-    const reviews = this.prepareReviews(input.history, options, true)
+    const reviews = this.prepareReviews(input.history, options)
     const memoryStates = this.scheduler.model.forward({
       history: this.toModelHistory(reviews),
       initialState: input.initialState,
@@ -67,8 +67,7 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
       readonly rating: Rating
       readonly reviewTime: TimeOf<Scheduler>
     }[],
-    { sortHistory = true }: RescheduleOptions,
-    canonicalizeTime = false
+    { sortHistory = true }: RescheduleOptions
   ): NonManualReview<TimeOf<Scheduler>>[] {
     const reviews: NonManualReview<TimeOf<Scheduler>>[] = []
     const { chrono: chronoDefinition } = this.scheduler.definition
@@ -77,17 +76,10 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
       const rating = parse(ratingSchema, review.rating)
       if (rating === Rating.Manual) continue
 
-      reviews.push(
-        canonicalizeTime
-          ? {
-              rating,
-              reviewTime: parse(
-                chronoDefinition.schema.time,
-                review.reviewTime
-              ),
-            }
-          : (review as NonManualReview<TimeOf<Scheduler>>)
-      )
+      reviews.push({
+        rating: rating,
+        reviewTime: parse(chronoDefinition.schema.time, review.reviewTime),
+      })
     }
 
     if (reviews.length === 0) {
