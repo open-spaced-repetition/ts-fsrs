@@ -5,15 +5,15 @@ export {
 export { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 export { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 export { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
-
-export * from './abstract_scheduler.js'
 export * from './constant.js'
 export * from './convert.js'
 export * from './default.js'
-export * from './fsrs.js'
 export * from './help.js'
-export * from './impl/basic_scheduler.js'
-export * from './impl/long_term_scheduler.js'
+export * from './legacy/abstract_scheduler.js'
+export * from './legacy/fsrs.js'
+export * from './legacy/impl/basic_scheduler.js'
+export * from './legacy/impl/long_term_scheduler.js'
+export * from './legacy/strategies/index.js'
 export * from './middlewares/fuzzing/core.js'
 export {
   defaultLearningSteps,
@@ -42,5 +42,4 @@ export type {
   Steps,
 } from './models.js'
 export { Rating, State } from './models.js'
-export * from './strategies/index.js'
 export type * from './types.js'

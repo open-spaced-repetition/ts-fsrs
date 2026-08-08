@@ -4,8 +4,8 @@ import {
   generatorParameters,
   Rating,
 } from 'ts-fsrs'
-import BasicScheduler from 'ts-fsrs/impl/basic_scheduler.js'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6'
+import BasicScheduler from '@/legacy/impl/basic_scheduler.js'
 
 describe('basic scheduler', () => {
   const params = generatorParameters()

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { createEmptyCard } from '@/default.js'
-import { fsrs } from '@/fsrs.js'
+import { fsrs } from '@/legacy/fsrs.js'
 import { Rating } from '@/models.js'
 
 describe.each([

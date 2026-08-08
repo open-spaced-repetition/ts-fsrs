@@ -1,15 +1,14 @@
-import { AbstractScheduler } from '../abstract_scheduler.js'
-import { TypeConvert } from '../convert.js'
-import { date_scheduler } from '../help.js'
-import type { IFSRSModel } from '../kit/index.js'
-import { withFuzzing } from '../middlewares/fuzzing/core.js'
-import { calculateLearningSteps } from '../middlewares/learning-steps/core.js'
+import { TypeConvert } from '@/convert.js'
+import { date_scheduler } from '@/help.js'
+import type { IFSRSModel } from '@/kit/index.js'
+import { withFuzzing } from '@/middlewares/fuzzing/core.js'
+import { calculateLearningSteps } from '@/middlewares/learning-steps/core.js'
 import type {
   LearningStepsConfig,
   LearningStepsResolver,
   LearningStepsResult,
-} from '../middlewares/learning-steps/types.js'
-import { calculateScheduleDays } from '../middlewares/monotonic-interval/core.js'
+} from '@/middlewares/learning-steps/types.js'
+import { calculateScheduleDays } from '@/middlewares/monotonic-interval/core.js'
 import {
   type Card,
   type CardInput,
@@ -19,9 +18,10 @@ import {
   Rating,
   type RecordLogItem,
   State,
-} from '../models.js'
+} from '@/models.js'
+import type { int } from '@/types.js'
+import { AbstractScheduler } from '../abstract_scheduler.js'
 import { StrategyMode, type TStrategyHandler } from '../strategies/index.js'
-import type { int } from '../types.js'
 
 export default class BasicScheduler extends AbstractScheduler {
   private readonly learningSteps: LearningStepsResolver
