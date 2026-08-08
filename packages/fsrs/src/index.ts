@@ -6,14 +6,14 @@ export { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 export { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 export { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
 
-export * from './abstract_scheduler'
-export * from './constant'
-export * from './convert'
-export * from './default'
-export * from './fsrs'
-export * from './help'
-export * from './impl/basic_scheduler'
-export * from './impl/long_term_scheduler'
+export * from './abstract_scheduler.js'
+export * from './constant.js'
+export * from './convert.js'
+export * from './default.js'
+export * from './fsrs.js'
+export * from './help.js'
+export * from './impl/basic_scheduler.js'
+export * from './impl/long_term_scheduler.js'
 export * from './middlewares/fuzzing/core.js'
 export {
   defaultLearningSteps,
@@ -40,7 +40,7 @@ export type {
   ReviewLogInput,
   StateType,
   Steps,
-} from './models'
-export { Rating, State } from './models'
-export * from './strategies'
-export type * from './types'
+} from './models.js'
+export { Rating, State } from './models.js'
+export * from './strategies/index.js'
+export type * from './types.js'

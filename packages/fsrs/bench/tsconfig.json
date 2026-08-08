@@ -4,6 +4,7 @@
     "noEmit": true,
     "rootDir": "..",
     "paths": {
+      "@/*": ["../src/*"],
       "ts-fsrs": ["../src/index.ts"],
       "ts-fsrs/*": ["../src/*"]
     },

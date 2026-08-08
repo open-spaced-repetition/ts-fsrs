@@ -1,9 +1,9 @@
-import { TypeConvert } from './convert'
-import { FSRSValidationError } from './error'
+import { TypeConvert } from './convert.js'
+import { FSRSValidationError } from './error.js'
 import { getFuzzRange } from './middlewares/fuzzing/core.js'
-import type { DateInput, Grade } from './models'
-import { Rating } from './models'
-import type { unit } from './types'
+import type { DateInput, Grade } from './models.js'
+import { Rating } from './models.js'
+import type { unit } from './types.js'
 
 /**
  * 计算日期和时间的偏移，并返回一个新的日期对象。

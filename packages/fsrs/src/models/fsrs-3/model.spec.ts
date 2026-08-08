@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type Grade, Rating } from '../../models.js'
+import { type Grade, Rating } from '@/models.js'
 import { FSRS3Algorithm } from './algorithm.js'
 import { FSRS3_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS3Model } from './model.js'

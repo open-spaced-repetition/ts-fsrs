@@ -1,10 +1,12 @@
-import { TypeConvert } from './convert'
-import { createEmptyCard, generatorParameters } from './default'
-import { FSRSValidationError } from './error'
-import { date_diff } from './help'
-import BasicScheduler from './impl/basic_scheduler'
-import LongTermScheduler from './impl/long_term_scheduler'
+import { TypeConvert } from './convert.js'
+import { createEmptyCard, generatorParameters } from './default.js'
+import { FSRSValidationError } from './error.js'
+import { date_diff } from './help.js'
+import BasicScheduler from './impl/basic_scheduler.js'
+import LongTermScheduler from './impl/long_term_scheduler.js'
 import type { IFSRSModel } from './kit/index.js'
+import { migrateFSRS6Parameters } from './models/fsrs-6/index.js'
+import { FSRS6Model } from './models/fsrs-6/model.js'
 import {
   type Card,
   type CardInput,
@@ -17,21 +19,19 @@ import {
   type ReviewLog,
   type ReviewLogInput,
   State,
-} from './models'
-import { migrateFSRS6Parameters } from './models/fsrs-6/index.js'
-import { FSRS6Model } from './models/fsrs-6/model.js'
-import { Reschedule } from './reschedule'
+} from './models.js'
+import { Reschedule } from './reschedule.js'
 import {
   StrategyMode,
   type TSchedulerStrategy,
   type TStrategyHandler,
-} from './strategies/types'
+} from './strategies/types.js'
 import type {
   IPreview,
   IReschedule,
   IScheduler,
   RescheduleOptions,
-} from './types'
+} from './types.js'
 
 /**
  * @deprecated This interface will be removed after all tests are migrated and passing.

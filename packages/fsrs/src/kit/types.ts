@@ -1,6 +1,6 @@
 import type { ModelCore } from '@open-spaced-repetition/srs-kit/model'
-import type { FSRSState } from '../models'
 import type { FSRS6Algorithm } from '../models/fsrs-6/algorithm.js'
+import type { FSRSState } from '../models.js'
 
 /** @internal */
 export type IFSRSModel = ModelCore<{

@@ -1,7 +1,7 @@
 import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it } from 'vitest'
-import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '../../models/fsrs-6/index.js'
+import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '@/models/fsrs-6/index.js'
 import { schedulerLearningStepsMiddleware } from './middleware.js'
 import type { StepUnit } from './types.js'
 
