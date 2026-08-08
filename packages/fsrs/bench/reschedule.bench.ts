@@ -2,7 +2,7 @@ import { defineScheduler, Rating } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
-import { Reschedule } from 'ts-fsrs/rescheduler'
+import { Reschedule } from 'ts-fsrs/reschedule'
 import { bench, describe } from 'vitest'
 
 const DAY_MS = 86_400_000
