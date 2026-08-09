@@ -1,10 +1,10 @@
 import { grades } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
 import { createEmptyCard } from '@/default.js'
-import { fsrs } from '@/fsrs.js'
 import { dateDiffInDays } from '@/help.js'
+import { fsrs } from '@/legacy/fsrs.js'
+import { calculateScheduleDays } from '@/middlewares/monotonic-interval/core.js'
 import { type Card, type Grade, Rating, State } from '@/models.js'
-import { calculateScheduleDays } from './core.js'
 
 const DAY = 24 * 60 * 60 * 1000
 const MINUTE = 60 * 1000

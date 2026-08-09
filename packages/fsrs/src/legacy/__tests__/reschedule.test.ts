@@ -1,7 +1,9 @@
 import {
+  type Card,
   createEmptyCard,
   date_diff,
   type FSRS,
+  type FSRSHistory,
   fsrs,
   type Grade,
   Grades,
@@ -11,8 +13,6 @@ import {
   type ReviewLog,
   State,
   TypeConvert,
-  type Card,
-  type FSRSHistory,
 } from 'ts-fsrs'
 
 type reviewState = {

@@ -1,7 +1,7 @@
 import { defineScheduler, Rating } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { createEmptyCard } from 'ts-fsrs/default'
-import { fsrs } from 'ts-fsrs/fsrs'
+import { fsrs } from 'ts-fsrs/legacy/fsrs'
 import {
   calculateScheduleDay,
   calculateScheduleDays,
