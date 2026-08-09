@@ -8,6 +8,7 @@ import { stateSchema } from '@/primitives/state.js'
 import { scheduleStatuses } from '@/primitives/status.js'
 import { rememberAttachedValue } from '@/schema/attached-value.js'
 import {
+  type AnySchema,
   assignObjectFields,
   defineSchema,
   isObject,
@@ -33,6 +34,20 @@ export function composeSchema(ctx: {
   const chronoConfigSchema = chronoSchema.config
   const chronoCardSchema = chronoSchema.card
   const chronoRevlogSchema = chronoSchema.revlog
+  const middlewareConfigSchemas: AnySchema[] = []
+  const middlewareCardInitInputSchemas: AnySchema[] = []
+  const middlewareCardSchemas: AnySchema[] = []
+  const middlewareRevlogSchemas: AnySchema[] = []
+  for (const middleware of middlewares) {
+    const schema = middleware.schema
+    if (!schema) continue
+    if (schema.config) middlewareConfigSchemas.push(schema.config)
+    if (schema.cardInitInput) {
+      middlewareCardInitInputSchemas.push(schema.cardInitInput)
+    }
+    if (schema.card) middlewareCardSchemas.push(schema.card)
+    if (schema.revlog) middlewareRevlogSchemas.push(schema.revlog)
+  }
 
   const scheduleStatusSchema = defineSchema<string>((value) => {
     if (typeof value !== 'string') {
@@ -103,11 +118,7 @@ export function composeSchema(ctx: {
     const result: Record<PropertyKey, unknown> = { chrono: chronoValue }
     assignObjectFields(result, modelResult.value)
 
-    for (const middleware of middlewares) {
-      const schema = middleware.schema?.config
-      if (!schema) {
-        continue
-      }
+    for (const schema of middlewareConfigSchemas) {
       const middlewareResult = schema['~standard'].validate(value)
       if (middlewareResult.issues) {
         return middlewareResult
@@ -139,9 +150,7 @@ export function composeSchema(ctx: {
 
     let firstMiddlewareFields: Record<string, unknown> | undefined
     let combinedFields: Record<string, unknown> | undefined
-    for (const middleware of middlewares) {
-      const schema = middleware.schema?.cardInitInput
-      if (!schema) continue
+    for (const schema of middlewareCardInitInputSchemas) {
       const middlewareResult = schema['~standard'].validate(middlewareValue)
       if (middlewareResult.issues) return middlewareResult
       const fields = middlewareResult.value as Record<string, unknown>
@@ -181,9 +190,7 @@ export function composeSchema(ctx: {
     card.state = coreFields.value.state
     card.scheduleStatus = coreFields.value.scheduleStatus
 
-    for (const middleware of middlewares) {
-      const schema = middleware.schema?.card
-      if (!schema) continue
+    for (const schema of middlewareCardSchemas) {
       const middlewareCard = schema['~standard'].validate(value)
       if (middlewareCard.issues) return middlewareCard
       Object.assign(card, middlewareCard.value)
@@ -224,9 +231,7 @@ export function composeSchema(ctx: {
     result.rating = coreFields.value.rating
     result.state = coreFields.value.state
 
-    for (const middleware of middlewares) {
-      const schema = middleware.schema?.revlog
-      if (!schema) continue
+    for (const schema of middlewareRevlogSchemas) {
       const middlewareRevlog = schema['~standard'].validate(value)
       if (middlewareRevlog.issues) return middlewareRevlog
       Object.assign(result, middlewareRevlog.value)
