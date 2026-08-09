@@ -134,7 +134,7 @@ describe('FSRS-5', () => {
 })
 
 describe('get retrievability', () => {
-  const fsrs = new FSRS({})
+  const fsrs = new FSRS()
   test('return 0 for new cards', () => {
     const card = createEmptyCard()
     const now = new Date()

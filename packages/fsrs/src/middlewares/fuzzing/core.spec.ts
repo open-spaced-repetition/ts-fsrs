@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { fnv1aMulberry32Rng, getFuzzRange, withFuzzing } from './core.js'
 
 const config = {
@@ -30,6 +30,13 @@ describe('fuzzing core', () => {
     expect(second).toBe(first)
     expect(first).toBeGreaterThanOrEqual(range.minInterval)
     expect(first).toBeLessThanOrEqual(range.maxInterval)
+  })
+
+  it('uses the current time when no seed is supplied', () => {
+    const dateNow = vi.spyOn(Date, 'now').mockReturnValue(42)
+
+    expect(withFuzzing(10, 5, config)).toBe(withFuzzing(10, 5, config, '42'))
+    dateNow.mockRestore()
   })
 
   it('creates interval ranges from custom fuzz ranges', () => {
