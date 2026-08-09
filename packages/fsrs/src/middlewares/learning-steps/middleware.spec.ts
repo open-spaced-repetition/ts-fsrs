@@ -1,6 +1,6 @@
 import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '@/models/fsrs-6/index.js'
 import { schedulerLearningStepsMiddleware } from './middleware.js'
 import type { StepUnit } from './types.js'
@@ -69,6 +69,19 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(easy.card.state).toBe(State.Review)
     expect(easy.card.scheduleStatus).toBe('review')
     expect(easy.card.learningStep).toBe(0)
+  })
+
+  it('uses the model interval only when no positive learning step exists', () => {
+    const core = createCore({ learningSteps: ['1m'] })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const card = core.newCard({ now })
+    const nextInterval = vi.spyOn(core.model, 'nextInterval')
+
+    core.review({ card, grade: Rating.Again, now })
+    expect(nextInterval).not.toHaveBeenCalled()
+
+    core.review({ card, grade: Rating.Easy, now })
+    expect(nextInterval).toHaveBeenCalledOnce()
   })
 
   it('graduates after the final learning step', () => {

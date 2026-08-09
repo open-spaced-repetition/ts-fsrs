@@ -45,5 +45,8 @@ describe('calculateScheduleDays', () => {
     expect(calculateScheduleDay([4, 2], 100)).toBe(5)
     expect(calculateScheduleDay([4, 2, 8], 100)).toBe(8)
     expect(calculateScheduleDay([4, 2, 8, 7], 100)).toBe(9)
+    expect(calculateScheduleDay([0, 0, 2, 3], 100)).toBe(3)
+    expect(calculateScheduleDay([98, 99, 100, 101], 100)).toBe(100)
+    expect(calculateScheduleDay([102], 100)).toBe(100)
   })
 })
