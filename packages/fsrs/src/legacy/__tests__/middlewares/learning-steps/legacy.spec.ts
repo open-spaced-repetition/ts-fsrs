@@ -2,10 +2,10 @@ import { Rating, State } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
 import { default_w } from '@/constant.js'
 import { createEmptyCard, generatorParameters } from '@/default.js'
-import { fsrs } from '@/fsrs.js'
 import { dateDiffInDays } from '@/help.js'
-import { StrategyMode } from '@/strategies/types.js'
-import type { LearningStepsResolver } from './types.js'
+import { fsrs } from '@/legacy/fsrs.js'
+import { StrategyMode } from '@/legacy/strategies/types.js'
+import type { LearningStepsResolver } from '@/middlewares/learning-steps/types.js'
 
 describe('legacy FSRS learning-steps integration', () => {
   it('schedules the first learning step for every grade', () => {

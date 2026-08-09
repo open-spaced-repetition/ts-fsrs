@@ -1,10 +1,4 @@
-import {
-  createEmptyCard,
-  type FSRS,
-  fsrs,
-  type Grade,
-  Rating,
-} from 'ts-fsrs'
+import { createEmptyCard, type FSRS, fsrs, type Grade, Rating } from 'ts-fsrs'
 
 describe('FSRS rollback', () => {
   const f: FSRS = fsrs({

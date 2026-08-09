@@ -1,8 +1,7 @@
-import { TypeConvert } from './convert.js'
-import { createEmptyCard } from './default.js'
-import { FSRSValidationError } from './error.js'
-import type { FSRS } from './fsrs.js'
-import { date_diff } from './help.js'
+import { TypeConvert } from '../convert.js'
+import { createEmptyCard } from '../default.js'
+import { FSRSValidationError } from '../error.js'
+import { date_diff } from '../help.js'
 import {
   type Card,
   type CardInput,
@@ -13,7 +12,8 @@ import {
   type RecordLogItem,
   type ReviewLog,
   State,
-} from './models.js'
+} from '../models.js'
+import type { FSRS } from './fsrs.js'
 
 /**
  * The `Reschedule` class provides methods to handle the rescheduling of cards based on their review history.

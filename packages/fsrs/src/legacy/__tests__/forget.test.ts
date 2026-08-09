@@ -1,10 +1,4 @@
-import {
-  createEmptyCard,
-  type FSRS,
-  fsrs,
-  type Grade,
-  Rating,
-} from 'ts-fsrs'
+import { createEmptyCard, type FSRS, fsrs, type Grade, Rating } from 'ts-fsrs'
 
 describe('FSRS forget', () => {
   const f: FSRS = fsrs({
