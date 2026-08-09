@@ -55,8 +55,13 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
         ? Math.round(Math.max(0, step.scheduledMinutes))
         : undefined
 
+      // Set before BaseScheduler.finalizeReview() falls back to model.nextInterval().
+      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+      }
       next()
 
+      // Restore after schedulerMonotonicIntervalMiddleware normalizes the interval.
       if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
         ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
       }
