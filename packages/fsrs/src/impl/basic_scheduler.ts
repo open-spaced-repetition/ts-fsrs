@@ -1,6 +1,6 @@
-import { AbstractScheduler } from '../abstract_scheduler'
-import { TypeConvert } from '../convert'
-import { date_scheduler } from '../help'
+import { AbstractScheduler } from '../abstract_scheduler.js'
+import { TypeConvert } from '../convert.js'
+import { date_scheduler } from '../help.js'
 import type { IFSRSModel } from '../kit/index.js'
 import { withFuzzing } from '../middlewares/fuzzing/core.js'
 import { calculateLearningSteps } from '../middlewares/learning-steps/core.js'
@@ -19,9 +19,9 @@ import {
   Rating,
   type RecordLogItem,
   State,
-} from '../models'
-import { StrategyMode, type TStrategyHandler } from '../strategies'
-import type { int } from '../types'
+} from '../models.js'
+import { StrategyMode, type TStrategyHandler } from '../strategies/index.js'
+import type { int } from '../types.js'
 
 export default class BasicScheduler extends AbstractScheduler {
   private readonly learningSteps: LearningStepsResolver

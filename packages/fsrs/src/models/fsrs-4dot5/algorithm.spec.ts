@@ -1,6 +1,6 @@
 import { grades } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
-import { type FSRSState, type Grade, Rating } from '../../models.js'
+import { type FSRSState, type Grade, Rating } from '@/models.js'
 import {
   FSRS4Dot5_DECAY,
   FSRS4Dot5_DEFAULT_WEIGHTS,

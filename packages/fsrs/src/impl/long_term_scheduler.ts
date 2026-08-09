@@ -1,6 +1,6 @@
-import { AbstractScheduler } from '../abstract_scheduler'
-import { TypeConvert } from '../convert'
-import { date_scheduler } from '../help'
+import { AbstractScheduler } from '../abstract_scheduler.js'
+import { TypeConvert } from '../convert.js'
+import { date_scheduler } from '../help.js'
 import { withFuzzing } from '../middlewares/fuzzing/core.js'
 import { calculateScheduleDays } from '../middlewares/monotonic-interval/core.js'
 import {
@@ -9,8 +9,8 @@ import {
   Rating,
   type RecordLogItem,
   State,
-} from '../models'
-import type { int } from '../types'
+} from '../models.js'
+import type { int } from '../types.js'
 
 export default class LongTermScheduler extends AbstractScheduler {
   protected override newState(grade: Grade): RecordLogItem {

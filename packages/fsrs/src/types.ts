@@ -5,7 +5,7 @@ import type {
   Grade,
   RecordLog,
   RecordLogItem,
-} from './models'
+} from './models.js'
 
 export type unit = 'days' | 'minutes'
 export type int = number & { __int__: undefined }

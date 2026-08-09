@@ -55,5 +55,22 @@
         "organizeImports": "on"
       }
     }
-  }
+  },
+  "overrides": [
+    {
+      "includes": ["packages/fsrs/**", "packages/srs-kit/**"],
+      "linter": {
+        "rules": {
+          "correctness": {
+            "useImportExtensions": {
+              "level": "error",
+              "options": {
+                "forceJsExtensions": true
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
 }

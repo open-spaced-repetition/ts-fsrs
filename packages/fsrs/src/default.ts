@@ -3,15 +3,20 @@ import {
   default_enable_short_term,
   default_maximum_interval,
   default_request_retention,
-} from './constant'
-import { TypeConvert } from './convert'
-import { FSRSValidationError } from './error'
+} from './constant.js'
+import { TypeConvert } from './convert.js'
+import { FSRSValidationError } from './error.js'
 import {
   defaultLearningSteps,
   defaultRelearningSteps,
 } from './middlewares/learning-steps/schema.js'
-import { type Card, type DateInput, type FSRSParameters, State } from './models'
 import { migrateFSRS6Parameters } from './models/fsrs-6/parameters.js'
+import {
+  type Card,
+  type DateInput,
+  type FSRSParameters,
+  State,
+} from './models.js'
 
 /**
  * @returns The input if the parameters are valid, throws if they are invalid

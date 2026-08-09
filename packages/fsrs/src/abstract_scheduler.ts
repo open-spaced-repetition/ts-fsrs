@@ -1,6 +1,6 @@
-import { TypeConvert } from './convert'
-import { FSRSValidationError } from './error'
-import { dateDiffInDays, Grades } from './help'
+import { TypeConvert } from './convert.js'
+import { FSRSValidationError } from './error.js'
+import { dateDiffInDays, Grades } from './help.js'
 import type { IFSRSModel } from './kit/index.js'
 import {
   type Card,
@@ -12,9 +12,9 @@ import {
   type RecordLogItem,
   type ReviewLog,
   State,
-} from './models'
-import type { StrategyMode, TStrategyHandler } from './strategies/types'
-import type { IPreview, IScheduler } from './types'
+} from './models.js'
+import type { StrategyMode, TStrategyHandler } from './strategies/types.js'
+import type { IPreview, IScheduler } from './types.js'
 
 export abstract class AbstractScheduler implements IScheduler {
   protected last: Card

@@ -4,8 +4,8 @@ import type {
   ModelStepInput,
 } from '@open-spaced-repetition/srs-kit/model'
 import { defineModel } from '@open-spaced-repetition/srs-kit/model'
-import { FSRSMemoryStateSchema } from '../../kit/index.js'
-import type { FSRSState } from '../../models.js'
+import { FSRSMemoryStateSchema } from '@/kit/index.js'
+import type { FSRSState } from '@/models.js'
 import { FSRS4Dot5Algorithm } from './algorithm.js'
 import { FSRS4Dot5_MODEL_BOUNDS } from './constants.js'
 import type { FSRS4Dot5Config } from './parameters.js'

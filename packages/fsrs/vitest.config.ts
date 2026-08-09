@@ -8,6 +8,10 @@ export default defineConfig({
   resolve: {
     alias: [
       {
+        find: '@',
+        replacement: path.resolve(__dirname, './src'),
+      },
+      {
         find: /^ts-fsrs\/(.+)$/,
         replacement: path.resolve(__dirname, './src/$1'),
       },

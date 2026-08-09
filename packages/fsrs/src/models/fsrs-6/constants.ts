@@ -1,5 +1,5 @@
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
-import type { FSRSState } from '../../models.js'
+import type { FSRSState } from '@/models.js'
 
 export const FSRS6_DECAY = 0.1542
 export const FSRS6_W17_W18_CEILING = 2.0

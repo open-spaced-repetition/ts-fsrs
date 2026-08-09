@@ -1,4 +1,4 @@
-import { FSRSValidationError } from './error'
+import { FSRSValidationError } from './error.js'
 import {
   type Card,
   type CardInput,
@@ -6,7 +6,7 @@ import {
   type ReviewLog,
   type ReviewLogInput,
   State,
-} from './models'
+} from './models.js'
 
 export class TypeConvert {
   static card<T extends Card | CardInput>(card: T): Card {

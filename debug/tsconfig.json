@@ -2,12 +2,8 @@
   "extends": "../tsconfig.json",
   "compilerOptions": {
     "paths": {
-      "ts-fsrs": [
-        "../packages/fsrs/src/index.ts"
-      ],
-      "ts-fsrs/*": [
-        "../packages/fsrs/src/*"
-      ]
+      "ts-fsrs": ["../packages/fsrs/src/index.ts"],
+      "ts-fsrs/*": ["../packages/fsrs/src/*"]
     }
   },
   "include": ["."],

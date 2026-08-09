@@ -1,8 +1,8 @@
 import { type Grade, Rating } from '@open-spaced-repetition/srs-kit'
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
-import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help.js'
-import type { FSRSState } from '../../models.js'
+import { FSRSValidationError } from '@/error.js'
+import { clamp, roundTo } from '@/help.js'
+import type { FSRSState } from '@/models.js'
 
 export function forgetting_curve(
   elapsed_days: number,

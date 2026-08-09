@@ -1,5 +1,5 @@
 import { Rating, State } from '@open-spaced-repetition/srs-kit'
-import { FSRSValidationError } from '../../error.js'
+import { FSRSValidationError } from '@/error.js'
 import type {
   LearningStepsConfig,
   LearningStepsResolver,

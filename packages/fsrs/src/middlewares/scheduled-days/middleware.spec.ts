@@ -6,8 +6,8 @@ import {
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it } from 'vitest'
-import { FSRS6_DEFAULT_WEIGHTS } from '../../models/fsrs-6/constants.js'
-import { FSRS6Model } from '../../models/fsrs-6/model.js'
+import { FSRS6_DEFAULT_WEIGHTS } from '@/models/fsrs-6/constants.js'
+import { FSRS6Model } from '@/models/fsrs-6/model.js'
 import { schedulerLearningStepsMiddleware } from '../learning-steps/middleware.js'
 import { schedulerScheduledDaysMiddleware } from './middleware.js'
 
