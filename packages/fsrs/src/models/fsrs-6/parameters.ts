@@ -1,13 +1,13 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
-import { FSRS5_DEFAULT_DECAY } from '../../constant'
-import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help'
-import { isNumberArray } from '../../kit/schema-utils.js'
+import { FSRS5_DEFAULT_DECAY } from '@/constant.js'
+import { FSRSValidationError } from '@/error.js'
+import { clamp, roundTo } from '@/help.js'
+import { isNumberArray } from '@/kit/schema-utils.js'
 import {
   FSRS6_DEFAULT_WEIGHTS,
   FSRS6_W17_W18_CEILING,
   FSRS6ParameterBounds,
-} from './constants'
+} from './constants.js'
 
 export const decaySchema = defineSchema<unknown, number>((value) =>
   typeof value === 'number' && value >= 0.1 && value <= 0.8

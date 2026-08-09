@@ -1,7 +1,7 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
-import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help'
-import { isNumberArray } from '../../kit/schema-utils.js'
+import { FSRSValidationError } from '@/error.js'
+import { clamp, roundTo } from '@/help.js'
+import { isNumberArray } from '@/kit/schema-utils.js'
 import { FSRS5_DEFAULT_WEIGHTS, FSRS5ParameterBounds } from './constants.js'
 
 export const clipFSRS5Parameters = (parameters: number[]): number[] => {

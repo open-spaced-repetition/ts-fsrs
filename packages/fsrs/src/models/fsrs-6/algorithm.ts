@@ -1,7 +1,7 @@
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
-import { FSRSValidationError } from '../../error.js'
-import { clamp, roundTo } from '../../help.js'
-import { type FSRSState, type Grade, Rating } from '../../models.js'
+import { FSRSValidationError } from '@/error.js'
+import { clamp, roundTo } from '@/help.js'
+import { type FSRSState, type Grade, Rating } from '@/models.js'
 
 export const computeDecayFactor = (
   decayOrParams: number | number[] | readonly number[]

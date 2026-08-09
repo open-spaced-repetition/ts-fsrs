@@ -5,6 +5,7 @@
     "noEmit": true,
     "moduleResolution": "bundler",
     "paths": {
+      "@/*": ["../src/*"],
       "ts-fsrs": ["../src/index.ts"],
       "ts-fsrs/*": ["../src/*"]
     },

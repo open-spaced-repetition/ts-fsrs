@@ -1,7 +1,11 @@
+import path from 'node:path'
 import { defineConfig } from 'tsdown'
+
+const alias = { '@': path.resolve(import.meta.dirname, 'src') }
 
 export default defineConfig([
   {
+    alias,
     entry: {
       index: 'src/index.ts',
       error: 'src/error.ts',
@@ -23,6 +27,7 @@ export default defineConfig([
     shims: false,
   },
   {
+    alias,
     entry: { index: 'src/index.ts' },
     format: ['umd'],
     outDir: 'dist',
