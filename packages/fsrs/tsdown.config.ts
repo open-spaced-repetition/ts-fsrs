@@ -9,6 +9,7 @@ export default defineConfig([
     entry: {
       index: 'src/index.ts',
       error: 'src/error.ts',
+      'middlewares/index': 'src/middlewares/index.ts',
       'models/fsrs-3': 'src/models/fsrs-3/index.ts',
       'models/fsrs-4': 'src/models/fsrs-4/index.ts',
       'models/fsrs-4dot5': 'src/models/fsrs-4dot5/index.ts',
