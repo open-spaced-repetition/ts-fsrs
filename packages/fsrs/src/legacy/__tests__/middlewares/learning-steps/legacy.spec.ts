@@ -82,6 +82,14 @@ describe('legacy FSRS learning-steps integration', () => {
       // biome-ignore lint/complexity/useLiteralKeys: verify legacy cleanup
       scheduler['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
     ).toBeUndefined()
+
+    scheduler
+      .useStrategy(StrategyMode.LEARNING_STEPS, learningSteps)
+      .clearStrategy(StrategyMode.LEARNING_STEPS)
+    expect(
+      // biome-ignore lint/complexity/useLiteralKeys: verify legacy cleanup
+      scheduler['strategyHandler'].get(StrategyMode.LEARNING_STEPS)
+    ).toBeUndefined()
   })
 
   it('keeps minute precision while exposing whole scheduled days', () => {

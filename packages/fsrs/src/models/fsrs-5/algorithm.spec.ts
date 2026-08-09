@@ -21,6 +21,12 @@ describe('FSRS5Algorithm', () => {
     expect(forgetting_curve(8, 8.2956)).toBe(0.90306221)
   })
 
+  it('rejects an invalid weight count', () => {
+    expect(() => new FSRS5Algorithm([], true, FSRS5_MODEL_BOUNDS)).toThrow(
+      'FSRS5Algorithm requires exactly 19 weights'
+    )
+  })
+
   it('calculates intervals through the FSRS-5 interval modifier', () => {
     expect(algorithm.next_interval(15.69105, 0.9)).toBe(16)
     expect(algorithm.next_interval(15.69105, 0.8)).toBe(38)
@@ -40,6 +46,42 @@ describe('FSRS5Algorithm', () => {
     expect(states.map((state) => state.difficulty)).toEqual([
       7.1949, 6.48830527, 5.28243442, 3.22450159,
     ])
+  })
+
+  it('validates state inputs and handles every review rating', () => {
+    const state = { difficulty: 5, stability: 10 }
+
+    expect(() => algorithm.next_state(state, -1, Rating.Good)).toThrow(
+      'Invalid delta_t "-1"'
+    )
+    expect(() => algorithm.next_state(state, 1, -1 as Grade)).toThrow(
+      'Invalid grade "-1"'
+    )
+    expect(() => algorithm.next_state(state, 1, 5 as Grade)).toThrow(
+      'Invalid grade "5"'
+    )
+    expect(algorithm.next_state(state, 1, Rating.Manual as Grade)).toEqual(
+      state
+    )
+    expect(() =>
+      algorithm.next_state({ difficulty: 0.5, stability: 10 }, 1, Rating.Good)
+    ).toThrow('Invalid memory state')
+
+    for (const rating of [Rating.Hard, Rating.Easy] as const) {
+      const next = algorithm.next_state(state, 1, rating, 0.9)
+      expect(next.difficulty).toBeGreaterThanOrEqual(FSRS5_MODEL_BOUNDS.dMin)
+      expect(next.stability).toBeGreaterThanOrEqual(FSRS5_MODEL_BOUNDS.sMin)
+    }
+
+    const withoutShortTerm = new FSRS5Algorithm(
+      FSRS5_DEFAULT_WEIGHTS,
+      false,
+      FSRS5_MODEL_BOUNDS
+    )
+    for (const candidate of [algorithm, withoutShortTerm]) {
+      const next = candidate.next_state(state, 1, Rating.Again, 0.9)
+      expect(next.stability).toBeGreaterThanOrEqual(FSRS5_MODEL_BOUNDS.sMin)
+    }
   })
 
   it.each([

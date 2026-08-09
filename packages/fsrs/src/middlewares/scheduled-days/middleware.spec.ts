@@ -50,6 +50,22 @@ describe('schedulerScheduledDaysMiddleware', () => {
     expect(result.revlog.scheduledDays).toBe(7.5)
   })
 
+  it('defaults a missing scheduled interval to zero', () => {
+    const ctx = {
+      input: { card: { scheduledDays: 7 } },
+      result: {
+        card: { scheduledDays: -1 },
+        revlog: { scheduledDays: -1 },
+      },
+      scheduledDays: undefined,
+    }
+
+    schedulerScheduledDaysMiddleware.handlers!.review!(ctx as never, () => {})
+
+    expect(ctx.result.card.scheduledDays).toBe(0)
+    expect(ctx.result.revlog.scheduledDays).toBe(7)
+  })
+
   it('stores an interval selected by a later middleware during unwind', () => {
     const intervalMiddleware = defineMiddleware({
       name: 'test.scheduled-days.post-interval',
