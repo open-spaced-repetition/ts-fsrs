@@ -19,16 +19,16 @@
       },
       "default": "./dist/index.mjs"
     },
-    "./rescheduler": {
+    "./reschedule": {
       "require": {
-        "types": "./dist/rescheduler.d.cts",
-        "default": "./dist/rescheduler.cjs"
+        "types": "./dist/reschedule.d.cts",
+        "default": "./dist/reschedule.cjs"
       },
       "import": {
-        "types": "./dist/rescheduler.d.mts",
-        "default": "./dist/rescheduler.mjs"
+        "types": "./dist/reschedule.d.mts",
+        "default": "./dist/reschedule.mjs"
       },
-      "default": "./dist/rescheduler.mjs"
+      "default": "./dist/reschedule.mjs"
     },
     "./models/fsrs-3": {
       "require": {
