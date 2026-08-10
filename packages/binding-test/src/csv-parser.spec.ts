@@ -71,7 +71,7 @@ describe('CSV Parser', () => {
     const data = fs.readFileSync(testDataPath)
     const stream = Readable.toWeb(
       fs.createReadStream(testDataPath)
-    ) as ReadableStream<Uint8Array>
+    )
     const expected = convertCsvToFsrsItems(data, nextDayStartsAt, timezone)
 
     await expect(
