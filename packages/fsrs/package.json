@@ -30,6 +30,17 @@
       },
       "default": "./dist/reschedule.mjs"
     },
+    "./middlewares": {
+      "require": {
+        "types": "./dist/middlewares/index.d.cts",
+        "default": "./dist/middlewares/index.cjs"
+      },
+      "import": {
+        "types": "./dist/middlewares/index.d.mts",
+        "default": "./dist/middlewares/index.mjs"
+      },
+      "default": "./dist/middlewares/index.mjs"
+    },
     "./models/fsrs-3": {
       "require": {
         "types": "./dist/models/fsrs-3.d.cts",

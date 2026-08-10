@@ -1,5 +1,6 @@
 export {
   defineChrono,
+  defineMiddleware,
   defineScheduler,
 } from '@open-spaced-repetition/srs-kit'
 export { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
@@ -14,15 +15,7 @@ export * from './legacy/fsrs.js'
 export * from './legacy/impl/basic_scheduler.js'
 export * from './legacy/impl/long_term_scheduler.js'
 export * from './legacy/strategies/index.js'
-export * from './middlewares/fuzzing/core.js'
-export {
-  defaultLearningSteps,
-  defaultRelearningSteps,
-} from './middlewares/learning-steps/schema.js'
-export type {
-  StepUnit,
-  TimeUnit,
-} from './middlewares/learning-steps/types.js'
+export * from './middlewares/index.js'
 export type {
   Card,
   CardInput,
