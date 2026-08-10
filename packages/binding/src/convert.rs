@@ -3,12 +3,13 @@ use fsrs::filter_outlier;
 use itertools::Itertools;
 use napi_derive::napi;
 
-use napi::bindgen_prelude::Result;
+use napi::bindgen_prelude::{Either, Env, Object, PromiseRaw, ReadableStream, Result, Uint8Array};
 use serde::{Deserialize, Serialize};
 use time::{Date, Duration, OffsetDateTime};
 
 use crate::{
   FSRSItem as FSRSBindingItem,
+  convert_stream::convert_csv_stream,
   timezone::{TimezoneOffset, TimezoneOrOffset, resolve_timezone_offset},
 };
 
@@ -103,29 +104,17 @@ fn convert_to_fsrs_items_internal(
   )
 }
 
-/// Convert CSV review logs to FSRS training items.
-///
-/// @param timezoneOrOffset Pass an IANA timezone name, such as `Asia/Shanghai`,
-/// when daylight saving rules should be resolved for each review timestamp.
-/// Pass a number when the source data should use one fixed UTC offset in
-/// minutes, such as `480` for UTC+08:00 or `-300` for UTC-05:00.
-#[napi]
-pub fn convert_csv_to_fsrs_items(
+pub(crate) fn convert_csv_bytes(
   data: &[u8],
   next_day_starts_at: i64,
-  // Accepts an IANA timezone name or a fixed UTC offset in minutes.
-  // IANA names resolve DST per review timestamp; numeric offsets stay fixed.
-  timezone_or_offset: TimezoneOrOffset,
+  timezone_offset: &TimezoneOffset,
 ) -> Result<Vec<FSRSBindingItem>> {
-  let timezone_offset = resolve_timezone_offset(timezone_or_offset)?;
-
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
 
-  let mut revlogs: Vec<RevlogEntry> = rdr
+  let mut revlogs = rdr
     .deserialize::<RevlogEntry>()
     .collect::<std::result::Result<Vec<RevlogEntry>, _>>()
     .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
-
   // Sort by review_time first to ensure ordering
   revlogs.sort_by_cached_key(|r| (r.card_id.clone(), r.review_time));
 
@@ -135,7 +124,7 @@ pub fn convert_csv_to_fsrs_items(
     .chunk_by(|r| r.card_id.clone())
     .into_iter()
     .map(|(_card_id, entries)| {
-      convert_to_fsrs_items_internal(entries.collect(), next_day_starts_at, &timezone_offset)
+      convert_to_fsrs_items_internal(entries.collect(), next_day_starts_at, timezone_offset)
     })
     .collect::<Result<Vec<_>>>()?
     .into_iter()
@@ -146,6 +135,43 @@ pub fn convert_csv_to_fsrs_items(
   revlogs.sort_by_cached_key(|(_, _, review_time)| *review_time);
 
   Ok(revlogs.into_iter().map(|(_, item, _)| item).collect())
+}
+
+/// Convert CSV review logs to FSRS training items.
+///
+/// @param timezoneOrOffset Pass an IANA timezone name, such as `Asia/Shanghai`,
+/// when daylight saving rules should be resolved for each review timestamp.
+/// Pass a number when the source data should use one fixed UTC offset in
+/// minutes, such as `480` for UTC+08:00 or `-300` for UTC-05:00.
+#[napi(
+  ts_generic_types = "T extends Uint8Array | ReadableStream<Uint8Array>",
+  ts_args_type = "data: T, nextDayStartsAt: number, timezoneOrOffset: TimezoneOrOffset",
+  ts_return_type = "T extends ReadableStream<Uint8Array> ? Promise<Array<FSRSBindingItem>> : Array<FSRSBindingItem>"
+)]
+pub fn convert_csv_to_fsrs_items<'env>(
+  env: &'env Env,
+  data: Either<&[u8], ReadableStream<'env, Uint8Array>>,
+  next_day_starts_at: i64,
+  // Accepts an IANA timezone name or a fixed UTC offset in minutes.
+  // IANA names resolve DST per review timestamp; numeric offsets stay fixed.
+  timezone_or_offset: TimezoneOrOffset,
+) -> Result<Either<Vec<FSRSBindingItem>, PromiseRaw<'env, Object<'env>>>> {
+  let timezone_offset = resolve_timezone_offset(timezone_or_offset);
+
+  match data {
+    Either::A(data) => {
+      let timezone_offset = timezone_offset?;
+      Ok(Either::A(convert_csv_bytes(
+        data,
+        next_day_starts_at,
+        &timezone_offset,
+      )?))
+    }
+    Either::B(stream) => Ok(Either::B(match timezone_offset {
+      Ok(timezone_offset) => convert_csv_stream(env, stream, next_day_starts_at, timezone_offset)?,
+      Err(error) => PromiseRaw::reject(env, error)?,
+    })),
+  }
 }
 
 pub(crate) fn prepare_items(train_set: Vec<&FSRSBindingItem>) -> Vec<fsrs::FSRSItem> {

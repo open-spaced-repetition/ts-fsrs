@@ -3,6 +3,7 @@
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 mod convert;
+mod convert_stream;
 mod evaluate;
 mod model;
 #[cfg(not(threadless_wasm))]
