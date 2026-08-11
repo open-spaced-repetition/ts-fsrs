@@ -76,9 +76,11 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       }
       next()
 
-      // Restore after schedulerMonotonicIntervalMiddleware normalizes the interval.
+      // Keep explicit steps exact; graduation still respects a lower maximum.
       if (scheduledDays !== undefined) {
-        ctx.scheduledDays = scheduledDays
+        ctx.scheduledDays = hasScheduledLearningStep
+          ? scheduledDays
+          : Math.min(scheduledDays, ctx.scheduledDays ?? scheduledDays)
       }
 
       ctx.result.revlog.learningStep = card.learningStep
