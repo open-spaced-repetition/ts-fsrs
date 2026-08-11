@@ -13,6 +13,7 @@ import type { FSRSMemoryStateSchema } from '../kit/schema.js'
 import { schedulerDesiredRetentionMiddleware } from '../middlewares/desired-retention/middleware.js'
 import { schedulerFuzzingMiddleware } from '../middlewares/fuzzing/middleware.js'
 import { schedulerLearningStepsMiddleware } from '../middlewares/learning-steps/middleware.js'
+import { schedulerMaximumIntervalMiddleware } from '../middlewares/maximum-interval/middleware.js'
 import { schedulerMonotonicIntervalMiddleware } from '../middlewares/monotonic-interval/middleware.js'
 import { schedulerScheduledDaysMiddleware } from '../middlewares/scheduled-days/middleware.js'
 import type { fsrs6ConfigSchema } from '../models/fsrs-6/parameters.js'
@@ -23,6 +24,7 @@ const defaultSchedulerMiddlewares = [
   schedulerStatsMiddleware,
   schedulerScheduledDaysMiddleware,
   schedulerLearningStepsMiddleware,
+  schedulerMaximumIntervalMiddleware,
   schedulerMonotonicIntervalMiddleware,
 ] as const
 
