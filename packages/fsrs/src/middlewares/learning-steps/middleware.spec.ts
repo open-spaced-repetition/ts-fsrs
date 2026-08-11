@@ -223,6 +223,51 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(result.card.dueAt.getTime()).toBeGreaterThan(now.getTime())
   })
 
+  it.each([
+    ['zero-minute', ['0m'], 0],
+    ['rounded zero-minute', ['0.4m', '0.4m'], 0],
+    ['empty', [], 0],
+    ['exhausted', ['1m'], 1],
+  ] as const)('uses raw model intervals without monotonic middleware for %s steps', (_name, steps, learningStep) => {
+    const seedCore = createCore()
+    const now = new Date(2022, 11, 29, 12, 30)
+    const learningCard = seedCore.review({
+      card: seedCore.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    }).card
+    const reviewCard = seedCore.review({
+      card: seedCore.newCard({ now }),
+      grade: Rating.Easy,
+      now,
+    }).card
+    const relearningCard = seedCore.review({
+      card: reviewCard,
+      grade: Rating.Again,
+      now: reviewCard.dueAt,
+    }).card
+    const core = createCore({
+      learningSteps: steps,
+      relearningSteps: steps,
+    })
+    const previewDueDays = (card: typeof learningCard) => {
+      const reviewTime = card.dueAt
+      return Array.from(
+        core.preview({
+          card: { ...card, learningStep },
+          now: reviewTime,
+        }),
+        (item) =>
+          (item.card.dueAt.getTime() - reviewTime.getTime()) / 86_400_000
+      )
+    }
+
+    expect(learningCard.state).toBe(State.Learning)
+    expect(relearningCard.state).toBe(State.Relearning)
+    expect(previewDueDays(learningCard)).toEqual([1, 1, 1, 1])
+    expect(previewDueDays(relearningCard)).toEqual([1, 1, 1, 2])
+  })
+
   it('bypasses learning steps when short-term scheduling is disabled', () => {
     const core = createCore({ enableShortTerm: false })
     const now = new Date(2022, 11, 29, 12, 30)
