@@ -54,16 +54,31 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       const scheduledMinutes = step
         ? Math.round(Math.max(0, step.scheduledMinutes))
         : undefined
+      const hasScheduledLearningStep =
+        scheduledMinutes !== undefined && scheduledMinutes > 0
+      const isGraduatingFromLearning =
+        step === undefined &&
+        (card.state === State.Learning || card.state === State.Relearning)
+      let scheduledDays: number | undefined
+
+      if (hasScheduledLearningStep) {
+        scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+      } else if (isGraduatingFromLearning) {
+        scheduledDays = candidate.nextInterval(
+          candidate.step(ctx.input.grade),
+          ctx.desiredRetention
+        )
+      }
 
       // Set before BaseScheduler.finalizeReview() falls back to model.nextInterval().
-      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+      if (scheduledDays !== undefined) {
+        ctx.scheduledDays = scheduledDays
       }
       next()
 
       // Restore after schedulerMonotonicIntervalMiddleware normalizes the interval.
-      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+      if (scheduledDays !== undefined) {
+        ctx.scheduledDays = scheduledDays
       }
 
       ctx.result.revlog.learningStep = card.learningStep

@@ -299,7 +299,7 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
     expect(combinedRng).toHaveBeenCalled()
   })
 
-  it('lets learning steps own short-term due dates', () => {
+  it('lets learning steps own short-term and graduation intervals', () => {
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(
         createSchedulerFuzzingMiddleware({ rng: () => () => 0.5 }),
@@ -332,5 +332,32 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
       10 * 60_000
     )
     expect(preview.get(Rating.Easy)!.card.state).toBe(State.Review)
+
+    const learningCard = preview.get(Rating.Good)!.card
+    const learningGraduation = core.review({
+      card: learningCard,
+      grade: Rating.Good,
+      now: learningCard.dueAt,
+    })
+    expect(learningGraduation.card.state).toBe(State.Review)
+    expect(dueDays(learningGraduation.card.dueAt, learningCard.dueAt)).toBe(2)
+
+    const reviewCard = preview.get(Rating.Easy)!.card
+    const relearningCard = core.review({
+      card: reviewCard,
+      grade: Rating.Again,
+      now: reviewCard.dueAt,
+    }).card
+    expect(relearningCard.state).toBe(State.Relearning)
+
+    const relearningGraduation = core.review({
+      card: relearningCard,
+      grade: Rating.Good,
+      now: relearningCard.dueAt,
+    })
+    expect(relearningGraduation.card.state).toBe(State.Review)
+    expect(dueDays(relearningGraduation.card.dueAt, relearningCard.dueAt)).toBe(
+      1
+    )
   })
 })
