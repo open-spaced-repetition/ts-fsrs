@@ -371,10 +371,11 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
       weights: [...FSRS6_DEFAULT_WEIGHTS],
       enableShortTerm: true,
     }
-    const learningCore = defineScheduler({
+    const baseScheduler = defineScheduler({
       model: FSRS6Model,
       chrono: dateChrono,
     })
+    const learningCore = baseScheduler
       .use(schedulerLearningStepsMiddleware)
       .create({
         config: {
@@ -384,7 +385,7 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
           relearningSteps: ['10m'],
         },
       })
-    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+    const monotonicCore = baseScheduler
       .use(
         schedulerLearningStepsMiddleware,
         schedulerMonotonicIntervalMiddleware
@@ -407,7 +408,7 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
 
     expect(
       Array.from(
-        core.preview({
+        monotonicCore.preview({
           card: { ...learningCard, learningStep },
           now: reviewTime,
         }),
