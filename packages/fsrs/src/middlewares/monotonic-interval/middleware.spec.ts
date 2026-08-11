@@ -360,4 +360,59 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
       1
     )
   })
+
+  it.each([
+    ['zero-minute', ['0m'], 0],
+    ['rounded zero-minute', ['0.4m', '0.4m'], 0],
+    ['empty', [], 0],
+    ['exhausted', ['1m'], 1],
+  ] as const)('keeps %s learning graduations monotonic', (_name, learningSteps, learningStep) => {
+    const modelConfig = {
+      weights: [...FSRS6_DEFAULT_WEIGHTS],
+      enableShortTerm: true,
+    }
+    const learningCore = defineScheduler({
+      model: FSRS6Model,
+      chrono: dateChrono,
+    })
+      .use(schedulerLearningStepsMiddleware)
+      .create({
+        config: {
+          ...modelConfig,
+          numRelearningSteps: 1,
+          learningSteps: ['1m', '10m'],
+          relearningSteps: ['10m'],
+        },
+      })
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(
+        schedulerLearningStepsMiddleware,
+        schedulerMonotonicIntervalMiddleware
+      )
+      .create({
+        config: {
+          ...modelConfig,
+          numRelearningSteps: learningSteps.length,
+          maximumInterval,
+          learningSteps,
+          relearningSteps: learningSteps,
+        },
+      })
+    const learningCard = learningCore.review({
+      card: learningCore.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    }).card
+    const reviewTime = learningCard.dueAt
+
+    expect(
+      Array.from(
+        core.preview({
+          card: { ...learningCard, learningStep },
+          now: reviewTime,
+        }),
+        (item) => dueDays(item.card.dueAt, reviewTime)
+      )
+    ).toEqual([1, 2, 3, 4])
+  })
 })

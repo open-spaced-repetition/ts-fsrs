@@ -14,8 +14,13 @@ import type { LearningStepsResult } from './types.js'
 const MINUTES_PER_DAY = 1440
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
 
+type ResolvedLearningSteps = {
+  readonly steps: LearningStepsResult
+  readonly hasAnyScheduledLearningStep: boolean
+}
+
 type LearningStepsCandidate = ReviewCandidateContext & {
-  [resolvedStepsSymbol]?: LearningStepsResult
+  [resolvedStepsSymbol]?: ResolvedLearningSteps
 }
 
 export const schedulerLearningStepsMiddleware = defineMiddleware({
@@ -41,15 +46,23 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       }
 
       const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
-      let steps = candidate[resolvedStepsSymbol]
-      if (!steps) {
-        steps = calculateLearningSteps(
+      let resolved = candidate[resolvedStepsSymbol]
+      if (!resolved) {
+        const steps = calculateLearningSteps(
           ctx.config,
           card.state,
           card.learningStep
         )
-        candidate[resolvedStepsSymbol] = steps
+        resolved = {
+          steps,
+          hasAnyScheduledLearningStep: Object.values(steps).some(
+            ({ scheduledMinutes }) =>
+              Math.round(Math.max(0, scheduledMinutes)) > 0
+          ),
+        }
+        candidate[resolvedStepsSymbol] = resolved
       }
+      const { steps, hasAnyScheduledLearningStep } = resolved
       const step = steps[ctx.input.grade]
       const scheduledMinutes = step
         ? Math.round(Math.max(0, step.scheduledMinutes))
@@ -58,6 +71,7 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
         scheduledMinutes !== undefined && scheduledMinutes > 0
       const isGraduatingFromLearning =
         step === undefined &&
+        hasAnyScheduledLearningStep &&
         (card.state === State.Learning || card.state === State.Relearning)
       let scheduledDays: number | undefined
 
