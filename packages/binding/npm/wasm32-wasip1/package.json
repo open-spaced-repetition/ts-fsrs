@@ -59,7 +59,7 @@
   },
   "dependencies": {
     "@napi-rs/wasm-runtime": "^1.2.0",
-    "@emnapi/core": "2.0.0-alpha.3",
-    "@emnapi/runtime": "2.0.0-alpha.3"
+    "@emnapi/core": "2.0.0-alpha.4",
+    "@emnapi/runtime": "2.0.0-alpha.4"
   }
 }

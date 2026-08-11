@@ -51,14 +51,14 @@
     "check:rs": "cargo fmt && cargo clippy"
   },
   "devDependencies": {
-    "@emnapi/core": "2.0.0-alpha.3",
-    "@emnapi/runtime": "2.0.0-alpha.3",
+    "@emnapi/core": "2.0.0-alpha.4",
+    "@emnapi/runtime": "2.0.0-alpha.4",
     "@napi-rs/cli": "3.8.0",
     "@napi-rs/wasm-runtime": "^1.2.0",
     "@taplo/cli": "^0.7.0",
     "@types/papaparse": "^5.5.2",
     "chalk": "^5.4.1",
-    "emnapi": "2.0.0-alpha.3",
+    "emnapi": "2.0.0-alpha.4",
     "npm-run-all2": "^8.0.4",
     "papaparse": "^5.5.3",
     "tinybench": "^6.0.1"
