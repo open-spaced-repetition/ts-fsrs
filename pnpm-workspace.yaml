@@ -6,6 +6,7 @@ packages:
 overrides:
   is-core-module: npm:@nolyfill/is-core-module@^1
   minimatch: '>=10.2.3'
+  '@napi-rs/cli@3.8.0>emnapi': 2.0.0-alpha.4
   '@rolldown/binding-wasm32-wasi>@napi-rs/wasm-runtime': 1.1.4
 
 allowBuilds:
@@ -18,3 +19,6 @@ supportedArchitectures:
 minimumReleaseAgeExclude:
   - '@napi-rs/cli@3.8.0'
   - '@napi-rs/wasm-runtime@1.2.0'
+  - '@emnapi/core@2.0.0-alpha.4'
+  - '@emnapi/runtime@2.0.0-alpha.4'
+  - emnapi@2.0.0-alpha.4
