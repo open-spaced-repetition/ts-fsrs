@@ -1,26 +1,24 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
 
-export type CardId = string | number
-
 export type FuzzingConfig = {
   readonly enableFuzz: boolean
   readonly maximumInterval: number
 }
 
 export type FuzzingCardFields = {
-  readonly cardId: CardId
+  readonly cardId: string | number
   readonly reps: number
 }
 
 export type FuzzingRevlogFields = {
-  readonly cardId: CardId
+  readonly cardId: string | number
 }
 
 export type FuzzingCardInitInput = {
-  readonly cardId?: CardId
+  readonly cardId?: string | number
 }
 
-function parseCardId(value: unknown): CardId | undefined {
+function parseCardId(value: unknown): string | number | undefined {
   if (typeof value === 'string' && value.length > 0) return value
   if (typeof value === 'number' && Number.isFinite(value)) return value
   return undefined
