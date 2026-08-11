@@ -1,5 +1,6 @@
 import * as fs from 'node:fs'
 import * as path from 'node:path'
+import { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
 import { getTimezoneOffset, parseCSVToFSRSItems } from './helpers/csv-parser.js'
@@ -66,6 +67,72 @@ describe('CSV Parser', () => {
     expect(offsetItems).toEqual(timezoneItems)
   })
 
+  test('should match Uint8Array input for a chunked Web ReadableStream', async () => {
+    const data = fs.readFileSync(testDataPath)
+    const stream = Readable.toWeb(
+      fs.createReadStream(testDataPath)
+    )
+    const expected = convertCsvToFsrsItems(data, nextDayStartsAt, timezone)
+
+    await expect(
+      convertCsvToFsrsItems(stream, nextDayStartsAt, timezone)
+    ).resolves.toEqual(expected)
+    expect(stream.locked).toBe(false)
+  })
+
+  test('should propagate Web ReadableStream errors', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.error(new Error('stream failed'))
+      },
+    })
+
+    await expect(
+      convertCsvToFsrsItems(stream, nextDayStartsAt, 0)
+    ).rejects.toThrow('stream failed')
+    expect(stream.locked).toBe(false)
+  })
+
+  test('should convert an empty Web ReadableStream', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.close()
+      },
+    })
+
+    await expect(
+      convertCsvToFsrsItems(stream, nextDayStartsAt, 0)
+    ).resolves.toEqual([])
+    expect(stream.locked).toBe(false)
+  })
+
+  test('should reject non-Uint8Array chunks and release the lock', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.enqueue('invalid' as unknown as Uint8Array)
+        controller.close()
+      },
+    })
+
+    await expect(
+      convertCsvToFsrsItems(stream, nextDayStartsAt, 0)
+    ).rejects.toThrow()
+    expect(stream.locked).toBe(false)
+  })
+
+  test('should reject a locked Web ReadableStream asynchronously', async () => {
+    const stream = new ReadableStream<Uint8Array>()
+    const reader = stream.getReader()
+
+    try {
+      const result = convertCsvToFsrsItems(stream, nextDayStartsAt, 0)
+      expect(result).toBeInstanceOf(Promise)
+      await expect(result).rejects.toThrow(/locked/i)
+    } finally {
+      reader.releaseLock()
+    }
+  })
+
   test('should throw for unsupported timezone', () => {
     const csvBuffer = Buffer.from(
       [
@@ -78,6 +145,40 @@ describe('CSV Parser', () => {
     expect(() =>
       convertCsvToFsrsItems(csvBuffer, nextDayStartsAt, 'Mars/Base')
     ).toThrow('Unsupported timezone')
+  })
+
+  test('should reject unsupported timezone asynchronously for a Web ReadableStream', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.close()
+      },
+    })
+
+    const result = convertCsvToFsrsItems(stream, nextDayStartsAt, 'Mars/Base')
+    expect(result).toBeInstanceOf(Promise)
+    await expect(result).rejects.toThrow('Unsupported timezone')
+    expect(stream.locked).toBe(false)
+  })
+
+  test('should release the stream lock when attaching the finalizer fails', async () => {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        controller.close()
+      },
+    })
+    const promiseFinally = Promise.prototype.finally
+    const result = (() => {
+      Reflect.set(Promise.prototype, 'finally', undefined)
+      try {
+        return convertCsvToFsrsItems(stream, nextDayStartsAt, 0)
+      } finally {
+        Reflect.set(Promise.prototype, 'finally', promiseFinally)
+      }
+    })()
+
+    expect(result).toBeInstanceOf(Promise)
+    await expect(result).rejects.toThrow()
+    expect(stream.locked).toBe(false)
   })
 
   describe('getTimezoneOffset', () => {

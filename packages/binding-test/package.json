@@ -10,8 +10,8 @@
     "dev": "vitest"
   },
   "devDependencies": {
-    "@emnapi/core": "2.0.0-alpha.3",
-    "@emnapi/runtime": "2.0.0-alpha.3",
+    "@emnapi/core": "2.0.0-alpha.4",
+    "@emnapi/runtime": "2.0.0-alpha.4",
     "@napi-rs/wasm-runtime": "^1.2.0",
     "@types/papaparse": "^5.5.2",
     "papaparse": "^5.5.3",
