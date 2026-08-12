@@ -1,7 +1,12 @@
 import type { IFSRSModel } from '@/kit/index.js'
+import type {
+  Card,
+  CardInput,
+  DateInput,
+  FSRSParameters,
+} from '@/legacy/models.js'
+import type { IScheduler } from '@/legacy/types.js'
 import type { LearningStepsResolver } from '@/middlewares/learning-steps/types.js'
-import type { Card, CardInput, DateInput, FSRSParameters } from '@/models.js'
-import type { IScheduler } from '@/types.js'
 
 export enum StrategyMode {
   SCHEDULER = 'Scheduler',

@@ -1,15 +1,15 @@
-import { TypeConvert } from '@/convert.js'
-import { date_scheduler } from '@/help.js'
-import { withFuzzing } from '@/middlewares/fuzzing/core.js'
-import { calculateScheduleDays } from '@/middlewares/monotonic-interval/core.js'
+import { TypeConvert } from '@/legacy/convert.js'
+import { date_scheduler } from '@/legacy/help.js'
 import {
   type Card,
   type Grade,
   Rating,
   type RecordLogItem,
   State,
-} from '@/models.js'
-import type { int } from '@/types.js'
+} from '@/legacy/models.js'
+import type { int } from '@/legacy/types.js'
+import { withFuzzing } from '@/middlewares/fuzzing/core.js'
+import { calculateScheduleDays } from '@/middlewares/monotonic-interval/core.js'
 import { AbstractScheduler } from '../abstract_scheduler.js'
 
 export default class LongTermScheduler extends AbstractScheduler {

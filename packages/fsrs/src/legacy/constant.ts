@@ -1,5 +1,5 @@
-import { version } from '../package.json'
-import { FSRS5_DECAY } from './models/fsrs-5/constants.js'
+import { version } from '../../package.json'
+import { FSRS5_DECAY } from '../models/fsrs-5/constants.js'
 import {
   FSRS6_DECAY,
   FSRS6_DEFAULT_WEIGHTS,
@@ -7,7 +7,7 @@ import {
   FSRS6_MODEL_BOUNDS,
   FSRS6_W17_W18_CEILING,
   FSRS6ParameterBounds,
-} from './models/fsrs-6/constants.js'
+} from '../models/fsrs-6/constants.js'
 
 export const default_request_retention = 0.9
 export const default_maximum_interval = 36500

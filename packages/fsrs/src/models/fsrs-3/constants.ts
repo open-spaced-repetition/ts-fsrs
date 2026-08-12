@@ -1,5 +1,5 @@
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
-import type { FSRSState } from '@/models.js'
+import type { FSRSState } from '@/kit/types.js'
 
 export const FSRS3_MODEL_BOUNDS: ModelBounds<FSRSState> = Object.freeze({
   sMin: 0.01,

@@ -1,5 +1,5 @@
 // Import the Alea generator and additional required elements
-import { alea } from 'ts-fsrs/alea.js';
+import { alea } from 'ts-fsrs/legacy/alea.js'
 
 describe('Alea PRNG Tests', () => {
   it('make sure two seeded values are the same', () => {

@@ -2,7 +2,7 @@
 
 import { Rating, State } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
-import { createEmptyCard } from '@/default.js'
+import { createEmptyCard } from '@/legacy/default.js'
 import { fsrs } from '@/legacy/fsrs.js'
 
 describe('learning-step regression #311', () => {

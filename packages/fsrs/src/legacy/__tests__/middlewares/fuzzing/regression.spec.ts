@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
-import { createEmptyCard } from '@/default.js'
+import { createEmptyCard } from '@/legacy/default.js'
 import { fsrs } from '@/legacy/fsrs.js'
-import { Rating } from '@/models.js'
+import { Rating } from '@/legacy/models.js'
 
 describe.each([
   ['short-term', true],
