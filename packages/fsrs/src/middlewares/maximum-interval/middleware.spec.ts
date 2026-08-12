@@ -21,8 +21,24 @@ const fixedIntervalMiddleware = defineMiddleware({
     },
   },
 })
+const reviewHandler = schedulerMaximumIntervalMiddleware.handlers?.review
+
+if (!reviewHandler) throw new Error('Expected maximum interval review handler')
 
 describe('schedulerMaximumIntervalMiddleware', () => {
+  it('leaves an absent scheduledDays value unchanged', () => {
+    const ctx = {
+      config: { maximumInterval },
+      scheduledDays: undefined,
+    } as unknown as Parameters<typeof reviewHandler>[0]
+    const next = vi.fn()
+
+    reviewHandler(ctx, next)
+
+    expect(next).toHaveBeenCalledOnce()
+    expect(ctx.scheduledDays).toBeUndefined()
+  })
+
   it('caps review and preview without fuzzing or monotonic middleware', () => {
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(
