@@ -21,6 +21,7 @@ describe('fuzzingConfigSchema', () => {
     {},
     { enableFuzz: 1, maximumInterval: 365 },
     { enableFuzz: true, maximumInterval: 0 },
+    { enableFuzz: true, maximumInterval: 1.5 },
     { enableFuzz: true, maximumInterval: Number.NaN },
   ])('rejects invalid config %#', (value) => {
     expect(() => fuzzingConfigSchema.parse(value)).toThrow()

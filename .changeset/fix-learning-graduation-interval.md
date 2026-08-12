@@ -2,4 +2,4 @@
 "ts-fsrs": patch
 ---
 
-fix: preserve model intervals for genuine learning-step graduations while keeping empty, exhausted, and non-positive steps monotonic.
+fix: preserve explicit learning-step intervals while keeping graduation intervals monotonic, and require `maximumInterval` to be a positive integer.

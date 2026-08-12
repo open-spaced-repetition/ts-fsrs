@@ -24,10 +24,12 @@ export const monotonicIntervalConfigSchema = defineSchema<
       : value.maximumInterval
   if (
     typeof maximumInterval !== 'number' ||
-    !Number.isFinite(maximumInterval) ||
+    !Number.isInteger(maximumInterval) ||
     maximumInterval <= 0
   ) {
-    return { issues: [{ message: 'Expected positive maximumInterval' }] }
+    return {
+      issues: [{ message: 'Expected positive integer maximumInterval' }],
+    }
   }
 
   return { value: { maximumInterval } }

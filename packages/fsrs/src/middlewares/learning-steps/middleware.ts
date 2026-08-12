@@ -1,5 +1,6 @@
 import {
   defineMiddleware,
+  type Grade,
   type ReviewCandidateContext,
   State,
 } from '@open-spaced-repetition/srs-kit'
@@ -9,14 +10,14 @@ import {
   learningStepFieldsSchema,
   learningStepsConfigSchema,
 } from './schema.js'
-import type { LearningStepsResult } from './types.js'
+import type { LearningStepSchedule, LearningStepsResult } from './types.js'
 
 const MINUTES_PER_DAY = 1440
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
 
 type ResolvedLearningSteps = {
   readonly steps: LearningStepsResult
-  readonly hasAnyScheduledLearningStep: boolean
+  readonly scheduledMinutes: Partial<Record<Grade, number>>
 }
 
 type LearningStepsCandidate = ReviewCandidateContext & {
@@ -48,53 +49,42 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
       let resolved = candidate[resolvedStepsSymbol]
       if (!resolved) {
-        const steps = calculateLearningSteps(
-          ctx.config,
-          card.state,
-          card.learningStep
-        )
         resolved = {
-          steps,
-          hasAnyScheduledLearningStep: Object.values(steps).some(
-            ({ scheduledMinutes }) =>
-              Math.round(Math.max(0, scheduledMinutes)) > 0
+          steps: calculateLearningSteps(
+            ctx.config,
+            card.state,
+            card.learningStep
           ),
+          scheduledMinutes: {},
         }
         candidate[resolvedStepsSymbol] = resolved
+        const resolvedSteps = resolved
+        const nextInterval = candidate.nextInterval
+        candidate.nextInterval = (memoryState, desiredRetention) => {
+          const grade = candidate.findGrade(memoryState)
+          if (grade === undefined) {
+            return nextInterval(memoryState, desiredRetention)
+          }
+
+          const step = resolvedSteps.steps[grade]
+          const scheduledMinutes = step
+            ? getScheduledMinutes(resolvedSteps, grade, step)
+            : undefined
+          if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+            return scheduledMinutes / MINUTES_PER_DAY
+          }
+          return nextInterval(memoryState, desiredRetention)
+        }
       }
-      const { steps, hasAnyScheduledLearningStep } = resolved
-      const step = steps[ctx.input.grade]
+      const step = resolved.steps[ctx.input.grade]
       const scheduledMinutes = step
-        ? Math.round(Math.max(0, step.scheduledMinutes))
+        ? getScheduledMinutes(resolved, ctx.input.grade, step)
         : undefined
-      const hasScheduledLearningStep =
-        scheduledMinutes !== undefined && scheduledMinutes > 0
-      const isGraduatingFromLearning =
-        step === undefined &&
-        hasAnyScheduledLearningStep &&
-        (card.state === State.Learning || card.state === State.Relearning)
-      let scheduledDays: number | undefined
-
-      if (hasScheduledLearningStep) {
-        scheduledDays = scheduledMinutes / MINUTES_PER_DAY
-      } else if (isGraduatingFromLearning) {
-        scheduledDays = candidate.nextInterval(
-          candidate.step(ctx.input.grade),
-          ctx.desiredRetention
-        )
-      }
-
-      // Set before BaseScheduler.finalizeReview() falls back to model.nextInterval().
-      if (scheduledDays !== undefined) {
-        ctx.scheduledDays = scheduledDays
-      }
       next()
 
-      // Keep explicit steps exact; graduation still respects a lower maximum.
-      if (scheduledDays !== undefined) {
-        ctx.scheduledDays = hasScheduledLearningStep
-          ? scheduledDays
-          : Math.min(scheduledDays, ctx.scheduledDays ?? scheduledDays)
+      // Restore the exact learning step after downstream day-level middleware.
+      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
       }
 
       ctx.result.revlog.learningStep = card.learningStep
@@ -124,4 +114,17 @@ function nextLearningState(state: State): State {
   if (state === State.New) return State.Learning
   if (state === State.Review) return State.Relearning
   return state
+}
+
+function getScheduledMinutes(
+  resolved: ResolvedLearningSteps,
+  grade: Grade,
+  step: LearningStepSchedule
+): number {
+  const cached = resolved.scheduledMinutes[grade]
+  if (cached !== undefined) return cached
+
+  const scheduledMinutes = Math.round(Math.max(0, step.scheduledMinutes))
+  resolved.scheduledMinutes[grade] = scheduledMinutes
+  return scheduledMinutes
 }
