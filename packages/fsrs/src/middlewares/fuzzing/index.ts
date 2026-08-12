@@ -5,7 +5,6 @@ export {
   schedulerFuzzingMiddleware,
 } from './middleware.js'
 export type {
-  CardId,
   FuzzingCardFields,
   FuzzingCardInitInput,
   FuzzingConfig,
