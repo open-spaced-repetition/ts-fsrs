@@ -391,7 +391,6 @@ describe('FSRS reschedule', () => {
           review: new Date(
             new Date(MOCK_NOW).getTime() + 1000 * 60 * 60 * 24 * (index + 1)
           ),
-          state: rating === Rating.Manual ? State.Review : undefined,
           due: new Date(1725469200000 /**'2024-09-04T17:00:00.000Z'*/),
         }) satisfies FSRSHistory
     )

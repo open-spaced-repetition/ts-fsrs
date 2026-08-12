@@ -1,0 +1,123 @@
+import { FSRSValidationError } from '../error.js'
+import { getFuzzRange } from '../middlewares/fuzzing/core.js'
+import { TypeConvert } from './convert.js'
+import type { DateInput, Grade } from './models.js'
+import { Rating } from './models.js'
+import type { unit } from './types.js'
+
+/**
+ * 计算日期和时间的偏移，并返回一个新的日期对象。
+ * @param now 当前日期和时间
+ * @param t 时间偏移量，当 isDay 为 true 时表示天数，为 false 时表示分钟
+ * @param isDay （可选）是否按天数单位进行偏移，默认为 false，表示按分钟单位计算偏移
+ * @returns 偏移后的日期和时间对象
+ */
+export function date_scheduler(
+  now: DateInput,
+  t: number,
+  isDay?: boolean
+): Date {
+  return new Date(
+    isDay
+      ? TypeConvert.time(now).getTime() + t * 24 * 60 * 60 * 1000
+      : TypeConvert.time(now).getTime() + t * 60 * 1000
+  )
+}
+
+export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
+  if (!now || !pre) {
+    throw new FSRSValidationError('Invalid date')
+  }
+  const diff = TypeConvert.time(now).getTime() - TypeConvert.time(pre).getTime()
+  let r = 0
+  switch (unit) {
+    case 'days':
+      r = Math.floor(diff / (24 * 60 * 60 * 1000))
+      break
+    case 'minutes':
+      r = Math.floor(diff / (60 * 1000))
+      break
+  }
+  return r
+}
+
+export function formatDate(dateInput: DateInput): string {
+  const date = TypeConvert.time(dateInput)
+  const year = date.getFullYear()
+  const month = date.getMonth() + 1
+  const day = date.getDate()
+  const hours = date.getHours()
+  const minutes = date.getMinutes()
+  const seconds = date.getSeconds()
+
+  return `${year}-${padZero(month)}-${padZero(day)} ${padZero(hours)}:${padZero(
+    minutes
+  )}:${padZero(seconds)}`
+}
+
+function padZero(num: number): string {
+  return num < 10 ? `0${num}` : `${num}`
+}
+
+const TIMEUNIT = [60, 60, 24, 31, 12]
+const TIMEUNITFORMAT = ['second', 'min', 'hour', 'day', 'month', 'year']
+
+export function show_diff_message(
+  due: DateInput,
+  last_review: DateInput,
+  unit?: boolean,
+  timeUnit: string[] = TIMEUNITFORMAT
+): string {
+  due = TypeConvert.time(due)
+  last_review = TypeConvert.time(last_review)
+  if (timeUnit.length !== TIMEUNITFORMAT.length) {
+    timeUnit = TIMEUNITFORMAT
+  }
+  let diff = due.getTime() - last_review.getTime()
+  let i = 0
+  diff /= 1000
+  for (i = 0; i < TIMEUNIT.length; i++) {
+    if (diff < TIMEUNIT[i]) {
+      break
+    }
+    diff /= TIMEUNIT[i]
+  }
+  return `${Math.floor(diff)}${unit ? timeUnit[i] : ''}`
+}
+
+export const Grades: Readonly<Grade[]> = Object.freeze([
+  Rating.Again,
+  Rating.Hard,
+  Rating.Good,
+  Rating.Easy,
+])
+
+/** @deprecated Use getFuzzRange from the fuzzing core. */
+export function get_fuzz_range(
+  interval: number,
+  elapsed_days: number,
+  maximum_interval: number
+) {
+  const { minInterval, maxInterval } = getFuzzRange(
+    interval,
+    elapsed_days,
+    maximum_interval
+  )
+  return { min_ivl: minInterval, max_ivl: maxInterval }
+}
+
+export function dateDiffInDays(last: Date, cur: Date) {
+  // Discard the time and time-zone information.
+  const utc1 = Date.UTC(
+    last.getUTCFullYear(),
+    last.getUTCMonth(),
+    last.getUTCDate()
+  )
+  const utc2 = Date.UTC(
+    cur.getUTCFullYear(),
+    cur.getUTCMonth(),
+    cur.getUTCDate()
+  )
+
+  return Math.floor((utc2 - utc1) / 86400000)
+}

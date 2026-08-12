@@ -11,9 +11,9 @@ import { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 import { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
 import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { FSRSValidationError } from '@/error.js'
+import type { FSRSState } from '@/kit/types.js'
 import { FSRS6_DEFAULT_WEIGHTS } from '@/models/fsrs-6/constants.js'
 import { FSRS6Model } from '@/models/fsrs-6/model.js'
-import type { FSRSState } from '@/models.js'
 import { Reschedule } from './index.js'
 
 const DAY_MS = 86_400_000

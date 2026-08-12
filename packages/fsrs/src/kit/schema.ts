@@ -1,6 +1,6 @@
 import { defineSchema } from '@open-spaced-repetition/srs-kit'
-import type { FSRSState } from '../models.js'
 import { isObject } from './schema-utils.js'
+import type { FSRSState } from './types.js'
 
 export const FSRSMemoryStateSchema = defineSchema<FSRSState>((value) => {
   if (

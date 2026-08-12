@@ -1,4 +1,4 @@
-import { FSRSValidationError } from './error.js'
+import { FSRSValidationError } from '../error.js'
 import {
   type Card,
   type CardInput,

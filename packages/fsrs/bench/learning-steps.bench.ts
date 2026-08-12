@@ -2,16 +2,16 @@ import {
   defineScheduler,
   grades,
   Rating,
+  State,
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
-import { createEmptyCard } from 'ts-fsrs/default'
+import { createEmptyCard } from 'ts-fsrs/legacy/default'
 import { fsrs } from 'ts-fsrs/legacy/fsrs'
 import {
   ConvertStepUnitToMinutes,
   calculateLearningSteps,
 } from 'ts-fsrs/middlewares/learning-steps/core'
 import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares/learning-steps/middleware'
-import { State } from 'ts-fsrs/models'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6/index'
 import { bench, describe } from 'vitest'
 

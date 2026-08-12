@@ -1,7 +1,8 @@
+import { type Grade, Rating } from '@open-spaced-repetition/srs-kit'
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSValidationError } from '@/error.js'
 import { clamp, roundTo } from '@/help.js'
-import { type FSRSState, type Grade, Rating } from '@/models.js'
+import type { FSRSState } from '@/kit/types.js'
 import { FSRS4Dot5_DECAY, FSRS4Dot5_FACTOR } from './constants.js'
 
 export function forgetting_curve(
@@ -134,10 +135,11 @@ export class FSRS4Dot5Algorithm {
         stability: s,
       }
     }
+    const grade = g as Grade
     if (d === 0 && s === 0) {
       return {
-        difficulty: this.init_difficulty(g),
-        stability: this.init_stability(g),
+        difficulty: this.init_difficulty(grade),
+        stability: this.init_stability(grade),
       }
     }
     if (d < this.bounds.dMin || s < this.bounds.sMin) {
@@ -150,8 +152,8 @@ export class FSRS4Dot5Algorithm {
     const new_s =
       g === Rating.Again
         ? this.next_forget_stability(d, s, r)
-        : this.next_recall_stability(d, s, r, g)
-    const new_d = this.next_difficulty(d, g)
+        : this.next_recall_stability(d, s, r, grade)
+    const new_d = this.next_difficulty(d, grade)
 
     return { difficulty: new_d, stability: new_s }
   }

@@ -1,3 +1,9 @@
+import { FSRSValidationError } from '../error.js'
+import {
+  defaultLearningSteps,
+  defaultRelearningSteps,
+} from '../middlewares/learning-steps/schema.js'
+import { migrateFSRS6Parameters } from '../models/fsrs-6/parameters.js'
 import {
   default_enable_fuzz,
   default_enable_short_term,
@@ -5,12 +11,6 @@ import {
   default_request_retention,
 } from './constant.js'
 import { TypeConvert } from './convert.js'
-import { FSRSValidationError } from './error.js'
-import {
-  defaultLearningSteps,
-  defaultRelearningSteps,
-} from './middlewares/learning-steps/schema.js'
-import { migrateFSRS6Parameters } from './models/fsrs-6/parameters.js'
 import {
   type Card,
   type DateInput,
@@ -63,11 +63,11 @@ export const generatorParameters = (
   return {
     request_retention: props?.request_retention || default_request_retention,
     maximum_interval: props?.maximum_interval || default_maximum_interval,
-    w: w,
+    w,
     enable_fuzz: props?.enable_fuzz ?? default_enable_fuzz,
-    enable_short_term: enable_short_term,
-    learning_steps: learning_steps,
-    relearning_steps: relearning_steps,
+    enable_short_term,
+    learning_steps,
+    relearning_steps,
   } satisfies FSRSParameters
 }
 

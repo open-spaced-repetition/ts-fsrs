@@ -229,7 +229,7 @@ describe('Long-term  scheduler', () => {
     const ivl_history: number[] = []
     const s_history: number[] = []
     const d_history: number[] = []
-    const state_history: string[] = []
+    const state_history: State[] = []
 
     const grades: Grade[] = [
       Rating.Good,
@@ -262,7 +262,7 @@ describe('Long-term  scheduler', () => {
       ivl_history.push(card.scheduled_days)
       s_history.push(card.stability)
       d_history.push(card.difficulty)
-      state_history.push(State[card.state])
+      state_history.push(card.state)
     }
 
     expect(ivl_history).toEqual([0, 4, 1, 5, 19, 0])
@@ -273,12 +273,12 @@ describe('Long-term  scheduler', () => {
       4.49094334, 4.26664289, 5.24649844, 4.97127357, 4.71459886, 5.57136081,
     ])
     expect(state_history).toEqual([
-      'Learning',
-      'Review',
-      'Review',
-      'Review',
-      'Review',
-      'Relearning',
+      State.Learning,
+      State.Review,
+      State.Review,
+      State.Review,
+      State.Review,
+      State.Relearning,
     ])
   })
 

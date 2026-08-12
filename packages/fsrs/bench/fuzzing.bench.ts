@@ -4,8 +4,8 @@ import {
   schedulerStatsMiddleware,
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
-import { alea } from 'ts-fsrs/alea'
-import { createEmptyCard } from 'ts-fsrs/default'
+import { alea } from 'ts-fsrs/legacy/alea'
+import { createEmptyCard } from 'ts-fsrs/legacy/default'
 import { fsrs } from 'ts-fsrs/legacy/fsrs'
 import {
   type FuzzingRng,

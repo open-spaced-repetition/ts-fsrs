@@ -1,9 +1,9 @@
 import { Rating, State } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
-import { default_w } from '@/constant.js'
-import { createEmptyCard, generatorParameters } from '@/default.js'
-import { dateDiffInDays } from '@/help.js'
+import { default_w } from '@/legacy/constant.js'
+import { createEmptyCard, generatorParameters } from '@/legacy/default.js'
 import { fsrs } from '@/legacy/fsrs.js'
+import { dateDiffInDays } from '@/legacy/help.js'
 import { StrategyMode } from '@/legacy/strategies/types.js'
 import type { LearningStepsResolver } from '@/middlewares/learning-steps/types.js'
 

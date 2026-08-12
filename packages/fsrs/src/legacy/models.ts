@@ -1,26 +1,11 @@
-import type { StepUnit } from './middlewares/learning-steps/types.js'
+import type { Grade, Rating, State } from '@open-spaced-repetition/srs-kit'
+import type { StepUnit } from '../middlewares/learning-steps/types.js'
 
-export type StateType = 'New' | 'Learning' | 'Review' | 'Relearning'
+export { type Grade, Rating, State } from '@open-spaced-repetition/srs-kit'
 
-export enum State {
-  New = 0,
-  Learning = 1,
-  Review = 2,
-  Relearning = 3,
-}
-
-export type RatingType = 'Manual' | 'Again' | 'Hard' | 'Good' | 'Easy'
-
-export enum Rating {
-  Manual = 0,
-  Again = 1,
-  Hard = 2,
-  Good = 3,
-  Easy = 4,
-}
-
+export type StateType = keyof typeof State
+export type RatingType = keyof typeof Rating
 export type GradeType = Exclude<RatingType, 'Manual'>
-export type Grade = Exclude<Rating, Rating.Manual>
 
 export interface ReviewLog {
   rating: Rating // Rating of the review (Again, Hard, Good, Easy)
@@ -37,6 +22,7 @@ export type RecordLogItem = {
   card: Card
   log: ReviewLog
 }
+
 export type RecordLog = {
   [key in Grade]: RecordLogItem
 }
@@ -60,6 +46,7 @@ export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
 }
 
 export type DateInput = Date | number | string
+
 /**
  * (re)Learning steps:
  * [1m, 10m]
@@ -73,7 +60,6 @@ export type DateInput = Date | number | string
  *
  * []
  * step: Managed by FSRS
- *
  */
 export type Steps = StepUnit[] | readonly StepUnit[]
 
@@ -118,14 +104,9 @@ export type FSRSHistory = Partial<Omit<ReviewLog, 'rating' | 'review'>> &
         review: DateInput | Date
       }
     | {
-        rating: Rating.Manual
+        rating: typeof Rating.Manual
         due: DateInput | Date
         state: State
         review: DateInput | Date
       }
   )
-
-export interface FSRSState {
-  stability: number
-  difficulty: number
-}
