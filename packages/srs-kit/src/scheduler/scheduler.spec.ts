@@ -12,11 +12,13 @@ import type {
   SchedulerCardInputOf,
   SchedulerCardOf,
   SchedulerConfigOf,
+  SchedulerEnvFor,
   SchedulerRevlogInputOf,
   SchedulerRevlogOf,
   SchedulerStatusOf,
   SchedulerTimeOf,
 } from './infer.js'
+import type { SchedulerCoreEnv, SchedulerNewCardOptions } from './scheduler.js'
 import {
   config,
   createSM2NumericScheduler,
@@ -85,6 +87,21 @@ describe('defineScheduler', () => {
     }
 
     expectTypeOf(invalidNewCard).toBeFunction()
+  })
+
+  it('includes middleware new-card input in SchedulerEnvFor', () => {
+    type Env = SchedulerEnvFor<
+      typeof SM2Model,
+      typeof dateChrono,
+      readonly [typeof sourceMiddleware]
+    >
+
+    expectTypeOf<
+      SchedulerNewCardOptions<SchedulerCoreEnv<Env>>
+    >().toEqualTypeOf<{
+      readonly now?: Date
+      readonly source?: string
+    }>()
   })
 
   it('requires new-card input when middleware declares required fields', () => {

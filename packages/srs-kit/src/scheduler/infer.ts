@@ -220,7 +220,16 @@ export type SchedulerEnvFor<
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
   }>
-  readonly cardInitInput: SchedulerCardInitSchema<ChronoTimeOf<C>>
+  readonly cardInitInput: [
+    | keyof MiddlewareCardInitInputFields<MWs, 'input'>
+    | keyof MiddlewareCardInitInputFields<MWs, 'output'>,
+  ] extends [never]
+    ? SchedulerCardInitSchema<ChronoTimeOf<C>>
+    : SchedulerCardInitSchema<
+        ChronoTimeOf<C>,
+        MiddlewareCardInitInputFields<MWs, 'input'>,
+        MiddlewareCardInitInputFields<MWs, 'output'>
+      >
   readonly card: SRSSchema<{
     input: Prettify<Readonly<SchedulerObjectFields<M, C, MWs, 'card', 'input'>>>
     output: Prettify<SchedulerCardFields<M, C, MWs>>
