@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateChrono } from '@/chrono/presets/date/chrono.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
+import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { defineModel } from '@/model/model.js'
@@ -840,8 +841,8 @@ describe('SchedulerCore middleware handlers', () => {
     const restored = dateCore.rollback(reviewed)
 
     expect(seen[0]).not.toHaveProperty('dueAt')
-    expect(restored.dueAt).toEqual(reviewed.revlog.reviewTime)
-    expect(restored.lastReviewAt).toEqual(reviewed.revlog.dueAt)
+    expect(restored.dueAt).toEqual(reviewed.revlog.dueAt)
+    expect(restored.lastReviewAt).toBe(null)
   })
 
   it('throws when review middleware mutates input fields', () => {
@@ -1451,6 +1452,22 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.reps).toBe(0)
   })
 
+  it('rolls numeric chrono back to a fieldless new card', () => {
+    const numericCore = createSM2NumericScheduler().create({ config })
+    const reviewed = numericCore.review({
+      card: numericCore.newCard({ now: 2 }),
+      grade: Rating.Good,
+      now: 5,
+    })
+
+    const restored = numericCore.rollback(reviewed)
+
+    expect(restored.state).toBe(State.New)
+    expect(restored.scheduleStatus).toBe('new')
+    expect(restored).not.toHaveProperty('dueAt')
+    expect(restored).not.toHaveProperty('lastReviewAt')
+  })
+
   it('runs rollback handlers when revlog state is new', () => {
     const card = core.newCard()
     const result = core.review({ card: card, grade: Rating.Good, now: 0 })
@@ -1552,10 +1569,61 @@ describe('SchedulerCore.rollback', () => {
     })
     const restoredFields = restored as Record<string, unknown>
 
-    expect(restored.dueAt).toEqual(revlog.reviewTime)
-    expect(restored.lastReviewAt).toEqual(revlog.dueAt)
+    expect(restored.dueAt).toEqual(revlog.dueAt)
+    expect(restored.lastReviewAt).toBe(null)
     expect(restored.source).toBe('test-source')
     expect('audit' in restoredFields).toBe(false)
+  })
+
+  it('restores new Date card fields from revlog projection', () => {
+    const dateCore = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    }).create({ config })
+    const dueAt = new Date('2026-06-28T00:00:00.000Z')
+    const reviewTime = new Date('2026-06-30T00:00:00.000Z')
+    const reviewed = dateCore.review({
+      card: dateCore.newCard({ now: dueAt }),
+      grade: Rating.Good,
+      now: reviewTime,
+    })
+
+    const restored = dateCore.rollback({
+      card: reviewed.card,
+      revlog: { ...reviewed.revlog, dueAt, reviewTime },
+    })
+
+    expect(restored.scheduleStatus).toBe('new')
+    expect(restored.dueAt).toEqual(dueAt)
+    expect(restored.lastReviewAt).toBe(null)
+  })
+
+  it('restores new Temporal.Instant card fields from revlog projection', () => {
+    const temporalCore = defineScheduler({
+      model: SM2Model,
+      chrono: temporalInstantChrono,
+    }).create({
+      config: {
+        ...config,
+        chrono: { timezone: 'UTC', fractionalDays: false },
+      },
+    })
+    const dueAt = Temporal.Instant.from('2026-06-28T00:00:00Z')
+    const reviewTime = Temporal.Instant.from('2026-06-30T00:00:00Z')
+    const reviewed = temporalCore.review({
+      card: temporalCore.newCard({ now: dueAt }),
+      grade: Rating.Good,
+      now: reviewTime,
+    })
+
+    const restored = temporalCore.rollback({
+      card: reviewed.card,
+      revlog: { ...reviewed.revlog, dueAt, reviewTime },
+    })
+
+    expect(restored.scheduleStatus).toBe('new')
+    expect(restored.dueAt).toBe(dueAt)
+    expect(restored.lastReviewAt).toBe(null)
   })
 
   it('restores non-new chrono card fields from revlog projection', () => {

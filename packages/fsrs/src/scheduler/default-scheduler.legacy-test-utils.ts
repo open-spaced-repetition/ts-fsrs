@@ -145,7 +145,7 @@ export function expectRollbackParity(
     ...expectedCard,
     dueAt: revlog?.state === State.New ? revlog.reviewTime : expectedCard.dueAt,
     lastReviewAt:
-      revlog?.state === State.New ? revlog.dueAt : expectedCard.lastReviewAt,
+      revlog?.state === State.New ? null : expectedCard.lastReviewAt,
   })
 }
 

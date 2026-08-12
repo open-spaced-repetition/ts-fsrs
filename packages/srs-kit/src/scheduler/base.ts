@@ -594,13 +594,16 @@ export class BaseScheduler<
         revlog,
       }
     )
+    const isNew = revlog.state === State.New
     const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
       config: this.config.chrono,
-      previous: {
-        previous: 0,
-        current: projection.previous,
-      },
-      time: projection.current,
+      previous: isNew
+        ? undefined
+        : {
+            previous: 0,
+            current: projection.previous,
+          },
+      time: isNew ? projection.previous : projection.current,
     })
     if (cardFields) {
       Object.assign(result.card, cardFields)
