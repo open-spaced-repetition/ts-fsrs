@@ -1,4 +1,9 @@
-import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
+import {
+  defineMiddleware,
+  defineScheduler,
+  Rating,
+  State,
+} from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '@/models/fsrs-6/index.js'
@@ -81,6 +86,41 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(nextInterval).not.toHaveBeenCalled()
 
     core.review({ card, grade: Rating.Easy, now })
+    expect(nextInterval).toHaveBeenCalledOnce()
+  })
+
+  it('delegates intervals for uncached candidate memory states', () => {
+    let interval: number | undefined
+    const probe = defineMiddleware({
+      name: Symbol('uncached-candidate'),
+      handlers: {
+        review(ctx, next) {
+          const memoryState = { ...ctx.candidate.step(Rating.Easy) }
+          interval = ctx.candidate.nextInterval(
+            memoryState,
+            ctx.desiredRetention
+          )
+          next()
+        },
+      },
+    })
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(schedulerLearningStepsMiddleware, probe)
+      .create({
+        config: {
+          weights: [...FSRS6_DEFAULT_WEIGHTS],
+          enableShortTerm: true,
+          numRelearningSteps: 1,
+          learningSteps: ['1m'],
+          relearningSteps: ['10m'],
+        },
+      })
+    const nextInterval = vi.spyOn(core.model, 'nextInterval')
+    const now = new Date(2022, 11, 29, 12, 30)
+
+    core.review({ card: core.newCard({ now }), grade: Rating.Again, now })
+
+    expect(interval).toBeGreaterThan(0)
     expect(nextInterval).toHaveBeenCalledOnce()
   })
 
