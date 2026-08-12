@@ -19,6 +19,7 @@ describe('State', () => {
 
     expect(stateSchema.parse(State.Review)).toBe(State.Review)
     expect(() => stateSchema.parse(4)).toThrow(SRSSchemaError)
+    expect(() => stateSchema.parse(1.5)).toThrow(SRSSchemaError)
     expectTypeOf<StateValue>().toEqualTypeOf<0 | 1 | 2 | 3>()
   })
 

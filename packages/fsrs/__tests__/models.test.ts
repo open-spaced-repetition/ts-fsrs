@@ -6,7 +6,9 @@ import {
   State as KitState,
   stateSchema as kitStateSchema,
 } from '@open-spaced-repetition/srs-kit'
+import { FSRSMemoryStateSchema as internalFSRSMemoryStateSchema } from '@/kit/schema.js'
 import {
+  FSRSMemoryStateSchema,
   type Grade,
   gradeSchema,
   Rating,
@@ -22,6 +24,7 @@ describe('srs-kit primitives', () => {
     expect(gradeSchema).toBe(kitGradeSchema)
     expect(ratingSchema).toBe(kitRatingSchema)
     expect(stateSchema).toBe(kitStateSchema)
+    expect(FSRSMemoryStateSchema).toBe(internalFSRSMemoryStateSchema)
     expectTypeOf<Grade>().toEqualTypeOf<KitGrade>()
   })
 })
