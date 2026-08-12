@@ -1,5 +1,6 @@
 import {
   defineMiddleware,
+  type Grade,
   type ReviewCandidateContext,
   State,
 } from '@open-spaced-repetition/srs-kit'
@@ -9,13 +10,18 @@ import {
   learningStepFieldsSchema,
   learningStepsConfigSchema,
 } from './schema.js'
-import type { LearningStepsResult } from './types.js'
+import type { LearningStepSchedule, LearningStepsResult } from './types.js'
 
 const MINUTES_PER_DAY = 1440
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
 
+type ResolvedLearningSteps = {
+  readonly steps: LearningStepsResult
+  readonly scheduledMinutes: Partial<Record<Grade, number>>
+}
+
 type LearningStepsCandidate = ReviewCandidateContext & {
-  [resolvedStepsSymbol]?: LearningStepsResult
+  [resolvedStepsSymbol]?: ResolvedLearningSteps
 }
 
 export const schedulerLearningStepsMiddleware = defineMiddleware({
@@ -41,27 +47,42 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       }
 
       const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
-      let steps = candidate[resolvedStepsSymbol]
-      if (!steps) {
-        steps = calculateLearningSteps(
-          ctx.config,
-          card.state,
-          card.learningStep
-        )
-        candidate[resolvedStepsSymbol] = steps
-      }
-      const step = steps[ctx.input.grade]
-      const scheduledMinutes = step
-        ? Math.round(Math.max(0, step.scheduledMinutes))
-        : undefined
+      let resolved = candidate[resolvedStepsSymbol]
+      if (!resolved) {
+        resolved = {
+          steps: calculateLearningSteps(
+            ctx.config,
+            card.state,
+            card.learningStep
+          ),
+          scheduledMinutes: {},
+        }
+        candidate[resolvedStepsSymbol] = resolved
+        const resolvedSteps = resolved
+        const nextInterval = candidate.nextInterval
+        candidate.nextInterval = (memoryState, desiredRetention) => {
+          const grade = candidate.findGrade(memoryState)
+          if (grade === undefined) {
+            return nextInterval(memoryState, desiredRetention)
+          }
 
-      // Set before BaseScheduler.finalizeReview() falls back to model.nextInterval().
-      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+          const step = resolvedSteps.steps[grade]
+          const scheduledMinutes = step
+            ? getScheduledMinutes(resolvedSteps, grade, step)
+            : undefined
+          if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+            return scheduledMinutes / MINUTES_PER_DAY
+          }
+          return nextInterval(memoryState, desiredRetention)
+        }
       }
+      const step = resolved.steps[ctx.input.grade]
+      const scheduledMinutes = step
+        ? getScheduledMinutes(resolved, ctx.input.grade, step)
+        : undefined
       next()
 
-      // Restore after schedulerMonotonicIntervalMiddleware normalizes the interval.
+      // Restore the exact learning step after downstream day-level middleware.
       if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
         ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
       }
@@ -93,4 +114,17 @@ function nextLearningState(state: State): State {
   if (state === State.New) return State.Learning
   if (state === State.Review) return State.Relearning
   return state
+}
+
+function getScheduledMinutes(
+  resolved: ResolvedLearningSteps,
+  grade: Grade,
+  step: LearningStepSchedule
+): number {
+  const cached = resolved.scheduledMinutes[grade]
+  if (cached !== undefined) return cached
+
+  const scheduledMinutes = Math.round(Math.max(0, step.scheduledMinutes))
+  resolved.scheduledMinutes[grade] = scheduledMinutes
+  return scheduledMinutes
 }

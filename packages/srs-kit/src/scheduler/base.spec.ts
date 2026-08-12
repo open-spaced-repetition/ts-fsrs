@@ -506,23 +506,23 @@ describe('SchedulerCore.newCard', () => {
     expect(seen).toEqual([1, 7])
   })
 
-  it('lets middleware read the previous grade candidate separately', () => {
+  it('finds the latest grade for a cached candidate memory state', () => {
     const seen: unknown[] = []
     const candidateMiddleware = defineMiddleware({
       name: Symbol('previous-candidate'),
       handlers: {
         review(ctx, next) {
-          const previousMemoryState = ctx.candidate.step(Rating.Hard)
+          const previousMemoryState = ctx.candidate.step(Rating.Again)
+          const previousGrade = ctx.candidate.findGrade(previousMemoryState)
           const hardMemoryState = ctx.candidate.step(Rating.Hard)
+          const hardGrade = ctx.candidate.findGrade(hardMemoryState)
+          const cachedPreviousMemoryState = ctx.candidate.step(Rating.Again)
           seen.push({
             sameMemoryState: previousMemoryState === hardMemoryState,
-            previousScheduledDays: ctx.candidate.nextInterval(
-              previousMemoryState,
-              ctx.desiredRetention
-            ),
-            hardScheduledDays: ctx.candidate.nextInterval(
-              hardMemoryState,
-              ctx.desiredRetention
+            previousGrade,
+            hardGrade,
+            cachedPreviousGrade: ctx.candidate.findGrade(
+              cachedPreviousMemoryState
             ),
           })
           next()
@@ -532,6 +532,11 @@ describe('SchedulerCore.newCard', () => {
     const candidateCore = createSM2NumericScheduler()
       .use(candidateMiddleware, schedulerStatsMiddleware)
       .create({ config: { weights: SM2_DEFAULT_WEIGHTS } })
+    vi.spyOn(candidateCore.model, 'step').mockReturnValue({
+      interval: 1,
+      easeFactor: 2.5,
+      reviewStep: 1,
+    })
     const card = candidateCore.newCard({ now: 0 })
 
     candidateCore.review({
@@ -543,8 +548,9 @@ describe('SchedulerCore.newCard', () => {
     expect(seen).toEqual([
       {
         sameMemoryState: true,
-        previousScheduledDays: 1,
-        hardScheduledDays: 1,
+        previousGrade: Rating.Again,
+        hardGrade: Rating.Hard,
+        cachedPreviousGrade: Rating.Again,
       },
     ])
   })

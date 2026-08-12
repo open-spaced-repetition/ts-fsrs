@@ -49,4 +49,15 @@ describe('calculateScheduleDays', () => {
     expect(calculateScheduleDay([98, 99, 100, 101], 100)).toBe(100)
     expect(calculateScheduleDay([102], 100)).toBe(100)
   })
+
+  it('preserves the current interval when every candidate is sub-day', () => {
+    expect(calculateScheduleDay([1 / 1440], 100)).toBe(1 / 1440)
+    expect(calculateScheduleDay([1 / 1440, 5 / 1440], 100)).toBe(5 / 1440)
+  })
+
+  it('ignores sub-day candidates when a day interval exists', () => {
+    expect(calculateScheduleDay([1, 5 / 1440], 100)).toBe(1)
+    expect(calculateScheduleDay([1 / 1440, 5 / 1440, 1, 1], 100)).toBe(2)
+    expect(calculateScheduleDay([1, 5 / 1440, 10 / 1440, 1], 100)).toBe(2)
+  })
 })

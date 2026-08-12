@@ -51,6 +51,10 @@ export type MiddlewareDefaultValueContext<
 
 export interface ReviewCandidateContext {
   readonly step: (grade: Grade) => Readonly<Record<string, unknown>>
+  /** Finds the most recently cached grade for a memory state. */
+  readonly findGrade: (
+    memoryState: Readonly<Record<string, unknown>>
+  ) => Grade | undefined
   readonly nextInterval: (
     memoryState: Readonly<Record<string, unknown>>,
     desiredRetention: number

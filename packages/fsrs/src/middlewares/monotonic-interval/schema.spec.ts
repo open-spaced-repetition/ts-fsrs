@@ -20,6 +20,7 @@ describe('monotonicIntervalConfigSchema', () => {
     null,
     { maximumInterval: 0 },
     { maximumInterval: -1 },
+    { maximumInterval: 1.5 },
     { maximumInterval: null },
     { maximumInterval: Number.NaN },
     { maximumInterval: Number.POSITIVE_INFINITY },

@@ -1,4 +1,9 @@
-import { defineScheduler, Rating, State } from '@open-spaced-repetition/srs-kit'
+import {
+  defineMiddleware,
+  defineScheduler,
+  Rating,
+  State,
+} from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '@/models/fsrs-6/index.js'
@@ -81,6 +86,41 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(nextInterval).not.toHaveBeenCalled()
 
     core.review({ card, grade: Rating.Easy, now })
+    expect(nextInterval).toHaveBeenCalledOnce()
+  })
+
+  it('delegates intervals for uncached candidate memory states', () => {
+    let interval: number | undefined
+    const probe = defineMiddleware({
+      name: Symbol('uncached-candidate'),
+      handlers: {
+        review(ctx, next) {
+          const memoryState = { ...ctx.candidate.step(Rating.Easy) }
+          interval = ctx.candidate.nextInterval(
+            memoryState,
+            ctx.desiredRetention
+          )
+          next()
+        },
+      },
+    })
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(schedulerLearningStepsMiddleware, probe)
+      .create({
+        config: {
+          weights: [...FSRS6_DEFAULT_WEIGHTS],
+          enableShortTerm: true,
+          numRelearningSteps: 1,
+          learningSteps: ['1m'],
+          relearningSteps: ['10m'],
+        },
+      })
+    const nextInterval = vi.spyOn(core.model, 'nextInterval')
+    const now = new Date(2022, 11, 29, 12, 30)
+
+    core.review({ card: core.newCard({ now }), grade: Rating.Again, now })
+
+    expect(interval).toBeGreaterThan(0)
     expect(nextInterval).toHaveBeenCalledOnce()
   })
 
@@ -221,6 +261,51 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(result.card.scheduleStatus).toBe('review')
     expect(result.card.learningStep).toBe(0)
     expect(result.card.dueAt.getTime()).toBeGreaterThan(now.getTime())
+  })
+
+  it.each([
+    ['zero-minute', ['0m'], 0],
+    ['rounded zero-minute', ['0.4m', '0.4m'], 0],
+    ['empty', [], 0],
+    ['exhausted', ['1m'], 1],
+  ] as const)('uses raw model intervals without monotonic middleware for %s steps', (_name, steps, learningStep) => {
+    const seedCore = createCore()
+    const now = new Date(2022, 11, 29, 12, 30)
+    const learningCard = seedCore.review({
+      card: seedCore.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    }).card
+    const reviewCard = seedCore.review({
+      card: seedCore.newCard({ now }),
+      grade: Rating.Easy,
+      now,
+    }).card
+    const relearningCard = seedCore.review({
+      card: reviewCard,
+      grade: Rating.Again,
+      now: reviewCard.dueAt,
+    }).card
+    const core = createCore({
+      learningSteps: steps,
+      relearningSteps: steps,
+    })
+    const previewDueDays = (card: typeof learningCard) => {
+      const reviewTime = card.dueAt
+      return Array.from(
+        core.preview({
+          card: { ...card, learningStep },
+          now: reviewTime,
+        }),
+        (item) =>
+          (item.card.dueAt.getTime() - reviewTime.getTime()) / 86_400_000
+      )
+    }
+
+    expect(learningCard.state).toBe(State.Learning)
+    expect(relearningCard.state).toBe(State.Relearning)
+    expect(previewDueDays(learningCard)).toEqual([1, 1, 1, 1])
+    expect(previewDueDays(relearningCard)).toEqual([1, 1, 1, 2])
   })
 
   it('bypasses learning steps when short-term scheduling is disabled', () => {
