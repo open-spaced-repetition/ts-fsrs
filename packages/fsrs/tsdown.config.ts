@@ -43,6 +43,7 @@ export default defineConfig([
     sourcemap: false,
     minify: false,
     target: 'es2017',
+    outputOptions: { codeSplitting: false },
     outExtensions: () => ({ js: '.js' }),
   },
 ])
