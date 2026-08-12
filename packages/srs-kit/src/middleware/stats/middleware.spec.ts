@@ -38,6 +38,7 @@ function reviewContext({
     scheduledDays: undefined,
     candidate: {
       step: () => ({}),
+      findGrade: () => undefined,
       nextInterval: () => 1,
     },
     result: {
