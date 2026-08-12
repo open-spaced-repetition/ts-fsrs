@@ -54,12 +54,19 @@ export function calculateScheduleDay(
   candidates: IntervalCandidates,
   maximumInterval: number
 ): number {
-  let scheduledDay = Math.min(candidates[0], maximumInterval)
-  for (let index = 1; index < candidates.length; index++) {
-    scheduledDay = Math.min(
-      Math.max(candidates[index], scheduledDay === 0 ? 0 : scheduledDay + 1),
-      maximumInterval
-    )
+  const currentInterval = candidates[candidates.length - 1]
+  let scheduledDay: number | undefined
+  for (const interval of candidates) {
+    if (interval < 1) continue
+
+    if (scheduledDay === undefined) {
+      scheduledDay = Math.min(interval, maximumInterval)
+    } else {
+      scheduledDay = Math.min(
+        Math.max(interval, scheduledDay + 1),
+        maximumInterval
+      )
+    }
   }
-  return scheduledDay
+  return scheduledDay ?? currentInterval
 }

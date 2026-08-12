@@ -15,12 +15,7 @@ import {
 } from '@/scheduler/compose-schema.js'
 import { getAttachedValue } from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
-import {
-  composeMiddleware,
-  createLazyIterable,
-  parse,
-  withCache,
-} from '@/schema/index.js'
+import { composeMiddleware, createLazyIterable, parse } from '@/schema/index.js'
 import type {
   BlankSchedulerEnv,
   PreviewResult,
@@ -60,6 +55,9 @@ interface PreparedReview<Env extends BlankSchedulerEnv> {
   readonly retrievability?: number
   readonly candidate: {
     readonly step: (grade: Grade) => Record<string, unknown>
+    readonly findGrade: (
+      memoryState: Readonly<Record<string, unknown>>
+    ) => Grade | undefined
     readonly nextInterval: (
       memoryState: Readonly<Record<string, unknown>>,
       desiredRetention: number
@@ -414,16 +412,27 @@ export class BaseScheduler<
     const elapsedDays = this.chrono.difference(time.previous, time.current)
 
     const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
-    const step = withCache(
-      (grade: Grade) =>
-        this.model.step({
+    const memoryStateByGrade = new Map<Grade, Record<string, unknown>>()
+    const gradeByMemoryState = new Map<
+      Readonly<Record<string, unknown>>,
+      Grade
+    >()
+    const step = (grade: Grade): Record<string, unknown> => {
+      let nextMemoryState = memoryStateByGrade.get(grade)
+      if (nextMemoryState === undefined) {
+        nextMemoryState = this.model.step({
           memoryState,
           rating: grade,
           elapsedDays,
           retrievability,
-        }),
-      { lru: false }
-    )
+        }) as Record<string, unknown>
+        memoryStateByGrade.set(grade, nextMemoryState)
+      }
+      gradeByMemoryState.set(nextMemoryState, grade)
+      return nextMemoryState
+    }
+    const findGrade = (nextMemoryState: Readonly<Record<string, unknown>>) =>
+      gradeByMemoryState.get(nextMemoryState)
     const intervalCache = new Map<
       Readonly<Record<string, unknown>>,
       Map<number, number>
@@ -453,6 +462,7 @@ export class BaseScheduler<
       retrievability,
       candidate: {
         step,
+        findGrade,
         nextInterval,
       },
     }

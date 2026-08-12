@@ -55,7 +55,7 @@ function createReviewContext({
     desiredRetention: 0.9,
     elapsedDays: 9,
     scheduledDays,
-    candidate: { step, nextInterval },
+    candidate: { step, findGrade: () => undefined, nextInterval },
     result: { card: {}, revlog: {} },
   } as unknown as ReviewContext
   const next = vi.fn(() => {
@@ -299,7 +299,7 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
     expect(combinedRng).toHaveBeenCalled()
   })
 
-  it('lets learning steps own short-term due dates', () => {
+  it('lets learning steps own short-term and graduation intervals', () => {
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(
         createSchedulerFuzzingMiddleware({ rng: () => () => 0.5 }),
@@ -332,5 +332,98 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
       10 * 60_000
     )
     expect(preview.get(Rating.Easy)!.card.state).toBe(State.Review)
+
+    const learningCard = preview.get(Rating.Good)!.card
+    const learningGraduation = core.review({
+      card: learningCard,
+      grade: Rating.Good,
+      now: learningCard.dueAt,
+    })
+    expect(learningGraduation.card.state).toBe(State.Review)
+    expect(dueDays(learningGraduation.card.dueAt, learningCard.dueAt)).toBe(2)
+
+    const reviewCard = preview.get(Rating.Easy)!.card
+    const relearningCard = core.review({
+      card: reviewCard,
+      grade: Rating.Again,
+      now: reviewCard.dueAt,
+    }).card
+    expect(relearningCard.state).toBe(State.Relearning)
+
+    const relearningGraduation = core.review({
+      card: relearningCard,
+      grade: Rating.Good,
+      now: relearningCard.dueAt,
+    })
+    expect(relearningGraduation.card.state).toBe(State.Review)
+    expect(dueDays(relearningGraduation.card.dueAt, relearningCard.dueAt)).toBe(
+      1
+    )
+  })
+
+  it.each([
+    // Again 1m, Hard 5m, Good 1d, Easy 2d
+    ['positive-minute', ['1m', '9m'], 1, 100, [1, 5, 1440, 2880]],
+    // Again 1d, Hard 5m, Good 10m, Easy 2d
+    ['mixed-minute', ['0m', '10m'], 0, 100, [1440, 5, 10, 2880]],
+    // Again 1d, Hard 2d, Good 3d, Easy 4d
+    ['zero-minute', ['0m'], 0, 100, [1440, 2880, 4320, 5760]],
+    // Again 1d, Hard 2d, Good 3d, Easy 4d
+    ['rounded zero-minute', ['0.4m', '0.4m'], 0, 100, [1440, 2880, 4320, 5760]],
+    // Again 1d, Hard 2d, Good 3d, Easy 4d
+    ['empty', [], 0, 100, [1440, 2880, 4320, 5760]],
+    // Again 1d, Hard 2d, Good 3d, Easy 4d
+    ['exhausted', ['1m'], 1, 100, [1440, 2880, 4320, 5760]],
+    // Again 1m, Hard 5m, Good 1d, Easy capped at 1d
+    ['maximum interval', ['1m', '9m'], 1, 1, [1, 5, 1440, 1440]],
+  ] as const)('keeps %s learning intervals monotonic', (_name, learningSteps, learningStep, maximum, expected) => {
+    const modelConfig = {
+      weights: [...FSRS6_DEFAULT_WEIGHTS],
+      enableShortTerm: true,
+    }
+    const baseScheduler = defineScheduler({
+      model: FSRS6Model,
+      chrono: dateChrono,
+    })
+    const learningCore = baseScheduler
+      .use(schedulerLearningStepsMiddleware)
+      .create({
+        config: {
+          ...modelConfig,
+          numRelearningSteps: 1,
+          learningSteps: ['1m', '10m'],
+          relearningSteps: ['10m'],
+        },
+      })
+    const monotonicCore = baseScheduler
+      .use(
+        schedulerLearningStepsMiddleware,
+        schedulerMonotonicIntervalMiddleware
+      )
+      .create({
+        config: {
+          ...modelConfig,
+          numRelearningSteps: learningSteps.length,
+          maximumInterval: maximum,
+          learningSteps,
+          relearningSteps: learningSteps,
+        },
+      })
+    const learningCard = learningCore.review({
+      card: learningCore.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    }).card
+    const reviewTime = learningCard.dueAt
+
+    expect(
+      Array.from(
+        monotonicCore.preview({
+          card: { ...learningCard, learningStep },
+          now: reviewTime,
+        }),
+        (item) => (item.card.dueAt.getTime() - reviewTime.getTime()) / 60_000
+      )
+    ).toEqual(expected)
   })
 })
