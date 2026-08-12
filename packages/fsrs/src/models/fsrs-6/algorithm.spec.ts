@@ -1,5 +1,5 @@
+import { Rating } from '@open-spaced-repetition/srs-kit'
 import { expect, it } from 'vitest'
-import { Rating } from '@/models.js'
 import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6_MODEL_BOUNDS } from './constants.js'
 

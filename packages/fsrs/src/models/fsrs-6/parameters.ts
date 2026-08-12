@@ -1,8 +1,8 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
-import { FSRS5_DEFAULT_DECAY } from '@/constant.js'
 import { FSRSValidationError } from '@/error.js'
 import { clamp, roundTo } from '@/help.js'
 import { isNumberArray } from '@/kit/schema-utils.js'
+import { FSRS5_DECAY } from '@/models/fsrs-5/constants.js'
 import {
   FSRS6_DEFAULT_WEIGHTS,
   FSRS6_W17_W18_CEILING,
@@ -97,7 +97,7 @@ export const migrateFSRS6Parameters = (
         Array.from(parameters),
         numRelearningSteps,
         enableShortTerm
-      ).concat([0.0, FSRS5_DEFAULT_DECAY])
+      ).concat([0.0, FSRS5_DECAY])
     case 17: {
       const weights = clipFSRS6Parameters(
         Array.from(parameters),
@@ -107,7 +107,7 @@ export const migrateFSRS6Parameters = (
       weights[4] = +(weights[5] * 2.0 + weights[4]).toFixed(8)
       weights[5] = +(Math.log(weights[5] * 3.0 + 1.0) / 3.0).toFixed(8)
       weights[6] = +(weights[6] + 0.5).toFixed(8)
-      return weights.concat([0.0, 0.0, 0.0, FSRS5_DEFAULT_DECAY])
+      return weights.concat([0.0, 0.0, 0.0, FSRS5_DECAY])
     }
     default:
       throw new FSRSValidationError(

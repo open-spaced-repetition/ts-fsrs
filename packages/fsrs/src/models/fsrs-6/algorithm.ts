@@ -1,7 +1,8 @@
+import { type Grade, Rating } from '@open-spaced-repetition/srs-kit'
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import { FSRSValidationError } from '@/error.js'
 import { clamp, roundTo } from '@/help.js'
-import { type FSRSState, type Grade, Rating } from '@/models.js'
+import type { FSRSState } from '@/kit/types.js'
 
 export const computeDecayFactor = (
   decayOrParams: number | number[] | readonly number[]
@@ -187,16 +188,17 @@ export class FSRS6Algorithm {
     if (g < 0 || g > 4) {
       throw new FSRSValidationError(`Invalid grade "${g}"`)
     }
-    if (d === 0 && s === 0) {
-      return {
-        difficulty: clamp(this.init_difficulty(g), 1, 10),
-        stability: this.init_stability(g),
-      }
-    }
-    if (g === 0) {
+    if (g === Rating.Manual) {
       return {
         difficulty: d,
         stability: s,
+      }
+    }
+    const grade = g as Grade
+    if (d === 0 && s === 0) {
+      return {
+        difficulty: clamp(this.init_difficulty(grade), 1, 10),
+        stability: this.init_stability(grade),
       }
     }
     if (d < 1 || s < this.bounds.sMin) {
@@ -208,7 +210,7 @@ export class FSRS6Algorithm {
     r = typeof r === 'number' ? r : this.forgetting_curve(t, s)
     let new_s: number
     if (t === 0 && this.enableShortTerm) {
-      new_s = this.next_short_term_stability(s, g)
+      new_s = this.next_short_term_stability(s, grade)
     } else if (g === 1) {
       const s_after_fail = this.next_forget_stability(d, s, r)
       let [w_17, w_18] = [0, 0]
@@ -219,10 +221,10 @@ export class FSRS6Algorithm {
       const next_s_min = s / Math.exp(w_17 * w_18)
       new_s = clamp(roundTo(next_s_min, 8), this.bounds.sMin, s_after_fail)
     } else {
-      new_s = this.next_recall_stability(d, s, r, g)
+      new_s = this.next_recall_stability(d, s, r, grade)
     }
 
-    const new_d = this.next_difficulty(d, g)
+    const new_d = this.next_difficulty(d, grade)
     return { difficulty: new_d, stability: new_s }
   }
 }

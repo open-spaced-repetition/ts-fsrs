@@ -2,38 +2,19 @@ export {
   defineChrono,
   defineMiddleware,
   defineScheduler,
+  type Grade,
+  gradeSchema,
+  Rating,
+  ratingSchema,
+  State,
+  stateSchema,
 } from '@open-spaced-repetition/srs-kit'
 export { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 export { numericChrono } from '@open-spaced-repetition/srs-kit/chrono/numeric'
 export { temporalInstantChrono } from '@open-spaced-repetition/srs-kit/chrono/temporal-instant'
-export * from './constant.js'
-export * from './convert.js'
-export * from './default.js'
 export * from './help.js'
-export * from './legacy/abstract_scheduler.js'
-export * from './legacy/fsrs.js'
-export * from './legacy/impl/basic_scheduler.js'
-export * from './legacy/impl/long_term_scheduler.js'
-export * from './legacy/strategies/index.js'
+export { FSRSMemoryStateSchema } from './kit/schema.js'
+export type { FSRSState } from './kit/types.js'
+export * from './legacy/index.js'
 export * from './middlewares/index.js'
-export type {
-  Card,
-  CardInput,
-  DateInput,
-  FSRSHistory,
-  FSRSParameters,
-  FSRSReview,
-  FSRSState,
-  Grade,
-  GradeType,
-  RatingType,
-  RecordLog,
-  RecordLogItem,
-  ReviewLog,
-  ReviewLogInput,
-  StateType,
-  Steps,
-} from './models.js'
-export { Rating, State } from './models.js'
 export * from './scheduler/index.js'
-export type * from './types.js'
