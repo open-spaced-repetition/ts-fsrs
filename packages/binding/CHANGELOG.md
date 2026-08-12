@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.2
+
+### Minor Changes
+
+- [#447](https://github.com/open-spaced-repetition/ts-fsrs/pull/447) [`7b587db`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7b587db49e4131bc7a8470388da49a3e34a1e676) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): support `ReadableStream<Uint8Array>` input in `convertCsvToFsrsItems`.
+
 ## 0.6.0-beta.1
 
 ### Minor Changes
