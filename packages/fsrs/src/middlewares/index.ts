@@ -1,3 +1,4 @@
+export * from './desired-retention/index.js'
 export * from './fuzzing/index.js'
 export * from './learning-steps/index.js'
 export * from './leech/index.js'
