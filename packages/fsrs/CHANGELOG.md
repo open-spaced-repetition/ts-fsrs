@@ -1,5 +1,34 @@
 # ts-fsrs
 
+## 6.0.0-beta.2
+
+### Major Changes
+
+- [#451](https://github.com/open-spaced-repetition/ts-fsrs/pull/451) [`75c4608`](https://github.com/open-spaced-repetition/ts-fsrs/commit/75c46085e59054392e2f1cebfc4b9a006faa07ea) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add the srs-kit-backed `DefaultScheduler` API.
+
+- [#457](https://github.com/open-spaced-repetition/ts-fsrs/pull/457) [`a3b47b0`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a3b47b09476fa906b32fe65cbb3df7b700bf2da9) Thanks [@ishiko732](https://github.com/ishiko732)! - chore: move legacy scheduler models, types, constants, and helpers behind the
+  legacy barrel while re-exporting SRS primitives and schemas from srs-kit and
+  the FSRS memory-state schema.
+
+### Minor Changes
+
+- [#449](https://github.com/open-spaced-repetition/ts-fsrs/pull/449) [`4efbd87`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4efbd87891ddc49e7ecc5d040e7b2db29df13f04) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add desired retention middleware and remove the exported `CardId` type.
+
+- [#445](https://github.com/open-spaced-repetition/ts-fsrs/pull/445) [`9a964e2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/9a964e2f0a4628c2c54aeecf47f1b80a9f0ff641) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineMiddleware` and built-in middlewares.
+
+### Patch Changes
+
+- [#454](https://github.com/open-spaced-repetition/ts-fsrs/pull/454) [`bfa1a84`](https://github.com/open-spaced-repetition/ts-fsrs/commit/bfa1a841e508c030277994e38b81f202122dfe38) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: preserve explicit learning-step intervals while keeping graduation intervals monotonic, and require `maximumInterval` to be a positive integer.
+
+- [#456](https://github.com/open-spaced-repetition/ts-fsrs/pull/456) [`8852cbb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/8852cbbf6d2470e9e67fd6e32e4e3019449434d4) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: enforce maximum intervals independently of fuzzing.
+
+- [#443](https://github.com/open-spaced-repetition/ts-fsrs/pull/443) [`6cd7d55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6cd7d554a909086842f7694cb8472c68cdd78402) Thanks [@ishiko732](https://github.com/ishiko732)! - perf(middleware): avoid redundant model interval and schedule array calculations.
+
+- [#458](https://github.com/open-spaced-repetition/ts-fsrs/pull/458) [`7b6060b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7b6060b1f8824969b99017ca2a0be41b515020cd) Thanks [@ishiko732](https://github.com/ishiko732)! - test: cover legacy exports, the FSRS memory-state schema export, strict
+  primitive schemas, and the optional maximum interval branch.
+- Updated dependencies [[`bfa1a84`](https://github.com/open-spaced-repetition/ts-fsrs/commit/bfa1a841e508c030277994e38b81f202122dfe38), [`5e06a6a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5e06a6a978b0609cb93a087cd8f3e9d89b837b9c), [`a19f2e6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a19f2e6bcbfc50d4c4a5942d1fb4c5b08430eff0), [`b66e2c7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b66e2c7be48d1dca3af163b2f19af45cd6a3a0cb)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.2
+
 ## 6.0.0-beta.1
 
 ### Minor Changes
