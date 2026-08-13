@@ -19,14 +19,23 @@
     "@open-spaced-repetition/binding-wasm32-wasip1": "0.6.0-beta.0"
   },
   "changesets": [
+    "add-default-scheduler",
     "add-fsrs3-model",
     "add-fsrs4-model",
     "add-fsrs45-model",
+    "add-review-candidate-grade-lookup",
     "add-threadless-wasip1",
+    "binding-csv-web-stream",
     "binding-rust-timezone",
     "chrono-compare",
+    "desired-retention-middleware",
     "dynamic-desired-retention",
+    "expose-middlewares",
     "expose-scheduler-chrono",
+    "fix-learning-graduation-interval",
+    "fix-maximum-interval",
+    "fix-new-card-rollback",
+    "fix-scheduler-card-init-input",
     "fsrs5-model",
     "fsrs6-model-migration",
     "fuzzing-middleware",
@@ -37,8 +46,11 @@
     "migrate-to-tsdown",
     "model-create-bypass",
     "monotonic-interval-middleware",
+    "move-legacy-exports",
     "optimize-learning-steps-middleware",
+    "optimize-middleware-interval-hot-paths",
     "optimize-monotonic-interval-middleware",
+    "optimize-scheduler-schema",
     "remove-afterhandler",
     "remove-date-prototype",
     "remove-deprecated-elapsed-days",
@@ -48,6 +60,7 @@
     "scheduler-ts2590",
     "separate-apply-fuzz",
     "srs-kit-public",
+    "test-legacy-exports",
     "validate-fsrs6-decay"
   ]
 }
