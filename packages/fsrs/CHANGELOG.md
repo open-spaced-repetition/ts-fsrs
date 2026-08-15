@@ -1,5 +1,16 @@
 # ts-fsrs
 
+## 6.0.0-beta.3
+
+### Patch Changes
+
+- [#460](https://github.com/open-spaced-repetition/ts-fsrs/pull/460) [`1e89bb8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1e89bb8d8c942a7e0989b0eced3632e73b494958) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: export stats middleware APIs.
+
+- [#461](https://github.com/open-spaced-repetition/ts-fsrs/pull/461) [`baba58a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/baba58a95ed933d72b8e4228214ab3c81d595ea3) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): rename the leech schedule status to `suspended`.
+
+- Updated dependencies [[`1e89bb8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1e89bb8d8c942a7e0989b0eced3632e73b494958)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.3
+
 ## 6.0.0-beta.2
 
 ### Major Changes
