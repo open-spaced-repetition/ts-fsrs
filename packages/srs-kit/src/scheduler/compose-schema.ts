@@ -14,6 +14,7 @@ import {
   isObject,
   type StandardSchemaV1,
 } from '@/schema/index.js'
+import { validateSync } from '@/schema/validate-sync.js'
 import type {
   SchedulerCoreFields,
   SchedulerRevlogCoreFields,
@@ -103,14 +104,12 @@ export function composeSchema(ctx: {
       return { issues: [{ message: 'Expected scheduler config object' }] }
     }
 
-    const modelResult = modelConfigSchema['~standard'].validate(value)
+    const modelResult = validateSync(modelConfigSchema, value)
     if (modelResult.issues) return modelResult
 
     let chronoValue: unknown = {}
     if (chronoConfigSchema) {
-      const chronoResult = chronoConfigSchema['~standard'].validate(
-        value.chrono
-      )
+      const chronoResult = validateSync(chronoConfigSchema, value.chrono)
       if (chronoResult.issues) return chronoResult
       chronoValue = chronoResult.value
     }
@@ -119,7 +118,7 @@ export function composeSchema(ctx: {
     assignObjectFields(result, modelResult.value)
 
     for (const schema of middlewareConfigSchemas) {
-      const middlewareResult = schema['~standard'].validate(value)
+      const middlewareResult = validateSync(schema, value)
       if (middlewareResult.issues) {
         return middlewareResult
       }
@@ -151,7 +150,7 @@ export function composeSchema(ctx: {
     let firstMiddlewareFields: Record<string, unknown> | undefined
     let combinedFields: Record<string, unknown> | undefined
     for (const schema of middlewareCardInitInputSchemas) {
-      const middlewareResult = schema['~standard'].validate(middlewareValue)
+      const middlewareResult = validateSync(schema, middlewareValue)
       if (middlewareResult.issues) return middlewareResult
       const fields = middlewareResult.value as Record<string, unknown>
       if (firstMiddlewareFields === undefined) {
@@ -172,14 +171,14 @@ export function composeSchema(ctx: {
       return { issues: [{ message: 'Expected card object' }] }
     }
 
-    const modelResult = model.schema.memoryState['~standard'].validate(value)
+    const modelResult = validateSync(model.schema.memoryState, value)
     if (modelResult.issues) return modelResult
 
     const memoryState = modelResult.value as Record<string, unknown>
     const card: Record<string, unknown> = Object.assign({}, memoryState)
 
     if (chronoCardSchema) {
-      const chronoCard = chronoCardSchema['~standard'].validate(value)
+      const chronoCard = validateSync(chronoCardSchema, value)
       if (chronoCard.issues) return chronoCard
       Object.assign(card, chronoCard.value)
     }
@@ -191,7 +190,7 @@ export function composeSchema(ctx: {
     card.scheduleStatus = coreFields.value.scheduleStatus
 
     for (const schema of middlewareCardSchemas) {
-      const middlewareCard = schema['~standard'].validate(value)
+      const middlewareCard = validateSync(schema, value)
       if (middlewareCard.issues) return middlewareCard
       Object.assign(card, middlewareCard.value)
     }
@@ -210,14 +209,14 @@ export function composeSchema(ctx: {
       return { issues: [{ message: 'Expected revlog object' }] }
     }
 
-    const modelResult = model.schema.memoryState['~standard'].validate(value)
+    const modelResult = validateSync(model.schema.memoryState, value)
     if (modelResult.issues) return modelResult
 
     // Reuse the parsed memory state for revlog hot paths to avoid another allocation.
     const result = modelResult.value as Record<string, unknown>
 
     if (chronoRevlogSchema) {
-      const chronoRevlog = chronoRevlogSchema['~standard'].validate(value)
+      const chronoRevlog = validateSync(chronoRevlogSchema, value)
       if (chronoRevlog.issues) return chronoRevlog
       Object.assign(result, chronoRevlog.value)
     }
@@ -232,7 +231,7 @@ export function composeSchema(ctx: {
     result.state = coreFields.value.state
 
     for (const schema of middlewareRevlogSchemas) {
-      const middlewareRevlog = schema['~standard'].validate(value)
+      const middlewareRevlog = validateSync(schema, value)
       if (middlewareRevlog.issues) return middlewareRevlog
       Object.assign(result, middlewareRevlog.value)
     }

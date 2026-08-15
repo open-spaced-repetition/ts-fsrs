@@ -1,6 +1,7 @@
 import type { StandardSchemaV1 } from '@vendor/standard-schema.js'
 import type { Prettify } from '@/schema/index.js'
 import type { AnySchema, SchemaOutput, SRSSchema } from './standard.js'
+import { validateSync } from './validate-sync.js'
 
 export function defineSchema<Input, Output = Input>(
   validate: (value: unknown) => StandardSchemaV1.Result<Output>
@@ -32,7 +33,7 @@ export function parse<S extends AnySchema>(
   schema: S,
   input: unknown
 ): SchemaOutput<S> {
-  const result = schema['~standard'].validate(input)
+  const result = validateSync(schema, input)
   if (result.issues) {
     throw new SRSSchemaError(result.issues)
   }

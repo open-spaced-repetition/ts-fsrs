@@ -1,5 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
-import type { SchemaOutput } from './standard.js'
+import type { SchemaOutput, StandardSchemaV1 } from './index.js'
 import { defineSchema, parse, SRSSchemaError } from './validators.js'
 
 const sizeSchema = defineSchema<'small' | 'large'>((value) =>
@@ -43,5 +43,23 @@ describe('standard schema helpers', () => {
 
   it('parse() throws SRSSchemaError on invalid input', () => {
     expect(() => parse(sizeSchema, 'medium')).toThrow(SRSSchemaError)
+  })
+
+  it('rejects async Standard Schema validation', () => {
+    const schema: StandardSchemaV1<string> = {
+      '~standard': {
+        version: 1,
+        vendor: 'test',
+        async validate(value) {
+          return typeof value === 'string'
+            ? { value }
+            : { issues: [{ message: 'Expected string' }] }
+        },
+      },
+    }
+
+    expect(() => parse(schema, 'value')).toThrow(
+      'Async Standard Schema validation is not supported'
+    )
   })
 })
