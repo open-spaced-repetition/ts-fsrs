@@ -13,7 +13,7 @@ let sink = 0
 
 function consume(lapses: number, scheduleStatus: string): void {
   sink =
-    (sink + lapses + Number(scheduleStatus === 'suspend')) %
+    (sink + lapses + Number(scheduleStatus === 'suspended')) %
     Number.MAX_SAFE_INTEGER
 }
 
