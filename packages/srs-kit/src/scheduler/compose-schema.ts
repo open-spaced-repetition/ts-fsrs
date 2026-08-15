@@ -73,12 +73,10 @@ export function composeSchema(ctx: {
   ): StandardSchemaV1.Result<
     SchedulerCoreFields | SchedulerRevlogCoreFields
   > => {
-    const scheduleStatus = scheduleStatusSchema['~standard'].validate(
-      fields.scheduleStatus
-    )
+    const scheduleStatus = validateSync(scheduleStatusSchema, fields.scheduleStatus)
     if (scheduleStatus.issues) return scheduleStatus
 
-    const state = stateSchema['~standard'].validate(fields.state)
+    const state = validateSync(stateSchema, fields.state)
     if (state.issues) return state
 
     if (!options?.rating) {
@@ -87,7 +85,7 @@ export function composeSchema(ctx: {
       }
     }
 
-    const rating = gradeSchema['~standard'].validate(fields.rating)
+    const rating = validateSync(gradeSchema, fields.rating)
     if (rating.issues) return rating
 
     return {
