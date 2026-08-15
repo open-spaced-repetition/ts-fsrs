@@ -1,4 +1,4 @@
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type { SchemaOutput, StandardSchemaV1 } from './index.js'
 import { defineSchema, parse, SRSSchemaError } from './validators.js'
 
@@ -45,15 +45,15 @@ describe('standard schema helpers', () => {
     expect(() => parse(sizeSchema, 'medium')).toThrow(SRSSchemaError)
   })
 
-  it('rejects async Standard Schema validation', () => {
+  it('rejects async Standard Schema validation and logs rejections', async () => {
+    const error = new Error('Validation failed')
+    const logger = vi.spyOn(console, 'error').mockImplementation(() => {})
     const schema: StandardSchemaV1<string> = {
       '~standard': {
         version: 1,
         vendor: 'test',
-        async validate(value) {
-          return typeof value === 'string'
-            ? { value }
-            : { issues: [{ message: 'Expected string' }] }
+        async validate() {
+          throw error
         },
       },
     }
@@ -61,5 +61,11 @@ describe('standard schema helpers', () => {
     expect(() => parse(schema, 'value')).toThrow(
       'Async Standard Schema validation is not supported'
     )
+    await Promise.resolve()
+    expect(logger).toHaveBeenCalledWith(
+      'Async Standard Schema validation rejected',
+      error
+    )
+    logger.mockRestore()
   })
 })

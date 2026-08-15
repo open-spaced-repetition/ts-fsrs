@@ -11,6 +11,9 @@ export function validateSync<Schema extends AnySchema>(
 ): StandardSchemaV1.Result<SchemaOutput<Schema>> {
   const result = schema['~standard'].validate(input)
   if (isPromiseLike(result)) {
+    void Promise.resolve(result).catch((error: unknown) => {
+      console.error('Async Standard Schema validation rejected', error)
+    })
     throw new TypeError('Async Standard Schema validation is not supported')
   }
   return result
