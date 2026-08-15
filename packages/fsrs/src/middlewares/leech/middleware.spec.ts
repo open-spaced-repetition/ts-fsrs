@@ -44,7 +44,7 @@ describe('schedulerLeechMiddleware review', () => {
 
     expect(core.newCard({ now }).lapses).toBe(0)
     expect(core.config.leechThreshold).toBe(0)
-    expect(scheduler.schema.scheduleStatus.parse('suspend')).toBe('suspend')
+    expect(scheduler.schema.scheduleStatus.parse('suspended')).toBe('suspended')
   })
 
   it.each([
@@ -57,7 +57,7 @@ describe('schedulerLeechMiddleware review', () => {
     const result = core.review({ card, grade: Rating.Again, now: later })
 
     expect(result.card.lapses).toBe(after)
-    expect(result.card.scheduleStatus).toBe('suspend')
+    expect(result.card.scheduleStatus).toBe('suspended')
   })
 
   it('does not suspend before the next threshold multiple', () => {
@@ -110,7 +110,7 @@ describe('schedulerLeechMiddleware review', () => {
 
     expect(preview.map(({ card }) => card.lapses)).toEqual([8, 7, 7, 7])
     expect(preview.map(({ card }) => card.scheduleStatus)).toEqual([
-      'suspend',
+      'suspended',
       'review',
       'review',
       'review',
@@ -162,11 +162,11 @@ describe('schedulerLeechMiddleware review', () => {
     expect({
       lapses: leechFirstResult.card.lapses,
       scheduleStatus: leechFirstResult.card.scheduleStatus,
-    }).toEqual({ lapses: 8, scheduleStatus: 'suspend' })
+    }).toEqual({ lapses: 8, scheduleStatus: 'suspended' })
     expect({
       lapses: statsFirstResult.card.lapses,
       scheduleStatus: statsFirstResult.card.scheduleStatus,
-    }).toEqual({ lapses: 8, scheduleStatus: 'suspend' })
+    }).toEqual({ lapses: 8, scheduleStatus: 'suspended' })
   })
 
   it('uses lapses already assigned by an earlier middleware', () => {
@@ -195,7 +195,7 @@ describe('schedulerLeechMiddleware review', () => {
     const result = core.review({ card, grade: Rating.Again, now: later })
 
     expect(result.card.lapses).toBe(16)
-    expect(result.card.scheduleStatus).toBe('suspend')
+    expect(result.card.scheduleStatus).toBe('suspended')
   })
 
   it('overrides learning steps when registered before them', () => {
@@ -228,7 +228,7 @@ describe('schedulerLeechMiddleware review', () => {
     })
 
     expect(result.card.lapses).toBe(1)
-    expect(result.card.scheduleStatus).toBe('suspend')
+    expect(result.card.scheduleStatus).toBe('suspended')
   })
 })
 

@@ -8,7 +8,7 @@ import { leechCardFieldsSchema, leechConfigSchema } from './schema.js'
 /** Register before middleware that writes scheduleStatus after next(). */
 export const schedulerLeechMiddleware = defineMiddleware({
   name: Symbol('ts-fsrs.leech'),
-  scheduleStatus: ['suspend'],
+  scheduleStatus: ['suspended'],
   schema: {
     config: leechConfigSchema,
     card: leechCardFieldsSchema,
@@ -35,7 +35,7 @@ export const schedulerLeechMiddleware = defineMiddleware({
       const { lapses } = ctx.result.card
       const { leechThreshold } = ctx.config
       if (isLapse && leechThreshold > 0 && lapses % leechThreshold === 0) {
-        ctx.result.card.scheduleStatus = 'suspend'
+        ctx.result.card.scheduleStatus = 'suspended'
       }
     },
 

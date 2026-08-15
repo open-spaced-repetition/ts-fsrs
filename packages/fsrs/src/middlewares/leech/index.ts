@@ -13,7 +13,7 @@
  *   reject values that are not non-negative integers. A threshold of `0`
  *   disables suspension.
  * - Define and validate a card field `lapses` as a non-negative integer.
- * - Use `defineMiddleware` with `scheduleStatus: ['suspend']`, the config and
+ * - Use `defineMiddleware` with `scheduleStatus: ['suspended']`, the config and
  *   card schemas, and no unnecessary factory or core abstraction.
  * - Default new-card `lapses` to `0`. During forget, preserve the input value
  *   only when the composed config has `clearStatsOnForget === false`;
@@ -23,7 +23,7 @@
  *   `ctx.input.grade === Rating.Again`. Use an existing
  *   `ctx.result.card.lapses` value when present; otherwise write the previous
  *   lapses plus one for a lapse, or the unchanged value for any other review.
- * - Set `ctx.result.card.scheduleStatus` to `'suspend'` only for a current
+ * - Set `ctx.result.card.scheduleStatus` to `'suspended'` only for a current
  *   lapse when `leechThreshold > 0` and the resulting lapses count is an exact
  *   multiple of the threshold.
  * - In rollback, call `next()` first and fill a missing result lapses value by
