@@ -29,6 +29,15 @@ export type SRSSchemaTypes<Input = unknown, Output = Input> = {
 
 export interface SRSSchema<Definition extends SRSSchemaTypes>
   extends StandardSchemaV1<Definition['input'], Definition['output']> {
+  readonly '~standard': Omit<
+    StandardSchemaV1.Props<Definition['input'], Definition['output']>,
+    'validate'
+  > & {
+    readonly validate: (
+      value: unknown,
+      options?: StandardSchemaV1.Options | undefined
+    ) => StandardSchemaV1.Result<Definition['output']>
+  }
   parse(input: unknown): Definition['output']
   safeParse(input: unknown): SafeParseResult<Definition['output']>
 }

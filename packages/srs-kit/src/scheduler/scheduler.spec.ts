@@ -5,7 +5,12 @@ import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2Model } from '@/model/sm2.test.js'
 import { type Grade, Rating, State } from '@/primitives/index.js'
-import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
+import {
+  defineSchema,
+  isObject,
+  numberSchema,
+  type StandardSchemaV1,
+} from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
 import type {
   SchedulerCardInitInputOf,
@@ -344,6 +349,27 @@ describe('defineScheduler', () => {
   it('validates middleware config while composing scheduler config', () => {
     expect(() => middlewareScheduler.schema.config.parse(config)).toThrow(
       'Expected source config'
+    )
+  })
+
+  it('rejects async middleware schema validation', () => {
+    const asyncConfigSchema: StandardSchemaV1<unknown, object> = {
+      '~standard': {
+        version: 1,
+        vendor: 'test',
+        async validate() {
+          return { value: {} }
+        },
+      },
+    }
+    const asyncMiddleware = defineMiddleware({
+      name: 'async-config',
+      schema: { config: asyncConfigSchema },
+    })
+    const asyncScheduler = createSM2NumericScheduler().use(asyncMiddleware)
+
+    expect(() => asyncScheduler.schema.config.parse(config)).toThrow(
+      'Async Standard Schema validation is not supported'
     )
   })
 

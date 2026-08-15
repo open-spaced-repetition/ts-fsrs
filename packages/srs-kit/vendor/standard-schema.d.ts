@@ -3,7 +3,7 @@
  * @license MIT
  */
 
-// Vendored from Standard Schema v1, narrowed to synchronous validation.
+// Vendored from Standard Schema v1.
 export interface StandardTypedV1<Input = unknown, Output = Input> {
   readonly '~standard': StandardTypedV1.Props<Input, Output>
 }
@@ -39,7 +39,7 @@ export declare namespace StandardSchemaV1 {
     readonly validate: (
       value: unknown,
       options?: StandardSchemaV1.Options | undefined
-    ) => Result<Output>
+    ) => Result<Output> | Promise<Result<Output>>
   }
 
   export type Result<Output> = SuccessResult<Output> | FailureResult
