@@ -73,7 +73,10 @@ export function composeSchema(ctx: {
   ): StandardSchemaV1.Result<
     SchedulerCoreFields | SchedulerRevlogCoreFields
   > => {
-    const scheduleStatus = validateSync(scheduleStatusSchema, fields.scheduleStatus)
+    const scheduleStatus = validateSync(
+      scheduleStatusSchema,
+      fields.scheduleStatus
+    )
     if (scheduleStatus.issues) return scheduleStatus
 
     const state = validateSync(stateSchema, fields.state)
