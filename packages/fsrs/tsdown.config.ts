@@ -37,7 +37,7 @@ export default defineConfig([
     deps: {
       alwaysBundle: [
         '@open-spaced-repetition/srs-kit',
-        '@open-spaced-repetition/srs-kit/chrono/*',
+        '@open-spaced-repetition/srs-kit/**',
       ],
     },
     sourcemap: false,
