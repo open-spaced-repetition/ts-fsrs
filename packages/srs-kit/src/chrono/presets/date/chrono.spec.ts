@@ -93,7 +93,7 @@ describe('dateChrono', () => {
         },
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(dateChrono.projection, {
         card: parse(dateChrono.schema.card, {
@@ -102,7 +102,7 @@ describe('dateChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(dateChrono.projection, {
         card: parse(dateChrono.schema.card, {
@@ -110,7 +110,7 @@ describe('dateChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(dateChrono.projection, {
         revlog: {
