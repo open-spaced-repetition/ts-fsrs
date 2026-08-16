@@ -37,6 +37,7 @@
     "fix-maximum-interval",
     "fix-new-card-rollback",
     "fix-scheduler-card-init-input",
+    "fix-standard-schema-validation",
     "fsrs5-model",
     "fsrs6-model-migration",
     "fuzzing-middleware",

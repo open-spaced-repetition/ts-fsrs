@@ -1,5 +1,12 @@
 # ts-fsrs
 
+## 6.0.0-beta.4
+
+### Patch Changes
+
+- Updated dependencies [[`87c828f`](https://github.com/open-spaced-repetition/ts-fsrs/commit/87c828ff9d856b81d4dffd612d7768328fde3864)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.4
+
 ## 6.0.0-beta.3
 
 ### Patch Changes
