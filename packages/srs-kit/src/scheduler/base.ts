@@ -409,7 +409,10 @@ export class BaseScheduler<
       }
     ) as PreparedReview<Env>['time']
 
-    const elapsedDays = this.chrono.difference(time.previous, time.current)
+    const elapsedDays =
+      card.state === State.New
+        ? 0
+        : this.chrono.difference(time.previous, time.current)
 
     const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
     const memoryStateByGrade = new Map<Grade, Record<string, unknown>>()

@@ -129,7 +129,9 @@ describe('DefaultScheduler legacy parity', () => {
       }
 
       if (state === State.New) {
-        expect(actual.every((item) => +item.revlog.dueAt === +NOW)).toBe(true)
+        expect(actual.every((item) => +item.revlog.dueAt === +card.dueAt)).toBe(
+          true
+        )
         expect(+card.dueAt).not.toBe(+NOW)
       }
     })
@@ -183,8 +185,7 @@ describe('DefaultScheduler legacy parity', () => {
         expectSequenceParity(actual, expected, card, enableShortTerm)
         expectRollbackParity(
           scheduler.rollback(actual),
-          legacyRollback(options, expected),
-          actual.revlog
+          legacyRollback(options, expected)
         )
 
         card = actual.card
@@ -202,11 +203,7 @@ describe('DefaultScheduler legacy parity', () => {
 
       for (const grade of grades) {
         const reviewed = scheduler.review({ card, grade, now: NOW })
-        expectRollbackParity(
-          scheduler.rollback(reviewed),
-          card,
-          reviewed.revlog
-        )
+        expectRollbackParity(scheduler.rollback(reviewed), card)
       }
     })
   })
@@ -333,8 +330,7 @@ describe('DefaultScheduler legacy parity', () => {
       expectFullParity(actual, expected)
       expectRollbackParity(
         scheduler.rollback(actual),
-        legacyRollback(options, expected),
-        actual.revlog
+        legacyRollback(options, expected)
       )
       expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
     })

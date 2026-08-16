@@ -178,7 +178,7 @@ describe('temporalInstantChrono', () => {
         },
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(temporalInstantChrono.projection, {
         card: parse(temporalInstantChrono.schema.card, {
@@ -187,7 +187,7 @@ describe('temporalInstantChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(temporalInstantChrono.projection, {
         card: parse(temporalInstantChrono.schema.card, {
@@ -195,7 +195,7 @@ describe('temporalInstantChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: later, current: later })
+    ).toEqual({ previous: now, current: later })
     expect(
       parse(temporalInstantChrono.projection, {
         revlog: {

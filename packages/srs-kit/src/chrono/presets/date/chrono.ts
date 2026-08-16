@@ -31,7 +31,7 @@ export const dateChrono = defineChrono({
 
       return {
         value: {
-          previous: card.value.lastReviewAt ?? time.value,
+          previous: card.value.lastReviewAt ?? card.value.dueAt,
           current: time.value,
         },
       }

@@ -136,27 +136,18 @@ export function legacyRollback(
 
 export function expectRollbackParity(
   actual: DefaultSchedulerCard,
-  expected: Card | DefaultSchedulerCard,
-  revlog?: ReviewResult['revlog']
+  expected: Card | DefaultSchedulerCard
 ): void {
   const expectedCard =
     'cardId' in expected ? expected : fromLegacyCard(expected, actual.cardId)
-  expect(actual).toEqual({
-    ...expectedCard,
-    dueAt: revlog?.state === State.New ? revlog.reviewTime : expectedCard.dueAt,
-    lastReviewAt:
-      revlog?.state === State.New ? null : expectedCard.lastReviewAt,
-  })
+  expect(actual).toEqual(expectedCard)
 }
 
 export function expectRevlogParity(
   actual: ReviewResult['revlog'],
   expected: ReviewResult['revlog']
 ): void {
-  expect(actual).toEqual({
-    ...expected,
-    dueAt: expected.state === State.New ? actual.dueAt : expected.dueAt,
-  })
+  expect(actual).toEqual(expected)
 }
 
 export function expectFullParity(
