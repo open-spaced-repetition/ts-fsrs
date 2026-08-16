@@ -54,6 +54,7 @@
     "optimize-middleware-interval-hot-paths",
     "optimize-monotonic-interval-middleware",
     "optimize-scheduler-schema",
+    "preserve-new-card-due-at",
     "remove-afterhandler",
     "remove-date-prototype",
     "remove-deprecated-elapsed-days",
