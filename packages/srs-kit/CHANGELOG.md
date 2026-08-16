@@ -1,5 +1,11 @@
 # @open-spaced-repetition/srs-kit
 
+## 0.1.0-beta.5
+
+### Patch Changes
+
+- [#466](https://github.com/open-spaced-repetition/ts-fsrs/pull/466) [`5f79a74`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5f79a745e8c0700b7da9bb5077b7853b0cedad0e) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): preserve new-card rollback state while keeping elapsed days at zero.
+
 ## 0.1.0-beta.4
 
 ### Patch Changes
