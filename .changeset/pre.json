@@ -33,6 +33,7 @@
     "expose-middlewares",
     "expose-scheduler-chrono",
     "expose-scheduler-stats-middleware",
+    "expose-scheduler-types",
     "fix-learning-graduation-interval",
     "fix-maximum-interval",
     "fix-new-card-rollback",

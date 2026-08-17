@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 6.0.0-beta.6
+
+### Minor Changes
+
+- [#469](https://github.com/open-spaced-repetition/ts-fsrs/pull/469) [`63a6e7c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/63a6e7c6a3e93430297bdab5a9565ff6b08fa008) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose srs-kit types and bundle their declarations.
+
 ## 6.0.0-beta.5
 
 ### Patch Changes
