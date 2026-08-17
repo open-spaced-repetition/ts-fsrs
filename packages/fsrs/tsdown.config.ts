@@ -20,6 +20,14 @@ export default defineConfig([
     format: ['esm', 'cjs'],
     outDir: 'dist',
     dts: true,
+    deps: {
+      dts: {
+        alwaysBundle: [
+          '@open-spaced-repetition/srs-kit',
+          '@open-spaced-repetition/srs-kit/**',
+        ],
+      },
+    },
     clean: true,
     sourcemap: false,
     minify: false,
