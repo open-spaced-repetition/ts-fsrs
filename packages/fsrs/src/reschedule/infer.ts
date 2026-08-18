@@ -1,6 +1,7 @@
 import type {
   AnySchedulerCore,
   ForwardItem,
+  Prettify,
   Rating,
 } from '@open-spaced-repetition/srs-kit'
 
@@ -59,7 +60,7 @@ export interface ReplayResult<MemoryState extends object> {
   readonly memoryStates: MemoryState[]
 }
 
-export interface RescheduleResult<Scheduler extends AnySchedulerCore> {
-  readonly results: ScheduleResultOf<Scheduler>[]
+export type RescheduleResult<Scheduler extends AnySchedulerCore> = Prettify<{
+  readonly results: Prettify<ScheduleResultOf<Scheduler>>[]
   readonly card: ScheduleResultOf<Scheduler>['card']
-}
+}>
