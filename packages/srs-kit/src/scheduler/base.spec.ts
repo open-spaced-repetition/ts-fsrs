@@ -1129,6 +1129,23 @@ describe('SchedulerCore.preview', () => {
     expect(items.every((item) => item.card && item.revlog)).toBe(true)
   })
 
+  it('maps preview results to an array', () => {
+    const card = core.newCard()
+    const calls: number[] = []
+    const grades = core.preview({ card: card, now: 0 }).map((preview) => {
+      calls.push(preview.grade)
+      return preview.grade
+    })
+
+    expect(grades).toEqual([
+      Rating.Again,
+      Rating.Hard,
+      Rating.Good,
+      Rating.Easy,
+    ])
+    expect(calls).toEqual([Rating.Again, Rating.Hard, Rating.Good, Rating.Easy])
+  })
+
   it('matches individual review calls', () => {
     const card = core.newCard()
     const previews = Array.from(core.preview({ card: card, now: 0 }))

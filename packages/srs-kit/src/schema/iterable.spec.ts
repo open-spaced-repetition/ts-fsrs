@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import { createLazyIterable } from './iterable.js'
 
 describe('createLazyIterable', () => {
@@ -37,5 +37,24 @@ describe('createLazyIterable', () => {
 
     expect(Array.from(iterable)).toEqual(['missing', 'next'])
     expect(calls).toEqual([undefined, 'next'])
+  })
+
+  it('maps values to an array and supports chaining', () => {
+    const sourceCalls: number[] = []
+    const mapCalls: number[] = []
+    const mapped = createLazyIterable([1, 2, 3], (key) => {
+      sourceCalls.push(key)
+      return key * 2
+    })
+      .map((value) => {
+        mapCalls.push(value)
+        return value + 1
+      })
+      .map(String)
+
+    expectTypeOf(mapped).toEqualTypeOf<string[]>()
+    expect(mapped).toEqual(['3', '5', '7'])
+    expect(sourceCalls).toEqual([1, 2, 3])
+    expect(mapCalls).toEqual([2, 4, 6])
   })
 })
