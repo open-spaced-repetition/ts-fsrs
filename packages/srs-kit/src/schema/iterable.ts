@@ -1,4 +1,5 @@
 export interface LazyIterable<Value> extends Iterable<Value> {
+  map<MappedValue>(callback: (value: Value) => MappedValue): MappedValue[]
   [Symbol.iterator](): IterableIterator<Value>
 }
 
@@ -6,10 +7,11 @@ export function createLazyIterable<const Key, Value>(
   keys: readonly Key[],
   getValue: (key: Key) => Value
 ): LazyIterable<Value> {
-  const result = Object.create(null)
-  Object.defineProperty(result, Symbol.iterator, {
-    enumerable: false,
-    value() {
+  return {
+    map(callback) {
+      return Array.from(this, (value) => callback(value))
+    },
+    [Symbol.iterator]() {
       let index = 0
       const iterator: IterableIterator<Value> = {
         next() {
@@ -25,7 +27,5 @@ export function createLazyIterable<const Key, Value>(
       }
       return iterator
     },
-  })
-
-  return result as LazyIterable<Value>
+  }
 }
