@@ -323,8 +323,10 @@ export class BaseScheduler<
     readonly card: SchedulerCoreEnv<Env>['card']['input']
     readonly now?: SchedulerCoreEnv<Env>['chrono']
   }): PreviewResult<
-    SchedulerCoreEnv<Env>['card']['output'],
-    SchedulerCoreEnv<Env>['revlog']['output']
+    ScheduleResult<
+      SchedulerCoreEnv<Env>['card']['output'],
+      SchedulerCoreEnv<Env>['revlog']['output']
+    >
   > => {
     const inputCard = input.card
     const now = this.parseNow(input.now)

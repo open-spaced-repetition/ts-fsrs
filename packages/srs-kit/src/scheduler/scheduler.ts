@@ -26,19 +26,19 @@ import type { ExtendSchedulerEnv } from './infer.js'
 // Schedule Result
 // ==========
 
-export interface ScheduleResult<Card, Revlog> {
-  card: Mutable<Card>
-  revlog: Mutable<Revlog>
-}
+export type ScheduleResult<Card, Revlog> = Prettify<{
+  card: { -readonly [Key in keyof Card]: Card[Key] }
+  revlog: { -readonly [Key in keyof Revlog]: Revlog[Key] }
+}>
 
 export type PreviewItem<Card, Revlog> = Prettify<{
-  card: Mutable<Card>
-  revlog: Mutable<Revlog>
+  card: ScheduleResult<Card, Revlog>['card']
+  revlog: ScheduleResult<Card, Revlog>['revlog']
   readonly grade: Grade
 }>
 
-export interface PreviewResult<Card, Revlog>
-  extends LazyIterable<PreviewItem<Card, Revlog>> {}
+export interface PreviewResult<Env extends { card: object; revlog: object }>
+  extends LazyIterable<PreviewItem<Env['card'], Env['revlog']>> {}
 
 // ==========
 // Scheduler Core
@@ -117,7 +117,9 @@ export interface SchedulerCore<
   readonly preview: (input: {
     readonly card: Env['card']['input']
     readonly now?: Env['chrono']
-  }) => PreviewResult<Env['card']['output'], Env['revlog']['output']>
+  }) => PreviewResult<
+    ScheduleResult<Env['card']['output'], Env['revlog']['output']>
+  >
   readonly rollback: (input: {
     readonly card: Env['card']['output']
     readonly revlog: Env['revlog']['output']

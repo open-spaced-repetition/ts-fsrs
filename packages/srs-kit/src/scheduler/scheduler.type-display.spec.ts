@@ -4,8 +4,11 @@ import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
+import type { Grade } from '@/primitives/rating.js'
+import type { Mutable } from '@/schema/index.js'
 import { defineStringFieldOutputSchema } from '@/schema/string-field.test.js'
 import { defineScheduler } from './define-scheduler.js'
+import type { PreviewResult, ScheduleResult } from './scheduler.js'
 
 const sm2NumericScheduler = defineScheduler({
   model: SM2Model,
@@ -103,6 +106,54 @@ const defaultNewCard = sm2NumericSchedulerWithMiddleware.defaultValue.newCard(
 const mappedPreview = sm2NumericCoreWithMiddleware
   .preview({ card: sm2NumericCoreWithMiddleware.newCard({ now: 0 }), now: 0 })
   .map((item) => item)
+
+type ComposedCardForDisplay = Mutable<
+  Omit<
+    Mutable<{ stability: number; dueAt: Date }> & {
+      readonly reps: number
+    },
+    'dueAt'
+  > & {
+    readonly dueAt: Date
+    readonly learningStep: number
+  }
+>
+
+type ComposedRevlogForDisplay = Mutable<
+  Omit<Mutable<{ reviewedAt: Date; readonly rating: Grade }>, 'rating'> & {
+    readonly rating: Grade
+  }
+>
+
+interface FSRSSchedulerForDisplay {
+  readonly preview: () => PreviewResult<
+    ScheduleResult<ComposedCardForDisplay, ComposedRevlogForDisplay>
+  >
+}
+
+type SchedulerPreviews = ReturnType<FSRSSchedulerForDisplay['preview']>
+type SchedulerPreview =
+  SchedulerPreviews extends Iterable<infer Preview> ? Preview : never
+
+declare const previewCollectionForDisplay: SchedulerPreviews
+
+function displaySchedulerPreview(preview: SchedulerPreview) {
+  return preview
+}
+
+const inferredSchedulerPreview = displaySchedulerPreview({
+  card: {
+    stability: 1,
+    dueAt: new Date(0),
+    reps: 0,
+    learningStep: 0,
+  },
+  revlog: {
+    reviewedAt: new Date(0),
+    rating: 1,
+  },
+  grade: 1,
+})
 
 const SELF = 'src/scheduler/scheduler.type-display.spec.ts'
 
@@ -487,8 +538,20 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedPreviews = {
+    previewCollectionForDisplay: `const previewCollectionForDisplay: PreviewResult<{
+    card: {
+        reps: number;
+        stability: number;
+        dueAt: Date;
+        learningStep: number;
+    };
+    revlog: {
+        reviewedAt: Date;
+        rating: Grade;
+    };
+}>`,
     mappedPreview: `const mappedPreview: {
-    card: Mutable<{
+    card: {
         source: string;
         interval: number;
         easeFactor: number;
@@ -497,8 +560,8 @@ describe('defineScheduler type display', () => {
         lapses: number;
         state: State;
         scheduleStatus: "new" | "learning" | "review";
-    }>;
-    revlog: Mutable<{
+    };
+    revlog: {
         interval: number;
         easeFactor: number;
         reviewStep: number;
@@ -506,9 +569,22 @@ describe('defineScheduler type display', () => {
         state: State;
         scheduleStatus: "new" | "learning" | "review";
         rating: Grade;
-    }>;
+    };
     readonly grade: Grade;
 }[]`,
+    inferredSchedulerPreview: `const inferredSchedulerPreview: {
+    card: {
+        reps: number;
+        stability: number;
+        dueAt: Date;
+        learningStep: number;
+    };
+    revlog: {
+        reviewedAt: Date;
+        rating: Grade;
+    };
+    readonly grade: Grade;
+}`,
   }
 
   const expectedDefaultValues = {
@@ -688,7 +764,7 @@ describe('defineScheduler type display', () => {
     }
   })
 
-  it('shows flat card and revlog fields for mapped previews', () => {
+  it('shows labeled preview types and flat mapped fields', () => {
     for (const [marker, expected] of Object.entries(expectedPreviews)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
