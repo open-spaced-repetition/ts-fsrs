@@ -1,5 +1,17 @@
 # @open-spaced-repetition/srs-kit
 
+## 0.1.0-beta.6
+
+### Minor Changes
+
+- [#471](https://github.com/open-spaced-repetition/ts-fsrs/pull/471) [`7c1f873`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7c1f873a7780950d07de7777a6589182d7392c39) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): support mapping preview results to arrays.
+
+### Patch Changes
+
+- [#476](https://github.com/open-spaced-repetition/ts-fsrs/pull/476) [`3135797`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3135797b0236f26a24bfa5b5ed05a0514ce8ae56) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten composed schedule fields and label preview card and revlog types.
+
+- [#472](https://github.com/open-spaced-repetition/ts-fsrs/pull/472) [`21798ad`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21798ad21d9d5d1a632e49545c85b79d63745b93) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten preview card and revlog type displays.
+
 ## 0.1.0-beta.5
 
 ### Patch Changes

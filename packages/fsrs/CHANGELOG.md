@@ -1,5 +1,14 @@
 # ts-fsrs
 
+## 6.0.0-beta.7
+
+### Patch Changes
+
+- [#473](https://github.com/open-spaced-repetition/ts-fsrs/pull/473) [`3c7422d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3c7422da62b4cfcfede2da1ee7cb64ba18a7410a) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): flatten reschedule card and revlog type displays.
+
+- Updated dependencies [[`3135797`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3135797b0236f26a24bfa5b5ed05a0514ce8ae56), [`21798ad`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21798ad21d9d5d1a632e49545c85b79d63745b93), [`7c1f873`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7c1f873a7780950d07de7777a6589182d7392c39)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.6
+
 ## 6.0.0-beta.6
 
 ### Minor Changes
