@@ -9,6 +9,7 @@ import type {
   AnySchema,
   Assign,
   EmptyPart,
+  LazyIterable,
   Mutable,
   Prettify,
   SchemaInput,
@@ -35,9 +36,8 @@ export interface PreviewItem<Card, Revlog>
   readonly grade: Grade
 }
 
-export interface PreviewResult<Card, Revlog> {
-  [Symbol.iterator](): IterableIterator<PreviewItem<Card, Revlog>>
-}
+export interface PreviewResult<Card, Revlog>
+  extends LazyIterable<PreviewItem<Card, Revlog>> {}
 
 // ==========
 // Scheduler Core
