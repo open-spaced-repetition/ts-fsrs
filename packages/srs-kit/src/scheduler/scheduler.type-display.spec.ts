@@ -50,8 +50,10 @@ const auditMiddleware = defineMiddleware({
     },
   },
   handlers: {
-    review(_ctx, next) {
+    review(ctx, next) {
       next()
+      ctx.result.card.source = ctx.input.card.source
+      ctx.result.revlog.audit = 'default'
     },
   },
 })
@@ -97,6 +99,10 @@ const defaultNewCard = sm2NumericSchedulerWithMiddleware.defaultValue.newCard(
   },
   0
 )
+
+const mappedPreview = sm2NumericCoreWithMiddleware
+  .preview({ card: sm2NumericCoreWithMiddleware.newCard({ now: 0 }), now: 0 })
+  .map((item) => item)
 
 const SELF = 'src/scheduler/scheduler.type-display.spec.ts'
 
@@ -480,6 +486,31 @@ describe('defineScheduler type display', () => {
 }>, ChronoCore<number>>`,
   }
 
+  const expectedPreviews = {
+    mappedPreview: `const mappedPreview: {
+    card: Mutable<{
+        source: string;
+        interval: number;
+        easeFactor: number;
+        reviewStep: number;
+        reps: number;
+        lapses: number;
+        state: State;
+        scheduleStatus: "new" | "learning" | "review";
+    }>;
+    revlog: Mutable<{
+        interval: number;
+        easeFactor: number;
+        reviewStep: number;
+        audit: string;
+        state: State;
+        scheduleStatus: "new" | "learning" | "review";
+        rating: Grade;
+    }>;
+    readonly grade: Grade;
+}[]`,
+  }
+
   const expectedDefaultValues = {
     defaultNewCard: `const defaultNewCard: {
     source: string;
@@ -653,6 +684,12 @@ describe('defineScheduler type display', () => {
 
   it('shows SchedulerCore<T> for scheduler.create()', () => {
     for (const [marker, expected] of Object.entries(expectedCores)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('shows flat card and revlog fields for mapped previews', () => {
+    for (const [marker, expected] of Object.entries(expectedPreviews)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })
