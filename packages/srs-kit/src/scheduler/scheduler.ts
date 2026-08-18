@@ -31,10 +31,11 @@ export interface ScheduleResult<Card, Revlog> {
   revlog: Mutable<Revlog>
 }
 
-export interface PreviewItem<Card, Revlog>
-  extends ScheduleResult<Card, Revlog> {
+export type PreviewItem<Card, Revlog> = Prettify<{
+  card: Mutable<Card>
+  revlog: Mutable<Revlog>
   readonly grade: Grade
-}
+}>
 
 export interface PreviewResult<Card, Revlog>
   extends LazyIterable<PreviewItem<Card, Revlog>> {}
