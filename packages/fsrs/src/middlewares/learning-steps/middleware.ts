@@ -10,10 +10,46 @@ import {
   learningStepFieldsSchema,
   learningStepsConfigSchema,
 } from './schema.js'
-import type { LearningStepSchedule, LearningStepsResult } from './types.js'
+import type {
+  LearningStepSchedule,
+  LearningStepsConfig,
+  LearningStepsResult,
+} from './types.js'
 
 const MINUTES_PER_DAY = 1440
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
+
+// Deterministic per-config step schedules are memoized by config identity:
+// the parsed config object is stable for the lifetime of a scheduler, so
+// repeated reviews of the same (state, learningStep) reuse the computed
+// schedule instead of rebuilding it (and its allocations) every review.
+const learningStepsCache = new WeakMap<
+  object,
+  Map<State, Map<number, LearningStepsResult>>
+>()
+
+function resolveLearningSteps(
+  config: LearningStepsConfig,
+  state: State,
+  learningStep: number
+): LearningStepsResult {
+  let byState = learningStepsCache.get(config)
+  if (!byState) {
+    byState = new Map()
+    learningStepsCache.set(config, byState)
+  }
+  let byStep = byState.get(state)
+  if (!byStep) {
+    byStep = new Map()
+    byState.set(state, byStep)
+  }
+  let result = byStep.get(learningStep)
+  if (!result) {
+    result = calculateLearningSteps(config, state, learningStep)
+    byStep.set(learningStep, result)
+  }
+  return result
+}
 
 type ResolvedLearningSteps = {
   readonly steps: LearningStepsResult
@@ -50,7 +86,7 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       let resolved = candidate[resolvedStepsSymbol]
       if (!resolved) {
         resolved = {
-          steps: calculateLearningSteps(
+          steps: resolveLearningSteps(
             ctx.config,
             card.state,
             card.learningStep
