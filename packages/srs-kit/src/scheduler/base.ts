@@ -386,7 +386,16 @@ export class BaseScheduler<
     this.applyRollbackChronoDefaults(ctx.result, revlog)
 
     if (!this.check) {
-      return ctx.result.card as SchedulerCoreEnv<Env>['card']['output']
+      const card = ctx.result.card as Record<string, unknown>
+      rememberAttachedValue(
+        card,
+        parsedCardMemoryStateSymbol,
+        parse(
+          this.schedulerDefinition.model.schema.memoryState,
+          card
+        ) as Record<string, unknown>
+      )
+      return card as SchedulerCoreEnv<Env>['card']['output']
     }
     return parse(
       this.schema.card,
@@ -519,13 +528,20 @@ export class BaseScheduler<
   > {
     if (!this.check) {
       const card = result.card as Record<string, unknown>
+      const revlog = result.revlog as Record<string, unknown>
+      const memoryStateSchema =
+        this.schedulerDefinition.model.schema.memoryState
       rememberAttachedValue(
         card,
         parsedCardMemoryStateSymbol,
-        parse(
-          this.schedulerDefinition.model.schema.memoryState,
-          card
-        ) as Record<string, unknown>
+        parse(memoryStateSchema, card) as Record<string, unknown>
+      )
+      // Keep the memory state contract for revlogs too: re-parse (and re-apply)
+      // the memory state fields so post-next middleware writes are validated
+      // exactly like the check:true output parse.
+      Object.assign(
+        revlog,
+        parse(memoryStateSchema, revlog) as Record<string, unknown>
       )
       return result as unknown as ScheduleResult<
         SchedulerCoreEnv<Env>['card']['output'],
@@ -575,21 +591,13 @@ export class BaseScheduler<
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    const memoryState = parse(
-      this.schedulerDefinition.model.schema.memoryState,
-      revlog
-    ) as Record<string, unknown>
-    Object.assign(result.card, memoryState)
+    Object.assign(
+      result.card,
+      parse(this.schedulerDefinition.model.schema.memoryState, revlog)
+    )
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
 
-    if (!this.check) {
-      rememberAttachedValue(
-        result.card,
-        parsedCardMemoryStateSymbol,
-        memoryState
-      )
-    }
     return result.card
   }
 

@@ -33,6 +33,15 @@ function resolveLearningSteps(
   state: State,
   learningStep: number
 ): LearningStepsResult {
+  // The cache is keyed by config identity, so only memoize when the step
+  // schedules are immutable: in-place mutations of the arrays would otherwise
+  // be masked by stale cached results.
+  if (
+    !Object.isFrozen(config.learningSteps) ||
+    !Object.isFrozen(config.relearningSteps)
+  ) {
+    return calculateLearningSteps(config, state, learningStep)
+  }
   let byState = learningStepsCache.get(config)
   if (!byState) {
     byState = new Map()

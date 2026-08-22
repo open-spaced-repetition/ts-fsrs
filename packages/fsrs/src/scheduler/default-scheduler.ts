@@ -86,8 +86,10 @@ export async function DefaultScheduler(
       enableShortTerm,
       numRelearningSteps: relearningSteps.length,
       desiredRetention,
-      learningSteps: Array.from(learningSteps),
-      relearningSteps: Array.from(relearningSteps),
+      // Frozen copies: the learning-steps middleware memoizes schedules by
+      // config identity and only caches when the step arrays are immutable.
+      learningSteps: Object.freeze(Array.from(learningSteps)),
+      relearningSteps: Object.freeze(Array.from(relearningSteps)),
       enableFuzz,
       maximumInterval,
       clearStatsOnForget: options.clearStatsOnForget,
