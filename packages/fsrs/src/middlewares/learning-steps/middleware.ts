@@ -42,6 +42,14 @@ function resolveLearningSteps(
   ) {
     return calculateLearningSteps(config, state, learningStep)
   }
+  // Out-of-bounds learningStep always resolves to the empty schedule, so
+  // caching it would let unbounded distinct values grow the cache forever.
+  if (
+    learningStep >=
+    Math.max(config.learningSteps.length, config.relearningSteps.length)
+  ) {
+    return calculateLearningSteps(config, state, learningStep)
+  }
   let byState = learningStepsCache.get(config)
   if (!byState) {
     byState = new Map()
