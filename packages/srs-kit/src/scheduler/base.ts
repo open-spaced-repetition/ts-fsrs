@@ -387,14 +387,12 @@ export class BaseScheduler<
 
     if (!this.check) {
       const card = ctx.result.card as Record<string, unknown>
-      rememberAttachedValue(
-        card,
-        parsedCardMemoryStateSymbol,
-        parse(
-          this.schedulerDefinition.model.schema.memoryState,
-          card
-        ) as Record<string, unknown>
-      )
+      const memoryState = parse(
+        this.schedulerDefinition.model.schema.memoryState,
+        card
+      ) as Record<string, unknown>
+      Object.assign(card, memoryState)
+      rememberAttachedValue(card, parsedCardMemoryStateSymbol, memoryState)
       return card as SchedulerCoreEnv<Env>['card']['output']
     }
     return parse(
@@ -531,14 +529,19 @@ export class BaseScheduler<
       const revlog = result.revlog as Record<string, unknown>
       const memoryStateSchema =
         this.schedulerDefinition.model.schema.memoryState
+      // Keep the memory state contract: re-parse (and re-apply) the memory
+      // state fields of both outputs so normalization and post-next middleware
+      // writes match the check:true output parse exactly.
+      const parsedCardMemoryState = parse(memoryStateSchema, card) as Record<
+        string,
+        unknown
+      >
+      Object.assign(card, parsedCardMemoryState)
       rememberAttachedValue(
         card,
         parsedCardMemoryStateSymbol,
-        parse(memoryStateSchema, card) as Record<string, unknown>
+        parsedCardMemoryState
       )
-      // Keep the memory state contract for revlogs too: re-parse (and re-apply)
-      // the memory state fields so post-next middleware writes are validated
-      // exactly like the check:true output parse.
       Object.assign(
         revlog,
         parse(memoryStateSchema, revlog) as Record<string, unknown>

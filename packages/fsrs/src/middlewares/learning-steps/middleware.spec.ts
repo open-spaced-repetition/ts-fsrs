@@ -92,7 +92,8 @@ describe('schedulerLearningStepsMiddleware integration', () => {
   it('reflects learningSteps mutated after creation', () => {
     const core = createCore()
     const now = new Date(2022, 11, 29, 12, 30)
-    const card = core.newCard({ now })
+    // First review populates the memoized schedule for (New, 0) with '1m'.
+    core.review({ card: core.newCard({ now }), grade: Rating.Again, now })
     // learningStepsConfigSchema keeps the caller's array reference, so this
     // mutation also changes the array the middleware reads on the next review.
     const mutableConfig = core.config as unknown as {
@@ -100,8 +101,13 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     }
     mutableConfig.learningSteps[0] = '30m'
 
-    const result = core.review({ card, grade: Rating.Again, now })
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    })
 
+    // Without the immutability gate the memoized '1m' schedule would win.
     expect(result.card.dueAt.getTime() - now.getTime()).toBe(30 * 60_000)
   })
 
