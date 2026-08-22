@@ -111,6 +111,70 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     expect(result.card.dueAt.getTime() - now.getTime()).toBe(30 * 60_000)
   })
 
+  it('keeps scheduledDays unset for downstream middleware until finalize', () => {
+    let seenOnEntry: unknown = 'unset'
+    let finalDays: number | undefined
+    const downstream = defineMiddleware({
+      name: Symbol('downstream-observer'),
+      handlers: {
+        review(ctx, next) {
+          seenOnEntry = ctx.scheduledDays
+          next()
+          finalDays = ctx.scheduledDays
+        },
+      },
+    })
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(schedulerLearningStepsMiddleware, downstream)
+      .create({
+        config: {
+          weights: [...FSRS6_DEFAULT_WEIGHTS],
+          enableShortTerm: true,
+          numRelearningSteps: 1,
+          learningSteps: ['1m'],
+          relearningSteps: ['10m'],
+        },
+      })
+    const now = new Date(2022, 11, 29, 12, 30)
+
+    core.review({ card: core.newCard({ now }), grade: Rating.Again, now })
+
+    // A pre-set before next() would leak the learning minutes into the
+    // downstream middleware's entry view.
+    expect(seenOnEntry).toBeUndefined()
+    expect(finalDays).toBe(1 / 1440)
+  })
+
+  it('uses replaced frozen learningSteps arrays', () => {
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(schedulerLearningStepsMiddleware)
+      .create({
+        config: {
+          weights: [...FSRS6_DEFAULT_WEIGHTS],
+          enableShortTerm: true,
+          numRelearningSteps: 1,
+          learningSteps: Object.freeze(['1m', '10m']),
+          relearningSteps: Object.freeze(['10m']),
+        },
+      })
+    const now = new Date(2022, 11, 29, 12, 30)
+    core.review({ card: core.newCard({ now }), grade: Rating.Again, now })
+    // Replacing the (frozen) arrays must rebuild the memo, not serve stale
+    // schedules keyed by config identity alone.
+    const mutableConfig = core.config as unknown as {
+      learningSteps: readonly string[]
+    }
+    mutableConfig.learningSteps = Object.freeze(['30m', '10m'])
+
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    })
+
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(30 * 60_000)
+  })
+
   it('delegates intervals for uncached candidate memory states', () => {
     let interval: number | undefined
     const probe = defineMiddleware({

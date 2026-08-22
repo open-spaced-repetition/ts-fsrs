@@ -14,51 +14,68 @@ import type {
   LearningStepSchedule,
   LearningStepsConfig,
   LearningStepsResult,
+  StepUnit,
 } from './types.js'
 
 const MINUTES_PER_DAY = 1440
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
 
 // Deterministic per-config step schedules are memoized by config identity:
-// the parsed config object is stable for the lifetime of a scheduler, so
+type LearningStepsCacheEntry = {
+  readonly learningSteps: readonly StepUnit[]
+  readonly relearningSteps: readonly StepUnit[]
+  readonly byState: Map<State, Map<number, LearningStepsResult>>
+}
+
+// The parsed config object is stable for the lifetime of a scheduler, so
 // repeated reviews of the same (state, learningStep) reuse the computed
 // schedule instead of rebuilding it (and its allocations) every review.
-const learningStepsCache = new WeakMap<
-  object,
-  Map<State, Map<number, LearningStepsResult>>
->()
+// Entries also pin the exact step arrays they were computed from: replacing
+// `config.learningSteps` with a different (even frozen) array rebuilds the
+// entry instead of serving stale schedules.
+const learningStepsCache = new WeakMap<object, LearningStepsCacheEntry>()
 
 function resolveLearningSteps(
   config: LearningStepsConfig,
   state: State,
   learningStep: number
 ): LearningStepsResult {
-  // The cache is keyed by config identity, so only memoize when the step
-  // schedules are immutable: in-place mutations of the arrays would otherwise
-  // be masked by stale cached results.
+  let entry = learningStepsCache.get(config)
   if (
-    !Object.isFrozen(config.learningSteps) ||
-    !Object.isFrozen(config.relearningSteps)
+    !entry ||
+    entry.learningSteps !== config.learningSteps ||
+    entry.relearningSteps !== config.relearningSteps
   ) {
-    return calculateLearningSteps(config, state, learningStep)
+    // Only memoize immutable step arrays: in-place mutations would otherwise
+    // be masked by stale cached results.
+    if (
+      !Object.isFrozen(config.learningSteps) ||
+      !Object.isFrozen(config.relearningSteps)
+    ) {
+      return calculateLearningSteps(config, state, learningStep)
+    }
+    entry = {
+      learningSteps: config.learningSteps,
+      relearningSteps: config.relearningSteps,
+      byState: new Map(),
+    }
+    learningStepsCache.set(config, entry)
   }
   // Out-of-bounds learningStep always resolves to the empty schedule, so
   // caching it would let unbounded distinct values grow the cache forever.
-  if (
-    learningStep >=
-    Math.max(config.learningSteps.length, config.relearningSteps.length)
-  ) {
+  // The bound is state-aware: Learning uses learningSteps, Relearning and
+  // Review use relearningSteps.
+  const stepsLength =
+    state === State.Relearning || state === State.Review
+      ? config.relearningSteps.length
+      : config.learningSteps.length
+  if (learningStep >= stepsLength) {
     return calculateLearningSteps(config, state, learningStep)
   }
-  let byState = learningStepsCache.get(config)
-  if (!byState) {
-    byState = new Map()
-    learningStepsCache.set(config, byState)
-  }
-  let byStep = byState.get(state)
+  let byStep = entry.byState.get(state)
   if (!byStep) {
     byStep = new Map()
-    byState.set(state, byStep)
+    entry.byState.set(state, byStep)
   }
   let result = byStep.get(learningStep)
   if (!result) {
@@ -177,7 +194,13 @@ function getScheduledMinutes(
   const cached = resolved.scheduledMinutes[grade]
   if (cached !== undefined) return cached
 
-  const scheduledMinutes = Math.round(Math.max(0, step.scheduledMinutes))
-  resolved.scheduledMinutes[grade] = scheduledMinutes
-  return scheduledMinutes
+  const scheduledMinutes = step.scheduledMinutes
+  // Integer minutes (every non-decimal step unit) are already the rounded
+  // result, so they skip the rounding and the per-review cache write.
+  if (scheduledMinutes >= 0 && Number.isInteger(scheduledMinutes)) {
+    return scheduledMinutes
+  }
+  const rounded = Math.round(Math.max(0, scheduledMinutes))
+  resolved.scheduledMinutes[grade] = rounded
+  return rounded
 }
