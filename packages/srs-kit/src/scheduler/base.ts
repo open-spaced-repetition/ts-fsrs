@@ -13,7 +13,10 @@ import {
   parsedCardMemoryStateSymbol,
   parsedModelConfigSymbol,
 } from '@/scheduler/compose-schema.js'
-import { getAttachedValue } from '@/schema/attached-value.js'
+import {
+  getAttachedValue,
+  rememberAttachedValue,
+} from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import { composeMiddleware, createLazyIterable, parse } from '@/schema/index.js'
 import type {
@@ -42,6 +45,7 @@ export interface BaseSchedulerContext<
   readonly defaultValue: SchedulerDefaultValue<Env>
   readonly middlewares?: readonly AnyMiddleware[]
   readonly config: SchemaInput<Env['config']>
+  readonly check?: boolean
 }
 
 interface PreparedReview<Env extends BlankSchedulerEnv> {
@@ -164,6 +168,7 @@ export class BaseScheduler<
   private readonly schedulerDefinition: SchedulerDefinition<M, C>
   private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
+  private readonly check: boolean
   private readonly reviewHandlers: readonly (
     | ReviewRuntimeHandler<Env>
     | undefined
@@ -174,10 +179,18 @@ export class BaseScheduler<
   )[]
 
   constructor(ctx: BaseSchedulerContext<Env, M, C>) {
-    const { model, chrono, schema, defaultValue, middlewares = [] } = ctx
+    const {
+      model,
+      chrono,
+      schema,
+      defaultValue,
+      middlewares = [],
+      check = true,
+    } = ctx
     this.schedulerDefinition = Object.freeze({ model, chrono })
     this.schema = schema
     this.defaultValue = defaultValue
+    this.check = check
 
     const config = parse(schema.config, ctx.config)
 
@@ -372,6 +385,9 @@ export class BaseScheduler<
     )
     this.applyRollbackChronoDefaults(ctx.result, revlog)
 
+    if (!this.check) {
+      return ctx.result.card as SchedulerCoreEnv<Env>['card']['output']
+    }
     return parse(
       this.schema.card,
       ctx.result.card
@@ -501,6 +517,21 @@ export class BaseScheduler<
     SchedulerCoreEnv<Env>['card']['output'],
     SchedulerCoreEnv<Env>['revlog']['output']
   > {
+    if (!this.check) {
+      const card = result.card as Record<string, unknown>
+      rememberAttachedValue(
+        card,
+        parsedCardMemoryStateSymbol,
+        parse(
+          this.schedulerDefinition.model.schema.memoryState,
+          card
+        ) as Record<string, unknown>
+      )
+      return result as unknown as ScheduleResult<
+        SchedulerCoreEnv<Env>['card']['output'],
+        SchedulerCoreEnv<Env>['revlog']['output']
+      >
+    }
     return {
       card: parse(
         this.schema.card,
@@ -544,13 +575,21 @@ export class BaseScheduler<
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    Object.assign(
-      result.card,
-      parse(this.schedulerDefinition.model.schema.memoryState, revlog)
-    )
+    const memoryState = parse(
+      this.schedulerDefinition.model.schema.memoryState,
+      revlog
+    ) as Record<string, unknown>
+    Object.assign(result.card, memoryState)
     result.card.state = revlog.state
     result.card.scheduleStatus = revlog.scheduleStatus
 
+    if (!this.check) {
+      rememberAttachedValue(
+        result.card,
+        parsedCardMemoryStateSymbol,
+        memoryState
+      )
+    }
     return result.card
   }
 

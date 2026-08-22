@@ -26,6 +26,12 @@ export interface DefaultSchedulerOptions {
   readonly maximumInterval?: number
   /** Whether forget clears reps and lapses; defaults to true. */
   readonly clearStatsOnForget?: boolean
+  /**
+   * Whether to re-validate internally produced review results. Defaults to
+   * `true`. Set to `false` to skip redundant output re-validation; input is
+   * always validated.
+   */
+  readonly check?: boolean
   /** FSRS model and parameter migration version; defaults to FSRS-6. */
   readonly version?: DefaultSchedulerVersion
 }
@@ -86,5 +92,6 @@ export async function DefaultScheduler(
       maximumInterval,
       clearStatsOnForget: options.clearStatsOnForget,
     } satisfies DefaultSchedulerConfigInput,
+    check: options.check,
   }) as unknown as DefaultScheduler
 }

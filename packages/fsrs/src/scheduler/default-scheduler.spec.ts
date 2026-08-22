@@ -134,6 +134,47 @@ describe('DefaultScheduler', () => {
         DefaultScheduler({ version: 'FSRS-7' as never })
       ).rejects.toThrow('Unsupported FSRS version "FSRS-7"')
     })
+
+    it('matches checked output with check disabled', async () => {
+      const checked = await DefaultScheduler({ enableShortTerm: true })
+      const unchecked = await DefaultScheduler({
+        enableShortTerm: true,
+        check: false,
+      })
+      const grades = [
+        Rating.Again,
+        Rating.Hard,
+        Rating.Good,
+        Rating.Easy,
+      ] as const
+      const card = checked.newCard({ now: NOW, cardId: 'check-option' })
+
+      for (const grade of grades) {
+        expect(unchecked.review({ card, grade, now: NOW })).toEqual(
+          checked.review({ card, grade, now: NOW })
+        )
+      }
+
+      let checkedCard = card
+      let uncheckedCard = card
+      for (const grade of grades) {
+        checkedCard = checked.review({
+          card: checkedCard,
+          grade,
+          now: NOW,
+        }).card
+        uncheckedCard = unchecked.review({
+          card: uncheckedCard,
+          grade,
+          now: NOW,
+        }).card
+        expect(uncheckedCard).toEqual(checkedCard)
+      }
+
+      expect(Array.from(unchecked.preview({ card, now: NOW }))).toEqual(
+        Array.from(checked.preview({ card, now: NOW }))
+      )
+    })
   })
 
   describe('public API', () => {

@@ -723,3 +723,110 @@ describe('defineScheduler', () => {
     }>()
   })
 })
+
+describe('create check option', () => {
+  const checked = scheduler.create({ config })
+  const unchecked = scheduler.create({ config, check: false })
+  const newCard = checked.newCard()
+  const grades = [Rating.Again, Rating.Hard, Rating.Good, Rating.Easy] as const
+
+  it('produces identical review results with check disabled', () => {
+    for (const grade of grades) {
+      expect(unchecked.review({ card: newCard, grade, now: 0 })).toEqual(
+        checked.review({ card: newCard, grade, now: 0 })
+      )
+    }
+  })
+
+  it('produces identical preview and rollback with check disabled', () => {
+    const review = checked.review({ card: newCard, grade: Rating.Good, now: 0 })
+
+    expect(Array.from(unchecked.preview({ card: newCard, now: 0 }))).toEqual(
+      Array.from(checked.preview({ card: newCard, now: 0 }))
+    )
+    expect(
+      unchecked.rollback({ card: review.card, revlog: review.revlog })
+    ).toEqual(checked.rollback({ card: review.card, revlog: review.revlog }))
+  })
+
+  it('produces identical forward results with check disabled', () => {
+    const history = [
+      { rating: Rating.Again, reviewTime: 0 },
+      { rating: Rating.Good, reviewTime: 1 },
+      { rating: Rating.Easy, reviewTime: 5 },
+    ]
+
+    expect(unchecked.forward({ history })).toEqual(checked.forward({ history }))
+  })
+
+  it('keeps check-disabled output reviewable across rounds', () => {
+    let checkedCard = newCard
+    let uncheckedCard = newCard
+    for (const grade of grades) {
+      checkedCard = checked.review({ card: checkedCard, grade, now: 0 }).card
+      uncheckedCard = unchecked.review({
+        card: uncheckedCard,
+        grade,
+        now: 0,
+      }).card
+      expect(uncheckedCard).toEqual(checkedCard)
+    }
+  })
+
+  it('still validates review input with check disabled', () => {
+    expect(() =>
+      unchecked.review({
+        card: { ...newCard, state: 'bad' as never },
+        grade: Rating.Good,
+        now: 0,
+      })
+    ).toThrow()
+  })
+
+  it('skips output middleware re-validation with check disabled', () => {
+    const corruptingMiddleware = defineMiddleware({
+      name: 'corrupting-card-field',
+      schema: {
+        card: defineSchema<unknown, { readonly count: number }>((value) => {
+          if (!isObject(value)) {
+            return { issues: [{ message: 'Expected card object' }] }
+          }
+          const count = numberSchema['~standard'].validate(value.count)
+          if (count.issues) return count
+          return { value: { count: count.value } }
+        }),
+      },
+      defaultValue: {
+        card() {
+          return { count: 0 }
+        },
+      },
+      handlers: {
+        review(ctx, next) {
+          next()
+          Object.assign(ctx.result.card, { count: 'not-a-number' })
+        },
+      },
+    })
+    const checkedCore = createSM2NumericScheduler()
+      .use(corruptingMiddleware)
+      .create({ config })
+    const uncheckedCore = createSM2NumericScheduler()
+      .use(corruptingMiddleware)
+      .create({ config, check: false })
+    const card = uncheckedCore.newCard()
+
+    expect(() =>
+      checkedCore.review({ card, grade: Rating.Good, now: 0 })
+    ).toThrow()
+    expect(
+      (
+        uncheckedCore.review({
+          card,
+          grade: Rating.Good,
+          now: 0,
+        }).card as { count: unknown }
+      ).count
+    ).toBe('not-a-number')
+  })
+})

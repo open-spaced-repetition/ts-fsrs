@@ -249,6 +249,13 @@ export type SchedulerCreate<
   C extends AnyChrono = AnyChrono,
 > = (ctx: {
   readonly config: SchemaInput<Env['config']>
+  /**
+   * Whether to re-validate internally produced review results. Defaults to
+   * `true`. Set to `false` to skip redundant output re-validation: input is
+   * always validated, and model memory state is still re-parsed, but chrono,
+   * core, and middleware fields written by the pipeline are trusted as-is.
+   */
+  readonly check?: boolean
 }) => SchedulerCore<
   Prettify<SchedulerCoreEnv<Env>>,
   ReturnType<M['create']>,

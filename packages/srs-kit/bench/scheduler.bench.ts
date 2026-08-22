@@ -62,6 +62,42 @@ describe('SM2 numeric scheduler', () => {
   })
 })
 
+describe('SM2 numeric scheduler (check off)', () => {
+  const scheduler = defineScheduler({
+    model: SM2Model,
+    chrono: numericChrono,
+  }).use(schedulerStatsMiddleware)
+
+  const core = scheduler.create({ config, check: false })
+  const newCard = core.newCard({ now: 0 })
+  const reviewCard = core.review({
+    card: newCard,
+    grade: Rating.Good,
+    now: 0,
+  }).card
+
+  bench('review new card', () => {
+    core.review({ card: newCard, grade: Rating.Good, now: 0 })
+  })
+
+  bench('review existing card', () => {
+    core.review({
+      card: reviewCard,
+      grade: Rating.Good,
+      now: reviewCard.interval,
+    })
+  })
+
+  bench('preview existing card', () => {
+    for (const item of core.preview({
+      card: reviewCard,
+      now: reviewCard.interval,
+    })) {
+      consumeScheduler(item)
+    }
+  })
+})
+
 describe('defineScheduler composition', () => {
   const cachedScheduler = defineScheduler({
     model: SM2Model,

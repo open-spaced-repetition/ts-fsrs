@@ -172,3 +172,39 @@ for (const enableFuzz of [false, true]) {
     })
   }
 }
+
+const checkOffScheduler = await DefaultScheduler({ check: false })
+
+describe('DefaultScheduler check off', () => {
+  const newCard = checkOffScheduler.newCard({
+    now: initialReviewAt,
+    cardId: 'check-off',
+  })
+  const existingCard = checkOffScheduler.review({
+    card: newCard,
+    grade,
+    now: initialReviewAt,
+  }).card
+
+  bench('review new card', () => {
+    consume(
+      checkOffScheduler
+        .review({ card: newCard, grade, now: initialReviewAt })
+        .card.dueAt.getTime()
+    )
+  })
+
+  bench('review existing review card', () => {
+    consume(
+      checkOffScheduler
+        .review({ card: existingCard, grade, now: reviewAt })
+        .card.dueAt.getTime()
+    )
+  })
+
+  bench('full preview existing review card', () => {
+    consumePreview(
+      checkOffScheduler.preview({ card: existingCard, now: reviewAt })
+    )
+  })
+})

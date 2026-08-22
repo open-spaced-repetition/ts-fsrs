@@ -99,6 +99,7 @@ export function defineScheduler<
           defaultValue: defaultValue!,
           middlewares: middlewares!,
           config: ctx.config,
+          check: ctx.check,
         })
       },
       use(...added: AnyMiddleware[]): object {
