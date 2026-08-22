@@ -46,6 +46,18 @@ describe('FSRS5Algorithm', () => {
     expect(states.map((state) => state.difficulty)).toEqual([
       7.1949, 6.48830527, 5.28243442, 3.22450159,
     ])
+
+    const clamped = new FSRS5Algorithm(
+      [
+        Number.NEGATIVE_INFINITY,
+        Number.POSITIVE_INFINITY,
+        ...FSRS5_DEFAULT_WEIGHTS.slice(2),
+      ],
+      true,
+      FSRS5_MODEL_BOUNDS
+    )
+    expect(clamped.init_stability(Rating.Again)).toBe(FSRS5_MODEL_BOUNDS.sMin)
+    expect(clamped.init_stability(Rating.Hard)).toBe(FSRS5_MODEL_BOUNDS.sMax)
   })
 
   it('validates state inputs and handles every review rating', () => {
