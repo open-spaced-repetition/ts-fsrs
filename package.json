@@ -14,6 +14,8 @@
     "bench": "turbo run bench",
     "build": "turbo run build",
     "docs": "turbo run docs --filter=ts-fsrs",
+    "docs:dev": "pnpm -F @open-spaced-repetition/docs docs:dev",
+    "docs:build": "pnpm -F @open-spaced-repetition/docs docs:build",
     "changeset": "changeset",
     "//note:naming": "Use single colon (:) instead of double colon (::) in script names. Turbo fails to parse glob expressions for cache log files when task names contain '::' (see https://github.com/vercel/turborepo/issues/6136).",
     "//": "when we create the release PR, we need to update the lock file with the new versions",
@@ -34,6 +36,7 @@
     "vitest": "^4.1.5"
   },
   "workspaces": [
+    "docs",
     "packages/*",
     "packages/binding/npm/*"
   ],

@@ -39,7 +39,7 @@ pnpm-debug.log*
 
 # Documentation and coverage
 **/coverage/
-**/docs/
+/docs/doc_build/
 
 # Rust
 target/
