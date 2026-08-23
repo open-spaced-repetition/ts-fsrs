@@ -53,17 +53,20 @@ jobs:
             "$RUNNER_TEMP/workflow-run.json" > /dev/null
           run_head_branch=$(jq -er '.head_branch' "$RUNNER_TEMP/workflow-run.json")
           run_head_repository=$(jq -er '.head_repository.full_name' "$RUNNER_TEMP/workflow-run.json")
+          run_head_sha=$(jq -er '.head_sha' "$RUNNER_TEMP/workflow-run.json")
+          [[ "$run_head_sha" =~ ^[0-9a-f]{40,64}$ ]]
 
           pr_number=$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-pr.txt")
           head_sha=$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-sha.txt")
           [[ "$pr_number" =~ ^[1-9][0-9]*$ ]]
           [[ "$head_sha" =~ ^[0-9a-f]{40,64}$ ]]
+          [[ "$head_sha" == "$run_head_sha" ]]
 
           gh api "repos/$GITHUB_REPOSITORY/pulls/$pr_number" > "$RUNNER_TEMP/pull-request.json"
           if ! jq -e \
             --arg branch "$run_head_branch" \
             --arg repository "$run_head_repository" \
-            --arg sha "$head_sha" \
+            --arg sha "$run_head_sha" \
             '.state == "open" and .head.ref == $branch and .head.repo.full_name == $repository and .head.sha == $sha' \
             "$RUNNER_TEMP/pull-request.json" > /dev/null; then
             echo 'deploy=false' >> "$GITHUB_OUTPUT"
