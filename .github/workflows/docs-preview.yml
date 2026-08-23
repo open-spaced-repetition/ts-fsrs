@@ -1,0 +1,76 @@
+name: Docs Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled]
+    paths:
+      - 'docs/**'
+      - 'packages/fsrs/package.json'
+      - 'packages/srs-kit/package.json'
+      - 'packages/binding/package.json'
+      - 'packages/binding/npm/wasm32-wasip1/package.json'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'turbo.json'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - 'packages/binding/Cargo.toml'
+      - '.github/actions/setup-node-pnpm/action.yml'
+      - '.github/workflows/docs-preview.yml'
+
+concurrency:
+  group: docs-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
+  PREVIEW_BRANCH: pr${{ github.event.pull_request.number }}-ts-fsrs
+  PREVIEW_URL: https://pr${{ github.event.pull_request.number }}-ts-fsrs.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev
+
+jobs:
+  build:
+    if: github.event.action != 'labeled' || github.event.label.name == 'docs-preview'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Setup Node & pnpm
+        uses: ./.github/actions/setup-node-pnpm
+        with:
+          node-version: 26
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: 1.94.1
+          targets: wasm32-wasip1
+
+      - name: Build docs and dependencies
+        run: pnpm docs:build
+        env:
+          DOCS_SITE_ORIGIN: ${{ env.PREVIEW_URL }}
+          DOCS_REPO_SLUG: ${{ github.event.pull_request.head.repo.full_name }}
+          DOCS_REPO_REF: ${{ github.event.pull_request.head.ref }}
+
+      - name: Save preview metadata
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          printf '%s\n' "$PR_NUMBER" > docs/doc_build/docs-preview-pr.txt
+          printf '%s\n' "$HEAD_SHA" > docs/doc_build/docs-preview-sha.txt
+
+      - name: Upload docs artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: docs-preview
+          path: docs/doc_build
+          if-no-files-found: error

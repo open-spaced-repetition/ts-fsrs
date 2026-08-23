@@ -1,0 +1,5 @@
+[
+  { "text": "Home", "link": "/" },
+  { "text": "Installation", "link": "/installation/" },
+  { "text": "Updates", "link": "/updates/" }
+]

@@ -10,7 +10,7 @@
     ".github/actions/**",
     ".github/workflows/**"
   ],
-  "ui": "stream",
+  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
@@ -27,7 +27,25 @@
       "env": ["WASI_SDK_PATH"]
     },
     "@open-spaced-repetition/binding#build:wasm:threadless": {
-      "cache": false
+      "cache": false,
+      "passThroughEnv": ["RUSTC_WRAPPER"]
+    },
+    "@open-spaced-repetition/docs#rspress:build": {
+      "dependsOn": [
+        "@open-spaced-repetition/binding#build:wasm:threadless",
+        "ts-fsrs#build"
+      ],
+      "outputs": ["doc_build/**"],
+      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+    },
+    "@open-spaced-repetition/docs#rspress:dev": {
+      "dependsOn": [
+        "@open-spaced-repetition/binding#build:wasm:threadless",
+        "ts-fsrs#build"
+      ],
+      "cache": false,
+      "persistent": true,
+      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
     },
     "check": {
       "outputs": [],
