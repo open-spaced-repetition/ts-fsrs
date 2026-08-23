@@ -101,15 +101,13 @@
   "scripts": {
     "check": "biome check ./src",
     "check:fix": "biome check --write ./src",
-    "dev": "tsdown --watch",
+    "dev": "tsdown --watch --no-clean",
     "test": "vitest run --config=vitest.config.ts --passWithNoTests",
     "test:coverage": "vitest run --config=vitest.config.ts --passWithNoTests --coverage",
     "bench": "vitest bench --run --config=vitest.config.ts",
     "typecheck": "tsc --noEmit --pretty false && tsc --project bench/tsconfig.json --noEmit --pretty false",
     "test::publish": "yalc publish",
-    "build": "tsdown",
-    "predocs": "rimraf ../../docs",
-    "docs": "tsx ./typedoc.ts"
+    "build": "tsdown"
   },
   "dependencies": {
     "@open-spaced-repetition/srs-kit": "workspace:*"
@@ -117,9 +115,7 @@
   "devDependencies": {
     "zod": "^4.4.3",
     "decimal.js": "^10.5.0",
-    "tsdown": "0.22.4",
-    "typedoc": "0.28.18",
-    "typedoc-plugin-extras": "4.0.1"
+    "tsdown": "0.22.4"
   },
   "author": "ishiko",
   "license": "MIT",
