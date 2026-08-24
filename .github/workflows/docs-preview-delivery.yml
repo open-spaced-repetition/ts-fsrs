@@ -1,0 +1,325 @@
+name: Docs Preview Delivery
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: Action to perform
+        required: true
+        default: deploy
+        type: choice
+        options:
+          - deploy
+          - cleanup
+      run_id:
+        description: Successful Docs Preview workflow run ID (deploy only)
+        required: false
+        type: string
+      pr_number:
+        description: Pull request number (cleanup only)
+        required: false
+        type: string
+  workflow_run:
+    workflows: [Docs Preview]
+    types: [completed]
+  pull_request_target:
+    types: [closed, unlabeled]
+
+permissions: {}
+
+jobs:
+  resolve:
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'workflow_run' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success') ||
+      (github.event_name == 'pull_request_target' &&
+      (github.event.action == 'closed' ||
+      (github.event.action == 'unlabeled' && github.event.label.name == 'docs-preview')))
+    runs-on: ubuntu-latest
+    outputs:
+      action: ${{ steps.resolve-cleanup.outputs.action || steps.authorize.outputs.action }}
+      proceed: ${{ steps.resolve-cleanup.outputs.proceed || steps.authorize.outputs.proceed }}
+      pr-number: ${{ steps.resolve-cleanup.outputs.pr-number || steps.authorize.outputs.pr-number }}
+      run-id: ${{ steps.authorize.outputs.run-id }}
+      run-head-branch: ${{ steps.authorize.outputs.run-head-branch }}
+      run-head-repository: ${{ steps.authorize.outputs.run-head-repository }}
+      run-head-sha: ${{ steps.authorize.outputs.run-head-sha }}
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Resolve cleanup
+        id: resolve-cleanup
+        if: >-
+          (github.event_name == 'workflow_dispatch' && inputs.action == 'cleanup') ||
+          github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event_name == 'workflow_dispatch' && inputs.pr_number || github.event.pull_request.number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" > /dev/null
+          echo 'action=cleanup' >> "$GITHUB_OUTPUT"
+          echo 'proceed=true' >> "$GITHUB_OUTPUT"
+          echo "pr-number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+
+      - name: Download docs artifact
+        if: >-
+          github.event_name == 'workflow_run' ||
+          (github.event_name == 'workflow_dispatch' && inputs.action == 'deploy')
+        uses: actions/download-artifact@v8
+        with:
+          name: docs-preview
+          path: ${{ runner.temp }}/docs-preview
+          run-id: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Authorize deployment
+        id: authorize
+        if: >-
+          github.event_name == 'workflow_run' ||
+          (github.event_name == 'workflow_dispatch' && inputs.action == 'deploy')
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_ID: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.id || inputs.run_id }}
+        run: |
+          [[ "$RUN_ID" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" > "$RUNNER_TEMP/workflow-run.json"
+          jq -e \
+            '.name == "Docs Preview" and .event == "pull_request" and .conclusion == "success"' \
+            "$RUNNER_TEMP/workflow-run.json" > /dev/null
+          run_head_branch=$(jq -er '.head_branch' "$RUNNER_TEMP/workflow-run.json")
+          run_head_repository=$(jq -er '.head_repository.full_name' "$RUNNER_TEMP/workflow-run.json")
+          run_head_sha=$(jq -er '.head_sha' "$RUNNER_TEMP/workflow-run.json")
+          [[ "$run_head_sha" =~ ^[0-9a-f]{40,64}$ ]]
+
+          pr_number=$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-pr.txt")
+          head_sha=$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-sha.txt")
+          [[ "$pr_number" =~ ^[1-9][0-9]*$ ]]
+          [[ "$head_sha" =~ ^[0-9a-f]{40,64}$ ]]
+          [[ "$head_sha" == "$run_head_sha" ]]
+
+          echo "run-id=$RUN_ID" >> "$GITHUB_OUTPUT"
+          echo "run-head-branch=$run_head_branch" >> "$GITHUB_OUTPUT"
+          echo "run-head-repository=$run_head_repository" >> "$GITHUB_OUTPUT"
+          echo "run-head-sha=$run_head_sha" >> "$GITHUB_OUTPUT"
+
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$pr_number" > "$RUNNER_TEMP/pull-request.json"
+          if ! jq -e \
+            --arg branch "$run_head_branch" \
+            --arg repository "$run_head_repository" \
+            --arg sha "$run_head_sha" \
+            '.state == "open" and .head.ref == $branch and .head.repo.full_name == $repository and .head.sha == $sha' \
+            "$RUNNER_TEMP/pull-request.json" > /dev/null; then
+            echo 'action=deploy' >> "$GITHUB_OUTPUT"
+            echo 'proceed=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo 'action=deploy' >> "$GITHUB_OUTPUT"
+          echo "pr-number=$pr_number" >> "$GITHUB_OUTPUT"
+          if jq -e '(.head.repo.full_name == .base.repo.full_name) or any(.labels[]?; .name == "docs-preview")' \
+            "$RUNNER_TEMP/pull-request.json" > /dev/null; then
+            echo 'proceed=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'proceed=false' >> "$GITHUB_OUTPUT"
+          fi
+
+  deploy:
+    needs: resolve
+    if: >-
+      needs.resolve.outputs.action == 'deploy' &&
+      needs.resolve.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-preview-delivery-pr-${{ needs.resolve.outputs.pr-number }}
+      cancel-in-progress: false
+    permissions:
+      actions: read
+      contents: read
+      deployments: write
+      pull-requests: write
+    steps:
+      - name: Reauthorize deployment
+        id: reauthorize
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ needs.resolve.outputs.pr-number }}
+          RUN_HEAD_BRANCH: ${{ needs.resolve.outputs.run-head-branch }}
+          RUN_HEAD_REPOSITORY: ${{ needs.resolve.outputs.run-head-repository }}
+          RUN_HEAD_SHA: ${{ needs.resolve.outputs.run-head-sha }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" > "$RUNNER_TEMP/pull-request.json"
+          if jq -e \
+            --arg branch "$RUN_HEAD_BRANCH" \
+            --arg repository "$RUN_HEAD_REPOSITORY" \
+            --arg sha "$RUN_HEAD_SHA" \
+            '.state == "open" and .head.ref == $branch and .head.repo.full_name == $repository and .head.sha == $sha and ((.head.repo.full_name == .base.repo.full_name) or any(.labels[]?; .name == "docs-preview"))' \
+            "$RUNNER_TEMP/pull-request.json" > /dev/null; then
+            echo 'deploy=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'deploy=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download docs artifact
+        if: steps.reauthorize.outputs.deploy == 'true'
+        uses: actions/download-artifact@v8
+        with:
+          name: docs-preview
+          path: ${{ runner.temp }}/docs-preview
+          run-id: ${{ needs.resolve.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set preview details
+        if: steps.reauthorize.outputs.deploy == 'true'
+        env:
+          PR_NUMBER: ${{ needs.resolve.outputs.pr-number }}
+        run: |
+          echo "PREVIEW_BRANCH=ts-pr${PR_NUMBER}" >> "$GITHUB_ENV"
+          echo "PREVIEW_URL=https://ts-pr${PR_NUMBER}.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev" >> "$GITHUB_ENV"
+
+      - name: Validate static artifact
+        if: steps.reauthorize.outputs.deploy == 'true'
+        env:
+          PR_NUMBER: ${{ needs.resolve.outputs.pr-number }}
+          RUN_HEAD_SHA: ${{ needs.resolve.outputs.run-head-sha }}
+        run: |
+          test -f "$RUNNER_TEMP/docs-preview/index.html"
+          test -z "$(find "$RUNNER_TEMP/docs-preview" -type l -print -quit)"
+          test ! -e "$RUNNER_TEMP/docs-preview/_worker.js"
+          test "$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-pr.txt")" = "$PR_NUMBER"
+          test "$(tr -d '[:space:]' < "$RUNNER_TEMP/docs-preview/docs-preview-sha.txt")" = "$RUN_HEAD_SHA"
+          rm \
+            "$RUNNER_TEMP/docs-preview/docs-preview-pr.txt" \
+            "$RUNNER_TEMP/docs-preview/docs-preview-sha.txt"
+
+      - name: Comment deployment started
+        if: steps.reauthorize.outputs.deploy == 'true'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          number_force: ${{ needs.resolve.outputs.pr-number }}
+          header: docs-preview
+          message: |
+            ### Docs Preview
+
+            - Status: Deploying
+            - Preview URL: [${{ env.PREVIEW_URL }}](${{ env.PREVIEW_URL }})
+
+      - name: Deploy Cloudflare Pages preview
+        id: deploy
+        if: steps.reauthorize.outputs.deploy == 'true'
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '4.125.0'
+          command: >-
+            pages deploy ${{ runner.temp }}/docs-preview
+            --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}
+            --branch=${{ env.PREVIEW_BRANCH }}
+
+      - name: Comment deployment complete
+        if: steps.reauthorize.outputs.deploy == 'true'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          number_force: ${{ needs.resolve.outputs.pr-number }}
+          header: docs-preview
+          message: |
+            ### Docs Preview
+
+            - Status: Deployed
+            - Preview URL: [${{ env.PREVIEW_URL }}](${{ env.PREVIEW_URL }})
+
+      - name: Comment deployment failed
+        if: failure() && steps.deploy.conclusion == 'failure'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          number_force: ${{ needs.resolve.outputs.pr-number }}
+          header: docs-preview
+          message: |
+            ### Docs Preview
+
+            - Status: Deployment failed
+            - Preview URL: [${{ env.PREVIEW_URL }}](${{ env.PREVIEW_URL }})
+
+  cleanup:
+    needs: resolve
+    if: >-
+      needs.resolve.outputs.action == 'cleanup' &&
+      needs.resolve.outputs.proceed == 'true'
+    runs-on: ubuntu-latest
+    concurrency:
+      group: docs-preview-delivery-pr-${{ needs.resolve.outputs.pr-number }}
+      cancel-in-progress: true
+    permissions:
+      pull-requests: write
+    env:
+      CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
+      PREVIEW_BRANCH: ts-pr${{ needs.resolve.outputs.pr-number }}
+    steps:
+      - name: Setup Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 26
+
+      - name: Replace preview and delete old deployments
+        id: cleanup
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
+          deployments=()
+          page=1
+          while true; do
+            response="$RUNNER_TEMP/deployments-$page.json"
+            curl --fail --silent --show-error "$endpoint?page=$page&per_page=100" \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --output "$response"
+            jq -e '.success' "$response" > /dev/null
+            mapfile -t page_deployments < <(
+              jq -r --arg branch "$PREVIEW_BRANCH" \
+                '.result[] | select(.deployment_trigger.metadata.branch == $branch) | .id' \
+                "$response"
+            )
+            deployments+=("${page_deployments[@]}")
+            total_pages=$(jq -r '.result_info.total_pages // 1' "$response")
+            ((page >= total_pages)) && break
+            ((page += 1))
+          done
+
+          if ((${#deployments[@]} == 0)); then
+            echo 'cleaned=false' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          mkdir -p "$RUNNER_TEMP/closed-preview"
+          printf '<!doctype html><title>Preview closed</title><p>This pull request preview has expired.</p>\n' \
+            > "$RUNNER_TEMP/closed-preview/index.html"
+          npx --yes wrangler@4.125.0 pages deploy "$RUNNER_TEMP/closed-preview" \
+            --project-name="$CLOUDFLARE_PROJECT_NAME" \
+            --branch="$PREVIEW_BRANCH"
+
+          for deployment in "${deployments[@]}"; do
+            curl --fail --silent --show-error \
+              --request DELETE "$endpoint/$deployment?force=true" \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" |
+              jq -e '.success' > /dev/null
+          done
+          echo 'cleaned=true' >> "$GITHUB_OUTPUT"
+
+      - name: Comment cleanup complete
+        if: steps.cleanup.outputs.cleaned == 'true'
+        uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
+        with:
+          number_force: ${{ needs.resolve.outputs.pr-number }}
+          header: docs-preview
+          message: |
+            ### Docs Preview
+
+            - Status: Cleaned
