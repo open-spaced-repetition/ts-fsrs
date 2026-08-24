@@ -86,8 +86,8 @@ jobs:
         env:
           PR_NUMBER: ${{ steps.authorize.outputs.pr-number }}
         run: |
-          echo "PREVIEW_BRANCH=pr${PR_NUMBER}-ts-fsrs" >> "$GITHUB_ENV"
-          echo "PREVIEW_URL=https://pr${PR_NUMBER}-ts-fsrs.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev" >> "$GITHUB_ENV"
+          echo "PREVIEW_BRANCH=ts-pr${PR_NUMBER}" >> "$GITHUB_ENV"
+          echo "PREVIEW_URL=https://ts-pr${PR_NUMBER}.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev" >> "$GITHUB_ENV"
 
       - name: Validate static artifact
         if: steps.authorize.outputs.deploy == 'true'
@@ -162,8 +162,8 @@ jobs:
       pull-requests: write
     env:
       CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-      PREVIEW_BRANCH: pr${{ github.event.pull_request.number }}-ts-fsrs
-      PREVIEW_URL: https://pr${{ github.event.pull_request.number }}-ts-fsrs.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev
+      PREVIEW_BRANCH: ts-pr${{ github.event.pull_request.number }}
+      PREVIEW_URL: https://ts-pr${{ github.event.pull_request.number }}.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev
     steps:
       - name: Setup Node
         uses: actions/setup-node@v6
