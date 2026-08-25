@@ -27,8 +27,7 @@ permissions: {}
 
 env:
   CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
-  PREVIEW_BRANCH: pr${{ github.event.pull_request.number }}-ts-fsrs
-  PREVIEW_URL: https://pr${{ github.event.pull_request.number }}-ts-fsrs.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev
+  PREVIEW_URL: https://ts-pr${{ github.event.pull_request.number }}.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev
 
 jobs:
   build:
