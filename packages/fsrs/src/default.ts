@@ -97,10 +97,10 @@ export const migrateParameters = (
     case 19:
       console.debug('[FSRS-6]auto fill w from 19 to 21 length')
       return clipParameters(
-        Array.from(parameters),
+        Array.from(parameters).concat([0.0, FSRS5_DEFAULT_DECAY]),
         numRelearningSteps,
         enableShortTerm
-      ).concat([0.0, FSRS5_DEFAULT_DECAY])
+      )
     case 17: {
       const w = clipParameters(
         Array.from(parameters),
