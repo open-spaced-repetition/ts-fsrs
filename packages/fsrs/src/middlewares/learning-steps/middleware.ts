@@ -13,6 +13,7 @@ import {
 import type { LearningStepSchedule, LearningStepsResult } from './types.js'
 
 const MINUTES_PER_DAY = 1440
+const SECONDS_PER_MINUTE = 60
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
 
 type ResolvedLearningSteps = {
@@ -124,7 +125,9 @@ function getScheduledMinutes(
   const cached = resolved.scheduledMinutes[grade]
   if (cached !== undefined) return cached
 
-  const scheduledMinutes = Math.round(Math.max(0, step.scheduledMinutes))
+  const rawMinutes = Math.max(0, step.scheduledMinutes)
+  const scheduledMinutes =
+    Math.round(rawMinutes * SECONDS_PER_MINUTE) / SECONDS_PER_MINUTE
   resolved.scheduledMinutes[grade] = scheduledMinutes
   return scheduledMinutes
 }

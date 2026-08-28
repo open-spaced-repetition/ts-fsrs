@@ -73,8 +73,8 @@ export const calculateLearningSteps: LearningStepsResolver = (
     stepsLength > 1 ? ConvertStepUnitToMinutes(steps[1]) : undefined
   const hardMinutes =
     secondMinutes === undefined
-      ? Math.round(firstMinutes * 1.5)
-      : Math.round((firstMinutes + secondMinutes) / 2)
+      ? firstMinutes * 1.5
+      : (firstMinutes + secondMinutes) / 2
   const result: LearningStepsResult = {
     [Rating.Again]: {
       scheduledMinutes: firstMinutes,
@@ -94,7 +94,7 @@ export const calculateLearningSteps: LearningStepsResolver = (
         : ConvertStepUnitToMinutes(nextStepUnit)
     if (nextMinutes > 0) {
       result[Rating.Good] = {
-        scheduledMinutes: Math.round(nextMinutes),
+        scheduledMinutes: nextMinutes,
         nextStep: learningStep + 1,
       }
     }
