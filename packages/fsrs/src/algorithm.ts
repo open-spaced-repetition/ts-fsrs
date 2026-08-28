@@ -1,6 +1,6 @@
 import { alea } from './alea'
-import { S_MIN } from './constant'
-import { generatorParameters, migrateParameters } from './default'
+import { default_enable_short_term, default_relearning_steps, S_MIN } from './constant'
+import { clipParameters, generatorParameters, migrateParameters } from './default'
 import { FSRSValidationError } from './error'
 import { clamp, get_fuzz_range, roundTo } from './help'
 import {
@@ -63,6 +63,11 @@ export class FSRSAlgorithm {
     this.param = new Proxy(
       generatorParameters(params),
       this.params_handler_proxy()
+    )
+    this.param.w = clipParameters(
+      Array.from(this.param.w),
+      this.param.relearning_steps?.length ?? default_relearning_steps.length,
+      this.param.enable_short_term ?? default_enable_short_term
     )
     this.intervalModifier = this.calculate_interval_modifier(
       this.param.request_retention
@@ -128,6 +133,11 @@ export class FSRSAlgorithm {
             target.relearning_steps.length,
             target.enable_short_term
           )
+          value = clipParameters(
+            Array.from(value),
+            target.relearning_steps.length,
+            target.enable_short_term
+          )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
@@ -141,6 +151,11 @@ export class FSRSAlgorithm {
 
   private update_parameters(params: Partial<FSRSParameters>): void {
     const _params = generatorParameters(params)
+    _params.w = clipParameters(
+      Array.from(_params.w),
+      params.relearning_steps?.length ?? default_relearning_steps.length,
+      params.enable_short_term ?? default_enable_short_term
+    )
     for (const key in _params) {
       // All keys in _params are guaranteed to exist in this.param due to generatorParameters()
       const paramKey = key as keyof FSRSParameters
