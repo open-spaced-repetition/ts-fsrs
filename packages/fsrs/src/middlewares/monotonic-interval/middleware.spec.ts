@@ -326,7 +326,7 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
       preview.get(Rating.Again)!.card.dueAt.getTime() - now.getTime()
     ).toBe(60_000)
     expect(preview.get(Rating.Hard)!.card.dueAt.getTime() - now.getTime()).toBe(
-      6 * 60_000
+      5.5 * 60_000
     )
     expect(preview.get(Rating.Good)!.card.dueAt.getTime() - now.getTime()).toBe(
       10 * 60_000
@@ -368,8 +368,8 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
     ['mixed-minute', ['0m', '10m'], 0, 100, [1440, 5, 10, 2880]],
     // Again 1d, Hard 2d, Good 3d, Easy 4d
     ['zero-minute', ['0m'], 0, 100, [1440, 2880, 4320, 5760]],
-    // Again 1d, Hard 2d, Good 3d, Easy 4d
-    ['rounded zero-minute', ['0.4m', '0.4m'], 0, 100, [1440, 2880, 4320, 5760]],
+    // Again 0.4m, Hard 0.4m, Good 0.4m, Easy 1d
+    ['sub-minute', ['0.4m', '0.4m'], 0, 100, [0.4, 0.4, 0.4, 1440]],
     // Again 1d, Hard 2d, Good 3d, Easy 4d
     ['empty', [], 0, 100, [1440, 2880, 4320, 5760]],
     // Again 1d, Hard 2d, Good 3d, Easy 4d

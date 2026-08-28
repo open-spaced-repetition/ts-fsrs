@@ -335,7 +335,7 @@ describe('DefaultScheduler legacy parity', () => {
       expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
     })
 
-    it('keeps scheduledDays aligned with the rounded learning-step due', async () => {
+    it('keeps scheduledDays aligned with the second-precision learning-step due', async () => {
       const options = {
         enableShortTerm: true,
         learningSteps: ['23.999h'],
@@ -343,9 +343,15 @@ describe('DefaultScheduler legacy parity', () => {
       } satisfies DefaultSchedulerOptions
       const scheduler = await DefaultScheduler(options)
 
-      for (const [state, expectedDays] of [
-        [State.New, 1],
-        [State.Review, 2],
+      for (const [
+        state,
+        expectedSeconds,
+        expectedDays,
+        expectedState,
+        expectedScheduleStatus,
+      ] of [
+        [State.New, 86_396, 0, State.Learning, 'learning'],
+        [State.Review, 172_796, 1, State.Review, 'review'],
       ] as const) {
         const card = createStateCard(state)
         const actual = scheduler.review({
@@ -356,10 +362,12 @@ describe('DefaultScheduler legacy parity', () => {
         const legacy = legacyReview(options, card, NOW, Rating.Again)
 
         expect(actual.card.dueAt.getTime() - NOW.getTime()).toBe(
-          expectedDays * DAY
+          expectedSeconds * 1_000
         )
         expect(actual.card.scheduledDays).toBe(expectedDays)
-        expect(legacy.card.scheduledDays).toBe(expectedDays - 1)
+        expect(actual.card.state).toBe(expectedState)
+        expect(actual.card.scheduleStatus).toBe(expectedScheduleStatus)
+        expect(legacy.card.scheduledDays).toBe(expectedDays)
       }
     })
   })

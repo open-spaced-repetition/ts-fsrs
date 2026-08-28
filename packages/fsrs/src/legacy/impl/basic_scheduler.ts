@@ -23,6 +23,8 @@ import { calculateScheduleDays } from '@/middlewares/monotonic-interval/core.js'
 import { AbstractScheduler } from '../abstract_scheduler.js'
 import { StrategyMode, type TStrategyHandler } from '../strategies/index.js'
 
+const SECONDS_PER_MINUTE = 60
+
 export default class BasicScheduler extends AbstractScheduler {
   private readonly learningSteps: LearningStepsResolver
   private readonly learningStepsConfig: LearningStepsConfig
@@ -63,7 +65,10 @@ export default class BasicScheduler extends AbstractScheduler {
       )
       this.learningStepsResult = steps
     }
-    const scheduled_minutes = Math.max(0, steps[grade]?.scheduledMinutes ?? 0)
+    const scheduled_minutes =
+      Math.round(
+        Math.max(0, steps[grade]?.scheduledMinutes ?? 0) * SECONDS_PER_MINUTE
+      ) / SECONDS_PER_MINUTE
     const next_steps = Math.max(0, steps[grade]?.nextStep ?? 0)
     return {
       scheduled_minutes,
@@ -94,7 +99,7 @@ export default class BasicScheduler extends AbstractScheduler {
       nextCard.state = to_state
       nextCard.due = date_scheduler(
         this.review_time,
-        Math.round(scheduled_minutes) as int,
+        scheduled_minutes,
         false /** true:days false: minute */
       )
     } else {
@@ -103,7 +108,7 @@ export default class BasicScheduler extends AbstractScheduler {
         nextCard.learning_steps = next_steps
         nextCard.due = date_scheduler(
           this.review_time,
-          Math.round(scheduled_minutes) as int,
+          scheduled_minutes,
           false /** true:days false: minute */
         )
         nextCard.scheduled_days = Math.floor(scheduled_minutes / 1440)

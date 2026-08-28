@@ -49,12 +49,12 @@ describe('calculateLearningSteps', () => {
 
     expect(calculateLearningSteps(params, State.New, 0)).toEqual({
       [Rating.Again]: { scheduledMinutes: 1, nextStep: 0 },
-      [Rating.Hard]: { scheduledMinutes: 6, nextStep: 0 },
+      [Rating.Hard]: { scheduledMinutes: 5.5, nextStep: 0 },
       [Rating.Good]: { scheduledMinutes: 10, nextStep: 1 },
     })
     expect(calculateLearningSteps(params, State.Learning, 1)).toEqual({
       [Rating.Again]: { scheduledMinutes: 1, nextStep: 0 },
-      [Rating.Hard]: { scheduledMinutes: 6, nextStep: 1 },
+      [Rating.Hard]: { scheduledMinutes: 5.5, nextStep: 1 },
     })
   })
 
@@ -63,7 +63,7 @@ describe('calculateLearningSteps', () => {
 
     expect(calculateLearningSteps(params, State.Learning, 0)).toEqual({
       [Rating.Again]: { scheduledMinutes: 1, nextStep: 0 },
-      [Rating.Hard]: { scheduledMinutes: 2, nextStep: 0 },
+      [Rating.Hard]: { scheduledMinutes: 1.5, nextStep: 0 },
     })
     expect(calculateLearningSteps(params, State.Learning, 1)).toEqual({})
   })
@@ -93,7 +93,7 @@ describe('calculateLearningSteps', () => {
   it('uses the first step for a negative current step', () => {
     expect(calculateLearningSteps(config(['1m']), State.New, -1)).toEqual({
       [Rating.Again]: { scheduledMinutes: 1, nextStep: 0 },
-      [Rating.Hard]: { scheduledMinutes: 2, nextStep: -1 },
+      [Rating.Hard]: { scheduledMinutes: 1.5, nextStep: -1 },
       [Rating.Good]: { scheduledMinutes: 1, nextStep: 0 },
     })
   })
@@ -120,13 +120,13 @@ describe('calculateLearningSteps', () => {
     })
   })
 
-  it('preserves decimal Again intervals while rounding Hard and Good', () => {
+  it('preserves decimal intervals for all grades', () => {
     expect(
       calculateLearningSteps(config(['1.5m', '2.5m']), State.New, 0)
     ).toEqual({
       [Rating.Again]: { scheduledMinutes: 1.5, nextStep: 0 },
       [Rating.Hard]: { scheduledMinutes: 2, nextStep: 0 },
-      [Rating.Good]: { scheduledMinutes: 3, nextStep: 1 },
+      [Rating.Good]: { scheduledMinutes: 2.5, nextStep: 1 },
     })
   })
 })
