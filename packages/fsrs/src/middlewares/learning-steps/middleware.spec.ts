@@ -63,7 +63,7 @@ describe('schedulerLearningStepsMiddleware integration', () => {
     const hard = previews.get(Rating.Hard)!
     expect(hard.card.state).toBe(State.Learning)
     expect(hard.card.learningStep).toBe(0)
-    expect(hard.card.dueAt.getTime() - now.getTime()).toBe(6 * 60_000)
+    expect(hard.card.dueAt.getTime() - now.getTime()).toBe(5.5 * 60_000)
 
     const good = previews.get(Rating.Good)!
     expect(good.card.state).toBe(State.Learning)
@@ -210,11 +210,11 @@ describe('schedulerLearningStepsMiddleware integration', () => {
   })
 
   it.each([
-    ['0.6m', State.Learning, 'learning', 1],
-    ['1439.4m', State.Learning, 'learning', 1439],
-    ['1439.6m', State.Review, 'review', 1440],
+    ['0.6m', State.Learning, 'learning', 0.6],
+    ['1439.4m', State.Learning, 'learning', 1439.4],
+    ['1439.6m', State.Learning, 'learning', 1439.6],
     ['1440m', State.Review, 'review', 1440],
-  ] as const)('rounds %s before applying the day threshold', (step, state, scheduleStatus, scheduledMinutes) => {
+  ] as const)('preserves second precision before applying the day threshold', (step, state, scheduleStatus, scheduledMinutes) => {
     const core = createCore({ learningSteps: [step] })
     const now = new Date(2022, 11, 29, 12, 30)
     const result = core.review({
@@ -247,8 +247,7 @@ describe('schedulerLearningStepsMiddleware integration', () => {
 
   it.each([
     '0m',
-    '0.4m',
-  ] as const)('falls back to the model interval when %s rounds to zero minutes', (step) => {
+  ] as const)('falls back to the model interval when %s has no positive duration', (step) => {
     const core = createCore({ learningSteps: [step] })
     const now = new Date(2022, 11, 29, 12, 30)
     const result = core.review({
@@ -264,8 +263,51 @@ describe('schedulerLearningStepsMiddleware integration', () => {
   })
 
   it.each([
+    ['0.017m', 1_000],
+    ['0.1m', 6_000],
+    ['0.4m', 24_000],
+  ] as const)('schedules %s with second precision instead of using the model interval', (step, expectedDelay) => {
+    const core = createCore({ learningSteps: [step] })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const nextInterval = vi.spyOn(core.model, 'nextInterval')
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Again,
+      now,
+    })
+
+    expect(result.card.state).toBe(State.Learning)
+    expect(result.card.scheduleStatus).toBe('learning')
+    expect(result.card.learningStep).toBe(0)
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(expectedDelay)
+    expect(nextInterval).not.toHaveBeenCalled()
+  })
+  it('keeps a sub-day relearning step in the relearning state', () => {
+    const core = createCore({ relearningSteps: ['1439.6m'] })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const reviewed = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Easy,
+      now,
+    })
+    const nextInterval = vi.spyOn(core.model, 'nextInterval')
+    const result = core.review({
+      card: reviewed.card,
+      grade: Rating.Again,
+      now: reviewed.card.dueAt,
+    })
+
+    expect(result.card.state).toBe(State.Relearning)
+    expect(result.card.scheduleStatus).toBe('learning')
+    expect(result.card.learningStep).toBe(0)
+    expect(result.card.dueAt.getTime() - reviewed.card.dueAt.getTime()).toBe(
+      1439.6 * 60_000
+    )
+    expect(nextInterval).not.toHaveBeenCalled()
+  })
+
+  it.each([
     ['zero-minute', ['0m'], 0],
-    ['rounded zero-minute', ['0.4m', '0.4m'], 0],
     ['empty', [], 0],
     ['exhausted', ['1m'], 1],
   ] as const)('uses raw model intervals without monotonic middleware for %s steps', (_name, steps, learningStep) => {

@@ -109,7 +109,7 @@ describe('schedulerScheduledDaysMiddleware', () => {
     expect(result.card.scheduledDays).toBe(0)
   })
 
-  it('stores a rounded learning interval at the day threshold', () => {
+  it('stores a second-precision learning interval before the day threshold', () => {
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(schedulerScheduledDaysMiddleware, schedulerLearningStepsMiddleware)
       .create({
@@ -128,9 +128,10 @@ describe('schedulerScheduledDaysMiddleware', () => {
       now,
     })
 
-    expect(result.card.state).toBe(State.Review)
-    expect(result.card.scheduledDays).toBe(1)
-    expect(result.card.dueAt.getTime() - now.getTime()).toBe(1440 * 60_000)
+    expect(result.card.state).toBe(State.Learning)
+    expect(result.card.scheduleStatus).toBe('learning')
+    expect(result.card.scheduledDays).toBe(0)
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(1439.6 * 60_000)
   })
 
   it('restores scheduledDays during rollback', () => {

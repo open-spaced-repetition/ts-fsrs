@@ -20,7 +20,7 @@ describe('legacy FSRS learning-steps integration', () => {
     expect(record[Rating.Again].card.due.getTime() - now.getTime()).toBe(60_000)
     expect(record[Rating.Hard].card.learning_steps).toBe(0)
     expect(record[Rating.Hard].card.due.getTime() - now.getTime()).toBe(
-      6 * 60_000
+      5.5 * 60_000
     )
     expect(record[Rating.Good].card.learning_steps).toBe(1)
     expect(record[Rating.Good].card.due.getTime() - now.getTime()).toBe(
@@ -116,12 +116,12 @@ describe('legacy FSRS learning-steps integration', () => {
     )
   })
 
-  it('rounds decimal minutes exactly as the legacy scheduler did', () => {
+  it('preserves second precision in decimal learning steps', () => {
     const scheduler = fsrs({ learning_steps: ['1.5m'] })
     const now = new Date(2022, 11, 29, 12, 30)
     const result = scheduler.next(createEmptyCard(now), now, Rating.Again)
 
-    expect(result.card.due.getTime() - now.getTime()).toBe(2 * 60_000)
+    expect(result.card.due.getTime() - now.getTime()).toBe(1.5 * 60_000)
     expect(result.card.scheduled_days).toBe(0)
   })
 
