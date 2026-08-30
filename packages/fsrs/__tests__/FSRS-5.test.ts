@@ -59,7 +59,7 @@ describe('FSRS-5', () => {
       scheduling_cards = f.repeat(card, now)
     }
     expect(ivl_history).toEqual([
-      0, 4, 14, 44, 125, 328, 0, 0, 7, 16, 34, 71, 142,
+      0, 4, 14, 44, 125, 328, 0, 0, 6, 14, 31, 65, 130,
     ])
   })
 
@@ -95,7 +95,7 @@ describe('FSRS-5', () => {
     it('memory state[short-term]', () => {
       const f = fsrs({ w, enable_short_term: true })
       console.debug('memory state[short-term] weight', f.parameters.w)
-      assertMemoryState(f, 'short-term', 48.26549438, 7.10441712)
+      assertMemoryState(f, 'short-term', 48.27115294, 7.10441712)
     })
     it('memory state[long-term]', () => {
       const f = fsrs({ w, enable_short_term: false })

@@ -43,12 +43,13 @@ describe('default params', () => {
   })
 
   it('convert FSRS-5 to FSRS-6', () => {
+    const w = [
+      0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046,
+      1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898,
+      0.51655, 0.6621,
+    ]
     const params = generatorParameters({
-      w: [
-        0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046,
-        1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898,
-        0.51655, 0.6621,
-      ],
+      w,
     })
     expect(params.w).toEqual([
       0.40255,
@@ -73,6 +74,11 @@ describe('default params', () => {
       0.0,
       FSRS5_DEFAULT_DECAY,
     ])
+    expect(fsrs({ w, enable_short_term: true }).parameters.w[19]).toBe(0.01)
+    expect(fsrs(params).parameters.w[19]).toBe(0.01)
+    expect(fsrs({ ...params, enable_short_term: false }).parameters.w[19]).toBe(
+      0
+    )
   })
 
   it('revert to default params', () => {
