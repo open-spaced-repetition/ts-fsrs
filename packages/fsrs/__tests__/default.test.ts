@@ -79,6 +79,10 @@ describe('default params', () => {
     expect(fsrs({ ...params, enable_short_term: false }).parameters.w[19]).toBe(
       0
     )
+
+    const f = fsrs({ enable_short_term: true })
+    f.parameters.w = w
+    expect(f.parameters.w[19]).toBe(0.01)
   })
 
   it('revert to default params', () => {
