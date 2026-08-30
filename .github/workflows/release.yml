@@ -68,7 +68,7 @@ jobs:
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
         with:
-          node-version: 20
+          node-version: 24
 
       - name: Run checks
         run: pnpm run check
