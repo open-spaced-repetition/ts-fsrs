@@ -1,5 +1,13 @@
 # ts-fsrs
 
+## 6.0.0-beta.8
+
+### Patch Changes
+
+- [#477](https://github.com/open-spaced-repetition/ts-fsrs/pull/477) [`d134676`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d134676100d586ed153fd0addfc96960a8614e0a) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): clamp FSRS-4.5 through FSRS-6 initial stability to each model's configured bounds.
+
+- [#484](https://github.com/open-spaced-repetition/ts-fsrs/pull/484) [`5c4ce64`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5c4ce64170b6de5dc3f32c868a289af29f9da259) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): preserve second precision for learning-step intervals from 1 second through sub-day durations.
+
 ## 6.0.0-beta.7
 
 ### Patch Changes
