@@ -5,6 +5,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
     paths:
       - 'docs/**'
+      - 'packages/fsrs/src/**'
+      - 'packages/srs-kit/src/**'
+      - 'packages/binding/src/**'
       - 'packages/fsrs/package.json'
       - 'packages/srs-kit/package.json'
       - 'packages/binding/package.json'
@@ -51,6 +54,12 @@ jobs:
         with:
           toolchain: 1.94.1
           targets: wasm32-wasip1
+
+      - name: Cache sample review log
+        uses: actions/cache@v6
+        with:
+          path: docs/src/public/revlog.csv
+          key: revlog-csv-v1
 
       - name: Build docs and dependencies
         run: pnpm docs:build

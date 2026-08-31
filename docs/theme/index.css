@@ -1,0 +1,169 @@
+/* Tailwind's preflight is deliberately omitted: Rspress already ships a full
+   document reset and typography, and resetting headings, lists, and borders a
+   second time breaks every prose page. Only the tokens and utilities layers
+   are imported. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+/* Automatic detection starts from this file's directory, which would miss the
+   components and MDX pages that actually carry the class names. */
+@source "../src";
+@source "../theme";
+
+/* Rspress toggles themes with a `.dark` class rather than a media query. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Rspress owns the base palette through CSS variables, so the tokens below
+   reference them and follow the site's light/dark switch for free.
+   Blend-derived colours get their own token instead of an inline `color-mix`:
+   Tailwind's `/50` opacity syntax blends toward transparent, while these blend
+   toward another colour, and spelling that out at every call site is unreadable. */
+@theme inline {
+  --color-brand: var(--rp-c-brand);
+  --color-brand-light: var(--rp-c-brand-light);
+  --color-brand-dark: var(--rp-c-brand-dark);
+  --color-accent: var(--playground-accent);
+
+  --color-surface: var(--rp-c-bg);
+  --color-surface-soft: var(--rp-c-bg-soft);
+  --color-panel: var(--playground-panel);
+  --color-editor: var(--playground-editor);
+  --color-output: var(--playground-output);
+  --color-header: var(--playground-header);
+
+  /* Opting out of documentation typography also drops its link and inline-code
+     styling, so the elements that still need it reference the same variables. */
+  --color-link: var(--rp-c-link);
+  --color-code: var(--rp-c-text-code);
+  --color-code-bg: var(--rp-c-text-code-bg);
+
+  --color-body: var(--rp-c-text-1);
+  --color-muted: var(--rp-c-text-2);
+  --color-subtle: var(--rp-c-text-3);
+  --color-danger: #d94957;
+  --color-warning: #bd7b00;
+  --color-on-accent: var(--playground-on-accent);
+
+  /* Tints need their own tokens too. Tailwind's `/10` opacity modifier is
+     dropped when a token resolves to a `var()`, which silently produces the
+     opaque colour instead of the tint. */
+  --color-brand-soft: var(--playground-brand-soft);
+  --color-accent-soft: var(--playground-accent-soft);
+  --color-accent-muted: var(--playground-accent-muted);
+  --color-ring: var(--playground-ring);
+
+  --color-line: var(--playground-border);
+  --color-line-strong: var(--playground-border-strong);
+  --color-line-brand: var(--playground-border-brand);
+  --color-line-accent: var(--playground-border-accent);
+  --color-line-success: var(--playground-border-success);
+  --color-line-danger: var(--playground-border-danger);
+
+  --shadow-playground: var(--playground-shadow);
+  --shadow-primary: var(--playground-primary-shadow);
+  --shadow-dot: var(--playground-dot-shadow);
+
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --rp-c-brand: #6254e8;
+  --rp-c-brand-light: #786af1;
+  --rp-c-brand-dark: #4d40cc;
+
+  --playground-accent: #18a999;
+  --playground-border: color-mix(in srgb, var(--rp-c-divider) 78%, transparent);
+  --playground-panel: color-mix(in srgb, var(--rp-c-bg-soft) 88%, transparent);
+  --playground-editor: #fffffe;
+  --playground-output: color-mix(in srgb, var(--rp-c-bg-soft) 70%, transparent);
+  --playground-header: color-mix(in srgb, var(--rp-c-bg-soft) 75%, transparent);
+  --playground-on-accent: color-mix(
+    in srgb,
+    var(--playground-accent) 76%,
+    var(--rp-c-text-1)
+  );
+
+  --playground-brand-soft: color-mix(
+    in srgb,
+    var(--rp-c-brand) 10%,
+    transparent
+  );
+  --playground-accent-soft: color-mix(
+    in srgb,
+    var(--playground-accent) 8%,
+    transparent
+  );
+  --playground-accent-muted: color-mix(
+    in srgb,
+    var(--playground-accent) 16%,
+    transparent
+  );
+  --playground-ring: color-mix(in srgb, var(--rp-c-brand) 30%, transparent);
+
+  --playground-border-strong: color-mix(
+    in srgb,
+    var(--rp-c-brand) 55%,
+    var(--playground-border)
+  );
+  --playground-border-brand: color-mix(
+    in srgb,
+    var(--rp-c-brand) 35%,
+    var(--playground-border)
+  );
+  --playground-border-accent: color-mix(
+    in srgb,
+    var(--playground-accent) 38%,
+    var(--playground-border)
+  );
+  --playground-border-success: color-mix(
+    in srgb,
+    var(--playground-accent) 40%,
+    var(--playground-border)
+  );
+  --playground-border-danger: color-mix(
+    in srgb,
+    #dd4a58 55%,
+    var(--playground-border)
+  );
+
+  --playground-shadow: 0 24px 70px rgba(28, 25, 64, 0.12);
+  --playground-primary-shadow: 0 7px 22px
+    color-mix(in srgb, var(--rp-c-brand) 24%, transparent);
+  --playground-dot-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--playground-accent) 16%, transparent);
+}
+
+.dark {
+  --playground-accent: #45d2bf;
+  --playground-border: rgba(255, 255, 255, 0.12);
+  --playground-panel: rgba(255, 255, 255, 0.045);
+  --playground-editor: #1e1e1e;
+  --playground-shadow: 0 28px 80px rgba(0, 0, 0, 0.34);
+}
+
+/* The panel's ambient glow: two tinted corners over the page background. A
+   utility would have to inline both gradients at the call site. */
+.playground-surface {
+  background:
+    radial-gradient(
+      circle at 94% -10%,
+      color-mix(in srgb, var(--rp-c-brand) 18%, transparent),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 5% 0%,
+      color-mix(in srgb, var(--playground-accent) 13%, transparent),
+      transparent 31%
+    ),
+    var(--rp-c-bg);
+}
+
+/* The JSON tree renders real elements, so the transcript's `pre-wrap` would
+   turn the whitespace between them into a blank line per field. The element
+   also carries `rp-not-doc`, which stops documentation typography from spacing
+   the viewer's nested <ul> like a prose list. */
+.playground-log--json {
+  white-space: normal;
+  line-height: 1.55;
+}
