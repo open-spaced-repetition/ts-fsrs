@@ -159,20 +159,6 @@
     var(--rp-c-bg);
 }
 
-/* Native resizing keeps the editor simple; the visible grip makes the small
-   bottom-right drag target discoverable. */
-.playground-resizable::after {
-  position: absolute;
-  right: 4px;
-  bottom: 4px;
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid var(--playground-border-strong);
-  border-bottom: 2px solid var(--playground-border-strong);
-  content: "";
-  pointer-events: none;
-}
-
 .playground-action {
   position: relative;
   width: 36px;
