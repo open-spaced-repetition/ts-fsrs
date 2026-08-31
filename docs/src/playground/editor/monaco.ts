@@ -125,9 +125,9 @@ export function createMonacoEditor(
     fixedOverflowWidgets: true,
     hover: { above: false },
     fontFamily: "'JetBrains Mono', 'SFMono-Regular', Consolas, monospace",
-    fontSize: 14,
+    fontSize: window.matchMedia('(max-width: 640px)').matches ? 12 : 14,
     glyphMargin: false,
-    lineNumbersMinChars: 3,
+    lineNumbersMinChars: 2,
     minimap: { enabled: false },
     model,
     overflowWidgetsDomNode: overflowWidgets,
@@ -136,6 +136,8 @@ export function createMonacoEditor(
     scrollBeyondLastLine: false,
     tabSize: 2,
     theme: initialTheme,
+    wordWrap: 'on',
+    wrappingIndent: 'same',
   })
   const subscription = editor.onDidChangeModelContent(() => {
     onChange(model.getValue())
