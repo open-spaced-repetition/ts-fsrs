@@ -104,6 +104,13 @@
     "types": ["node"]
   },
   "include": ["."],
-  "exclude": ["node_modules", "target", ".cargo", "packages/binding/**"],
+  "exclude": [
+    "node_modules",
+    "target",
+    ".cargo",
+    "packages/binding/**",
+    "**/coverage",
+    "docs"
+  ],
   "detectCycles": true
 }
