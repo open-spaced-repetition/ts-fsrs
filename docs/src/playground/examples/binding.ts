@@ -3,12 +3,14 @@ import {
   convertCsvToFsrsItems,
 } from '@open-spaced-repetition/binding'
 
+console.log('Downloading revlog.csv…')
 const response = await fetch('/revlog.csv', { cache: 'force-cache' })
 if (!response.ok) throw new Error(`revlog.csv: ${response.status}`)
 if (!response.body) throw new Error('revlog.csv: empty response body')
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const items = await convertCsvToFsrsItems(response.body, 4, timezone)
+console.log('Downloaded revlog.csv.')
 console.log(`Optimising ${items.length} reviews (${timezone})…`)
 
 // Console output is streamed while the run is still going, so `progress`
