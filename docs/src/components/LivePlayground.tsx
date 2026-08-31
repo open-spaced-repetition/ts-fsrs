@@ -110,8 +110,14 @@ export default function LivePlayground() {
       )}
       aria-label={t('playground.label')}
       onKeyDown={(event) => {
-        if (event.key !== 'Enter' || !(event.metaKey || event.ctrlKey)) return
+        if (event.key !== 'Enter') return
+        if (event.metaKey) {
+          event.stopPropagation()
+          return
+        }
+        if (!event.ctrlKey) return
         event.preventDefault()
+        event.stopPropagation()
         if (runnable) void run()
       }}
     >
@@ -175,10 +181,10 @@ export default function LivePlayground() {
         </div>
         <div className="flex shrink-0 flex-wrap justify-end gap-2 max-md:mt-2.5">
           <button
-            aria-keyshortcuts="Control+Enter Meta+Enter"
+            aria-keyshortcuts="Control+Enter"
             aria-label={t('playground.run')}
             className={cn(styles.actionButton, styles.primaryButton)}
-            data-tooltip={`${runner.state === 'idle' ? t('playground.run') : t('playground.runBusy')} · Ctrl/⌘ ↵`}
+            data-tooltip={`${runner.state === 'idle' ? t('playground.run') : t('playground.runBusy')} · Ctrl+Enter`}
             data-testid="playground-run"
             disabled={!runnable}
             onClick={run}
@@ -191,7 +197,7 @@ export default function LivePlayground() {
           <button
             aria-label={t('playground.reset')}
             className={styles.actionButton}
-            data-tooltip={`${t('playground.reset')} · Enter`}
+            data-tooltip={t('playground.reset')}
             disabled={!runnable}
             onClick={reset}
             type="button"
@@ -216,7 +222,7 @@ export default function LivePlayground() {
             )}
             data-copied={share.copied}
             data-testid="playground-share"
-            data-tooltip={`${shareButtonLabel} · Enter`}
+            data-tooltip={shareButtonLabel}
             disabled={!runnable}
             onClick={() => void copyShareLink()}
             type="button"
@@ -245,7 +251,7 @@ export default function LivePlayground() {
 
       <div
         className={cn(
-          'playground-resizable relative mx-4.5 h-[min(55vh,440px)] min-h-85',
+          'relative mx-4.5 h-[min(55vh,440px)] min-h-85',
           'max-h-[80vh] resize-y overflow-hidden rounded-[15px]',
           'border border-line bg-editor',
           'max-md:mx-2.25 max-md:h-90 max-md:min-h-60'
@@ -278,7 +284,7 @@ export default function LivePlayground() {
         className={cn(
           // A fixed band so a run never pushes the page down, tall enough for
           // an expanded result, and resizable when a transcript outgrows it.
-          'playground-resizable relative mx-4.5 mt-3 mb-4.5 h-[min(45vh,380px)]',
+          'relative mx-4.5 mt-3 mb-4.5 h-[min(45vh,380px)]',
           'max-h-[80vh] min-h-50 resize-y',
           'overflow-auto rounded-[14px] border border-line bg-output',
           'max-md:mx-2.25',
