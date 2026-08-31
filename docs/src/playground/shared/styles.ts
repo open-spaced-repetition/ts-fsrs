@@ -24,10 +24,10 @@ export const primaryButton = cn(
   'text-white shadow-primary'
 )
 
-/** Stacks every label in one grid cell so switching text cannot reflow the row. */
-export const swapButton = cn(
-  'grid place-items-center',
-  '*:[grid-area:1/1] *:data-[shown=false]:invisible'
+export const actionButton = cn(
+  button,
+  'playground-action inline-flex items-center justify-center',
+  '[&>svg]:size-4 [&>svg]:shrink-0'
 )
 
 export const logLine = cn(
@@ -42,7 +42,7 @@ export const logDivider = 'border-t border-dashed border-line'
 export const field = 'grid gap-1.5 text-[13px] font-[650] text-body'
 
 export const control = cn(
-  'min-h-9.5 w-full max-w-85 rounded-[9px] border border-line',
+  'min-h-9.5 w-full rounded-[9px] border border-line',
   'bg-surface px-2.5 py-1.75 font-medium text-body [font:inherit]',
   'focus:border-brand focus:outline-2 focus:outline-offset-1',
   'focus:outline-ring',
