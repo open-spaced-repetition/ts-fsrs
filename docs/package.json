@@ -10,7 +10,7 @@
     "check": "biome check .",
     "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit --pretty false",
-    "test": "vitest run --config vitest.config.ts",
+    "test:docs": "vitest run --config vitest.config.ts",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
     "prepare:revlog": "node scripts/fetch-revlog.mjs",
     "verify:packages": "node scripts/verify-packages.mjs"

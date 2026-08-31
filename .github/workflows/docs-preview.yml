@@ -68,6 +68,9 @@ jobs:
           DOCS_REPO_SLUG: ${{ github.event.pull_request.head.repo.full_name }}
           DOCS_REPO_REF: ${{ github.event.pull_request.head.ref }}
 
+      - name: Test docs
+        run: pnpm --filter @ts-fsrs/website test:docs
+
       - name: Save preview metadata
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}

@@ -71,7 +71,7 @@
       "dependsOn": ["@ts-fsrs/website#verify:packages"],
       "outputs": []
     },
-    "@ts-fsrs/website#test": {
+    "@ts-fsrs/website#test:docs": {
       "dependsOn": ["@ts-fsrs/website#verify:packages"],
       "outputs": []
     },
