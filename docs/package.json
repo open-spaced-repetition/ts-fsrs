@@ -1,14 +1,11 @@
 {
-  "name": "@open-spaced-repetition/docs",
+  "name": "@ts-fsrs/website",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "docs:prepare": "pnpm prepare:packages && pnpm verify:packages",
-    "docs:dev": "turbo run rspress:dev --filter=@open-spaced-repetition/docs",
-    "docs:build": "turbo run rspress:build --filter=@open-spaced-repetition/docs",
-    "rspress:dev": "pnpm docs:prepare && rspress dev",
-    "rspress:build": "pnpm docs:prepare && rspress build",
+    "rspress:dev": "rspress dev",
+    "rspress:build": "rspress build",
     "preview": "rspress preview",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
     "verify:packages": "node scripts/verify-packages.mjs"
