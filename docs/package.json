@@ -7,6 +7,8 @@
     "rspress:dev": "rspress dev",
     "rspress:build": "rspress build",
     "preview": "rspress preview",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit --pretty false",
     "test": "vitest run --config vitest.config.ts",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
