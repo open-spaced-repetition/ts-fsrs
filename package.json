@@ -16,6 +16,7 @@
     "docs": "turbo run docs --filter=ts-fsrs",
     "docs:dev": "turbo run rspress:dev --filter=@ts-fsrs/website",
     "docs:build": "turbo run rspress:build --filter=@ts-fsrs/website",
+    "docs:preview": "turbo run preview --filter=@ts-fsrs/website",
     "changeset": "changeset",
     "//note:naming": "Use single colon (:) instead of double colon (::) in script names. Turbo fails to parse glob expressions for cache log files when task names contain '::' (see https://github.com/vercel/turborepo/issues/6136).",
     "//": "when we create the release PR, we need to update the lock file with the new versions",

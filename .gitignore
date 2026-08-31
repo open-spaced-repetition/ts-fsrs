@@ -37,6 +37,9 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 
+# Sample review log fetched at build time (see docs/scripts/fetch-revlog.mjs)
+docs/src/public/revlog.csv
+
 # Documentation and coverage
 **/coverage/
 /docs/doc_build/
