@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "lib": ["DOM", "ES2023"],
+    "lib": ["DOM", "ES2024"],
     "jsx": "react-jsx",
     "target": "ES2023",
     "noEmit": true,
@@ -9,6 +9,15 @@
     "module": "ESNext",
     "moduleDetection": "force",
     "moduleResolution": "bundler",
+    "paths": {
+      "@/*": ["./src/*"],
+      "i18n": ["./src/i18n/en-US.json"],
+      // Playground examples import the specifier an application installs. The
+      // wasm32-wasip1 build is the platform artifact that ships those types.
+      "@open-spaced-repetition/binding": [
+        "../packages/binding/dist/fsrs-binding.wasip1.d.cts"
+      ]
+    },
     "verbatimModuleSyntax": true,
     "resolveJsonModule": true,
     "allowImportingTsExtensions": true,
@@ -21,7 +30,14 @@
     "noUnusedParameters": true,
     "types": ["node"]
   },
-  "include": ["src", "scripts", "rspress.config.ts", "search.ts"],
+  "include": [
+    "src",
+    "theme",
+    "scripts",
+    "rspress.config.ts",
+    "search.ts",
+    "vitest.config.ts"
+  ],
   "mdx": {
     "checkMdx": true
   }
