@@ -114,7 +114,7 @@ async function execute(request: CodeRunRequest): Promise<void> {
   }
 }
 
-async function trainCsv(request: CsvTrainingRequest): Promise<void> {
+async function handleTraining(request: CsvTrainingRequest): Promise<void> {
   const startedAt = performance.now()
   try {
     const result = await trainRevlogCsv(request.csvText, {
@@ -154,7 +154,7 @@ workerScope.addEventListener(
   'message',
   (event: MessageEvent<RunnerRequest>) => {
     if (event.data.type === 'run') void execute(event.data)
-    else void trainCsv(event.data)
+    else void handleTraining(event.data)
   }
 )
 workerScope.postMessage({ type: 'ready' })

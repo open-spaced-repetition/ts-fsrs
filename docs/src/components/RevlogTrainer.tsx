@@ -1,5 +1,5 @@
 import { useI18n } from '@rspress/core/runtime'
-import { useEffect, useId, useRef, useState } from 'react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import {
   acquirePlaygroundRunnerLease,
   trainRevlogCsvInPlaygroundWorker,
@@ -63,6 +63,7 @@ export default function RevlogTrainer() {
   const inputId = useId()
   const nextDayStartsAtId = useId()
   const timezoneId = useId()
+  const timezoneOptionsId = useId()
   const runGenerationRef = useRef(0)
   const [enableShortTerm, setEnableShortTerm] = useState(true)
   const [error, setError] = useState('')
@@ -80,8 +81,19 @@ export default function RevlogTrainer() {
     | undefined
   >()
   const [state, setState] = useState<TrainingState>('idle')
+  const [activeTimezoneIndex, setActiveTimezoneIndex] = useState(0)
   const [timezone, setTimezone] = useState('UTC')
+  const [timezoneFilter, setTimezoneFilter] = useState('')
+  const [timezoneOpen, setTimezoneOpen] = useState(false)
   const [timezoneOptions, setTimezoneOptions] = useState<readonly string[]>()
+
+  const filteredTimezoneOptions = useMemo(() => {
+    if (!timezoneOptions) return []
+    const query = timezoneFilter.trim().toLowerCase()
+    return query
+      ? timezoneOptions.filter((option) => option.toLowerCase().includes(query))
+      : timezoneOptions
+  }, [timezoneFilter, timezoneOptions])
 
   useEffect(() => {
     const browserTimezone = getBrowserTimezone()
@@ -100,6 +112,20 @@ export default function RevlogTrainer() {
     setProgress(undefined)
     setResult(undefined)
   }
+
+  const selectTimezone = (nextTimezone: string) => {
+    setTimezone(nextTimezone)
+    setTimezoneFilter('')
+    setTimezoneOpen(false)
+    clearOutput()
+  }
+
+  useEffect(() => {
+    if (!timezoneOpen) return
+    document
+      .getElementById(`${timezoneOptionsId}-${activeTimezoneIndex}`)
+      ?.scrollIntoView({ block: 'nearest' })
+  }, [activeTimezoneIndex, timezoneOpen, timezoneOptionsId])
 
   const train = async () => {
     if (!file || busy) return
@@ -160,44 +186,143 @@ export default function RevlogTrainer() {
       {/* One control per row: in a two-column grid the checkbox ended up
           floating far from the label it belongs to. */}
       <div className="grid gap-3">
-        <label className={styles.field} htmlFor={timezoneId}>
-          <span>{t('revlogTrainer.timezone')}</span>
-          {timezoneOptions ? (
-            <select
-              className={styles.control}
+        <fieldset
+          className={cn(styles.field, 'm-0 min-w-0 border-0 p-0')}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setTimezoneOpen(false)
+            }
+          }}
+        >
+          <legend className="p-0">{t('revlogTrainer.timezone')}</legend>
+          <div className="relative">
+            <input
+              aria-activedescendant={
+                timezoneOpen && filteredTimezoneOptions[activeTimezoneIndex]
+                  ? `${timezoneOptionsId}-${activeTimezoneIndex}`
+                  : undefined
+              }
+              aria-autocomplete="list"
+              aria-controls={timezoneOptions ? timezoneOptionsId : undefined}
+              aria-expanded={timezoneOpen}
+              aria-label={t('revlogTrainer.timezone')}
+              autoComplete="off"
+              className={cn(styles.control, timezoneOptions && 'pr-10')}
               data-testid="revlog-timezone"
               disabled={busy}
               id={timezoneId}
               onChange={(event) => {
                 setTimezone(event.currentTarget.value)
+                setTimezoneFilter(event.currentTarget.value)
+                setActiveTimezoneIndex(0)
+                setTimezoneOpen(true)
                 clearOutput()
               }}
-              value={timezone}
-            >
-              {timezoneOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              autoComplete="off"
-              className={styles.control}
-              data-testid="revlog-timezone"
-              disabled={busy}
-              id={timezoneId}
-              onChange={(event) => {
-                setTimezone(event.currentTarget.value)
-                clearOutput()
+              onFocus={() => {
+                setActiveTimezoneIndex(0)
+                setTimezoneOpen(true)
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation()
+                if (!timezoneOptions) return
+                if (event.key === 'ArrowDown') {
+                  event.preventDefault()
+                  setActiveTimezoneIndex((index) =>
+                    timezoneOpen
+                      ? Math.min(
+                          index + 1,
+                          Math.max(filteredTimezoneOptions.length - 1, 0)
+                        )
+                      : 0
+                  )
+                  setTimezoneOpen(true)
+                } else if (event.key === 'ArrowUp') {
+                  event.preventDefault()
+                  setActiveTimezoneIndex((index) => Math.max(index - 1, 0))
+                  setTimezoneOpen(true)
+                } else if (event.key === 'Enter' && timezoneOpen) {
+                  const option = filteredTimezoneOptions[activeTimezoneIndex]
+                  if (option) {
+                    event.preventDefault()
+                    selectTimezone(option)
+                  }
+                } else if (event.key === 'Escape') {
+                  setTimezoneOpen(false)
+                }
               }}
               placeholder={t('revlogTrainer.timezonePlaceholder')}
+              role="combobox"
               spellCheck={false}
               type="text"
               value={timezone}
             />
-          )}
-        </label>
+            {timezoneOptions && (
+              <button
+                aria-label={t('revlogTrainer.timezoneOptions')}
+                className="absolute inset-y-0 right-0 grid w-10 cursor-pointer place-items-center border-0 bg-transparent text-muted hover:text-body"
+                onClick={() => {
+                  setTimezoneFilter('')
+                  setActiveTimezoneIndex(0)
+                  setTimezoneOpen((open) => !open)
+                }}
+                type="button"
+              >
+                <svg
+                  aria-hidden="true"
+                  className={cn(
+                    'size-4 transition-transform',
+                    timezoneOpen && 'rotate-180'
+                  )}
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    d="m7 9.5 5 5 5-5"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                  />
+                </svg>
+              </button>
+            )}
+            {timezoneOpen && timezoneOptions && (
+              <div
+                className="absolute z-30 mt-1 max-h-64 w-full overflow-auto rounded-[9px] border border-line bg-surface p-1 shadow-playground"
+                id={timezoneOptionsId}
+                role="listbox"
+              >
+                {filteredTimezoneOptions.length > 0 ? (
+                  filteredTimezoneOptions.map((option, index) => (
+                    <button
+                      aria-selected={option === timezone}
+                      className={cn(
+                        'block w-full cursor-pointer rounded-md border-0 bg-transparent',
+                        'px-2.5 py-2 text-left text-[13px] text-body',
+                        'hover:bg-brand-soft data-[active=true]:bg-brand-soft',
+                        'data-[selected=true]:font-semibold data-[selected=true]:text-brand'
+                      )}
+                      data-active={index === activeTimezoneIndex}
+                      data-selected={option === timezone}
+                      id={`${timezoneOptionsId}-${index}`}
+                      key={option}
+                      onClick={() => selectTimezone(option)}
+                      onMouseEnter={() => setActiveTimezoneIndex(index)}
+                      role="option"
+                      type="button"
+                    >
+                      {option}
+                    </button>
+                  ))
+                ) : (
+                  <p className="m-0 px-2.5 py-2 text-[13px] text-muted">
+                    {t('revlogTrainer.noTimezoneMatches')}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        </fieldset>
         <label className={styles.field} htmlFor={nextDayStartsAtId}>
           <span>{t('revlogTrainer.nextDayStartsAt')}</span>
           <select
@@ -219,11 +344,9 @@ export default function RevlogTrainer() {
           </select>
         </label>
         <label
-          // `max-w-85` matches `styles.control`, so the checkbox lands on the
-          // same right edge as the selects instead of at the panel's edge.
           className={cn(
             styles.field,
-            'min-h-9.5 max-w-85 grid-cols-[1fr_auto] items-center'
+            'min-h-9.5 grid-cols-[1fr_auto] items-center'
           )}
           htmlFor={enableShortTermId}
         >

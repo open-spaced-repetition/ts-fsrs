@@ -40,7 +40,10 @@ export function useShare(t: Translate): ShareController {
         // status text alone was too easy to miss.
         setCopied(true)
         window.clearTimeout(copyResetRef.current)
-        copyResetRef.current = window.setTimeout(() => setCopied(false), 2400)
+        copyResetRef.current = window.setTimeout(() => {
+          setCopied(false)
+          setStatus('')
+        }, 2400)
       } catch (error) {
         setStatus(
           t('playground.shareFailed', {

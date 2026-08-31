@@ -1,4 +1,10 @@
 import { useDark, useI18n } from '@rspress/core/runtime'
+import {
+  IconExperimental,
+  IconLink,
+  IconTitle,
+  SvgWrapper,
+} from '@rspress/core/theme'
 import { useEffect, useState } from 'react'
 import { useMonacoEditor } from '@/playground/editor/use-monaco-editor'
 import { usePlaygroundRunner } from '@/playground/runner/use-playground-runner'
@@ -15,6 +21,12 @@ import WorkerLogLine from './WorkerLogLine'
 
 const INITIAL_SCENARIO = PLAYGROUND_SCENARIOS[0]
 if (!INITIAL_SCENARIO) throw new Error('The playground has no scenarios.')
+
+const SCENARIO_ICONS = {
+  binding: IconExperimental,
+  custom: IconLink,
+  'ts-fsrs': IconTitle,
+} satisfies Record<PlaygroundScenario['id'], typeof IconTitle>
 
 export default function LivePlayground() {
   const dark = useDark()
@@ -82,6 +94,9 @@ export default function LivePlayground() {
   const copyShareLink = () => share.share(getEditorValue() ?? code)
 
   const runnable = editorReady && runner.state === 'idle'
+  const shareButtonLabel = share.copied
+    ? t('playground.shareDone')
+    : share.status || t('playground.share')
 
   return (
     <section
@@ -102,8 +117,8 @@ export default function LivePlayground() {
     >
       <header
         className={cn(
-          'flex items-start justify-between gap-5 px-6.5 pt-6 pb-4.5',
-          'max-md:block max-md:px-4.5 max-md:pt-5.25 max-md:pb-3.75'
+          'px-6.5 pt-6 pb-4.5',
+          'max-md:px-4.5 max-md:pt-5.25 max-md:pb-3.75'
         )}
       >
         <div>
@@ -116,49 +131,127 @@ export default function LivePlayground() {
             {t('playground.title')}
           </h2>
         </div>
-        <span
-          className={cn(
-            'inline-flex min-h-7.5 items-center rounded-full px-2.75 py-1.25',
-            'border border-line-accent bg-accent-soft font-mono text-[11px] text-muted',
-            'whitespace-nowrap max-md:mt-3.25 max-md:whitespace-normal',
-            // The status dot.
-            'before:mr-1.75 before:size-1.75 before:rounded-full',
-            'before:bg-accent before:shadow-dot before:content-[""]'
-          )}
-        >
-          {t('playground.runtime')}
-        </span>
       </header>
 
-      <div className="flex gap-1.5 px-6.5 pb-3.5 max-md:overflow-x-auto max-md:px-4.5 max-md:pb-3">
-        {scenarios.map((scenario) => (
+      <div className="flex items-center justify-between gap-4 px-6.5 pb-3.5 max-md:block max-md:px-4.5 max-md:pb-3">
+        <div className="flex flex-wrap gap-1.5">
+          {scenarios.map((scenario) => (
+            <button
+              aria-pressed={scenario.id === activeId}
+              aria-label={t(scenario.labelKey)}
+              className={cn(
+                'inline-flex cursor-pointer items-center gap-2 rounded-[10px]',
+                'border border-line bg-panel px-3.25 py-2',
+                'text-[13px] font-semibold text-muted [font-family:inherit]',
+                'transition duration-150 hover:border-line-strong hover:bg-surface-soft hover:text-body',
+                'focus-visible:outline-3 focus-visible:outline-offset-2',
+                'focus-visible:outline-ring motion-reduce:transition-none',
+                'data-[active=true]:border-line-brand data-[active=true]:bg-brand-soft',
+                'data-[active=true]:text-brand',
+                'dark:border-white/15 dark:bg-white/6 dark:text-white/80',
+                'dark:hover:border-white/25 dark:hover:bg-white/10 dark:hover:text-white',
+                'dark:data-[active=true]:border-[#9488ff]',
+                'dark:data-[active=true]:bg-[#6254e8]/25',
+                'dark:data-[active=true]:text-[#c5beff]',
+                'max-md:size-10 max-md:justify-center max-md:p-0'
+              )}
+              data-active={scenario.id === activeId}
+              key={scenario.id}
+              onClick={() => selectScenario(scenario)}
+              title={t(scenario.labelKey)}
+              type="button"
+              disabled={!runnable}
+            >
+              <span aria-hidden="true">
+                <SvgWrapper
+                  height={18}
+                  icon={SCENARIO_ICONS[scenario.id]}
+                  width={18}
+                />
+              </span>
+              <span className="max-md:sr-only">{t(scenario.labelKey)}</span>
+            </button>
+          ))}
+        </div>
+        <div className="flex shrink-0 flex-wrap justify-end gap-2 max-md:mt-2.5">
           <button
-            aria-pressed={scenario.id === activeId}
-            className={cn(
-              'cursor-pointer rounded-[10px] border border-transparent px-3.25 py-2',
-              'text-[13px] font-semibold text-muted [font-family:inherit]',
-              'transition duration-150 hover:bg-panel hover:text-body',
-              'focus-visible:outline-3 focus-visible:outline-offset-2',
-              'focus-visible:outline-ring motion-reduce:transition-none',
-              'data-[active=true]:border-line-brand data-[active=true]:bg-brand-soft',
-              'data-[active=true]:text-brand max-md:whitespace-nowrap'
-            )}
-            data-active={scenario.id === activeId}
-            key={scenario.id}
-            onClick={() => selectScenario(scenario)}
-            type="button"
+            aria-keyshortcuts="Control+Enter Meta+Enter"
+            aria-label={t('playground.run')}
+            className={cn(styles.actionButton, styles.primaryButton)}
+            data-tooltip={`${runner.state === 'idle' ? t('playground.run') : t('playground.runBusy')} · Ctrl/⌘ ↵`}
+            data-testid="playground-run"
             disabled={!runnable}
+            onClick={run}
+            type="button"
           >
-            {t(scenario.labelKey)}
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m8 5 11 7-11 7Z" fill="currentColor" />
+            </svg>
           </button>
-        ))}
+          <button
+            aria-label={t('playground.reset')}
+            className={styles.actionButton}
+            data-tooltip={`${t('playground.reset')} · Enter`}
+            disabled={!runnable}
+            onClick={reset}
+            type="button"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path
+                d="M4 12a8 8 0 1 0 2.34-5.66L4 8.67M4 4v4.67h4.67"
+                fill="none"
+                stroke="currentColor"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+              />
+            </svg>
+          </button>
+          <button
+            aria-label={shareButtonLabel}
+            className={cn(
+              styles.actionButton,
+              'data-[copied=true]:border-line-success data-[copied=true]:bg-accent-muted',
+              'data-[copied=true]:text-on-accent'
+            )}
+            data-copied={share.copied}
+            data-testid="playground-share"
+            data-tooltip={`${shareButtonLabel} · Enter`}
+            disabled={!runnable}
+            onClick={() => void copyShareLink()}
+            type="button"
+          >
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <rect
+                fill="none"
+                height="12"
+                rx="2"
+                stroke="currentColor"
+                strokeWidth="2"
+                width="12"
+                x="8"
+                y="8"
+              />
+              <path
+                d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+              />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      <div className="relative mx-4.5 overflow-hidden rounded-[15px] border border-line bg-editor max-md:mx-2.25">
-        <div
-          className="h-[min(55vh,440px)] min-h-85 w-full max-md:h-105 max-md:min-h-80"
-          ref={containerRef}
-        />
+      <div
+        className={cn(
+          'playground-resizable relative mx-4.5 h-[min(55vh,440px)] min-h-85',
+          'max-h-[80vh] resize-y overflow-hidden rounded-[15px]',
+          'border border-line bg-editor',
+          'max-md:mx-2.25 max-md:h-90 max-md:min-h-60'
+        )}
+      >
+        <div className="h-full w-full" ref={containerRef} />
         {!editorReady && (
           <div className="absolute inset-0 grid place-items-center gap-2.5 bg-surface p-6 text-center text-[13px] text-muted">
             {editorLoading ? (
@@ -181,68 +274,12 @@ export default function LivePlayground() {
         )}
       </div>
 
-      {/* Labels that change while running are stacked in a grid so each button
-          keeps the width of its widest state and the row never reflows. */}
-      <div className="flex items-center gap-2.25 px-5 py-4 max-md:flex-col max-md:items-stretch max-md:px-3 max-md:py-3.25">
-        <button
-          className={cn(styles.button, styles.primaryButton, styles.swapButton)}
-          data-testid="playground-run"
-          disabled={!runnable}
-          onClick={run}
-          type="button"
-        >
-          <span data-shown={runner.state === 'idle'}>
-            {t('playground.run')}
-          </span>
-          <span data-shown={runner.state !== 'idle'}>
-            {t('playground.runBusy')}
-          </span>
-        </button>
-        <button
-          className={styles.button}
-          disabled={!runnable}
-          onClick={reset}
-          type="button"
-        >
-          {t('playground.reset')}
-        </button>
-        <button
-          className={cn(
-            styles.button,
-            styles.swapButton,
-            'data-[copied=true]:border-line-success data-[copied=true]:bg-accent-muted',
-            'data-[copied=true]:text-on-accent'
-          )}
-          data-copied={share.copied}
-          data-testid="playground-share"
-          disabled={!runnable}
-          onClick={() => void copyShareLink()}
-          type="button"
-        >
-          <span data-shown={!share.copied}>{t('playground.share')}</span>
-          <span data-shown={share.copied}>{t('playground.shareDone')}</span>
-        </button>
-        <span
-          className={cn(
-            'ml-auto text-[11px] text-subtle max-md:mx-0.5 max-md:mt-1 max-md:ml-0',
-            'data-[status=share]:font-[650] data-[status=share]:text-on-accent'
-          )}
-          data-status={share.status ? 'share' : undefined}
-          aria-live="polite"
-        >
-          {runner.state === 'compiling'
-            ? t('playground.compiling')
-            : runner.state === 'running'
-              ? t('playground.running')
-              : share.status || t('playground.hint')}
-        </span>
-      </div>
-
       <div
         className={cn(
           // A fixed band so a run never pushes the page down, tall enough for
           // an expanded result, and resizable when a transcript outgrows it.
-          'mx-4.5 mb-4.5 h-[min(45vh,380px)] min-h-50 resize-y',
+          'playground-resizable relative mx-4.5 mt-3 mb-4.5 h-[min(45vh,380px)]',
+          'max-h-[80vh] min-h-50 resize-y',
           'overflow-auto rounded-[14px] border border-line bg-output',
           'max-md:mx-2.25',
           'data-[state=success]:border-line-success',
