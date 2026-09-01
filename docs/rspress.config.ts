@@ -4,8 +4,13 @@ import path from 'node:path'
 import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss'
 import { defineConfig } from '@rspress/core'
 import { pluginRss } from '@rspress/plugin-rss'
+import { pluginTwoslash } from '@rspress/plugin-twoslash'
 import { adaptI18nSource } from './src/i18n'
 import { collectPlaygroundDeclarations } from './src/playground/editor/collect-declarations'
+import {
+  collectHighlightedExportNames,
+  keepTsFsrsTypeHover,
+} from './src/playground/highlight/twoslash'
 
 const siteOrigin = process.env.DOCS_SITE_ORIGIN
 const repository =
@@ -16,6 +21,9 @@ const repositoryRef = (process.env.DOCS_REPO_REF ?? 'main')
   .join('/')
 const workspaceRoot = path.resolve(import.meta.dirname, '..')
 const playgroundDeclarations = collectPlaygroundDeclarations(workspaceRoot)
+const highlightedExportNames = collectHighlightedExportNames(
+  playgroundDeclarations
+)
 // Any module whose path ends in `.css` is pulled into the site-wide stylesheet,
 // so the editor styles are inlined as a string that only the playground's async
 // chunk references. Monaco's icon font is a data URI, so no asset rewriting is
@@ -94,6 +102,11 @@ export default defineConfig({
     },
   },
   plugins: [
+    pluginTwoslash({
+      twoslashOptions: {
+        filterNode: (node) => keepTsFsrsTypeHover(node, highlightedExportNames),
+      },
+    }),
     pluginRss({
       feed: [
         {

@@ -1,0 +1,46 @@
+---
+title: はじめに
+description: ts-fsrs をインストールし、スケジューラーの構成を理解して、defineScheduler の完全なクイックスタートをブラウザーで実行します
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import RunCode from '../../components/RunCode'
+import code from '@/snippets/run-code/define-scheduler.ts?raw'
+
+# はじめに
+
+`ts-fsrs` は、FSRS を使用した間隔反復システムを構築するための TypeScript ツールキットです。宣言的 API はモデル、時刻体系、任意の middleware を再利用可能なスケジューラー定義に組み合わせます。
+
+<Prompt
+  title="TypeScript アプリに ts-fsrs を組み込む"
+  description="このプロンプトをコピーして AI Agent に送り、ts-fsrs のインストールと動作する FSRS-6 スケジューラーの作成を依頼できます。"
+  prompt={`私の TypeScript アプリに ts-fsrs を組み込んでください。
+
+1. \`ts-fsrs\` package をインストールする。
+2. \`defineScheduler\`、\`FSRS6Model\`、\`dateChrono\` で FSRS-6 スケジューラーを作成する。
+3. 新しいカードを作成し、\`Rating.Good\` で復習する。
+4. 実装を最小限に保ち、現在の ts-fsrs public API を使用する。`}
+/>
+
+## インストール
+
+`ts-fsrs` には Node.js 20 以降が必要です。
+
+<PackageManagerTabs command="install ts-fsrs" />
+
+FSRS パラメーターの学習や復習ログ CSV の変換が必要な場合にのみ、`@open-spaced-repetition/binding` を追加でインストールします。
+
+## Quick start
+
+`defineScheduler` は FSRS-6 モデルと日付ベースの時刻体系から再利用可能な定義を作成します。`.create()` は設定を検証し、独立したスケジューラーを返します。
+
+```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
+```
+
+<RunCode code={code} />
+
+コードブロックのコピーボタンは元のソースをコピーします。専用 Worker でそのまま実行することもできます。固定した `now` により出力を再現できます。
+
+- `newCard()` はスケジューラー既定のカードを作成します。
+- `review()` は新しいカードと復習ログを返し、入力カードを変更しません。
+- 複数のスケジューラーを作る場合は definition を保持し、ポリシーが必要な場合は `.create()` の前に `.use(...)` で middleware を追加します。
