@@ -1,6 +1,10 @@
 import { alea } from './alea'
 import { S_MIN } from './constant'
-import { generatorParameters, migrateParameters } from './default'
+import {
+  clipParameters,
+  generatorParameters,
+  migrateParameters,
+} from './default'
 import { FSRSValidationError } from './error'
 import { clamp, get_fuzz_range, roundTo } from './help'
 import {
@@ -61,7 +65,7 @@ export class FSRSAlgorithm {
 
   constructor(params: Partial<FSRSParameters>) {
     this.param = new Proxy(
-      generatorParameters(params),
+      this.prepare_parameters(params),
       this.params_handler_proxy()
     )
     this.intervalModifier = this.calculate_interval_modifier(
@@ -128,6 +132,11 @@ export class FSRSAlgorithm {
             target.relearning_steps.length,
             target.enable_short_term
           )
+          value = clipParameters(
+            Array.from(value),
+            target.relearning_steps.length,
+            target.enable_short_term
+          )
           _this.forgetting_curve = forgetting_curve.bind(this, value)
           _this.intervalModifier = _this.calculate_interval_modifier(
             Number(target.request_retention)
@@ -140,12 +149,24 @@ export class FSRSAlgorithm {
   }
 
   private update_parameters(params: Partial<FSRSParameters>): void {
-    const _params = generatorParameters(params)
+    const _params = this.prepare_parameters(params)
     for (const key in _params) {
       // All keys in _params are guaranteed to exist in this.param due to generatorParameters()
       const paramKey = key as keyof FSRSParameters
       this.param[paramKey] = _params[paramKey] as never
     }
+  }
+
+  private prepare_parameters = (
+    params: Partial<FSRSParameters>
+  ): FSRSParameters => {
+    const generated = generatorParameters(params)
+    generated.w = clipParameters(
+      Array.from(generated.w),
+      generated.relearning_steps.length,
+      generated.enable_short_term
+    )
+    return generated
   }
 
   /**
