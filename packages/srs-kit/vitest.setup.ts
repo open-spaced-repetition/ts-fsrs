@@ -161,8 +161,19 @@ globalThis.quickInfoAt = (svc, rel, marker) => {
     markerStart + marker.length - 1
   )
 
-  if (!match || !ts.isIdentifier(match.declaration.name)) {
-    throw new Error(`Expected "${marker}" in ${rel} to be a variable name`)
+  if (!match) {
+    const info = svc.getQuickInfoAtPosition(
+      fileName,
+      markerStart + marker.length - 1
+    )
+    if (!info) {
+      throw new Error(`Missing QuickInfo for "${marker}" in ${rel}`)
+    }
+    return ts.displayPartsToString(info.displayParts)
+  }
+
+  if (!ts.isIdentifier(match.declaration.name)) {
+    throw new Error(`Expected "${marker}" in ${rel} to be an identifier`)
   }
 
   const checker = program.getTypeChecker()
