@@ -44,6 +44,14 @@ export type SchedulerConfigOf<T extends HasSchema<'config'>> = SchemaOutputOf<
   'config'
 >
 
+export type SchedulerConfigInputOf<T extends HasSchema<'config'>> = {
+  [Key in keyof SchemaInputOf<T, 'config'>]: SchemaInputOf<T, 'config'>[Key]
+}
+
+export type SchedulerConfigOutputOf<T extends HasSchema<'config'>> = {
+  [Key in keyof SchemaOutputOf<T, 'config'>]: SchemaOutputOf<T, 'config'>[Key]
+}
+
 export type SchedulerConfigInput<
   M extends AnyModel,
   C extends AnyChrono,
