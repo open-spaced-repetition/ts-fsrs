@@ -1,6 +1,6 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
-import ts from 'typescript-compiler'
+import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
 import { PLAYGROUND_SCENARIOS } from '../shared/scenarios'
 

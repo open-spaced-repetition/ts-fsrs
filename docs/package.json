@@ -27,9 +27,10 @@
   "devDependencies": {
     "@rspress/core": "2.0.19",
     "@rspress/plugin-rss": "2.0.19",
+    "@rspress/plugin-twoslash": "2.0.19",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/react": "19.2.18",
     "tailwindcss": "^4.3.3",
-    "typescript-compiler": "npm:typescript@6.0.3"
+    "typescript": "6.0.3"
   }
 }
