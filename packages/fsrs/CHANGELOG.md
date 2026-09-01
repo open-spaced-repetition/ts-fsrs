@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 5.4.2
+
+### Patch Changes
+
+- [#486](https://github.com/open-spaced-repetition/ts-fsrs/pull/486) [`13f9233`](https://github.com/open-spaced-repetition/ts-fsrs/commit/13f9233edfbcf8d2f55e8683130bc186dcc539d7) Thanks [@gpanakkal](https://github.com/gpanakkal)! - fix(fsrs): clip parameters after migrating
+
 ## 5.4.1
 
 ### Patch Changes
