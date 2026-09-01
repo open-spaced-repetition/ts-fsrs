@@ -8,12 +8,23 @@ import type { Grade } from '@/primitives/rating.js'
 import type { Mutable } from '@/schema/index.js'
 import { defineStringFieldOutputSchema } from '@/schema/string-field.test.js'
 import { defineScheduler } from './define-scheduler.js'
+import type {
+  SchedulerConfigInputOf,
+  SchedulerConfigOutputOf,
+} from './infer.js'
 import type { PreviewResult, ScheduleResult } from './scheduler.js'
 
 const sm2NumericScheduler = defineScheduler({
   model: SM2Model,
   chrono: numericChrono,
 }).use(schedulerStatsMiddleware)
+
+type SM2NumericSchedulerConfigInput = SchedulerConfigInputOf<
+  typeof sm2NumericScheduler
+>
+type SM2NumericSchedulerConfigOutput = SchedulerConfigOutputOf<
+  typeof sm2NumericScheduler
+>
 
 const baseSm2NumericScheduler = defineScheduler({
   model: SM2Model,
@@ -752,6 +763,18 @@ describe('defineScheduler type display', () => {
 }>`,
   }
 
+  const expectedConfigs = {
+    SM2NumericSchedulerConfigInput: `type SM2NumericSchedulerConfigInput = {
+    readonly weights: readonly number[];
+    readonly clearStatsOnForget?: boolean | undefined;
+}`,
+    SM2NumericSchedulerConfigOutput: `type SM2NumericSchedulerConfigOutput = {
+    readonly weights: readonly number[];
+    readonly chrono: Record<string, never>;
+    readonly clearStatsOnForget: boolean;
+}`,
+  }
+
   it('keeps scheduler hovers readable with composed env', () => {
     for (const [marker, expected] of Object.entries(expectedSchedulers)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
@@ -784,6 +807,12 @@ describe('defineScheduler type display', () => {
 
   it('keeps middleware names readable', () => {
     for (const [marker, expected] of Object.entries(expectedMiddlewares)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('shows the flattened scheduler config input and output', () => {
+    for (const [marker, expected] of Object.entries(expectedConfigs)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })
