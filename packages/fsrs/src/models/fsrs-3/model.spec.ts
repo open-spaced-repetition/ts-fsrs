@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { FSRS3Algorithm } from './algorithm.js'
 import { FSRS3_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS3Model } from './model.js'
-import { migrateFSRS3Parameters } from './parameters.js'
+import { clipFSRS3Parameters, migrateFSRS3Parameters } from './parameters.js'
 
 describe('FSRS3Model', () => {
   it('returns the default empty memory state', () => {
@@ -75,7 +75,9 @@ describe('FSRS3Model', () => {
       migrate: true,
     })
 
-    expect(model.config.weights).toEqual(migrateFSRS3Parameters(weights))
+    expect(model.config.weights).toEqual(
+      clipFSRS3Parameters(migrateFSRS3Parameters(weights))
+    )
   })
 
   it('bypasses create-time parsing when requested', () => {
@@ -95,6 +97,7 @@ describe('FSRS3Model', () => {
     const model = FSRS3Model.create({
       config: { weights },
       migrate: false,
+      clip: false,
       check: false,
     })
 
@@ -109,6 +112,7 @@ describe('FSRS3Model', () => {
       FSRS3Model.create({
         config: { weights },
         migrate: false,
+        clip: false,
         check: true,
       })
     ).toThrow('Expected FSRS3 weights within model bounds.')

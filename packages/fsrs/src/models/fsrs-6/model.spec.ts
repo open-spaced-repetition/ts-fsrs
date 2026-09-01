@@ -30,21 +30,48 @@ describe('FSRS6Model', () => {
     ).toThrow()
   })
 
-  it('migrates FSRS-5 weights when requested', () => {
+  it.each([
+    [true, 0.01],
+    [false, 0],
+  ])('clips migrated FSRS-5 weights when enableShortTerm=%s', (enableShortTerm, expectedW19) => {
     const weights = Array.from(FSRS5_DEFAULT_WEIGHTS)
     const model = FSRS6Model.create({
       config: {
         weights,
+        enableShortTerm,
+        numRelearningSteps: 0,
+      },
+    })
+
+    expect(model.config.weights[19]).toBe(expectedW19)
+  })
+
+  it('bypasses parameter clipping when requested', () => {
+    const config = {
+      weights: migrateFSRS6Parameters(FSRS5_DEFAULT_WEIGHTS),
+      enableShortTerm: true,
+      numRelearningSteps: 0,
+    }
+
+    const model = FSRS6Model.create({ config, bypass: true })
+
+    expect(model.config).toBe(config)
+    expect(model.config.weights[19]).toBe(0)
+  })
+
+  it('can migrate without clipping or checking', () => {
+    const model = FSRS6Model.create({
+      config: {
+        weights: FSRS5_DEFAULT_WEIGHTS,
         enableShortTerm: true,
         numRelearningSteps: 0,
       },
-      migrate: true,
+      clip: false,
       check: false,
     })
 
-    expect(model.config.weights).toEqual(
-      migrateFSRS6Parameters(weights, 0, true)
-    )
+    expect(model.config.weights).toHaveLength(21)
+    expect(model.config.weights[19]).toBe(0)
   })
 
   it('checks parameter bounds when requested', () => {
@@ -59,6 +86,7 @@ describe('FSRS6Model', () => {
           numRelearningSteps: 0,
         },
         migrate: false,
+        clip: false,
         check: true,
       })
     ).toThrow('Expected FSRS6 weights within model bounds.')

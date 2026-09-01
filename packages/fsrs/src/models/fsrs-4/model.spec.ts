@@ -46,6 +46,7 @@ describe('FSRS-4 model', () => {
           weights: [0, ...weights.slice(1)],
         },
         migrate: false,
+        clip: false,
         check: true,
       })
     ).toThrow('Expected FSRS4 weights within model bounds.')

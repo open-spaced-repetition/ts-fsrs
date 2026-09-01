@@ -54,11 +54,7 @@ export const generatorParameters = (
     : defaultRelearningSteps
   const enable_short_term =
     props?.enable_short_term ?? default_enable_short_term
-  const w = migrateFSRS6Parameters(
-    props?.w ? Array.from(props.w) : undefined,
-    relearning_steps.length,
-    enable_short_term
-  )
+  const w = migrateFSRS6Parameters(props?.w ? Array.from(props.w) : undefined)
 
   return {
     request_retention: props?.request_retention || default_request_retention,
