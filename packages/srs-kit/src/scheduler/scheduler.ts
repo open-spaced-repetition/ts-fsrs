@@ -71,8 +71,10 @@ export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
 
 export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
   EmptyPart extends SchedulerNewCardOptions<Env>
-    ? (options?: SchedulerNewCardOptions<Env>) => Env['card']['output']
-    : (options: SchedulerNewCardOptions<Env>) => Env['card']['output']
+    ? (
+        options?: SchedulerNewCardOptions<Env>
+      ) => Prettify<Env['card']['output']>
+    : (options: SchedulerNewCardOptions<Env>) => Prettify<Env['card']['output']>
 
 export interface ForwardItem<Time> {
   readonly rating: Grade
