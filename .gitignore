@@ -43,6 +43,8 @@ docs/src/public/revlog.csv
 # Documentation and coverage
 **/coverage/
 /docs/doc_build/
+/docs/playwright-report/
+/docs/test-results/
 
 # Rust
 target/

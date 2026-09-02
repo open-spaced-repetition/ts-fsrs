@@ -59,7 +59,12 @@ export default function WorkerLogLine({ className, line }: Props) {
 
   if (!json) {
     return (
-      <div className={row} data-level={line.level}>
+      <div
+        className={row}
+        data-level={line.level}
+        data-log-text={line.text}
+        data-testid="worker-log"
+      >
         <pre className="m-0 min-w-0 border-0 bg-transparent font-[inherit] break-words whitespace-pre-wrap">
           {line.text}
         </pre>
@@ -72,8 +77,10 @@ export default function WorkerLogLine({ className, line }: Props) {
     <div
       // Without `rp-not-doc` the viewer's nested <ul> is laid out as prose.
       className={cn(row, 'rp-not-doc', 'playground-log--json')}
+      data-json="true"
       data-level={line.level}
-      data-testid="worker-json"
+      data-log-text={line.text}
+      data-testid="worker-log"
     >
       {/* The tree is the flexible column: without `min-w-0` a wide value would
           push the timestamp off the edge instead of wrapping. */}
