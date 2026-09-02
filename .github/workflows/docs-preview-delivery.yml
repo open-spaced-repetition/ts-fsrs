@@ -209,6 +209,35 @@ jobs:
             - Status: Deploying
             - Preview URL: [${{ env.PREVIEW_URL }}](${{ env.PREVIEW_URL }})
 
+      - name: Record existing PR preview deployments
+        if: steps.reauthorize.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
+        run: |
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
+          previous_deployments="$RUNNER_TEMP/previous-preview-deployments"
+          : > "$previous_deployments"
+          page=1
+          while true; do
+            response="$RUNNER_TEMP/deployments-$page.json"
+            if ! curl --fail-with-body --silent --show-error \
+              "$endpoint?page=$page&per_page=25" \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --output "$response"; then
+              cat "$response" >&2
+              exit 1
+            fi
+            jq -e '.success' "$response" > /dev/null
+            jq -r --arg branch "$PREVIEW_BRANCH" \
+              '.result[] | select(.deployment_trigger.metadata.branch == $branch) | .id' \
+              "$response" >> "$previous_deployments"
+            total_pages=$(jq -r '.result_info.total_pages // 1' "$response")
+            ((page >= total_pages)) && break
+            ((page += 1))
+          done
+
       - name: Deploy Cloudflare Pages preview
         id: deploy
         if: steps.reauthorize.outputs.deploy == 'true'
@@ -223,6 +252,26 @@ jobs:
             --project-name=${{ vars.CLOUDFLARE_PROJECT_NAME }}
             --branch=${{ env.PREVIEW_BRANCH }}
 
+      - name: Delete superseded PR preview deployments
+        if: steps.reauthorize.outputs.deploy == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
+        run: |
+          endpoint="https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/pages/projects/$CLOUDFLARE_PROJECT_NAME/deployments"
+          while IFS= read -r deployment; do
+            response="$RUNNER_TEMP/delete-$deployment.json"
+            if ! curl --fail-with-body --silent --show-error \
+              --request DELETE "$endpoint/$deployment?force=true" \
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --output "$response"; then
+              cat "$response" >&2
+              exit 1
+            fi
+            jq -e '.success' "$response" > /dev/null
+          done < "$RUNNER_TEMP/previous-preview-deployments"
+
       - name: Comment deployment complete
         if: steps.reauthorize.outputs.deploy == 'true'
         uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
@@ -235,8 +284,8 @@ jobs:
             - Status: Deployed
             - Preview URL: [${{ env.PREVIEW_URL }}](${{ env.PREVIEW_URL }})
 
-      - name: Comment deployment failed
-        if: failure() && steps.deploy.conclusion == 'failure'
+      - name: Comment delivery failed
+        if: failure() && steps.reauthorize.outputs.deploy == 'true'
         uses: marocchino/sticky-pull-request-comment@5770ad5eb8f42dd2c4f34da00c94c5381e49af88 # v3.0.5
         with:
           number_force: ${{ needs.resolve.outputs.pr-number }}
@@ -262,12 +311,7 @@ jobs:
       CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
       PREVIEW_BRANCH: ts-pr${{ needs.resolve.outputs.pr-number }}
     steps:
-      - name: Setup Node
-        uses: actions/setup-node@v6
-        with:
-          node-version: 26
-
-      - name: Replace preview and delete old deployments
+      - name: Delete PR preview deployments
         id: cleanup
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -302,18 +346,16 @@ jobs:
             exit 0
           fi
 
-          mkdir -p "$RUNNER_TEMP/closed-preview"
-          printf '<!doctype html><title>Preview closed</title><p>This pull request preview has expired.</p>\n' \
-            > "$RUNNER_TEMP/closed-preview/index.html"
-          npx --yes wrangler@4.125.0 pages deploy "$RUNNER_TEMP/closed-preview" \
-            --project-name="$CLOUDFLARE_PROJECT_NAME" \
-            --branch="$PREVIEW_BRANCH"
-
           for deployment in "${deployments[@]}"; do
-            curl --fail --silent --show-error \
+            response="$RUNNER_TEMP/delete-$deployment.json"
+            if ! curl --fail-with-body --silent --show-error \
               --request DELETE "$endpoint/$deployment?force=true" \
-              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" |
-              jq -e '.success' > /dev/null
+              --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+              --output "$response"; then
+              cat "$response" >&2
+              exit 1
+            fi
+            jq -e '.success' "$response" > /dev/null
           done
           echo 'cleaned=true' >> "$GITHUB_OUTPUT"
 
