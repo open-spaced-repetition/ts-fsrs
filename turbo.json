@@ -45,22 +45,59 @@
     "@ts-fsrs/website#prepare:revlog": {
       "outputs": ["src/public/revlog.csv"]
     },
+    "@ts-fsrs/website#prepare:sponsors": {
+      "cache": false,
+      "env": [
+        "SPONSORKIT_GITHUB_TOKEN",
+        "SPONSORKIT_GITHUB_LOGIN",
+        "SPONSORKIT_GITHUB_TYPE"
+      ]
+    },
+    "@ts-fsrs/website#prepare:contributors": {
+      "cache": false,
+      "env": ["CONTRIBUTORS_REPO", "CONTRIBUTORS_GITHUB_TOKEN", "GITHUB_TOKEN"]
+    },
     "@ts-fsrs/website#rspress:build": {
       "dependsOn": [
         "@ts-fsrs/website#verify:packages",
-        "@ts-fsrs/website#prepare:revlog"
+        "@ts-fsrs/website#prepare:revlog",
+        "@ts-fsrs/website#prepare:sponsors",
+        "@ts-fsrs/website#prepare:contributors"
       ],
       "outputs": ["doc_build/**"],
-      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+      "inputs": ["$TURBO_DEFAULT$", ".sponsors.json", ".contributors.json"],
+      "env": [
+        "DOCS_SITE_ORIGIN",
+        "DOCS_REPO_SLUG",
+        "DOCS_REPO_REF",
+        "SPONSORKIT_GITHUB_TOKEN",
+        "SPONSORKIT_GITHUB_LOGIN",
+        "SPONSORKIT_GITHUB_TYPE",
+        "CONTRIBUTORS_REPO",
+        "CONTRIBUTORS_GITHUB_TOKEN",
+        "GITHUB_TOKEN"
+      ]
     },
     "@ts-fsrs/website#rspress:dev": {
       "dependsOn": [
         "@ts-fsrs/website#verify:packages",
-        "@ts-fsrs/website#prepare:revlog"
+        "@ts-fsrs/website#prepare:revlog",
+        "@ts-fsrs/website#prepare:sponsors",
+        "@ts-fsrs/website#prepare:contributors"
       ],
       "cache": false,
       "persistent": true,
-      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+      "env": [
+        "DOCS_SITE_ORIGIN",
+        "DOCS_REPO_SLUG",
+        "DOCS_REPO_REF",
+        "SPONSORKIT_GITHUB_TOKEN",
+        "SPONSORKIT_GITHUB_LOGIN",
+        "SPONSORKIT_GITHUB_TYPE",
+        "CONTRIBUTORS_REPO",
+        "CONTRIBUTORS_GITHUB_TOKEN",
+        "GITHUB_TOKEN"
+      ]
     },
     "@ts-fsrs/website#preview": {
       "dependsOn": ["@ts-fsrs/website#rspress:build"],
