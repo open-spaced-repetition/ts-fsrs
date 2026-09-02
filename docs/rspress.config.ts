@@ -6,6 +6,15 @@ import { defineConfig } from '@rspress/core'
 import { pluginRss } from '@rspress/plugin-rss'
 import { pluginTwoslash } from '@rspress/plugin-twoslash'
 import { adaptI18nSource } from './src/i18n'
+import {
+  readLandingContributors,
+  readLandingSponsors,
+} from './src/landing/community'
+import { collectLandingPreviews } from './src/landing/preview'
+import {
+  collectLandingSnippets,
+  readLandingSnippetFiles,
+} from './src/landing/snippets'
 import { collectPlaygroundDeclarations } from './src/playground/editor/collect-declarations'
 import {
   collectHighlightedExportNames,
@@ -34,6 +43,20 @@ const monacoEditorStyles = readFileSync(
   ),
   'utf8'
 )
+
+const twoslashOptions = {
+  filterNode: (node: Parameters<typeof keepTsFsrsTypeHover>[0]) =>
+    keepTsFsrsTypeHover(node, highlightedExportNames),
+}
+const landingSnippets = await collectLandingSnippets(
+  import.meta.dirname,
+  twoslashOptions
+)
+const landingPreviews = await collectLandingPreviews(
+  readLandingSnippetFiles(import.meta.dirname)
+)
+const landingSponsors = readLandingSponsors(import.meta.dirname)
+const landingContributors = readLandingContributors(import.meta.dirname)
 
 export default defineConfig({
   root: path.join(import.meta.dirname, 'src'),
@@ -71,11 +94,18 @@ export default defineConfig({
   builderConfig: {
     plugins: [pluginTailwindcss()],
     dev: {
-      // The message catalogs are read by this config file, not by the route
-      // sources, so Rspress would otherwise serve the catalog captured when the
-      // dev server started and `useI18n` would throw on every key added since.
+      // Only files this config reads at evaluation time belong here, because a
+      // restart is the sole way to pick them up: otherwise the dev server keeps
+      // serving whatever was captured at startup, so `useI18n` throws on every
+      // key added since and edited landing snippets never reach the home page.
+      // `src/snippets/run-code` deliberately stays out — the guide imports it
+      // with `?raw`, which puts it in the module graph, and widening this to
+      // `src/snippets` would trade that HMR update for a full restart.
       watchFiles: {
-        paths: [path.join(import.meta.dirname, 'src/i18n')],
+        paths: [
+          path.join(import.meta.dirname, 'src/i18n'),
+          path.join(import.meta.dirname, 'src/snippets/landing'),
+        ],
         type: 'reload-server',
       },
     },
@@ -83,6 +113,10 @@ export default defineConfig({
       define: {
         __MONACO_EDITOR_STYLES__: JSON.stringify(monacoEditorStyles),
         __PLAYGROUND_DTS_FILES__: JSON.stringify(playgroundDeclarations),
+        __LANDING_SNIPPETS__: JSON.stringify(landingSnippets),
+        __LANDING_PREVIEWS__: JSON.stringify(landingPreviews),
+        __LANDING_SPONSORS__: JSON.stringify(landingSponsors),
+        __LANDING_CONTRIBUTORS__: JSON.stringify(landingContributors),
       },
     },
     tools: {
@@ -102,11 +136,7 @@ export default defineConfig({
     },
   },
   plugins: [
-    pluginTwoslash({
-      twoslashOptions: {
-        filterNode: (node) => keepTsFsrsTypeHover(node, highlightedExportNames),
-      },
-    }),
+    pluginTwoslash({ twoslashOptions }),
     pluginRss({
       feed: [
         {
@@ -133,6 +163,9 @@ export default defineConfig({
   search: {
     searchHooks: path.join(import.meta.dirname, 'search.ts'),
   },
+  icon: '/osr-logo.svg',
+  logo: '/osr-logo.svg',
+  logoText: 'ts-fsrs',
   themeConfig: {
     socialLinks: [
       {
