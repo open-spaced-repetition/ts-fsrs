@@ -71,6 +71,12 @@ jobs:
       - name: Test docs
         run: pnpm --filter @ts-fsrs/website test:docs
 
+      - name: Install Playwright browser
+        run: pnpm --filter @ts-fsrs/website exec playwright install --with-deps --only-shell chromium
+
+      - name: Test docs E2E
+        run: pnpm --filter @ts-fsrs/website test:e2e
+
       - name: Save preview metadata
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
