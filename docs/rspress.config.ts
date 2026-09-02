@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss'
 import { defineConfig } from '@rspress/core'
 import { pluginRss } from '@rspress/plugin-rss'
 import { adaptI18nSource } from './src/i18n'
@@ -60,6 +61,7 @@ export default defineConfig({
   siteOrigin,
   llms: true,
   builderConfig: {
+    plugins: [pluginTailwindcss()],
     dev: {
       // The message catalogs are read by this config file, not by the route
       // sources, so Rspress would otherwise serve the catalog captured when the
