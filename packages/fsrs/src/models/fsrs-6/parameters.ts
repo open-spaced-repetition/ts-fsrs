@@ -77,33 +77,17 @@ export const checkFSRS6Parameters = (
   return parameters
 }
 
-export const migrateFSRS6Parameters = (
-  parameters?: number[],
-  numRelearningSteps = 0,
-  enableShortTerm = true
-): number[] => {
+export const migrateFSRS6Parameters = (parameters?: number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS6_DEFAULT_WEIGHTS]
   }
   switch (parameters.length) {
     case 21:
-      return clipFSRS6Parameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      )
+      return Array.from(parameters)
     case 19:
-      return clipFSRS6Parameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      ).concat([0.0, FSRS5_DECAY])
+      return Array.from(parameters).concat([0.0, FSRS5_DECAY])
     case 17: {
-      const weights = clipFSRS6Parameters(
-        Array.from(parameters),
-        numRelearningSteps,
-        enableShortTerm
-      )
+      const weights = Array.from(parameters)
       weights[4] = +(weights[5] * 2.0 + weights[4]).toFixed(8)
       weights[5] = +(Math.log(weights[5] * 3.0 + 1.0) / 3.0).toFixed(8)
       weights[6] = +(weights[6] + 0.5).toFixed(8)

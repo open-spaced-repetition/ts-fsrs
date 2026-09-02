@@ -31,17 +31,17 @@ export const migrateFSRS5Parameters = (parameters?: number[]): number[] => {
     return [...FSRS5_DEFAULT_WEIGHTS]
   }
   if (parameters.length > 19) {
-    return clipFSRS5Parameters(parameters)
+    return parameters.slice(0, 19)
   }
   switch (parameters.length) {
     case 19:
-      return clipFSRS5Parameters(parameters)
+      return Array.from(parameters)
     case 17: {
-      const weights = clipFSRS5Parameters(parameters)
+      const weights = Array.from(parameters)
       weights[4] = roundTo(weights[5] * 2.0 + weights[4], 8)
       weights[5] = roundTo(Math.log(weights[5] * 3.0 + 1.0) / 3.0, 8)
       weights[6] = roundTo(weights[6] + 0.5, 8)
-      return clipFSRS5Parameters(weights.concat([0.0, 0.0]))
+      return weights.concat([0.0, 0.0])
     }
     default:
       throw new FSRSValidationError(

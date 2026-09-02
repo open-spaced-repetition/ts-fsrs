@@ -108,6 +108,7 @@ describe('FSRS5Model', () => {
     const model = FSRS5Model.create({
       config: { weights, enableShortTerm: true },
       migrate: false,
+      clip: false,
       check: false,
     })
 
@@ -122,6 +123,7 @@ describe('FSRS5Model', () => {
       FSRS5Model.create({
         config: { weights, enableShortTerm: true },
         migrate: false,
+        clip: false,
         check: true,
       })
     ).toThrow('Expected FSRS5 weights within model bounds.')

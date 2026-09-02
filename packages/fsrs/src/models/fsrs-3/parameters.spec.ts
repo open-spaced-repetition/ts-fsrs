@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { FSRS3_DEFAULT_WEIGHTS } from './constants.js'
-import { clipFSRS3Parameters, migrateFSRS3Parameters } from './parameters.js'
+import {
+  checkFSRS3Parameters,
+  clipFSRS3Parameters,
+  migrateFSRS3Parameters,
+} from './parameters.js'
 
 describe('FSRS-3 parameters', () => {
   it('returns FSRS-3 default weights when input is missing', () => {
@@ -23,12 +27,19 @@ describe('FSRS-3 parameters', () => {
     ])
   })
 
-  it('fills omitted FSRS-3 weights from defaults when clipping', () => {
-    expect(migrateFSRS3Parameters([1, 2, 3])).toEqual([
-      1,
-      2,
-      3,
-      ...FSRS3_DEFAULT_WEIGHTS.slice(3),
-    ])
+  it('leaves incomplete weights for validation after migration', () => {
+    const weights = migrateFSRS3Parameters([1, 2, 3])
+
+    expect(weights).toEqual([1, 2, 3])
+    expect(() => checkFSRS3Parameters(weights)).toThrow(
+      'Expected FSRS3 weights within model bounds.'
+    )
+  })
+
+  it('migrates without clipping', () => {
+    const weights = Array.from(FSRS3_DEFAULT_WEIGHTS)
+    weights[0] = 0
+
+    expect(migrateFSRS3Parameters(weights)).toEqual(weights)
   })
 })

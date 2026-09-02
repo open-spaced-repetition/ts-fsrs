@@ -24,19 +24,20 @@ describe('FSRS-4 parameters', () => {
     ])
   })
 
-  it('migrates FSRS-4 weights while filling missing parameters', () => {
+  it('migrates FSRS-4 weights without filling missing parameters', () => {
     expect(migrateFSRS4Parameters()).toEqual(weights)
     expect(migrateFSRS4Parameters(Array.from(weights))).toEqual(weights)
-    expect(migrateFSRS4Parameters([1, 2, 3])).toEqual([
-      1,
-      2,
-      3,
-      ...weights.slice(3),
-    ])
+    expect(migrateFSRS4Parameters([1, 2, 3])).toEqual([1, 2, 3])
     expect(migrateFSRS4Parameters([...weights, 1, 1])).toEqual(weights)
+
+    const outOfBounds = [0, ...weights.slice(1)]
+    expect(migrateFSRS4Parameters(outOfBounds)).toEqual(outOfBounds)
   })
 
   it('checks parameter bounds after migration', () => {
+    expect(() => checkFSRS4Parameters([1, 2, 3])).toThrow(
+      'Expected FSRS4 weights within model bounds.'
+    )
     expect(() => checkFSRS4Parameters([0, ...weights.slice(1)])).toThrow(
       'Expected FSRS4 weights within model bounds.'
     )

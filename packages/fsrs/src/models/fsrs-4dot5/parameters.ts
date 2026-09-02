@@ -35,7 +35,7 @@ export const migrateFSRS4Dot5Parameters = (parameters?: number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS4Dot5_DEFAULT_WEIGHTS]
   }
-  return clipFSRS4Dot5Parameters(parameters)
+  return parameters.slice(0, FSRS4Dot5_DEFAULT_WEIGHTS.length)
 }
 
 export type FSRS4Dot5Config = {

@@ -4,6 +4,7 @@ import {
   checkFSRS6Parameters,
   clipFSRS6Parameters,
   decaySchema,
+  migrateFSRS6Parameters,
 } from './parameters.js'
 
 describe('FSRS-6 parameters', () => {
@@ -28,5 +29,15 @@ describe('FSRS-6 parameters', () => {
     expect(() =>
       checkFSRS6Parameters(FSRS6_DEFAULT_WEIGHTS.slice(0, 20))
     ).toThrow('Expected FSRS6 weights within model bounds.')
+  })
+
+  it('migrates without clipping', () => {
+    const weights = Array.from(FSRS6_DEFAULT_WEIGHTS)
+    weights[0] = 0
+
+    expect(migrateFSRS6Parameters(weights)).toEqual(weights)
+    expect(() => checkFSRS6Parameters(weights)).toThrow(
+      'Expected FSRS6 weights within model bounds.'
+    )
   })
 })

@@ -11,6 +11,7 @@ import { FSRS4Dot5_MODEL_BOUNDS } from './constants.js'
 import type { FSRS4Dot5Config } from './parameters.js'
 import {
   checkFSRS4Dot5Parameters,
+  clipFSRS4Dot5Parameters,
   fsrs4Dot5ConfigSchema,
   migrateFSRS4Dot5Parameters,
 } from './parameters.js'
@@ -88,14 +89,23 @@ export const FSRS4Dot5Model = defineModel({
       return { stability: 0, difficulty: 0 }
     },
   },
-  create({ config, migrate = true, check = true, bypass = false }) {
+  create({
+    config,
+    migrate = true,
+    clip = true,
+    check = true,
+    bypass = false,
+  }) {
     if (bypass) {
       return createFSRS4Dot5Model(config)
     }
 
-    const weights = migrate
+    let weights = migrate
       ? migrateFSRS4Dot5Parameters(config.weights)
       : config.weights
+    if (clip && Array.isArray(weights)) {
+      weights = clipFSRS4Dot5Parameters(weights)
+    }
     if (check) {
       checkFSRS4Dot5Parameters(weights)
     }

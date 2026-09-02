@@ -1,6 +1,9 @@
 import { FSRSValidationError } from '../error.js'
 import type { IFSRSModel } from '../kit/index.js'
-import { migrateFSRS6Parameters } from '../models/fsrs-6/index.js'
+import {
+  clipFSRS6Parameters,
+  migrateFSRS6Parameters,
+} from '../models/fsrs-6/index.js'
 import { FSRS6Model } from '../models/fsrs-6/model.js'
 import { TypeConvert } from './convert.js'
 import { createEmptyCard, generatorParameters } from './default.js'
@@ -90,12 +93,24 @@ export class FSRS implements IFSRS {
   }
 
   set parameters(parameters: Partial<FSRSParameters>) {
-    const normalized = generatorParameters(parameters)
+    const normalized = this.prepare_parameters(parameters)
     this.#parameters = new Proxy(normalized, this.params_handler_proxy())
     this.rebuildModel()
     this.Scheduler = normalized.enable_short_term
       ? BasicScheduler
       : LongTermScheduler
+  }
+
+  private prepare_parameters = (
+    parameters: Partial<FSRSParameters>
+  ): FSRSParameters => {
+    const generated = generatorParameters(parameters)
+    generated.w = clipFSRS6Parameters(
+      Array.from(generated.w),
+      generated.relearning_steps.length,
+      generated.enable_short_term
+    )
+    return generated
   }
 
   private rebuildModel(): void {
@@ -120,8 +135,8 @@ export class FSRS implements IFSRS {
         if (prop === 'enable_short_term') {
           _this.Scheduler = value === true ? BasicScheduler : LongTermScheduler
         } else if (prop === 'w') {
-          value = migrateFSRS6Parameters(
-            value as number[],
+          value = clipFSRS6Parameters(
+            migrateFSRS6Parameters(value as number[]),
             target.relearning_steps.length,
             target.enable_short_term
           )

@@ -5,9 +5,9 @@ import { isNumberArray } from '@/kit/schema-utils.js'
 import { FSRS3_DEFAULT_WEIGHTS, FSRS3ParameterBounds } from './constants.js'
 
 export const clipFSRS3Parameters = (parameters: number[]): number[] => {
-  const clip = FSRS3ParameterBounds()
+  const clip = FSRS3ParameterBounds().slice(0, parameters.length)
   return clip.map(([min, max], index) =>
-    clamp(parameters[index] ?? FSRS3_DEFAULT_WEIGHTS[index], min, max)
+    clamp(parameters[index] ?? 0, min, max)
   )
 }
 
@@ -30,7 +30,7 @@ export const migrateFSRS3Parameters = (parameters?: number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS3_DEFAULT_WEIGHTS]
   }
-  return clipFSRS3Parameters(parameters)
+  return parameters.slice(0, FSRS3_DEFAULT_WEIGHTS.length)
 }
 
 export type FSRS3Config = {

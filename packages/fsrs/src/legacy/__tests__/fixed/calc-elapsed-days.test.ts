@@ -1,44 +1,55 @@
 import {
-  createEmptyCard,
-  dateDiffInDays,
-  type FSRSState,
-  fsrs,
+  defineScheduler,
   type Grade,
   Rating,
-} from 'ts-fsrs'
+} from '@open-spaced-repetition/srs-kit'
+import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
+import { FSRS6Model, migrateFSRS6Parameters } from '@/models/fsrs-6/index.js'
+
+const FSRS6Scheduler = defineScheduler({
+  model: FSRS6Model,
+  chrono: dateChrono,
+})
 
 /**
  * @see https://forums.ankiweb.net/t/feature-request-estimated-total-knowledge-over-time/53036/58?u=l.m.sherlock
  * @see https://ankiweb.net/shared/info/1613056169
  */
 test('TS-FSRS-Simulator', () => {
-  const f = fsrs({
-    w: [
-      1.1596, 1.7974, 13.1205, 49.3729, 7.2303, 0.5081, 1.5371, 0.001, 1.5052,
-      0.1261, 0.9735, 1.8924, 0.1486, 0.2407, 2.1937, 0.1518, 3.0699, 0.4636,
-      0.6048,
-    ],
+  const scheduler = FSRS6Scheduler.create({
+    config: {
+      weights: migrateFSRS6Parameters([
+        1.1596, 1.7974, 13.1205, 49.3729, 7.2303, 0.5081, 1.5371, 0.001, 1.5052,
+        0.1261, 0.9735, 1.8924, 0.1486, 0.2407, 2.1937, 0.1518, 3.0699, 0.4636,
+        0.6048,
+      ]),
+      enableShortTerm: true,
+      numRelearningSteps: 1,
+    },
   })
   const rids = [1704468957000, 1704469645000, 1704599572000, 1705509507000]
 
-  const expected = [13.1205, 16.92546705, 20.85552323, 39.23212599]
-  let card = createEmptyCard(new Date(rids[0]))
+  const expected = [13.1205, 17.3668145, 21.28550751, 39.63452215]
+  let card = scheduler.newCard({ now: new Date(rids[0]) })
   const grades: Grade[] = [Rating.Good, Rating.Good, Rating.Good, Rating.Good]
   for (let i = 0; i < rids.length; i++) {
     const now = new Date(rids[i])
-    const log = f.next(card, now, grades[i])
-    card = log.card
+    card = scheduler.review({ card, grade: grades[i], now }).card
     expect(card.stability).toBeCloseTo(expected[i], 4)
   }
 })
 
 test('SSE use next_state', () => {
-  const f = fsrs({
-    w: [
-      0.4911, 4.5674, 24.8836, 77.045, 7.5474, 0.1873, 1.7732, 0.001, 1.1112,
-      0.152, 0.5728, 1.8747, 0.1733, 0.2449, 2.2905, 0.0, 2.9898, 0.0883,
-      0.9033,
-    ],
+  const scheduler = FSRS6Scheduler.create({
+    config: {
+      weights: migrateFSRS6Parameters([
+        0.4911, 4.5674, 24.8836, 77.045, 7.5474, 0.1873, 1.7732, 0.001, 1.1112,
+        0.152, 0.5728, 1.8747, 0.1733, 0.2449, 2.2905, 0.0, 2.9898, 0.0883,
+        0.9033,
+      ]),
+      enableShortTerm: true,
+      numRelearningSteps: 1,
+    },
   })
 
   const rids = [
@@ -55,41 +66,29 @@ test('SSE use next_state', () => {
   ]
   const ratings: Rating[] = [3, 3, 1, 3, 3, 3, 0, 3, 0, 3]
   // 0,0,0,0,0,0,47,119
-  let last = new Date(rids[0])
-  let memoryState: FSRSState | null = null
+  let card = scheduler.newCard({ now: new Date(rids[0]) })
   for (let i = 0; i < rids.length; i++) {
     const current = new Date(rids[i])
     const rating = ratings[i]
-    const delta_t = dateDiffInDays(last, current)
     if (rating === Rating.Manual) {
       continue
     }
-    const nextStates = f.model.step({
-      memoryState,
-      rating,
-      elapsedDays: delta_t,
-    })
-    last = new Date(rids[i])
-
-    console.debug(
-      rids[i + 1],
-      rids[i],
-      delta_t,
-      +nextStates.stability.toFixed(2),
-      +nextStates.difficulty.toFixed(2)
-    )
-    memoryState = nextStates
+    card = scheduler.review({ card, grade: rating, now: current }).card
   }
-  expect(memoryState?.stability).toBeCloseTo(66.75687516)
+  expect(card.stability).toBeCloseTo(71.77)
 })
 
 test.skip('SSE 71.77', () => {
-  const f = fsrs({
-    w: [
-      0.4911, 4.5674, 24.8836, 77.045, 7.5474, 0.1873, 1.7732, 0.001, 1.1112,
-      0.152, 0.5728, 1.8747, 0.1733, 0.2449, 2.2905, 0.0, 2.9898, 0.0883,
-      0.9033,
-    ],
+  const scheduler = FSRS6Scheduler.create({
+    config: {
+      weights: migrateFSRS6Parameters([
+        0.4911, 4.5674, 24.8836, 77.045, 7.5474, 0.1873, 1.7732, 0.001, 1.1112,
+        0.152, 0.5728, 1.8747, 0.1733, 0.2449, 2.2905, 0.0, 2.9898, 0.0883,
+        0.9033,
+      ]),
+      enableShortTerm: true,
+      numRelearningSteps: 1,
+    },
   })
 
   const rids = [
@@ -141,7 +140,7 @@ test.skip('SSE 71.77', () => {
     },
   ]
 
-  let card = createEmptyCard(new Date(rids[0]))
+  let card = scheduler.newCard({ now: new Date(rids[0]) })
 
   for (let i = 0; i < rids.length; i++) {
     const rating = ratings[i]
@@ -150,8 +149,7 @@ test.skip('SSE 71.77', () => {
     }
 
     const now = new Date(rids[i])
-    const log = f.next(card, now, rating)
-    card = log.card
+    card = scheduler.review({ card, grade: rating, now }).card
     console.debug(i + 1)
     expect(card.stability).toBeCloseTo(expected[i].s, 2)
     expect(card.difficulty).toBeCloseTo(expected[i].d, 2)

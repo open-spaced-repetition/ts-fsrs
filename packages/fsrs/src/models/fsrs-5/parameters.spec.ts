@@ -56,7 +56,7 @@ describe('FSRS-5 parameters', () => {
     expect(migrateFSRS5Parameters(params)).toEqual(FSRS5_DEFAULT_WEIGHTS)
   })
 
-  it('clips truncated parameters longer than FSRS-5 weights', () => {
+  it('truncates parameters without clipping', () => {
     const params = [
       Number.POSITIVE_INFINITY,
       ...FSRS5_DEFAULT_WEIGHTS.slice(1),
@@ -64,10 +64,13 @@ describe('FSRS-5 parameters', () => {
       0.1542,
     ]
 
-    expect(migrateFSRS5Parameters(params)).toEqual([
-      100,
+    const migrated = migrateFSRS5Parameters(params)
+
+    expect(migrated).toEqual([
+      Number.POSITIVE_INFINITY,
       ...FSRS5_DEFAULT_WEIGHTS.slice(1),
     ])
+    expect(clipFSRS5Parameters(migrated)[0]).toBe(100)
   })
 
   it('rejects parameter lengths outside FSRS-4.5 and FSRS-5', () => {

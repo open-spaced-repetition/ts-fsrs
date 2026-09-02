@@ -10,6 +10,7 @@ import { FSRS3Algorithm } from './algorithm.js'
 import { FSRS3_MODEL_BOUNDS } from './constants.js'
 import {
   checkFSRS3Parameters,
+  clipFSRS3Parameters,
   type FSRS3Config,
   fsrs3ConfigSchema,
   migrateFSRS3Parameters,
@@ -87,14 +88,23 @@ export const FSRS3Model = defineModel({
       return { stability: 0, difficulty: 0 }
     },
   },
-  create({ config, migrate = true, check = true, bypass = false }) {
+  create({
+    config,
+    migrate = true,
+    clip = true,
+    check = true,
+    bypass = false,
+  }) {
     if (bypass) {
       return createFSRS3Model(config)
     }
 
-    const weights = migrate
+    let weights = migrate
       ? migrateFSRS3Parameters(config.weights)
       : config.weights
+    if (clip && Array.isArray(weights)) {
+      weights = clipFSRS3Parameters(weights)
+    }
     if (check) {
       checkFSRS3Parameters(weights)
     }

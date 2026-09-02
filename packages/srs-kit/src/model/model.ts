@@ -99,11 +99,12 @@ export type ModelCreate<
     | SchemaInput<Schema['config']>
     | SchemaOutput<Schema['config']>
   readonly migrate?: boolean
+  readonly clip?: boolean
   readonly check?: boolean
   /**
    * The config has already been parsed by the composed scheduler schema.
    * Model implementations should use it directly and skip create-time
-   * validation, migration, range checks, and freezing.
+   * validation, migration, clipping, range checks, and freezing.
    */
   readonly bypass?: boolean
 }) => ModelCore<{

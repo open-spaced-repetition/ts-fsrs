@@ -10,6 +10,7 @@ import { FSRS6Algorithm } from './algorithm.js'
 import { FSRS6_MODEL_BOUNDS } from './constants.js'
 import {
   checkFSRS6Parameters,
+  clipFSRS6Parameters,
   type FSRS6Config,
   fsrs6ConfigSchema,
   migrateFSRS6Parameters,
@@ -92,18 +93,27 @@ export const FSRS6Model = defineModel({
       return { stability: 0, difficulty: 0 }
     },
   },
-  create({ config, migrate = true, check = true, bypass = false }) {
+  create({
+    config,
+    migrate = true,
+    clip = true,
+    check = true,
+    bypass = false,
+  }) {
     if (bypass) {
       return createFSRS6Model(config)
     }
 
-    const weights = migrate
-      ? migrateFSRS6Parameters(
-          config.weights,
-          config.numRelearningSteps,
-          config.enableShortTerm
-        )
+    let weights = migrate
+      ? migrateFSRS6Parameters(config.weights)
       : config.weights
+    if (clip && Array.isArray(weights)) {
+      weights = clipFSRS6Parameters(
+        weights,
+        config.numRelearningSteps,
+        config.enableShortTerm
+      )
+    }
     if (check) {
       checkFSRS6Parameters(
         weights,
