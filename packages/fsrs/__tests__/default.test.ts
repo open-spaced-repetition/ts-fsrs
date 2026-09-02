@@ -45,12 +45,13 @@ describe('default params', () => {
   })
 
   it('convert FSRS-5 to FSRS-6', () => {
+    const w = [
+      0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046,
+      1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898,
+      0.51655, 0.6621,
+    ]
     const params = generatorParameters({
-      w: [
-        0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046,
-        1.54575, 0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898,
-        0.51655, 0.6621,
-      ],
+      w,
     })
     expect(params.w).toEqual([
       0.40255,
@@ -75,6 +76,15 @@ describe('default params', () => {
       0.0,
       FSRS5_DEFAULT_DECAY,
     ])
+    expect(fsrs({ w, enable_short_term: true }).parameters.w[19]).toBe(0.01)
+    expect(fsrs(params).parameters.w[19]).toBe(0.01)
+    expect(fsrs({ ...params, enable_short_term: false }).parameters.w[19]).toBe(
+      0
+    )
+
+    const f = fsrs({ enable_short_term: true })
+    f.parameters.w = w
+    expect(f.parameters.w[19]).toBe(0.01)
   })
 
   it('revert to default params', () => {
@@ -115,9 +125,9 @@ describe('default params', () => {
     // enable short term = true
     expect(migrateFSRS6Parameters(params21)).toEqual(params21)
 
-    // enable short term = false
+    // migration is independent of short-term clipping
     params21[19] = 0
-    expect(migrateFSRS6Parameters(params21, 0, false)).toEqual(params21)
+    expect(migrateFSRS6Parameters(params21)).toEqual(params21)
 
     // parameters with length 19 (FSRS 5)
     const params19 = default_w.slice(0, 19)
@@ -160,14 +170,10 @@ describe('default params', () => {
       /^Invalid parameters length/
     )
 
-    const { w: NaNParams, relearning_steps } = generatorParameters()
+    const { w: NaNParams } = generatorParameters()
     // @ts-expect-error Simulate NaN in parameters
     NaNParams[0] = NaN
-    const expectedParams = [...default_w]
-    expectedParams[0] = 0
-    expect(migrateFSRS6Parameters(Array.from(NaNParams))).toEqual(
-      clipFSRS6Parameters(expectedParams, relearning_steps.length)
-    )
+    expect(migrateFSRS6Parameters(Array.from(NaNParams))).toEqual(NaNParams)
   })
 
   it('if num relearning steps > 1', () => {
@@ -216,12 +222,10 @@ describe('default params', () => {
   })
 
   it('single relearning step uses default ceiling of 2.0', () => {
-    const params = generatorParameters({
-      relearning_steps: ['10m'],
-      w: default_w.map((v, i) => (i === 17 || i === 18 ? 2.5 : v)),
-    })
-    expect(params.w[17]).toEqual(2.0)
-    expect(params.w[18]).toEqual(2.0)
+    const weights = default_w.map((v, i) => (i === 17 || i === 18 ? 2.5 : v))
+    const clipped = clipFSRS6Parameters(weights, 1)
+    expect(clipped[17]).toEqual(2.0)
+    expect(clipped[18]).toEqual(2.0)
   })
 
   it('negative value produces finite ceiling via sqrt guard', () => {

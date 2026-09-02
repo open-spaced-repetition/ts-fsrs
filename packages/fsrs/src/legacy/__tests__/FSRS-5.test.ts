@@ -1,25 +1,62 @@
 import {
   createEmptyCard,
+  dateChrono,
+  defineScheduler,
   FSRS,
-  fsrs,
   type Grade,
   Grades,
   generatorParameters,
   Rating,
   State,
 } from 'ts-fsrs'
+import {
+  schedulerDesiredRetentionMiddleware,
+  schedulerFuzzingMiddleware,
+  schedulerLearningStepsMiddleware,
+  schedulerMaximumIntervalMiddleware,
+  schedulerMonotonicIntervalMiddleware,
+  schedulerScheduledDaysMiddleware,
+  schedulerStatsMiddleware,
+} from 'ts-fsrs/middlewares'
+import { FSRS5Model } from 'ts-fsrs/models/fsrs-5'
+
+const w = [
+  0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
+  0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
+  0.6621,
+]
+
+const FSRS5Scheduler = defineScheduler({
+  model: FSRS5Model,
+  chrono: dateChrono,
+}).use(
+  schedulerDesiredRetentionMiddleware,
+  schedulerFuzzingMiddleware,
+  schedulerStatsMiddleware,
+  schedulerScheduledDaysMiddleware,
+  schedulerLearningStepsMiddleware,
+  schedulerMaximumIntervalMiddleware,
+  schedulerMonotonicIntervalMiddleware
+)
+
+const createFSRS5Scheduler = (enableShortTerm = true) =>
+  FSRS5Scheduler.create({
+    config: {
+      weights: w,
+      enableShortTerm,
+      desiredRetention: 0.9,
+      enableFuzz: false,
+      maximumInterval: 36500,
+      learningSteps: ['1m', '10m'],
+      relearningSteps: ['10m'],
+    },
+  })
 
 describe('FSRS-5', () => {
-  const w = [
-    0.40255, 1.18385, 3.173, 15.69105, 7.1949, 0.5345, 1.4604, 0.0046, 1.54575,
-    0.1192, 1.01925, 1.9395, 0.11, 0.29605, 2.2698, 0.2315, 2.9898, 0.51655,
-    0.6621,
-  ]
-  const f: FSRS = fsrs({ w })
+  const scheduler = createFSRS5Scheduler()
   it('ivl_history', () => {
-    let card = createEmptyCard()
     let now = new Date(2022, 11, 29, 12, 30, 0, 0)
-    let scheduling_cards = f.repeat(card, now)
+    let card = scheduler.newCard({ now })
     const ratings: Grade[] = [
       Rating.Good,
       Rating.Good,
@@ -37,21 +74,27 @@ describe('FSRS-5', () => {
     ]
     const ivl_history: number[] = []
     for (const rating of ratings) {
-      for (const check of Grades) {
-        const rollbackCard = f.rollback(
-          scheduling_cards[check].card,
-          scheduling_cards[check].log
-        )
+      let selectedCard = card
+      for (const schedulingCard of scheduler.preview({ card, now })) {
+        const check = schedulingCard.grade
+        const rollbackCard = scheduler.rollback({
+          card: schedulingCard.card,
+          revlog: schedulingCard.revlog,
+        })
         expect(rollbackCard).toEqual(card)
-        const _f = fsrs({ w })
-        const next = _f.next(card, now, check)
-        expect(scheduling_cards[check]).toEqual(next)
+        const next = scheduler.review({ card, now, grade: check })
+        expect({
+          card: schedulingCard.card,
+          revlog: schedulingCard.revlog,
+        }).toEqual(next)
+        if (check === rating) {
+          selectedCard = schedulingCard.card
+        }
       }
-      card = scheduling_cards[rating].card
-      const ivl = card.scheduled_days
+      card = selectedCard
+      const ivl = card.scheduledDays
       ivl_history.push(ivl)
-      now = card.due
-      scheduling_cards = f.repeat(card, now)
+      now = card.dueAt
     }
     expect(ivl_history).toEqual([
       0, 4, 14, 44, 125, 328, 0, 0, 7, 16, 34, 71, 142,
@@ -69,18 +112,16 @@ describe('FSRS-5', () => {
     ]
     const intervals: number[] = [0, 0, 1, 3, 8, 21]
     function assertMemoryState(
-      f: FSRS,
-      text: string,
+      scheduler: ReturnType<typeof createFSRS5Scheduler>,
       expect_stability: number,
       expect_difficulty: number
     ) {
-      let card = createEmptyCard()
       let now = new Date(2022, 11, 29, 12, 30, 0, 0)
+      let card = scheduler.newCard({ now })
 
       for (const [index, rating] of ratings.entries()) {
         now = new Date(+now + intervals[index] * 24 * 60 * 60 * 1000)
-        card = f.next(card, now, rating).card
-        console.debug(text, index + 1, card.stability, card.difficulty)
+        card = scheduler.review({ card, now, grade: rating }).card
       }
 
       const { stability, difficulty } = card
@@ -88,21 +129,17 @@ describe('FSRS-5', () => {
       expect(difficulty).toBeCloseTo(expect_difficulty, 4)
     }
     it('memory state[short-term]', () => {
-      const f = fsrs({ w, enable_short_term: true })
-      console.debug('memory state[short-term] weight', f.parameters.w)
-      assertMemoryState(f, 'short-term', 48.26549438, 7.10441712)
+      assertMemoryState(createFSRS5Scheduler(true), 48.26549438, 7.10441712)
     })
     it('memory state[long-term]', () => {
-      const f = fsrs({ w, enable_short_term: false })
-      console.debug('memory state[long-term] weight', f.parameters.w)
-      assertMemoryState(f, 'long-term', 48.065163, 7.10441712)
+      assertMemoryState(createFSRS5Scheduler(false), 48.065163, 7.10441712)
     })
   })
 
   it('first repeat', () => {
-    const card = createEmptyCard()
     const now = new Date(2022, 11, 29, 12, 30, 0, 0)
-    const scheduling_cards = f.repeat(card, now)
+    const card = scheduler.newCard({ now })
+    const schedulingCards = scheduler.preview({ card, now })
 
     const stability: number[] = []
     const difficulty: number[] = []
@@ -110,13 +147,13 @@ describe('FSRS-5', () => {
     const reps: number[] = []
     const lapses: number[] = []
     const states: State[] = []
-    for (const item of scheduling_cards) {
+    for (const item of schedulingCards) {
       const first_card = item.card
       stability.push(first_card.stability)
       difficulty.push(first_card.difficulty)
       reps.push(first_card.reps)
       lapses.push(first_card.lapses)
-      scheduled_days.push(first_card.scheduled_days)
+      scheduled_days.push(first_card.scheduledDays)
       states.push(first_card.state)
     }
     expect(stability).toEqual([0.40255, 1.18385, 3.173, 15.69105])

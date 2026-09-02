@@ -19,10 +19,17 @@ describe('FSRS-4.5 parameters', () => {
 
   it('migrates FSRS-4.5 weights without rejecting longer parameter arrays', () => {
     expect(migrateFSRS4Dot5Parameters()).toEqual(weights)
+    expect(migrateFSRS4Dot5Parameters([1, 2, 3])).toEqual([1, 2, 3])
     expect(migrateFSRS4Dot5Parameters([...weights, 1, 1])).toEqual(weights)
+
+    const outOfBounds = [0, ...weights.slice(1)]
+    expect(migrateFSRS4Dot5Parameters(outOfBounds)).toEqual(outOfBounds)
   })
 
   it('checks parameter bounds after migration', () => {
+    expect(() => checkFSRS4Dot5Parameters([1, 2, 3])).toThrow(
+      'Expected FSRS4.5 weights within model bounds.'
+    )
     expect(() => checkFSRS4Dot5Parameters([0, ...weights.slice(1)])).toThrow(
       'Expected FSRS4.5 weights within model bounds.'
     )

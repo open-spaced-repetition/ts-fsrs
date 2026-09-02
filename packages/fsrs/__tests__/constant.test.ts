@@ -5,6 +5,7 @@ import {
   default_request_retention,
   default_w,
   FSRS6_DEFAULT_DECAY,
+  fsrs,
   generatorParameters,
   W17_W18_Ceiling,
 } from 'ts-fsrs'
@@ -37,16 +38,16 @@ describe('default params', () => {
 
   it('clamp w to limit the minimum', () => {
     const w = Array.from({ length: 21 }, () => 0)
-    const params = generatorParameters({ w })
     const w_min = CLAMP_PARAMETERS(W17_W18_Ceiling).map((x) => x[0])
-    expect(params.w).toEqual(w_min)
+    expect(generatorParameters({ w }).w).toEqual(w)
+    expect(fsrs({ w }).parameters.w).toEqual(w_min)
   })
 
   it('clamp w to limit the maximum', () => {
     const w = Array.from({ length: 21 }, () => Number.MAX_VALUE)
-    const params = generatorParameters({ w })
     const w_max = CLAMP_PARAMETERS(W17_W18_Ceiling).map((x) => x[1])
-    expect(params.w).toEqual(w_max)
+    expect(generatorParameters({ w }).w).toEqual(w)
+    expect(fsrs({ w }).parameters.w).toEqual(w_max)
   })
 
   it('default w can not be overwritten', () => {
