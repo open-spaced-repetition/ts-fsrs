@@ -278,9 +278,13 @@ jobs:
           page=1
           while true; do
             response="$RUNNER_TEMP/deployments-$page.json"
-            curl --fail --silent --show-error "$endpoint?page=$page&per_page=100" \
+            if ! curl --fail-with-body --silent --show-error \
+              "$endpoint?page=$page&per_page=25" \
               --header "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
-              --output "$response"
+              --output "$response"; then
+              cat "$response" >&2
+              exit 1
+            fi
             jq -e '.success' "$response" > /dev/null
             mapfile -t page_deployments < <(
               jq -r --arg branch "$PREVIEW_BRANCH" \
