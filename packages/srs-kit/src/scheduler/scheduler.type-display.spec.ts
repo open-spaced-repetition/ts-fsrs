@@ -12,7 +12,11 @@ import type {
   SchedulerConfigInputOf,
   SchedulerConfigOutputOf,
 } from './infer.js'
-import type { PreviewResult, ScheduleResult } from './scheduler.js'
+import type {
+  PreviewResult,
+  ScheduleResult,
+  SchedulerNewCardFn,
+} from './scheduler.js'
 
 const sm2NumericScheduler = defineScheduler({
   model: SM2Model,
@@ -135,6 +139,32 @@ type ComposedRevlogForDisplay = Mutable<
     readonly rating: Grade
   }
 >
+type NewCardEnvForDisplay = {
+  readonly config: object
+  readonly cardInitInput: { readonly now?: Date }
+  readonly card: {
+    readonly input: ComposedCardForDisplay
+    readonly output: ComposedCardForDisplay
+  }
+  readonly revlog: {
+    readonly input: ComposedRevlogForDisplay
+    readonly output: ComposedRevlogForDisplay
+  }
+  readonly chrono: Date
+  readonly scheduleStatus: 'new' | 'learning' | 'review'
+}
+
+declare const newCardForDisplay: SchedulerNewCardFn<NewCardEnvForDisplay>
+function displayNewCard(card: ReturnType<typeof newCardForDisplay>) {
+  return card
+}
+
+const composedNewCardForDisplay = displayNewCard({
+  stability: 1,
+  dueAt: new Date(0),
+  reps: 0,
+  learningStep: 0,
+})
 
 interface FSRSSchedulerForDisplay {
   readonly preview: () => PreviewResult<
@@ -599,6 +629,12 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedDefaultValues = {
+    composedNewCardForDisplay: `const composedNewCardForDisplay: {
+    reps: number;
+    stability: number;
+    dueAt: Date;
+    learningStep: number;
+}`,
     defaultNewCard: `const defaultNewCard: {
     source: string;
     interval: number;
@@ -793,7 +829,7 @@ describe('defineScheduler type display', () => {
     }
   })
 
-  it('shows the composed card type for defaultValue.newCard()', () => {
+  it('shows flattened card types for newCard()', () => {
     for (const [marker, expected] of Object.entries(expectedDefaultValues)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }

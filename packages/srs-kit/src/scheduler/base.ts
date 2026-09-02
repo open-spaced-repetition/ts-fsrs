@@ -204,9 +204,9 @@ export class BaseScheduler<
     return this.schedulerDefinition
   }
 
-  newCard: SchedulerNewCardFn<SchedulerCoreEnv<Env>> = (
+  private readonly createNewCard = (
     options?: SchedulerNewCardOptions<SchedulerCoreEnv<Env>>
-  ): SchedulerCoreEnv<Env>['card']['output'] => {
+  ) => {
     const { now, input } = parse<Env['cardInitInput']>(
       this.schema.cardInitInput,
       options === undefined ? {} : options
@@ -224,6 +224,8 @@ export class BaseScheduler<
       this.parseNow(now)
     )
   }
+
+  newCard = this.createNewCard as SchedulerNewCardFn<SchedulerCoreEnv<Env>>
 
   /**
    * Replays a review history and returns the card and revlog produced by each
@@ -256,7 +258,7 @@ export class BaseScheduler<
     const results: ForwardResult[] = new Array(history.length)
     const initialCard =
       input.initialCard == null
-        ? this.newCard({
+        ? this.createNewCard({
             now: history[0].reviewTime,
           } as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
         : (input.initialCard as SchedulerNewCardOptions<SchedulerCoreEnv<Env>>)
