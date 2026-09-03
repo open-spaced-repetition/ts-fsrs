@@ -2,8 +2,9 @@ import { readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
 import { pluginTailwindcss } from '@rsbuild/plugin-tailwindcss'
-import { defineConfig } from '@rspress/core'
+import { defineConfig, withBase, withSiteOrigin } from '@rspress/core'
 import { pluginRss } from '@rspress/plugin-rss'
+import { pluginSitemap } from '@rspress/plugin-sitemap'
 import { pluginTwoslash } from '@rspress/plugin-twoslash'
 import { adaptI18nSource } from './src/i18n'
 import {
@@ -17,8 +18,16 @@ import {
   collectHighlightedExportNames,
   keepTsFsrsTypeHover,
 } from './src/playground/highlight/twoslash'
+import { pluginRobotsTxt } from './src/seo/robots'
 
 const siteOrigin = process.env.DOCS_SITE_ORIGIN
+// Preview deployments serve the site from the root of their own subdomain,
+// while a project page would serve it from a repository sub-path. Leaving this
+// to an env var keeps both correct from one config.
+const base = process.env.DOCS_BASE ?? '/'
+// Preview deployments duplicate the production site, so only the production
+// build asks to be crawled.
+const indexable = process.env.DOCS_INDEXABLE === 'true'
 const repository =
   process.env.DOCS_REPO_SLUG ?? 'open-spaced-repetition/ts-fsrs'
 const repositoryRef = (process.env.DOCS_REPO_REF ?? 'main')
@@ -59,9 +68,14 @@ const landingContributors = readLandingContributors(import.meta.dirname)
 
 export default defineConfig({
   root: path.join(import.meta.dirname, 'src'),
+  base,
   route: {
     extensions: ['.md', '.mdx'],
     localeRedirect: 'never',
+    // Without this every page answers to both `/guide/` and `/guide/index.html`,
+    // and internal links, hreflang, and the sitemap all pick the `.html` form.
+    // One canonical shape per page keeps crawlers from seeing duplicates.
+    cleanUrls: true,
   },
   themeDir: path.join(import.meta.dirname, 'theme'),
   title: 'ts-fsrs',
@@ -89,6 +103,20 @@ export default defineConfig({
   ],
   i18nSource: adaptI18nSource,
   siteOrigin,
+  head: [
+    // Only emitted once the deployment knows its own origin, since a relative
+    // canonical tells a crawler nothing it did not already know.
+    (route) =>
+      siteOrigin
+        ? [
+            'link',
+            {
+              rel: 'canonical',
+              href: withSiteOrigin(withBase(route.routePath, base), siteOrigin),
+            },
+          ]
+        : undefined,
+  ],
   llms: true,
   builderConfig: {
     plugins: [pluginTailwindcss()],
@@ -136,6 +164,20 @@ export default defineConfig({
   },
   plugins: [
     pluginTwoslash({ twoslashOptions }),
+    // `siteUrl` is left out so the plugin composes `siteOrigin` and `base`
+    // itself, which makes a preview deployment map its own host. A sitemap of
+    // relative paths is useless, so it is skipped when no origin is known.
+    ...(siteOrigin
+      ? [
+          pluginSitemap(),
+          pluginRobotsTxt({
+            siteOrigin,
+            base,
+            indexable,
+            outDir: path.join(import.meta.dirname, 'doc_build'),
+          }),
+        ]
+      : []),
     pluginRss({
       feed: [
         {
