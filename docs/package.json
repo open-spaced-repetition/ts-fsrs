@@ -25,7 +25,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-json-view-lite": "^2.5.0",
-    "ts-fsrs": "workspace:*"
+    "ts-fsrs": "workspace:*",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -37,7 +38,6 @@
     "shiki": "^4.4.3",
     "sponsorkit": "^18.0.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "6.0.3",
-    "zod": "^4.4.3"
+    "typescript": "6.0.3"
   }
 }
