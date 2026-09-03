@@ -8,7 +8,7 @@ import {
   type ShikiTransformer,
 } from 'shiki'
 
-export type LandingSnippetId = string
+import type { LandingSnippetId } from './preview'
 
 export type LandingSnippet = {
   readonly source: string

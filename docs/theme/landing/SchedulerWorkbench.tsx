@@ -5,8 +5,8 @@ import {
   IconSuccess,
 } from '@rspress/core/theme-original'
 import { type CSSProperties, useEffect, useId, useRef, useState } from 'react'
+import type { LandingSnippetId } from '@/landing/preview'
 import { landingPreviews, landingSnippets } from '@/landing/runtime'
-import type { LandingSnippetId } from '@/landing/snippets'
 import { cn } from '@/utils/cn'
 import { CodeWindow } from './CodeWindow'
 import { GradeList } from './GradeList'

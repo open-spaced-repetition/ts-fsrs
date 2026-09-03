@@ -27,5 +27,15 @@ export const scheduler = fsrs6.use(streakMiddleware).create({
   },
 })
 
-export const now = new Date('2026-01-01T00:00:00.000Z')
-export const card = scheduler.newCard({ now })
+const createdAt = new Date('2026-01-01T00:00:00.000Z')
+const firstReview = new Date('2026-01-02T09:30:00.000Z')
+export const now = new Date('2026-01-04T20:15:00.000Z')
+
+export const { card } = scheduler.review({
+  card: scheduler.newCard({ now: createdAt }),
+  grade: Rating.Good,
+  now: firstReview,
+})
+
+// `streak` rides along every previewed card: Again resets it, the rest count on.
+export const outcomes = scheduler.preview({ card, now })

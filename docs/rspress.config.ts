@@ -11,10 +11,7 @@ import {
   readLandingSponsors,
 } from './src/landing/community'
 import { collectLandingPreviews } from './src/landing/preview'
-import {
-  collectLandingSnippets,
-  readLandingSnippetFiles,
-} from './src/landing/snippets'
+import { collectLandingSnippets } from './src/landing/snippets'
 import { collectPlaygroundDeclarations } from './src/playground/editor/collect-declarations'
 import {
   collectHighlightedExportNames,
@@ -52,9 +49,7 @@ const landingSnippets = await collectLandingSnippets(
   import.meta.dirname,
   twoslashOptions
 )
-const landingPreviews = await collectLandingPreviews(
-  readLandingSnippetFiles(import.meta.dirname)
-)
+const landingPreviews = collectLandingPreviews()
 const landingSponsors = readLandingSponsors(import.meta.dirname)
 const landingContributors = readLandingContributors(import.meta.dirname)
 

@@ -1,29 +1,35 @@
-import { pathToFileURL } from 'node:url'
 import type { Grade } from 'ts-fsrs'
+import * as compose from '../snippets/landing/compose'
+import * as defaultSnippet from '../snippets/landing/default'
+import * as extend from '../snippets/landing/extend'
 import type {
   LandingPreview,
   LandingPreviewRow,
   LandingPreviews,
 } from './preview-data'
 
-// Snippets pin `now` so build output stays deterministic.
 type ScheduledCard = {
-  dueAt: Date
-  stability: number
-  difficulty: number
-  scheduleStatus: string
-} & Record<string, unknown>
+  readonly dueAt: Date
+  readonly stability: number
+  readonly difficulty: number
+  readonly scheduleStatus: string
+}
 
 type LandingSnippetModule = {
-  readonly scheduler: {
-    preview(input: { card: unknown; now: Date }): Iterable<{
-      grade: Grade
-      card: ScheduledCard
-    }>
-  }
-  readonly card: unknown
   readonly now: Date
+  readonly outcomes: Iterable<{
+    readonly grade: Grade
+    readonly card: ScheduledCard
+  }>
 }
+
+const SNIPPET_MODULES = {
+  compose,
+  default: defaultSnippet,
+  extend,
+} satisfies Record<string, LandingSnippetModule>
+
+export type LandingSnippetId = keyof typeof SNIPPET_MODULES
 
 // These fields are rendered separately from middleware extras.
 const BASE_CARD_FIELDS = new Set([
@@ -58,26 +64,21 @@ function readExtras(
 }
 
 // Run at build time so `ts-fsrs` stays out of the home page bundle.
-export async function collectLandingPreviews(
-  snippetFiles: ReadonlyMap<string, string>
-): Promise<LandingPreviews> {
+export function collectLandingPreviews(): LandingPreviews {
   const previews: Record<string, LandingPreview> = {}
 
-  for (const [id, file] of snippetFiles) {
-    const { scheduler, card, now }: LandingSnippetModule = await import(
-      pathToFileURL(file).href
-    )
-    const preview = {} as Record<Grade, LandingPreviewRow>
-    for (const { grade, card: scheduled } of scheduler.preview({ card, now })) {
-      preview[grade] = {
-        dueAt: scheduled.dueAt.toISOString(),
-        stability: scheduled.stability,
-        difficulty: scheduled.difficulty,
-        scheduleStatus: scheduled.scheduleStatus,
-        extras: readExtras(scheduled),
+  for (const [id, { now, outcomes }] of Object.entries(SNIPPET_MODULES)) {
+    const grades = {} as Record<Grade, LandingPreviewRow>
+    for (const { grade, card } of outcomes) {
+      grades[grade] = {
+        dueAt: card.dueAt.toISOString(),
+        stability: card.stability,
+        difficulty: card.difficulty,
+        scheduleStatus: card.scheduleStatus,
+        extras: readExtras(card),
       }
     }
-    previews[id] = { now: now.toISOString(), grades: preview }
+    previews[id] = { now: now.toISOString(), grades }
   }
 
   return previews

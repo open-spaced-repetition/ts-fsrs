@@ -1,25 +1,24 @@
 import path from 'node:path'
 import { Rating } from 'ts-fsrs'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { collectLandingPreviews } from './preview'
-import {
-  formatInterval,
-  intervalFrom,
-  type LandingPreviews,
-} from './preview-data'
+import { formatInterval, intervalFrom } from './preview-data'
 import { readLandingSnippetFiles } from './snippets'
 
 const docsRoot = path.resolve(import.meta.dirname, '../..')
+const previews = collectLandingPreviews()
 
 describe('landing preview data', () => {
-  let previews: LandingPreviews
-
-  beforeAll(async () => {
-    previews = await collectLandingPreviews(readLandingSnippetFiles(docsRoot))
-  })
-
   it('runs every snippet the tabs offer', () => {
     expect(Object.keys(previews)).toEqual(['compose', 'default', 'extend'])
+  })
+
+  // The highlighted tabs come from the directory listing, the rows from the
+  // imported modules, and a snippet the panel never runs would slip past both.
+  it('runs every snippet file on disk', () => {
+    expect(Object.keys(previews).sort()).toEqual([
+      ...readLandingSnippetFiles(docsRoot).keys(),
+    ])
   })
 
   it('covers every grade the list renders', () => {
