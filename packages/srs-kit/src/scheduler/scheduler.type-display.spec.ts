@@ -5,7 +5,7 @@ import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
 import type { Grade } from '@/primitives/rating.js'
-import type { Mutable } from '@/schema/index.js'
+import type { Mutable, SRSSchema } from '@/schema/index.js'
 import { defineStringFieldOutputSchema } from '@/schema/string-field.test.js'
 import { defineScheduler } from './define-scheduler.js'
 import type {
@@ -15,6 +15,8 @@ import type {
 import type {
   PreviewResult,
   ScheduleResult,
+  SchedulerCore,
+  SchedulerDefaultValue,
   SchedulerNewCardFn,
 } from './scheduler.js'
 
@@ -122,9 +124,14 @@ const mappedPreview = sm2NumericCoreWithMiddleware
   .preview({ card: sm2NumericCoreWithMiddleware.newCard({ now: 0 }), now: 0 })
   .map((item) => item)
 
+interface MemoryStateForDisplay {
+  readonly stability: number
+  readonly difficulty: number
+}
+
 type ComposedCardForDisplay = Mutable<
   Omit<
-    Mutable<{ stability: number; dueAt: Date }> & {
+    Mutable<MemoryStateForDisplay & { dueAt: Date }> & {
       readonly reps: number
     },
     'dueAt'
@@ -161,9 +168,74 @@ function displayNewCard(card: ReturnType<typeof newCardForDisplay>) {
 
 const composedNewCardForDisplay = displayNewCard({
   stability: 1,
+  difficulty: 2,
   dueAt: new Date(0),
   reps: 0,
   learningStep: 0,
+})
+
+declare const coreForDisplay: SchedulerCore<NewCardEnvForDisplay>
+
+function displayForgottenCard(card: ReturnType<typeof coreForDisplay.forget>) {
+  return card
+}
+
+const forgottenCardForDisplay = displayForgottenCard({
+  stability: 1,
+  difficulty: 2,
+  dueAt: new Date(0),
+  reps: 0,
+  learningStep: 0,
+})
+
+function displayRolledBackCard(
+  card: ReturnType<typeof coreForDisplay.rollback>
+) {
+  return card
+}
+
+const rolledBackCardForDisplay = displayRolledBackCard({
+  stability: 1,
+  difficulty: 2,
+  dueAt: new Date(0),
+  reps: 0,
+  learningStep: 0,
+})
+
+type DefaultValueEnvForDisplay = {
+  readonly chrono: Date
+  readonly config: SRSSchema<{ input: object; output: object }>
+  readonly cardInitInput: SRSSchema<{
+    input: { readonly now?: Date }
+    output: { readonly input: object; readonly now?: unknown }
+  }>
+  readonly card: SRSSchema<{
+    input: ComposedCardForDisplay
+    output: ComposedCardForDisplay
+  }>
+  readonly revlog: SRSSchema<{
+    input: ComposedRevlogForDisplay
+    output: ComposedRevlogForDisplay
+  }>
+  readonly scheduleStatus: 'new' | 'learning' | 'review'
+}
+
+declare const defaultValueForDisplay: SchedulerDefaultValue<DefaultValueEnvForDisplay>
+
+function displayDefaultValueCard(
+  card: ReturnType<typeof defaultValueForDisplay.newCard>
+) {
+  return card
+}
+
+const defaultValueCardForDisplay = displayDefaultValueCard({
+  stability: 1,
+  difficulty: 2,
+  dueAt: new Date(0),
+  reps: 0,
+  learningStep: 0,
+  state: 0,
+  scheduleStatus: 'new',
 })
 
 interface FSRSSchedulerForDisplay {
@@ -185,6 +257,7 @@ function displaySchedulerPreview(preview: SchedulerPreview) {
 const inferredSchedulerPreview = displaySchedulerPreview({
   card: {
     stability: 1,
+    difficulty: 2,
     dueAt: new Date(0),
     reps: 0,
     learningStep: 0,
@@ -583,6 +656,7 @@ describe('defineScheduler type display', () => {
     card: {
         reps: number;
         stability: number;
+        difficulty: number;
         dueAt: Date;
         learningStep: number;
     };
@@ -617,6 +691,7 @@ describe('defineScheduler type display', () => {
     card: {
         reps: number;
         stability: number;
+        difficulty: number;
         dueAt: Date;
         learningStep: number;
     };
@@ -632,8 +707,32 @@ describe('defineScheduler type display', () => {
     composedNewCardForDisplay: `const composedNewCardForDisplay: {
     reps: number;
     stability: number;
+    difficulty: number;
     dueAt: Date;
     learningStep: number;
+}`,
+    forgottenCardForDisplay: `const forgottenCardForDisplay: {
+    reps: number;
+    stability: number;
+    difficulty: number;
+    dueAt: Date;
+    learningStep: number;
+}`,
+    rolledBackCardForDisplay: `const rolledBackCardForDisplay: {
+    reps: number;
+    stability: number;
+    difficulty: number;
+    dueAt: Date;
+    learningStep: number;
+}`,
+    defaultValueCardForDisplay: `const defaultValueCardForDisplay: {
+    reps: number;
+    stability: number;
+    difficulty: number;
+    dueAt: Date;
+    learningStep: number;
+    state: State;
+    scheduleStatus: "new" | "learning" | "review";
 }`,
     defaultNewCard: `const defaultNewCard: {
     source: string;
@@ -829,7 +928,7 @@ describe('defineScheduler type display', () => {
     }
   })
 
-  it('shows flattened card types for newCard()', () => {
+  it('shows flattened card types for card-returning APIs', () => {
     for (const [marker, expected] of Object.entries(expectedDefaultValues)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
