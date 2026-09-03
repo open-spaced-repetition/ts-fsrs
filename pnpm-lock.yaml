@@ -65,6 +65,9 @@ importers:
       ts-fsrs:
         specifier: workspace:*
         version: link:../packages/fsrs
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
     devDependencies:
       '@playwright/test':
         specifier: ^1.62.1
@@ -96,9 +99,6 @@ importers:
       typescript:
         specifier: 6.0.3
         version: 6.0.3
-      zod:
-        specifier: ^4.4.3
-        version: 4.4.3
 
   packages/binding:
     devDependencies:
