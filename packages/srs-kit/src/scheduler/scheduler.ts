@@ -69,12 +69,15 @@ type SchedulerCoreCardInitInput<Env extends BlankSchedulerCoreEnv> =
 export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
   Prettify<SchedulerCoreCardInitInput<Env>>
 
+// Keep the mapped return type inline so QuickInfo expands named card aliases.
 export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
   EmptyPart extends SchedulerNewCardOptions<Env>
-    ? (
-        options?: SchedulerNewCardOptions<Env>
-      ) => Prettify<Env['card']['output']>
-    : (options: SchedulerNewCardOptions<Env>) => Prettify<Env['card']['output']>
+    ? (options?: SchedulerNewCardOptions<Env>) => {
+        [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
+      }
+    : (options: SchedulerNewCardOptions<Env>) => {
+        [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
+      }
 
 export interface ForwardItem<Time> {
   readonly rating: Grade
@@ -110,7 +113,9 @@ export interface SchedulerCore<
   readonly forget: (input: {
     readonly card: Env['card']['input']
     readonly now?: Env['chrono']
-  }) => Env['card']['output']
+  }) => {
+    [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
+  }
   readonly review: (input: {
     readonly card: Env['card']['input']
     readonly grade: Grade
@@ -125,7 +130,9 @@ export interface SchedulerCore<
   readonly rollback: (input: {
     readonly card: Env['card']['output']
     readonly revlog: Env['revlog']['output']
-  }) => Env['card']['output']
+  }) => {
+    [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
+  }
 }
 
 export type AnySchedulerCore = SchedulerCore<any>
@@ -242,7 +249,9 @@ export interface SchedulerDefaultValue<Env extends BlankSchedulerEnv> {
   readonly newCard: (
     ctx: SchedulerDefaultValueContext<Env>,
     time: Env['chrono']
-  ) => SchedulerCoreEnv<Env>['card']['output']
+  ) => {
+    [Key in keyof SchedulerCoreEnv<Env>['card']['output']]: SchedulerCoreEnv<Env>['card']['output'][Key]
+  }
 }
 
 export type SchedulerCreate<

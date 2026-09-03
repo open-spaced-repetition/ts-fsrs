@@ -303,7 +303,7 @@ export class BaseScheduler<
         input: card,
       },
       now
-    )
+    ) as SchedulerCoreEnv<Env>['card']['output']
   }
 
   review = (input: {
