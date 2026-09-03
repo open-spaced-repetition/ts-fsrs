@@ -1,5 +1,14 @@
 # ts-fsrs
 
+## 6.0.0-beta.9
+
+### Patch Changes
+
+- [#492](https://github.com/open-spaced-repetition/ts-fsrs/pull/492) [`3db41a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3db41a48d21a9c7d1e6a44ee772df1302402171e) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: separate model parameter migration, clipping, and validation
+
+- Updated dependencies [[`3db41a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3db41a48d21a9c7d1e6a44ee772df1302402171e), [`c186b67`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c186b67a4cc025388561f873025cfc51caf13410), [`212e311`](https://github.com/open-spaced-repetition/ts-fsrs/commit/212e3112aba2107d55a247d2cbd94e6e96d9e70f), [`0cfeb96`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0cfeb96b4cfdc0477c3eef31c8284ef3326b99ef)]:
+  - @open-spaced-repetition/srs-kit@0.1.0-beta.7
+
 ## 6.0.0-beta.8
 
 ### Patch Changes
