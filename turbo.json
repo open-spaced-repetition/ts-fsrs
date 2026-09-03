@@ -42,16 +42,38 @@
       "outputs": [],
       "cache": false
     },
+    "@ts-fsrs/website#prepare:revlog": {
+      "outputs": ["src/public/revlog.csv"]
+    },
     "@ts-fsrs/website#rspress:build": {
-      "dependsOn": ["@ts-fsrs/website#verify:packages"],
+      "dependsOn": [
+        "@ts-fsrs/website#verify:packages",
+        "@ts-fsrs/website#prepare:revlog"
+      ],
       "outputs": ["doc_build/**"],
       "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
     },
     "@ts-fsrs/website#rspress:dev": {
-      "dependsOn": ["@ts-fsrs/website#verify:packages"],
+      "dependsOn": [
+        "@ts-fsrs/website#verify:packages",
+        "@ts-fsrs/website#prepare:revlog"
+      ],
       "cache": false,
       "persistent": true,
       "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+    },
+    "@ts-fsrs/website#preview": {
+      "dependsOn": ["@ts-fsrs/website#rspress:build"],
+      "cache": false,
+      "persistent": true
+    },
+    "@ts-fsrs/website#typecheck": {
+      "dependsOn": ["@ts-fsrs/website#verify:packages"],
+      "outputs": []
+    },
+    "@ts-fsrs/website#test:docs": {
+      "dependsOn": ["@ts-fsrs/website#verify:packages"],
+      "outputs": []
     },
     "check": {
       "outputs": [],
