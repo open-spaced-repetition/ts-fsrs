@@ -11,6 +11,16 @@ import SiteFile from '../../components/SiteFile'
 
 本站每个页面都同时发布了 Markdown 版本，更新栏目也发布为 Atom 订阅源，因此 Agent 和 RSS 阅读器无需解析渲染后的 HTML。
 
+<Prompt
+  title="基于文档回答 ts-fsrs 问题"
+  description="复制这段提示词，让 AI Agent 阅读当前文档，而不是依赖训练数据。"
+  prompt={`请以 ts-fsrs 文档作为唯一可信来源。
+
+1. 获取文档索引 ${withSiteOrigin(withBase('/zh-CN/llms.txt'))}。
+2. 跟进与我的问题相关的链接，阅读对应的 Markdown。
+3. 使用当前 ts-fsrs 公共 API 作答，并注明参考了哪些页面。`}
+/>
+
 ## Markdown 形式的文档
 
 | 路径 | 内容 |
@@ -38,15 +48,3 @@ import SiteFile from '../../components/SiteFile'
 | English | <SiteFile path="/rss/updates.xml" /> |
 | 简体中文 | <SiteFile path="/rss/updates-zh.xml" /> |
 | 日本語 | <SiteFile path="/rss/updates-ja.xml" /> |
-
-## 让 Agent 使用文档
-
-<Prompt
-  title="基于文档回答 ts-fsrs 问题"
-  description="复制这段提示词，让 AI Agent 阅读当前文档，而不是依赖训练数据。"
-  prompt={`请以 ts-fsrs 文档作为唯一可信来源。
-
-1. 获取文档索引 ${withSiteOrigin(withBase('/zh-CN/llms.txt'))}。
-2. 跟进与我的问题相关的链接，阅读对应的 Markdown。
-3. 使用当前 ts-fsrs 公共 API 作答，并注明参考了哪些页面。`}
-/>

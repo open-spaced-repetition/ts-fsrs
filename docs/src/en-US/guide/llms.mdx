@@ -11,6 +11,16 @@ import SiteFile from '../../components/SiteFile'
 
 Every page on this site is also published as Markdown, and the updates section is published as an Atom feed, so agents and feed readers never have to parse the rendered HTML.
 
+<Prompt
+  title="Answer ts-fsrs questions from the documentation"
+  description="Copy this prompt so your AI agent reads the current documentation instead of relying on its training data."
+  prompt={`Use the ts-fsrs documentation as your source of truth.
+
+1. Fetch the documentation index at ${withSiteOrigin(withBase('/llms.txt'))}.
+2. Follow the links that cover my question and read their Markdown.
+3. Answer using the current ts-fsrs public API, and cite the pages you used.`}
+/>
+
 ## Documentation as Markdown
 
 | Path | Contents |
@@ -38,15 +48,3 @@ The updates section publishes one Atom feed per locale. Every page also links it
 | English | <SiteFile path="/rss/updates.xml" /> |
 | 简体中文 | <SiteFile path="/rss/updates-zh.xml" /> |
 | 日本語 | <SiteFile path="/rss/updates-ja.xml" /> |
-
-## Point an agent at the docs
-
-<Prompt
-  title="Answer ts-fsrs questions from the documentation"
-  description="Copy this prompt so your AI agent reads the current documentation instead of relying on its training data."
-  prompt={`Use the ts-fsrs documentation as your source of truth.
-
-1. Fetch the documentation index at ${withSiteOrigin(withBase('/llms.txt'))}.
-2. Follow the links that cover my question and read their Markdown.
-3. Answer using the current ts-fsrs public API, and cite the pages you used.`}
-/>
