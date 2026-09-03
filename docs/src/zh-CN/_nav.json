@@ -1,6 +1,5 @@
 [
-  { "text": "首页", "link": "/" },
-  { "text": "安装", "link": "/installation/" },
+  { "text": "指南", "link": "/guide/", "activeMatch": "/guide/" },
   { "text": "Playground", "link": "/playground" },
   { "text": "更新", "link": "/updates/" }
 ]

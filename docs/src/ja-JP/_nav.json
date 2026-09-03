@@ -1,6 +1,5 @@
 [
-  { "text": "ホーム", "link": "/" },
-  { "text": "インストール", "link": "/installation/" },
+  { "text": "ガイド", "link": "/guide/", "activeMatch": "/guide/" },
   { "text": "Playground", "link": "/playground" },
   { "text": "更新情報", "link": "/updates/" }
 ]
