@@ -16,12 +16,14 @@ function filesIn(directory: string): string[] {
   })
 }
 
+// `cleanUrls` is on, so the site links to `/playground`, not to the
+// `playground.html` file behind it. Visit what a reader would.
 function routeFor(file: string): string {
   const relative = path.relative(buildRoot, file).split(path.sep).join('/')
   if (relative === 'index.html') return '/'
   if (relative.endsWith('/index.html'))
     return `/${relative.slice(0, -'index.html'.length)}`
-  return `/${relative}`
+  return `/${relative.slice(0, -'.html'.length)}`
 }
 
 if (!existsSync(buildRoot)) {
@@ -112,7 +114,7 @@ test('Playground runs its default example', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
 
-  await page.goto('/playground.html')
+  await page.goto('/playground')
   const run = page.getByTestId('playground-run')
   await expect(run).toBeEnabled()
   await run.click()
