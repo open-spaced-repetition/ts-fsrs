@@ -173,11 +173,11 @@ export default defineConfig({
         content: 'https://github.com/open-spaced-repetition/ts-fsrs',
       },
       {
-        // `socialLinks` is site-wide, so this points at the page that lists the
-        // per-locale feeds rather than at one locale's `.xml`.
+        // `socialLinks` is site-wide, so this points at the section that lists
+        // the per-locale feeds rather than at one locale's `.xml`.
         icon: { svg: rssIcon },
         mode: 'link',
-        content: '/guide/llms',
+        content: '/guide/llms#feeds',
       },
     ],
     editLink: {
