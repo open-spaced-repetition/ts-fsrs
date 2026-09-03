@@ -4,6 +4,7 @@ description: Install ts-fsrs, understand its scheduler building blocks, and run 
 ---
 
 import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 import RunCode from '../../components/RunCode'
 import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
@@ -16,10 +17,11 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
   description="Copy this prompt and send it to your AI agent to install ts-fsrs and create a working FSRS-6 scheduler."
   prompt={`Integrate ts-fsrs into my TypeScript application.
 
-1. Install the \`ts-fsrs\` package.
-2. Create an FSRS-6 scheduler with \`defineScheduler\`, \`FSRS6Model\`, and \`dateChrono\`.
-3. Create a new card and review it with \`Rating.Good\`.
-4. Keep the implementation minimal and use the current ts-fsrs public API.`}
+1. Read the documentation index at ${withSiteOrigin(withBase('/llms.txt'))} and follow the pages that cover the scheduler API.
+2. Install the \`ts-fsrs\` package.
+3. Create an FSRS-6 scheduler with \`defineScheduler\`, \`FSRS6Model\`, and \`dateChrono\`.
+4. Create a new card and review it with \`Rating.Good\`.
+5. Keep the implementation minimal and use the current ts-fsrs public API.`}
 />
 
 ## Installation
