@@ -5,7 +5,7 @@ description: Read the ts-fsrs documentation as Markdown through llms.txt and llm
 
 import { Prompt } from '@rspress/core/theme'
 import { withBase, withSiteOrigin } from '@rspress/core/runtime'
-import SiteFile from '../../components/SiteFile'
+import SiteFile from '@/components/SiteFile'
 
 # LLM
 
@@ -23,28 +23,16 @@ Every page on this site is also published as Markdown, and the updates section i
 
 ## Documentation as Markdown
 
-| Path | Contents |
-| --- | --- |
-| <SiteFile path="/llms.txt" /> | An index of every page, grouped by top navigation, with one description per link. |
-| <SiteFile path="/llms-full.txt" /> | The Markdown of every page concatenated into a single file. |
-| <SiteFile path="/guide/index.md" /> | The Markdown behind one page. Append `.md` to any route to get its source. |
+<SiteFile path="/llms.txt" /> indexes every page, grouped by top navigation, with one description per link.
+
+<SiteFile path="/llms-full.txt" /> concatenates the Markdown of every page into a single file.
+
+<SiteFile path="/guide/index.md" /> is the Markdown behind one page. Append `.md` to any route to get its source.
 
 Start from `llms.txt` when the agent can follow links on demand; reach for `llms-full.txt` when it needs the whole site in one request. Each generated Markdown file opens with a hint line pointing back at these entry points, so an agent that lands on a single page can still discover the rest.
 
-Each locale is bundled separately, and the pages inside a bundle are written in that locale.
-
-| Locale | Index | Full bundle |
-| --- | --- | --- |
-| English | <SiteFile path="/llms.txt" /> | <SiteFile path="/llms-full.txt" /> |
-| 简体中文 | <SiteFile path="/zh-CN/llms.txt" /> | <SiteFile path="/zh-CN/llms-full.txt" /> |
-| 日本語 | <SiteFile path="/ja-JP/llms.txt" /> | <SiteFile path="/ja-JP/llms-full.txt" /> |
+Every language has its own copy of these files, written in that language. Switch languages to get them.
 
 ## Feeds
 
-The updates section publishes one Atom feed per locale. Every page also links its feeds from the document head, so a reader that supports auto-discovery finds them without this table.
-
-| Locale | Feed |
-| --- | --- |
-| English | <SiteFile path="/rss/updates.xml" /> |
-| 简体中文 | <SiteFile path="/rss/updates-zh.xml" /> |
-| 日本語 | <SiteFile path="/rss/updates-ja.xml" /> |
+The updates section publishes one Atom feed per locale, and this one is <SiteFile path="/rss/updates.xml" />; switch languages to subscribe to another. Every page also links its feed from the document head, so a reader that supports auto-discovery finds it without reading this section.

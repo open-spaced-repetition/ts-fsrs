@@ -1,0 +1,33 @@
+---
+title: 快速开始
+description: 安装 ts-fsrs，并在浏览器中运行完整的 defineScheduler 示例，用 Rating.Good 复习一张卡片
+---
+
+import { PackageManagerTabs } from '@rspress/core/theme'
+import RunCode from '../../components/RunCode'
+import code from '@/snippets/run-code/define-scheduler.ts?raw'
+
+# 快速开始
+
+## 安装
+
+`ts-fsrs` 需要 Node.js 24 或更高版本。
+
+<PackageManagerTabs command="install ts-fsrs" />
+
+只有在训练 FSRS 参数或转换复习日志 CSV 时，才需要额外安装 `@open-spaced-repetition/binding`。
+
+## 创建调度器
+
+`defineScheduler` 使用 FSRS-6 模型和基于日期的时间系统创建可复用定义。`.create()` 会校验配置并返回独立的调度器。
+
+```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
+```
+
+<RunCode code={code} />
+
+代码块自带的复制按钮会复制原始源码；也可以直接在专用 Worker 中运行。固定的 `now` 让输出保持可复现。
+
+- `newCard()` 创建符合该调度器默认结构的新卡片。
+- `review()` 返回新的卡片和复习日志，不会修改输入卡片。
+- 需要多个调度器时保留 definition；需要策略时，在 `.create()` 前通过 `.use(...)` 组合 middleware。

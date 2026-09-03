@@ -13,14 +13,19 @@ describe('defineScheduler guide source', () => {
     expect(snippet).toContain('defineScheduler({')
 
     for (const locale of ['en-US', 'zh-CN', 'ja-JP']) {
-      const page = readFileSync(
+      const quickStart = readFileSync(
+        join(root, '../..', locale, 'guide/quick-start.mdx'),
+        'utf8'
+      )
+      expect(quickStart).toContain(`from '${snippetImport}'`)
+      expect(quickStart).toContain(`\`\`\`ts twoslash file="${snippetPath}"`)
+      expect(quickStart).toContain('PackageManagerTabs')
+
+      const intro = readFileSync(
         join(root, '../..', locale, 'guide/index.mdx'),
         'utf8'
       )
-      expect(page).toContain(`from '${snippetImport}'`)
-      expect(page).toContain(`\`\`\`ts twoslash file="${snippetPath}"`)
-      expect(page).toContain('PackageManagerTabs')
-      expect(page).toContain('<Prompt')
+      expect(intro).toContain('<Prompt')
 
       const nav = readFileSync(join(root, '../..', locale, '_nav.json'), 'utf8')
       expect(nav).toContain('"link": "/guide/"')

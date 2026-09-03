@@ -4,10 +4,9 @@ type Props = {
   readonly path: string
 }
 
-// Generated files such as llms.txt and the RSS feeds are build outputs rather
-// than routes, so they cannot be written as Markdown links: the dead-link check
-// resolves those against the route table. Rendering the anchor here also keeps
-// the printed path correct once the site is served under a `base`.
+// Links a build output such as llms.txt, which a Markdown link cannot: remark's
+// `autoPrefix` skips `base` for non-route extensions. Keep this inline in a
+// paragraph — SSG-MD serializes JSX in a table cell or list item verbatim.
 export default function SiteFile({ path }: Props) {
   const href = withBase(path)
 
