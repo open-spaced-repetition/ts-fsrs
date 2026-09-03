@@ -1,6 +1,7 @@
 import { useI18n } from '@rspress/core/runtime'
 import { Link } from '@rspress/core/theme-original'
 import { cn } from '@/utils/cn'
+import { FeatureCardMotion } from './FeatureCardMotion'
 import * as styles from './styles'
 import { useLocalePath } from './useLocalePath'
 
@@ -40,12 +41,7 @@ export function FinalCta() {
               {t('home.cta.primary')}
             </Link>
             <Link
-              className={cn(
-                'rounded-xl border border-line bg-surface px-4 py-2',
-                'text-[13px] font-[680] text-body no-underline',
-                'transition-colors duration-200 hover:border-line-strong',
-                'motion-reduce:transition-none'
-              )}
+              className={cn(styles.outlinedAction, 'font-[680]')}
               href={localePath('/playground')}
             >
               {t('home.cta.secondary')}
@@ -54,16 +50,17 @@ export function FinalCta() {
 
           <div className="mt-11 grid gap-4 md:grid-cols-2">
             {PACKAGES.map(({ name, bodyKey, href }) => (
-              <a
-                className={cn(styles.card, 'block no-underline')}
-                href={href}
-                key={name}
-                rel="noreferrer"
-                target="_blank"
-              >
-                <h3 className={cn(styles.cardTitle, 'font-mono')}>{name}</h3>
-                <p className={styles.cardBody}>{t(bodyKey)}</p>
-              </a>
+              <FeatureCardMotion className="h-full" key={name}>
+                <a
+                  className={cn(styles.card, 'block h-full no-underline')}
+                  href={href}
+                  rel="noreferrer"
+                  target="_blank"
+                >
+                  <h3 className={cn(styles.cardTitle, 'font-mono')}>{name}</h3>
+                  <p className={styles.cardBody}>{t(bodyKey)}</p>
+                </a>
+              </FeatureCardMotion>
             ))}
           </div>
         </div>

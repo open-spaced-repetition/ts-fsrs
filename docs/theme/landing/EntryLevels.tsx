@@ -1,6 +1,8 @@
 import { useI18n } from '@rspress/core/runtime'
 import { HomeFeature } from '@rspress/core/theme-original'
 import { cn } from '@/utils/cn'
+import { BranchConnector } from './BranchConnector'
+import { FeatureCardMotion } from './FeatureCardMotion'
 import { Section } from './Section'
 import * as styles from './styles'
 
@@ -50,23 +52,20 @@ export function EntryLevels() {
         />
       </div>
 
-      <div className="relative hidden h-8 md:block" aria-hidden>
-        <div className="absolute top-0 left-[16.6667%] h-4 w-px bg-line-strong" />
-        <div className="absolute top-0 left-1/2 h-8 w-px bg-line-strong" />
-        <div className="absolute top-0 left-[83.3333%] h-4 w-px bg-line-strong" />
-        <div className="absolute top-4 right-[16.6667%] left-[16.6667%] h-px bg-line-strong" />
-      </div>
+      <BranchConnector />
 
       <div className="mt-0 flex flex-col items-center">
         <div className="h-6 w-px bg-line-strong md:hidden" aria-hidden />
-        <div
-          className={cn(
-            styles.node,
-            'border-line-brand bg-brand-soft px-5 py-2.5'
-          )}
-        >
-          <span className={styles.nodeTitle}>{t('home.entry.core')}</span>
-        </div>
+        <FeatureCardMotion radius="rounded-xl">
+          <div
+            className={cn(
+              styles.node,
+              'border-line-brand bg-brand-soft px-5 py-2.5'
+            )}
+          >
+            <span className={styles.nodeTitle}>{t('home.entry.core')}</span>
+          </div>
+        </FeatureCardMotion>
       </div>
     </Section>
   )

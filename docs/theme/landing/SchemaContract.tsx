@@ -5,6 +5,14 @@ import { Section } from './Section'
 import * as styles from './styles'
 import { ValidatorCycle } from './ValidatorCycle'
 
+const POINTS = [
+  'home.schema.point.source',
+  'home.schema.point.mutability',
+  'home.schema.point.status',
+] as const
+
+const AXES = ['Model', 'Chrono', 'Middleware'] as const
+
 export function SchemaContract() {
   const t = useI18n<typeof import('i18n')>()
 
@@ -16,13 +24,7 @@ export function SchemaContract() {
     >
       <div className="grid items-center gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)]">
         <ul className="m-0 grid list-none gap-3 p-0">
-          {(
-            [
-              'home.schema.point.source',
-              'home.schema.point.mutability',
-              'home.schema.point.status',
-            ] as const
-          ).map((key) => (
+          {POINTS.map((key) => (
             <li className={cn(styles.cardBody, 'mt-0')} key={key}>
               {t(key)}
             </li>
@@ -40,7 +42,7 @@ export function SchemaContract() {
               </div>
               <div className="h-4 w-px bg-line" aria-hidden />
               <div className="grid w-full grid-cols-3 gap-2">
-                {['Model', 'Chrono', 'Middleware'].map((name) => (
+                {AXES.map((name) => (
                   <div className={styles.node} key={name}>
                     <span className={styles.nodeTitle}>{name}</span>
                   </div>

@@ -21,6 +21,18 @@ describe('landing community data', () => {
     expect(readLandingContributors(dir)).toHaveLength(1)
   })
 
+  it('treats a missing file as the offline case', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    expect(readLandingContributors(dir)).toEqual([])
+    expect(readLandingSponsors(dir)).toEqual([])
+  })
+
+  it('reports a file it cannot parse', () => {
+    const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    writeFileSync(path.join(dir, '.sponsors.json'), '{ not json')
+    expect(() => readLandingSponsors(dir)).toThrow('is not valid JSON')
+  })
+
   it('rejects non-web links', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
     writeFileSync(

@@ -5,18 +5,31 @@ import { cn } from '@/utils/cn'
 
 // Literal colour classes keep them visible to Tailwind's scanner.
 const GRADES = [
-  { grade: 1, labelKey: 'home.grade.again', tint: 'text-again' },
-  { grade: 2, labelKey: 'home.grade.hard', tint: 'text-hard' },
-  { grade: 3, labelKey: 'home.grade.good', tint: 'text-good' },
-  { grade: 4, labelKey: 'home.grade.easy', tint: 'text-easy' },
+  {
+    grade: 1,
+    labelKey: 'home.grade.again',
+    tint: 'text-again',
+    rule: 'border-t-again',
+  },
+  {
+    grade: 2,
+    labelKey: 'home.grade.hard',
+    tint: 'text-hard',
+    rule: 'border-t-hard',
+  },
+  {
+    grade: 3,
+    labelKey: 'home.grade.good',
+    tint: 'text-good',
+    rule: 'border-t-good',
+  },
+  {
+    grade: 4,
+    labelKey: 'home.grade.easy',
+    tint: 'text-easy',
+    rule: 'border-t-easy',
+  },
 ] as const
-
-const SELECTED_RULE: Record<number, string> = {
-  1: 'border-t-again',
-  2: 'border-t-hard',
-  3: 'border-t-good',
-  4: 'border-t-easy',
-}
 
 type Props = {
   readonly lang: string
@@ -31,8 +44,9 @@ export function GradeList({ lang, preview }: Props) {
   return (
     <div className="border-line border-t">
       <div className="grid grid-cols-4">
-        {GRADES.map(({ grade, labelKey, tint }) => {
+        {GRADES.map(({ grade, labelKey, tint, rule }) => {
           const isSelected = grade === selected
+          const cell = preview.grades[grade]
           return (
             <button
               aria-pressed={isSelected}
@@ -44,7 +58,7 @@ export function GradeList({ lang, preview }: Props) {
                 'transition-colors duration-200 hover:bg-brand-soft',
                 'focus-visible:outline-2 focus-visible:-outline-offset-2',
                 'focus-visible:outline-ring motion-reduce:transition-none',
-                isSelected && ['bg-surface', SELECTED_RULE[grade]]
+                isSelected && ['bg-surface', rule]
               )}
               key={grade}
               onFocus={() => setSelected(grade)}
@@ -65,11 +79,11 @@ export function GradeList({ lang, preview }: Props) {
                   isSelected ? 'text-body' : 'text-muted'
                 )}
               >
-                {formatInterval(lang, preview.now, preview.grades[grade].dueAt)}
+                {formatInterval(lang, preview.now, cell.dueAt)}
               </span>
               <span className="font-mono text-[10.5px] text-subtle">
                 <span className="sr-only">{t('home.field.status')}: </span>
-                {preview.grades[grade].scheduleStatus}
+                {cell.scheduleStatus}
               </span>
             </button>
           )
@@ -98,7 +112,6 @@ export function GradeList({ lang, preview }: Props) {
             {Number(row.difficulty.toFixed(4))}
           </dd>
         </div>
-        {/* Preserve fields added by custom middleware. */}
         {Object.entries(row.extras).map(([field, value]) => (
           <div className="flex items-baseline gap-1.5" key={field}>
             <dt className="font-mono text-[11px] text-accent">{field}</dt>

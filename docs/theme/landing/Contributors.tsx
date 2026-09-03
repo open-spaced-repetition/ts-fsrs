@@ -3,6 +3,7 @@ import { landingContributors } from '@/landing/runtime'
 import { cn } from '@/utils/cn'
 import { AvatarWall } from './AvatarWall'
 import { Section } from './Section'
+import * as styles from './styles'
 
 const CONTRIBUTORS_URL =
   'https://github.com/open-spaced-repetition/ts-fsrs/graphs/contributors'
@@ -32,10 +33,8 @@ export function Contributors() {
       <p className="m-0 text-center">
         <a
           className={cn(
-            'inline-flex items-center gap-2 rounded-xl border border-line',
-            'bg-surface px-4 py-2 text-[13px] font-[650] text-body no-underline',
-            'transition-colors duration-200 hover:border-line-strong',
-            'motion-reduce:transition-none'
+            'inline-flex items-center gap-2 font-[650]',
+            styles.outlinedAction
           )}
           href={CONTRIBUTORS_URL}
           rel="noreferrer"

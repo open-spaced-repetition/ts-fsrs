@@ -32,40 +32,69 @@ const TABS: readonly {
   { id: 'extend', labelKey: 'home.tab.extend' },
 ]
 
+const ARROW_STEPS: Record<string, number | undefined> = {
+  ArrowLeft: -1,
+  ArrowRight: 1,
+}
+
+const COPY_FEEDBACK_MS = 2400
+
+const noop = () => {}
+
 export function SchedulerWorkbench() {
   const t = useI18n<typeof import('i18n')>()
   const lang = useLang()
   const [active, setActive] = useState<(typeof TABS)[number]['id']>('default')
   const [copied, setCopied] = useState(false)
   const copyResetRef = useRef<number>(undefined)
+  const tabRefs = useRef(new Map<LandingSnippetId, HTMLButtonElement>())
   const panelId = useId()
   const copyLabel = copied ? t('home.copied') : t('home.copy')
 
   useEffect(() => () => window.clearTimeout(copyResetRef.current), [])
+
+  function select(id: (typeof TABS)[number]['id']) {
+    setActive(id)
+    setCopied(false)
+  }
 
   return (
     <div
       className={cn('rp-not-doc w-full max-w-2xl', styles.codeWindow)}
       style={{ '--landing-code-lines': CODE_LINES } as CSSProperties}
     >
-      <div className={styles.windowBar} role="tablist">
-        {TABS.map(({ id, labelKey }) => (
-          <button
-            aria-controls={`${panelId}-${id}`}
-            aria-selected={active === id}
-            className={styles.tab}
-            id={`${panelId}-tab-${id}`}
-            key={id}
-            onClick={() => {
-              setActive(id)
-              setCopied(false)
-            }}
-            role="tab"
-            type="button"
-          >
-            {t(labelKey)}
-          </button>
-        ))}
+      <div className={styles.windowBar}>
+        {/* The copy button is not a tab, so it stays outside the tablist. */}
+        <div className="flex items-center gap-1" role="tablist">
+          {TABS.map(({ id, labelKey }, position) => (
+            <button
+              // Only the selected panel is mounted, so every tab points at it.
+              aria-controls={panelId}
+              aria-selected={active === id}
+              className={styles.tab}
+              id={`${panelId}-tab-${id}`}
+              key={id}
+              onClick={() => select(id)}
+              onKeyDown={(event) => {
+                const step = ARROW_STEPS[event.key]
+                if (!step) return
+                event.preventDefault()
+                const next = TABS[(position + step + TABS.length) % TABS.length]
+                select(next.id)
+                tabRefs.current.get(next.id)?.focus()
+              }}
+              ref={(node) => {
+                if (node) tabRefs.current.set(id, node)
+                else tabRefs.current.delete(id)
+              }}
+              role="tab"
+              tabIndex={active === id ? 0 : -1}
+              type="button"
+            >
+              {t(labelKey)}
+            </button>
+          ))}
+        </div>
         <button
           aria-label={copyLabel}
           className={cn(
@@ -78,14 +107,15 @@ export function SchedulerWorkbench() {
             copied && 'border-line-success bg-accent-muted text-on-accent'
           )}
           onClick={() => {
-            void copyToClipboard(landingSnippets[active].source).then(() => {
+            copyToClipboard(landingSnippets[active].source).then((didCopy) => {
+              if (!didCopy) return
               setCopied(true)
               window.clearTimeout(copyResetRef.current)
               copyResetRef.current = window.setTimeout(
                 () => setCopied(false),
-                2400
+                COPY_FEEDBACK_MS
               )
-            })
+            }, noop)
           }}
           title={copyLabel}
           type="button"
@@ -96,7 +126,7 @@ export function SchedulerWorkbench() {
 
       <div
         aria-labelledby={`${panelId}-tab-${active}`}
-        id={`${panelId}-${active}`}
+        id={panelId}
         role="tabpanel"
       >
         <CodeWindow
