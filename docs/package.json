@@ -14,6 +14,8 @@
     "test:e2e": "playwright test",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
     "prepare:revlog": "node scripts/fetch-revlog.mjs",
+    "prepare:sponsors": "node --env-file-if-exists=.env scripts/fetch-sponsors.mjs",
+    "prepare:contributors": "node --env-file-if-exists=.env scripts/fetch-contributors.mjs",
     "verify:packages": "node scripts/verify-packages.mjs"
   },
   "dependencies": {
@@ -23,7 +25,8 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "react-json-view-lite": "^2.5.0",
-    "ts-fsrs": "workspace:*"
+    "ts-fsrs": "workspace:*",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.62.1",
@@ -32,6 +35,8 @@
     "@rspress/plugin-rss": "2.0.19",
     "@rspress/plugin-twoslash": "2.0.19",
     "@types/react": "19.2.18",
+    "shiki": "^4.4.3",
+    "sponsorkit": "^18.0.0",
     "tailwindcss": "^4.3.3",
     "typescript": "6.0.3"
   }

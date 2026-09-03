@@ -40,6 +40,7 @@ export default function LivePlayground() {
   const runner = usePlaygroundRunner()
   const {
     containerRef,
+    diagnostics: editorDiagnostics,
     error: editorError,
     getValue: getEditorValue,
     load: loadEditor,
@@ -256,6 +257,7 @@ export default function LivePlayground() {
           'border border-line bg-editor',
           'max-md:mx-2.25 max-md:h-90 max-md:min-h-60'
         )}
+        data-editor-diagnostics={editorDiagnostics}
       >
         <div className="h-full w-full" ref={containerRef} />
         {!editorReady && (

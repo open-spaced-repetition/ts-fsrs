@@ -1,8 +1,17 @@
-import { type RefObject, useCallback, useEffect, useRef, useState } from 'react'
+import {
+  type RefObject,
+  useCallback,
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+} from 'react'
 import type { MonacoEditorHandle } from './monaco'
 
 export type MonacoEditorController = {
   containerRef: RefObject<HTMLDivElement | null>
+  /** Undefined until the language service has validated the model once. */
+  diagnostics: number | undefined
   error: string
   loading: boolean
   ready: boolean
@@ -25,9 +34,11 @@ export function useMonacoEditor(
   const editorRef = useRef<MonacoEditorHandle | undefined>(undefined)
   const darkRef = useRef(dark)
   darkRef.current = dark
-  const onChangeRef = useRef(onChange)
-  onChangeRef.current = onChange
+  // The editor is created once and calls this for the rest of its life, so it
+  // has to reach the newest `onChange` without making `load` reactive.
+  const emitChange = useEffectEvent((value: string) => onChange(value))
   const generationRef = useRef(0)
+  const [diagnostics, setDiagnostics] = useState<number>()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const [ready, setReady] = useState(false)
@@ -46,7 +57,10 @@ export function useMonacoEditor(
         container,
         initialValue,
         darkRef.current,
-        (value) => onChangeRef.current(value)
+        emitChange,
+        (count) => {
+          if (isCurrent()) setDiagnostics(count)
+        }
       )
       // A remount or a newer load superseded this one; drop the orphan editor.
       if (!isCurrent()) {
@@ -83,5 +97,14 @@ export function useMonacoEditor(
     []
   )
 
-  return { containerRef, error, getValue, load, loading, ready, setValue }
+  return {
+    containerRef,
+    diagnostics,
+    error,
+    getValue,
+    load,
+    loading,
+    ready,
+    setValue,
+  }
 }
