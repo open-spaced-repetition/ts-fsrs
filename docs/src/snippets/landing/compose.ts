@@ -14,18 +14,26 @@ export const scheduler = withLeech.create({
     weights: FSRS6_DEFAULT_WEIGHTS,
     enableShortTerm: false,
     numRelearningSteps: 0,
-    leechThreshold: 8,
+    leechThreshold: 2,
   },
 })
 
-const firstReview = new Date('2026-01-01T00:00:00.000Z')
-const reviewed = scheduler.review({
-  card: scheduler.newCard({ now: firstReview }),
+const createdAt = new Date('2026-01-01T00:00:00.000Z')
+const firstReview = new Date('2026-01-02T09:30:00.000Z')
+export const now = new Date('2026-01-06T08:45:00.000Z')
+
+const { card: learned } = scheduler.review({
+  card: scheduler.newCard({ now: createdAt }),
   grade: Rating.Good,
   now: firstReview,
-}).card
+})
 
-// Seven lapses in, so the eighth reaches the threshold: grading this card
-// Again suspends it instead of scheduling another review.
-export const now = new Date('2026-01-05T00:00:00.000Z')
-export const card = { ...reviewed, lapses: 7 }
+const secondReview = new Date('2026-01-04T20:15:00.000Z')
+export const { card } = scheduler.review({
+  card: learned,
+  grade: Rating.Again,
+  now: secondReview,
+})
+
+// One lapse on record, so Again reaches `leechThreshold` and suspends the card.
+export const outcomes = scheduler.preview({ card, now })

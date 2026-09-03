@@ -10,7 +10,7 @@ export function HomeLayout() {
       afterFeatures={<LandingSections />}
       afterHeroActions={
         // PackageManagerTabs expects Rspress document typography.
-        <div className="rp-doc -my-4 w-full max-w-[27rem]">
+        <div className="rp-doc -mt-4 mb-4 w-full max-w-108 min-[1001px]:-mb-4">
           <PackageManagerTabs command="install ts-fsrs" />
         </div>
       }
