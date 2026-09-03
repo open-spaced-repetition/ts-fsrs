@@ -29,34 +29,54 @@ export function intervalFrom(
   }
 }
 
+type IntervalFormatter = (
+  parts: Partial<Record<Intl.DurationFormatUnit, number>>
+) => string
+
+const UNITS = ['days', 'hours', 'minutes'] as const
+
+// This runs in the browser, and `Intl.DurationFormat` is not Baseline widely
+// available yet, so the units are worded and joined by hand where it is missing.
+function buildFormatter(lang: string): IntervalFormatter {
+  if (typeof Intl.DurationFormat === 'function') {
+    const format = new Intl.DurationFormat(lang, { style: 'long' })
+    return (parts) => format.format(parts)
+  }
+
+  const units = UNITS.map(
+    (unit) =>
+      [
+        unit,
+        new Intl.NumberFormat(lang, {
+          style: 'unit',
+          unit: unit.slice(0, -1),
+          unitDisplay: 'long',
+        }),
+      ] as const
+  )
+  const list = new Intl.ListFormat(lang, { type: 'unit' })
+  return (parts) => {
+    const values: string[] = []
+    for (const [unit, number] of units) {
+      const value = parts[unit]
+      if (value) values.push(number.format(value))
+    }
+    return list.format(values.length > 0 ? values : ['0'])
+  }
+}
+
 // Intl formatter construction is expensive; the cache is bounded by site locales.
-const intervalFormats = new Map<string, Intl.DurationFormat>()
+const intervalFormatters = new Map<string, IntervalFormatter>()
 
 export function formatInterval(
   lang: string,
   from: string,
   dueAt: string
 ): string {
-  if (typeof Intl.DurationFormat !== 'function') {
-    const parts = intervalFrom(from, dueAt)
-    const values = (['days', 'hours', 'minutes'] as const)
-      .filter((unit) => parts[unit])
-      .map((unit) =>
-        new Intl.NumberFormat(lang, {
-          style: 'unit',
-          unit: unit.slice(0, -1),
-          unitDisplay: 'long',
-        }).format(parts[unit] ?? 0)
-      )
-    return new Intl.ListFormat(lang, { type: 'unit' }).format(
-      values.length > 0 ? values : ['0']
-    )
-  }
-
-  let format = intervalFormats.get(lang)
+  let format = intervalFormatters.get(lang)
   if (!format) {
-    format = new Intl.DurationFormat(lang, { style: 'long' })
-    intervalFormats.set(lang, format)
+    format = buildFormatter(lang)
+    intervalFormatters.set(lang, format)
   }
-  return format.format(intervalFrom(from, dueAt))
+  return format(intervalFrom(from, dueAt))
 }

@@ -55,7 +55,12 @@
     },
     "@ts-fsrs/website#prepare:contributors": {
       "cache": false,
-      "env": ["CONTRIBUTORS_REPO", "CONTRIBUTORS_GITHUB_TOKEN", "GITHUB_TOKEN"]
+      "env": [
+        "CONTRIBUTORS_REPO",
+        "CONTRIBUTORS_GITHUB_TOKEN",
+        "GITHUB_TOKEN",
+        "SPONSORKIT_GITHUB_TOKEN"
+      ]
     },
     "@ts-fsrs/website#rspress:build": {
       "dependsOn": [
@@ -66,17 +71,7 @@
       ],
       "outputs": ["doc_build/**"],
       "inputs": ["$TURBO_DEFAULT$", ".sponsors.json", ".contributors.json"],
-      "env": [
-        "DOCS_SITE_ORIGIN",
-        "DOCS_REPO_SLUG",
-        "DOCS_REPO_REF",
-        "SPONSORKIT_GITHUB_TOKEN",
-        "SPONSORKIT_GITHUB_LOGIN",
-        "SPONSORKIT_GITHUB_TYPE",
-        "CONTRIBUTORS_REPO",
-        "CONTRIBUTORS_GITHUB_TOKEN",
-        "GITHUB_TOKEN"
-      ]
+      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
     },
     "@ts-fsrs/website#rspress:dev": {
       "dependsOn": [
@@ -87,17 +82,7 @@
       ],
       "cache": false,
       "persistent": true,
-      "env": [
-        "DOCS_SITE_ORIGIN",
-        "DOCS_REPO_SLUG",
-        "DOCS_REPO_REF",
-        "SPONSORKIT_GITHUB_TOKEN",
-        "SPONSORKIT_GITHUB_LOGIN",
-        "SPONSORKIT_GITHUB_TYPE",
-        "CONTRIBUTORS_REPO",
-        "CONTRIBUTORS_GITHUB_TOKEN",
-        "GITHUB_TOKEN"
-      ]
+      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
     },
     "@ts-fsrs/website#preview": {
       "dependsOn": ["@ts-fsrs/website#rspress:build"],

@@ -1,39 +1,31 @@
-import { useEffect, useState, useSyncExternalStore } from 'react'
+import { useEffect, useState } from 'react'
 import { cn } from '@/utils/cn'
 import * as styles from './styles'
+import { useReducedMotion } from './useReducedMotion'
 
 const VALIDATORS = ['zod', 'valibot', 'arktype', 'built-in'] as const
 const DWELL_MS = 2800
-const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
 
-function subscribeReducedMotion(onChange: () => void) {
-  const query = window.matchMedia(REDUCED_MOTION_QUERY)
-  query.addEventListener('change', onChange)
-  return () => query.removeEventListener('change', onChange)
+// One updater: deriving either index inside the other's would make it impure.
+type Slide = {
+  readonly index: number
+  readonly previous: number | null
 }
-
-function getReducedMotion() {
-  return window.matchMedia(REDUCED_MOTION_QUERY).matches
-}
-
-const getServerReducedMotion = () => false
 
 export function ValidatorCycle() {
-  const [index, setIndex] = useState(0)
-  const [previous, setPrevious] = useState<number | null>(null)
-  const reduced = useSyncExternalStore(
-    subscribeReducedMotion,
-    getReducedMotion,
-    getServerReducedMotion
-  )
+  const [{ index, previous }, setSlide] = useState<Slide>({
+    index: 0,
+    previous: null,
+  })
+  const reduced = useReducedMotion()
 
   useEffect(() => {
     if (reduced) return
     const id = setInterval(() => {
-      setIndex((value) => {
-        setPrevious(value)
-        return (value + 1) % VALIDATORS.length
-      })
+      setSlide((slide) => ({
+        index: (slide.index + 1) % VALIDATORS.length,
+        previous: slide.index,
+      }))
     }, DWELL_MS)
     return () => clearInterval(id)
   }, [reduced])

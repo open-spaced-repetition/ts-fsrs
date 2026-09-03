@@ -1,4 +1,6 @@
 import { useI18n } from '@rspress/core/runtime'
+import { cn } from '@/utils/cn'
+import { FeatureCardMotion } from './FeatureCardMotion'
 import { Section } from './Section'
 import * as styles from './styles'
 
@@ -34,10 +36,12 @@ export function PerformanceBento() {
     >
       <div className="landing-stagger grid gap-4 md:grid-cols-3">
         {CARDS.map(({ titleKey, bodyKey }) => (
-          <div className={styles.card} key={titleKey}>
-            <h3 className={styles.cardTitle}>{t(titleKey)}</h3>
-            <p className={styles.cardBody}>{t(bodyKey)}</p>
-          </div>
+          <FeatureCardMotion className="h-full" key={titleKey}>
+            <div className={cn(styles.card, 'h-full')}>
+              <h3 className={styles.cardTitle}>{t(titleKey)}</h3>
+              <p className={styles.cardBody}>{t(bodyKey)}</p>
+            </div>
+          </FeatureCardMotion>
         ))}
       </div>
     </Section>

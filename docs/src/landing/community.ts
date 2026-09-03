@@ -30,11 +30,21 @@ function readList<T>(
   let raw: string
   try {
     raw = readFileSync(path.join(docsRoot, file), 'utf8')
-  } catch {
-    return []
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
+    throw error
   }
 
-  const result = z.array(schema).safeParse(JSON.parse(raw))
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(raw)
+  } catch (error) {
+    throw new Error(
+      `${file} is not valid JSON: ${error instanceof Error ? error.message : String(error)}`
+    )
+  }
+
+  const result = z.array(schema).safeParse(parsed)
   if (!result.success) {
     throw new Error(
       `${file} does not match the expected shape:\n${z.prettifyError(result.error)}`

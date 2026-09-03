@@ -305,6 +305,10 @@
 }
 
 @media (width > 1000px) {
+  .rp-home-hero .rp-home-hero__subtitle {
+    max-width: 30rem;
+  }
+
   html[lang="zh-CN"] .rp-home-hero__subtitle {
     max-width: 27rem;
     font-size: 3.375rem;
@@ -312,8 +316,8 @@
 }
 
 .landing-entry-features .rp-home-feature {
-  margin-bottom: 0;
-  padding-bottom: 0;
+  margin-bottom: -10px;
+  padding-bottom: 10px;
 }
 
 .rp-button.rp-button--big {

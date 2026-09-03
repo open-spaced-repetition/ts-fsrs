@@ -1,5 +1,7 @@
 import { useI18n } from '@rspress/core/runtime'
 import { cn } from '@/utils/cn'
+import { BranchConnector } from './BranchConnector'
+import { FeatureCardMotion } from './FeatureCardMotion'
 import { Section } from './Section'
 import * as styles from './styles'
 
@@ -42,45 +44,46 @@ export function ArchitectureMap() {
     >
       <div className="landing-stagger grid gap-4 md:grid-cols-3">
         {COLUMNS.map(({ titleKey, items }) => (
-          <div className={styles.card} key={titleKey}>
-            <h3 className={styles.cardTitle}>{t(titleKey)}</h3>
-            <ul className="m-0 mt-3 flex list-none flex-wrap gap-1.5 p-0">
-              {items.map((item) => (
-                <li key={item}>
-                  <span className={styles.staticChip}>{item}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <FeatureCardMotion className="h-full" key={titleKey}>
+            <div className={cn(styles.card, 'h-full')}>
+              <h3 className={styles.cardTitle}>{t(titleKey)}</h3>
+              <ul className="m-0 mt-3 flex list-none flex-wrap gap-1.5 p-0">
+                {items.map((item) => (
+                  <li key={item}>
+                    <span className={styles.staticChip}>{item}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </FeatureCardMotion>
         ))}
       </div>
 
-      <div className="relative hidden h-8 md:block" aria-hidden>
-        <div className="absolute top-0 left-[16.6667%] h-4 w-px bg-line-strong" />
-        <div className="absolute top-0 left-1/2 h-8 w-px bg-line-strong" />
-        <div className="absolute top-0 left-[83.3333%] h-4 w-px bg-line-strong" />
-        <div className="absolute top-4 right-[16.6667%] left-[16.6667%] h-px bg-line-strong" />
-      </div>
+      <BranchConnector />
 
       <div className="mt-0 flex flex-col items-center">
         <div className="h-6 w-px bg-line-strong md:hidden" aria-hidden />
-        <div
-          className={cn(
-            styles.node,
-            'border-line-brand bg-brand-soft px-5 py-2.5'
-          )}
-        >
-          <span className={styles.nodeTitle}>Scheduler Core</span>
-          <span className={styles.nodeMeta}>
-            newCard · preview · review · rollback
-          </span>
-        </div>
+        <FeatureCardMotion radius="rounded-xl">
+          <div
+            className={cn(
+              styles.node,
+              'border-line-brand bg-brand-soft px-5 py-2.5'
+            )}
+          >
+            <span className={styles.nodeTitle}>Scheduler Core</span>
+            <span className={styles.nodeMeta}>
+              newCard · preview · review · rollback
+            </span>
+          </div>
+        </FeatureCardMotion>
         <div className="h-6 w-px bg-line-strong" aria-hidden />
-        <div className={cn(styles.node, 'px-5 py-2.5')}>
-          <span className={styles.nodeTitle}>
-            Card + Revlog + ScheduleStatus
-          </span>
-        </div>
+        <FeatureCardMotion radius="rounded-xl">
+          <div className={cn(styles.node, 'px-5 py-2.5')}>
+            <span className={styles.nodeTitle}>
+              Card + Revlog + ScheduleStatus
+            </span>
+          </div>
+        </FeatureCardMotion>
         <div className="h-6 w-px bg-line-strong" aria-hidden />
       </div>
 
