@@ -1,16 +1,24 @@
 ---
-title: 快速开始
-description: 安装 ts-fsrs，了解调度器的模型与时间系统组成，并在浏览器中运行完整的 defineScheduler 快速开始示例
+title: 介绍
+description: ts-fsrs 是什么，以及模型、时间系统和可选 middleware 如何组合成可复用的调度器定义
 ---
 
-import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { Prompt } from '@rspress/core/theme'
 import { withBase, withSiteOrigin } from '@rspress/core/runtime'
-import RunCode from '../../components/RunCode'
-import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
-# 快速开始
+# 介绍
 
 `ts-fsrs` 是用于构建 FSRS 间隔重复系统的 TypeScript 工具包。声明式 API 将模型、时间系统和可选 middleware 组合成可复用的调度器定义。
+
+## 组成部分
+
+**模型**是 FSRS 算法及其参数。`FSRS6Model` 是当前版本；FSRS-3 到 FSRS-5 仍然保留，用于基于它们积累的复习历史。
+
+**时间系统**决定时间如何表示。`dateChrono` 使用 `Date`，`numericChrono` 使用时间戳，`temporalInstantChrono` 使用 `Temporal.Instant`。
+
+**Middleware** 负责调度策略，例如 `schedulerLearningStepsMiddleware`、`schedulerFuzzingMiddleware`、`schedulerMaximumIntervalMiddleware`、`schedulerLeechMiddleware`。在创建调度器前用 `.use(...)` 组合它们。
+
+`defineScheduler` 将这些组合成一个定义。`.create()` 会校验配置并返回独立的调度器，因此一个定义可以支撑多个调度器。
 
 <Prompt
   title="在 TypeScript 应用中集成 ts-fsrs"
@@ -24,25 +32,4 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
 5. 保持实现最小化，并使用当前 ts-fsrs 公共 API。`}
 />
 
-## 安装
-
-`ts-fsrs` 需要 Node.js 20 或更高版本。
-
-<PackageManagerTabs command="install ts-fsrs" />
-
-只有在训练 FSRS 参数或转换复习日志 CSV 时，才需要额外安装 `@open-spaced-repetition/binding`。
-
-## Quick start
-
-`defineScheduler` 使用 FSRS-6 模型和基于日期的时间系统创建可复用定义。`.create()` 会校验配置并返回独立的调度器。
-
-```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
-```
-
-<RunCode code={code} />
-
-代码块自带的复制按钮会复制原始源码；也可以直接在专用 Worker 中运行。固定的 `now` 让输出保持可复现。
-
-- `newCard()` 创建符合该调度器默认结构的新卡片。
-- `review()` 返回新的卡片和复习日志，不会修改输入卡片。
-- 需要多个调度器时保留 definition；需要策略时，在 `.create()` 前通过 `.use(...)` 组合 middleware。
+接下来前往[快速开始](./quick-start)，安装 package 并在浏览器中运行调度器。

@@ -1,16 +1,24 @@
 ---
-title: Getting Started
-description: Install ts-fsrs, understand its scheduler building blocks, and run a complete defineScheduler quick start in the browser
+title: Introduction
+description: What ts-fsrs is, and how a model, a chronology, and optional middleware compose into a reusable scheduler definition
 ---
 
-import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { Prompt } from '@rspress/core/theme'
 import { withBase, withSiteOrigin } from '@rspress/core/runtime'
-import RunCode from '../../components/RunCode'
-import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
-# Getting Started
+# Introduction
 
 `ts-fsrs` is a TypeScript toolkit for building spaced repetition systems with FSRS. Its declarative API composes a model, a chronology, and optional middleware into a reusable scheduler definition.
+
+## Building blocks
+
+A **model** is the FSRS algorithm and its parameters. `FSRS6Model` is the current one; FSRS-3 through FSRS-5 stay available for review histories built on them.
+
+A **chronology** decides how time is represented. `dateChrono` works with `Date`, `numericChrono` with timestamps, and `temporalInstantChrono` with `Temporal.Instant`.
+
+**Middleware** adds scheduling policy, such as `schedulerLearningStepsMiddleware`, `schedulerFuzzingMiddleware`, `schedulerMaximumIntervalMiddleware`, or `schedulerLeechMiddleware`. Compose them with `.use(...)` before creating the scheduler.
+
+`defineScheduler` combines these into a definition. Calling `.create()` validates the configuration and returns an independent scheduler, so one definition can back several of them.
 
 <Prompt
   title="Integrate ts-fsrs into a TypeScript application"
@@ -24,25 +32,4 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
 5. Keep the implementation minimal and use the current ts-fsrs public API.`}
 />
 
-## Installation
-
-`ts-fsrs` requires Node.js 20 or later.
-
-<PackageManagerTabs command="install ts-fsrs" />
-
-Install `@open-spaced-repetition/binding` separately only when you need to train FSRS parameters or convert review-log CSV files.
-
-## Quick start
-
-`defineScheduler` creates a reusable definition from the FSRS-6 model and a date-based chronology. Calling `.create()` validates the configuration and returns an independent scheduler.
-
-```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
-```
-
-<RunCode code={code} />
-
-Use the code block's copy button to copy the original source, or run it directly in the dedicated Worker. The fixed `now` value keeps the output reproducible.
-
-- `newCard()` creates the scheduler's default card shape.
-- `review()` returns a new card and revlog without mutating the input card.
-- Keep the definition when you need multiple schedulers; add policy middleware with `.use(...)` before `.create()`.
+Head to [Quick start](./quick-start) to install the package and run a scheduler in the browser.
