@@ -4,6 +4,7 @@ description: ts-fsrs をインストールし、スケジューラーの構成�
 ---
 
 import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 import RunCode from '../../components/RunCode'
 import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
@@ -16,10 +17,11 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
   description="このプロンプトをコピーして AI Agent に送り、ts-fsrs のインストールと動作する FSRS-6 スケジューラーの作成を依頼できます。"
   prompt={`私の TypeScript アプリに ts-fsrs を組み込んでください。
 
-1. \`ts-fsrs\` package をインストールする。
-2. \`defineScheduler\`、\`FSRS6Model\`、\`dateChrono\` で FSRS-6 スケジューラーを作成する。
-3. 新しいカードを作成し、\`Rating.Good\` で復習する。
-4. 実装を最小限に保ち、現在の ts-fsrs public API を使用する。`}
+1. ドキュメント索引 ${withSiteOrigin(withBase('/ja-JP/llms.txt'))} を読み、スケジューラー API を扱うページをたどる。
+2. \`ts-fsrs\` package をインストールする。
+3. \`defineScheduler\`、\`FSRS6Model\`、\`dateChrono\` で FSRS-6 スケジューラーを作成する。
+4. 新しいカードを作成し、\`Rating.Good\` で復習する。
+5. 実装を最小限に保ち、現在の ts-fsrs public API を使用する。`}
 />
 
 ## インストール

@@ -4,6 +4,7 @@ description: 安装 ts-fsrs，了解调度器的模型与时间系统组成，�
 ---
 
 import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 import RunCode from '../../components/RunCode'
 import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
@@ -16,10 +17,11 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
   description="复制这段提示词并发送给 AI Agent，让它安装 ts-fsrs 并创建可运行的 FSRS-6 调度器。"
   prompt={`在我的 TypeScript 应用中集成 ts-fsrs。
 
-1. 安装 \`ts-fsrs\` package。
-2. 使用 \`defineScheduler\`、\`FSRS6Model\` 和 \`dateChrono\` 创建 FSRS-6 调度器。
-3. 创建一张新卡片，并使用 \`Rating.Good\` 完成一次复习。
-4. 保持实现最小化，并使用当前 ts-fsrs 公共 API。`}
+1. 阅读文档索引 ${withSiteOrigin(withBase('/zh-CN/llms.txt'))}，并跟进其中涉及调度器 API 的页面。
+2. 安装 \`ts-fsrs\` package。
+3. 使用 \`defineScheduler\`、\`FSRS6Model\` 和 \`dateChrono\` 创建 FSRS-6 调度器。
+4. 创建一张新卡片，并使用 \`Rating.Good\` 完成一次复习。
+5. 保持实现最小化，并使用当前 ts-fsrs 公共 API。`}
 />
 
 ## 安装
