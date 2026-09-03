@@ -26,7 +26,9 @@ export function MiddlewareVisual() {
         {BUILT_INS.map((name) => (
           <FeatureCardMotion className="h-full" key={name}>
             <article className={`${styles.card} h-full`}>
-              <h3 className={styles.cardTitle}>{name}</h3>
+              <h3 className={styles.cardTitle}>
+                {name[0].toUpperCase() + name.slice(1)}
+              </h3>
               <p className={styles.cardBody}>
                 {t(`home.middleware.builtin.${name}`)}
               </p>
