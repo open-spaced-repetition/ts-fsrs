@@ -306,11 +306,10 @@
 
 @media (width > 1000px) {
   .rp-home-hero .rp-home-hero__subtitle {
-    max-width: 30rem;
+    max-width: none;
   }
 
   html[lang="zh-CN"] .rp-home-hero__subtitle {
-    max-width: 27rem;
     font-size: 3.375rem;
   }
 }
