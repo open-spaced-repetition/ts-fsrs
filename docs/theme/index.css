@@ -309,7 +309,8 @@
     max-width: none;
   }
 
-  html[lang="zh-CN"] .rp-home-hero__subtitle {
+  html[lang="zh-CN"] .rp-home-hero__subtitle,
+  html[lang="zh-TW"] .rp-home-hero__subtitle {
     font-size: 3.375rem;
   }
 }
