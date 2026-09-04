@@ -120,6 +120,24 @@ for (const route of runCodeRoutes) {
   })
 }
 
+for (const route of [
+  '/guide/state-transitions',
+  '/ja-JP/guide/state-transitions',
+  '/zh-CN/guide/state-transitions',
+  '/zh-TW/guide/state-transitions',
+]) {
+  test(`State transition diagram loads on ${route}`, async ({ page }) => {
+    await page.goto(route)
+    const diagram = page.locator('img[src*="state-transitions"]')
+    await expect(diagram).toBeVisible()
+    expect(
+      await diagram.evaluate(
+        (image: HTMLImageElement) => image.complete && image.naturalWidth > 0
+      )
+    ).toBe(true)
+  })
+}
+
 test('Playground runs its default example', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (error) => pageErrors.push(error.message))
