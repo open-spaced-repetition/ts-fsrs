@@ -1,11 +1,12 @@
 ---
 title: Quick start
-description: Install ts-fsrs and run a complete defineScheduler example in the browser, reviewing a card with Rating.Good
+description: Install ts-fsrs, start with DefaultScheduler, and run both the default and composable scheduler examples in the browser with Rating.Good
 ---
 
 import { PackageManagerTabs } from '@rspress/core/theme'
 import RunCode from '../../components/RunCode'
-import code from '@/snippets/run-code/define-scheduler.ts?raw'
+import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
+import defineSchedulerCode from '@/snippets/run-code/define-scheduler.ts?raw'
 
 # Quick start
 
@@ -17,17 +18,32 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
 Install `@open-spaced-repetition/binding` separately only when you need to train FSRS parameters or convert review-log CSV files.
 
+## Start with DefaultScheduler
+
+`DefaultScheduler()` is the fastest way to add FSRS scheduling. It defaults to FSRS-6 and includes the standard retention, statistics, learning-step, maximum-interval, monotonic-interval, and scheduled-days policies; fuzzing is available as an option.
+
+```ts twoslash file="../../snippets/run-code/default-scheduler.ts"
+```
+
+<RunCode code={defaultSchedulerCode} />
+
+The example makes the common defaults explicit. Change `desiredRetention`, learning and relearning steps, fuzzing, or `maximumInterval` for your product; omit `weights` to use the preset for the selected FSRS version.
+
 ## Create a scheduler
 
-`defineScheduler` creates a reusable definition from the FSRS-6 model and a date-based chronology. Calling `.create()` validates the configuration and returns an independent scheduler.
+Use `defineScheduler` when you need to choose the model or chronology, or compose middleware yourself. It creates a reusable definition; calling `.create()` validates the configuration and returns an independent scheduler.
 
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
 
-<RunCode code={code} />
+<RunCode code={defineSchedulerCode} />
+
+:::note Reuse the scheduler definition
+Keep the result of `defineScheduler(...)`, including any middleware composed with `.use(...)`, as a program-level preset. Call `schedulerDefinition.create({ config })` when a user or collection needs a scheduler; each call validates that configuration and returns an independent instance.
+:::
 
 Use the code block's copy button to copy the original source, or run it directly in the dedicated Worker. The fixed `now` value keeps the output reproducible.
 
 - `newCard()` creates the scheduler's default card shape.
 - `review()` returns a new card and revlog without mutating the input card.
-- Keep the definition when you need multiple schedulers; add policy middleware with `.use(...)` before `.create()`.
+- Add policy middleware with `.use(...)` to the reusable definition before creating user-specific schedulers.
