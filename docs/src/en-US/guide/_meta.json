@@ -2,6 +2,7 @@
   { "type": "section-header", "label": "Getting Started" },
   "index",
   "quick-start",
+  "architecture",
   "state-transitions",
   "llms",
   { "type": "dir-section-header", "name": "model", "label": "Model" }
