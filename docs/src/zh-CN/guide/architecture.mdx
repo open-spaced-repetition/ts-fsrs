@@ -1,0 +1,56 @@
+---
+title: 架构
+description: 理解 ts-fsrs 中 model、chrono、middleware 与 scheduler 的职责，组合可复用预设，并追踪一次 review 如何生成新的 card 与 revlog
+---
+
+import RunCode from '../../components/RunCode'
+import architectureCode from '@/snippets/run-code/architecture.ts?raw'
+
+# 架构
+
+ts-fsrs v6 的调度架构围绕 Model、Chrono、Middleware 和 Scheduler 组织，将记忆模型、时间处理与调度策略分开，并由 Scheduler 协调执行。
+
+## 职责划分
+
+| 组成部分 | 职责 |
+| --- | --- |
+| Model | 通过 `step` 更新记忆状态，通过 `nextInterval` 计算基础间隔；FSRS-6 的记忆状态包含稳定性和难度。 |
+| Chrono | 定义时间表示与时间运算。`dateChrono` 使用 JavaScript `Date`，提供时间差计算和日期加减。 |
+| Middleware | 添加调度策略，并可扩展 config、card 与 revlog 的 schema，例如目标保留率、学习步骤和最大间隔。 |
+| Scheduler | 组合 schema 与默认值，校验配置和输入，协调 `newCard`、`review`、`preview` 和 `rollback` 等操作。 |
+
+Model 的记忆状态（如稳定性和难度）不同于 New、Learning 等卡片状态。卡片的学习状态与调度策略由 Scheduler 和 Middleware 共同处理。
+
+应用负责选卡、保存返回的 card 与 revlog，以及管理用户和集合。调度器不会自动持久化结果。
+
+## 调度器定义与实例
+
+`defineScheduler({ model, chrono })` 创建定义。`.use(...)` 返回包含新增 middleware 及其推导类型的新定义，原定义仍可复用。`.create({ config })` 校验用户配置并创建独立的调度器实例。
+
+:::note 复用完整定义
+将包含 `.use(...)` 组合的定义保留为程序级预设，在用户或集合的配置可用时创建实例。
+:::
+
+```ts twoslash file="../../snippets/run-code/architecture.ts"
+```
+
+<RunCode code={architectureCode} />
+
+示例刻意将最大间隔设为一天。模型仍计算出 `2.3065` 的稳定性，最大间隔策略将到期时间调整为 1 月 2 日。原卡片保持 New，返回的卡片为 Review。这个最小预设未加入学习步骤、统计或 fuzzing。
+
+## 一次 review 的数据流
+
+1. 将 `card`、`grade` 和 `now` 传给 `review`。调度器校验输入，并通过 Chrono 计算已过时间。
+2. Middleware 围绕核心操作运行。目标保留率 middleware 在计算间隔前提供保留率目标。
+3. 核心操作计算新的记忆状态，并在需要时调用模型计算基础间隔；Middleware 可以提供或调整最终调度间隔。
+4. 整条链返回后，调度器通过 Chrono，根据复习时间和最终间隔计算 `dueAt`，返回新的 card 与 revlog。Card 包含新的记忆状态；revlog 保留复习前的记忆状态，以及本次评分和复习时间。
+
+## Middleware 顺序
+
+对于 `.use(A, B)`，当各 review handler 都调用 `next()` 时，执行顺序为：
+
+`A 的 next() 前 → B 的 next() 前 → 核心操作 → B 的 next() 后 → A 的 next() 后`
+
+`next()` 前的代码准备操作，之后的代码读取下游处理结果。因此注册顺序会影响哪个策略最终生效。示例中，目标保留率在核心操作前设置，最大间隔在其后限制结果。加入学习步骤时，应将最大间隔 middleware 注册在学习步骤 middleware 之后，学习步骤 middleware 会在返回阶段恢复配置的学习间隔，避免它被按天计算的间隔策略覆盖。
+
+卡片生命周期见[状态转换](./state-transitions)，数学细节见 [FSRS-6 公式](./model/fsrs-6)。
