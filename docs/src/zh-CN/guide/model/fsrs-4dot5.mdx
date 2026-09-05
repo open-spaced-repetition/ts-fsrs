@@ -1,0 +1,66 @@
+---
+title: FSRS-4.5
+description: FSRS-4.5 的幂函数遗忘曲线、间隔计算、初始记忆、难度和稳定性更新公式，以及与相邻版本的核心差异
+---
+
+# FSRS-4.5
+
+FSRS-4.5 有 17 个可训练权重。它修改了 FSRS-4 的遗忘曲线，同时保留相同的难度和成功回忆更新结构。
+
+公共符号和 Model 契约见[模型概览](./)。
+
+:::info 公式来源
+已依据 [awesome-fsrs Wiki — FSRS-4.5](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-45) 核对。
+:::
+
+## 遗忘曲线与间隔
+
+```math
+R(t,S)=\left(1+\frac{19t}{81S}\right)^{-1/2}
+```
+
+```math
+I(r,S)=\frac{81S}{19}\left(r^{-2}-1\right)
+```
+
+## 初始记忆
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=\operatorname{clamp}\left(w_4-(G-3)w_5,D_{min},D_{max}\right)
+```
+
+## 难度
+
+```math
+D^*=D-w_6(G-3)
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7w_4+(1-w_7)D^*,D_{min},D_{max}\right)
+```
+
+## 复习后的稳定性
+
+Hard 时 `math:H_G = w_{15}`，否则为 `math:1`；Easy 时 `math:E_G = w_{16}`，否则为 `math:1`。
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},S\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+Again 分支会避免遗忘后的稳定性超过复习前的 `math:S`。最后，模型通过 `clamp` 将 `math:S'_{\mathrm{raw}}` 限制在 `math:S_{\min}` 到 `math:S_{\max}` 之间。

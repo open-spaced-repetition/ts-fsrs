@@ -1,0 +1,96 @@
+---
+title: FSRS-6
+description: FSRS-6 の学習可能な減衰、間隔計算、初期記憶、難易度、安定度、同日更新の数式と旧バージョンとの主な違いを説明します
+---
+
+# FSRS-6
+
+FSRS-6 は `DefaultScheduler` が既定で使うモデルです。21 個の学習可能な重みを持ち、忘却曲線の減衰と同日の安定度更新も学習できます。
+
+共通の記号と Model 契約は[モデル概要](./)を参照してください。
+
+:::info 数式の出典
+[awesome-fsrs Wiki — FSRS-6](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-6) と照合済みです。
+:::
+
+## 忘却曲線と間隔
+
+正の減衰値を `math:d = w_{20}` とし、`math:R(S, S) = 0.9` となるよう `math:F` を定めます。
+
+```math
+F=0.9^{-1/d}-1,\qquad
+R(t,S)=\left(1+F\frac{t}{S}\right)^{-d}
+```
+
+```math
+I(r,S)=\frac{S}{F}\left(r^{-1/d}-1\right)
+```
+
+`nextInterval` は結果を整数日に丸め、最短でも 1 日にします。
+
+## 初期記憶
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## 難易度
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## 復習後の安定度
+
+`math:t > 0` の場合、または `enableShortTerm` が無効な場合は、評価に応じて次の分岐を使います。
+
+数式では復習前の `math:D` と `math:S` を使います。Hard では `math:H_G = w_{15}`、それ以外は `math:1`、Easy では `math:E_G = w_{16}`、それ以外は `math:1` です。
+
+`enableShortTerm` が有効な場合、`math:C` は復習前の安定度に `math:\exp(-w_{17}w_{18})` を掛けた値です。無効な場合は `math:C = S` とします。
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` は現在の実装が使う忘却後の安定度の上限であり、独立して設定する安定度の下限ではありません。最後に、モデルは `clamp` で `math:S'_{\mathrm{raw}}` を `math:S_{\min}` から `math:S_{\max}` の範囲に制限します。
+
+## 同日更新
+
+`enableShortTerm` が有効で `math:t = 0` の場合：
+
+```math
+s_{inc}=S^{-w_{19}}e^{w_{17}(G-3+w_{18})}
+```
+
+```math
+S'=\operatorname{clamp}\left(Sm,S_{min},S_{max}\right),
+\qquad
+m=\begin{cases}
+s_{inc},&G=1\\
+\max(s_{inc},1),&G\ge2
+\end{cases}
+```
+
+Hard、Good、Easy では安定度が現在値より下がらず、Again では下がる場合があります。

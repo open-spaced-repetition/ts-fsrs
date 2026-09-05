@@ -6,6 +6,10 @@ import { defineConfig, withBase, withSiteOrigin } from '@rspress/core'
 import { pluginRss } from '@rspress/plugin-rss'
 import { pluginSitemap } from '@rspress/plugin-sitemap'
 import { pluginTwoslash } from '@rspress/plugin-twoslash'
+import type { Root } from 'mdast'
+import rehypeKatex from 'rehype-katex'
+import remarkMath from 'remark-math'
+import { visit } from 'unist-util-visit'
 import { adaptI18nSource } from './src/i18n'
 import {
   readLandingContributors,
@@ -58,6 +62,26 @@ const twoslashOptions = {
   filterNode: (node: Parameters<typeof keepTsFsrsTypeHover>[0]) =>
     keepTsFsrsTypeHover(node, highlightedExportNames),
 }
+const remarkCodeToMath = () =>
+  function transform(tree: Root) {
+    visit(tree, 'code', (node) => {
+      if (node.lang !== 'math') return
+      node.data = {
+        hName: 'div',
+        hProperties: { className: ['math', 'math-display'] },
+      }
+      delete node.lang
+      delete node.meta
+    })
+    visit(tree, 'inlineCode', (node) => {
+      if (!node.value.startsWith('math:')) return
+      node.value = node.value.slice('math:'.length)
+      node.data = {
+        hName: 'span',
+        hProperties: { className: ['math', 'math-inline'] },
+      }
+    })
+  }
 const landingSnippets = await collectLandingSnippets(
   import.meta.dirname,
   twoslashOptions
@@ -76,6 +100,10 @@ export default defineConfig({
     // and internal links, hreflang, and the sitemap all pick the `.html` form.
     // One canonical shape per page keeps crawlers from seeing duplicates.
     cleanUrls: true,
+  },
+  markdown: {
+    remarkPlugins: [remarkMath, remarkCodeToMath],
+    rehypePlugins: [[rehypeKatex, { output: 'mathml' }]],
   },
   themeDir: path.join(import.meta.dirname, 'theme'),
   title: 'ts-fsrs',
