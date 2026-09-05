@@ -1,0 +1,82 @@
+---
+title: FSRS-5
+description: FSRS-5 formulas for its fixed power forgetting curve, difficulty, recall, forgetting, same-day stability, and intervals
+---
+
+# FSRS-5
+
+FSRS-5 has 19 trainable weights. It keeps the fixed FSRS-4.5 forgetting curve and adds a grade-dependent same-day stability update.
+
+See the [Model overview](./) for the shared symbols and Model contract.
+
+:::info Formula source
+Reviewed against [awesome-fsrs Wiki — FSRS-5](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-5).
+:::
+
+## Forgetting curve and interval
+
+```math
+R(t,S)=\left(1+\frac{19t}{81S}\right)^{-1/2}
+```
+
+```math
+I(r,S)=\frac{81S}{19}\left(r^{-2}-1\right)
+```
+
+## Initial memory
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## Difficulty
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## Stability after review
+
+For `math:t > 0`, or when `enableShortTerm` is disabled, the rating selects the following branch.
+
+`math:H_G = w_{15}` for Hard and `math:1` otherwise; `math:E_G = w_{16}` for Easy and `math:1` otherwise.
+
+When `enableShortTerm` is enabled, `math:C` is the previous stability multiplied by `math:\exp(-w_{17}w_{18})`; otherwise, `math:C = S`:
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` is an implementation cap for post-lapse stability, not a separately configured stability floor. The model then clamps `math:S'_{\mathrm{raw}}` to the range from `math:S_{\min}` to `math:S_{\max}`.
+
+## Same-day update
+
+When `enableShortTerm` is enabled and `math:t = 0`:
+
+```math
+S'=\operatorname{clamp}\left(
+S e^{w_{17}(G-3+w_{18})},S_{min},S_{max}
+\right)
+```
