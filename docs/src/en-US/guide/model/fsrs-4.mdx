@@ -1,0 +1,66 @@
+---
+title: FSRS-4
+description: FSRS-4 formulas for the power forgetting curve, interval inversion, initial memory, difficulty, recall, and forgetting
+---
+
+# FSRS-4
+
+FSRS-4 has 17 trainable weights and replaces the FSRS-3 exponential curve with a power forgetting curve.
+
+See the [Model overview](./) for the shared symbols and Model contract.
+
+:::info Formula source
+Reviewed against [awesome-fsrs Wiki — FSRS-4](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-v4).
+:::
+
+## Forgetting curve and interval
+
+```math
+R(t,S)=\left(1+\frac{t}{9S}\right)^{-1}
+```
+
+```math
+I(r,S)=9S\left(\frac{1}{r}-1\right)
+```
+
+## Initial memory
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=\operatorname{clamp}\left(w_4-(G-3)w_5,D_{min},D_{max}\right)
+```
+
+## Difficulty
+
+```math
+D^*=D-w_6(G-3)
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7w_4+(1-w_7)D^*,D_{min},D_{max}\right)
+```
+
+## Stability after review
+
+`math:H_G = w_{15}` for Hard and `math:1` otherwise; `math:E_G = w_{16}` for Easy and `math:1` otherwise.
+
+```math
+S_f=w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)}
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+The model then clamps `math:S'_{\mathrm{raw}}` to the range from `math:S_{\min}` to `math:S_{\max}`.

@@ -1,0 +1,86 @@
+---
+title: Model overview
+description: Understand the FSRS model contract, use a versioned model directly, and define a custom model with defineModel
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import customModelCode from '@/snippets/run-code/custom-model.ts?raw'
+import modelCode from '@/snippets/run-code/model.ts?raw'
+
+# Model overview
+
+An FSRS model turns a rating and elapsed time into a new memory state, estimates recall probability with a forgetting curve, and converts stability plus desired retention into a base interval.
+
+The FSRS terminology and equations in this section are reviewed against the [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki), especially [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm). The TypeScript APIs and framework boundaries describe ts-fsrs itself.
+
+:::note Model boundary
+A model owns memory-state updates, forgetting-curve evaluation, and base-interval calculation. The scheduler orchestrates reviews, `chrono` handles dates and elapsed time, and middleware applies learning steps, fuzzing, maximum-interval limits, and queue-status policies.
+:::
+
+<Prompt
+  title="Implement or explain an SRS model"
+  description="Copy this prompt to keep an AI agent inside the Model contract instead of mixing in scheduling policy."
+  prompt={`Use the current ts-fsrs Model contract for this task: [describe the task].
+
+1. Read ${withSiteOrigin(withBase('/guide/model/index.md'))} and the page for the selected model version.
+2. When useful, compare the formulas and descriptions for FSRS-6 (${withSiteOrigin(withBase('/guide/model/fsrs-6.md'))}), FSRS-5 (${withSiteOrigin(withBase('/guide/model/fsrs-5.md'))}), FSRS-4.5 (${withSiteOrigin(withBase('/guide/model/fsrs-4dot5.md'))}), FSRS-4 (${withSiteOrigin(withBase('/guide/model/fsrs-4.md'))}), and FSRS-3 (${withSiteOrigin(withBase('/guide/model/fsrs-3.md'))}).
+3. Define the config and memory-state schemas before implementing the model.
+4. Keep the model limited to step, nextInterval, forgettingCurve, and forward behavior.
+5. Pass desired retention explicitly to nextInterval.
+6. Let the scheduler orchestrate reviews, chrono handle time, and middleware apply learning steps, fuzzing, maximum-interval limits, and queue-status policies.
+7. Use bypass only after the config has already been migrated, clipped, and checked.
+8. Use the current public API and add focused tests for every implemented equation.`}
+/>
+
+## Shared symbols
+
+| Symbol | Meaning |
+| --- | --- |
+| `math:D` | Difficulty from 1 (easiest) to 10 (hardest). |
+| `math:S` | Stability in days; recall probability is 90% when `math:t = S`. |
+| `math:R` | Estimated probability of recall after `math:t` days. |
+| `math:G` | Grade: 1 Again, 2 Hard, 3 Good, or 4 Easy. |
+| `math:t` | Elapsed days since the previous review. |
+| `math:r` | Desired retention used by `nextInterval`. |
+| `math:I(r, S)` | Base interval in days for stability `math:S` and desired retention `math:r`, before middleware policies. |
+| `math:S_{\min}`, `math:S_{\max}` | Lower and upper stability bounds of the model. |
+| `math:D_{\min}`, `math:D_{\max}` | Lower and upper difficulty bounds of the model. |
+| `math:w_i` | A trained model weight. |
+
+## Use a versioned model
+
+`DefaultScheduler` uses FSRS-6, but every versioned model can also be created and called directly:
+
+```ts twoslash file="../../../snippets/run-code/model.ts"
+```
+
+<RunCode code={modelCode} />
+
+The example first calculates an interval for 90% desired retention, then uses `forgettingCurve` to estimate the recall probability at that interval. The result may differ slightly from 90% because `nextInterval` returns whole days.
+
+In the FSRS-6 config, `enableShortTerm` controls the model's same-day stability update. `numRelearningSteps` only informs weight clipping and checking; relearning-step scheduling remains middleware behavior.
+
+## Define a model
+
+`defineModel` preserves the concrete config, memory-state, and algorithm types while packaging schemas, defaults, and a model-core factory into one definition. It does not parse config by itself:
+
+```ts twoslash fold height=420 file="../../../snippets/run-code/custom-model.ts"
+```
+
+<RunCode code={customModelCode} />
+
+The schemas describe the public boundary and are consumed when a scheduler composes its schema. A direct `create` implementation must perform any required parsing and normalization before returning `config`, `bounds`, `algorithm`, `step`, `nextInterval`, `forgettingCurve`, and `forward`. Keep that core deterministic and free of scheduler policy.
+
+:::warning Use bypass only with prepared config
+Only use `FSRS6Model.create({ config, bypass: true })` when the caller has explicitly completed that model's migration, clipping, schema validation, and range checks. It skips those create-time steps and freezing. Never use `bypass` for raw user, storage, or network input.
+:::
+
+## Model versions
+
+- [FSRS-6](./fsrs-6) — current default, trainable decay, and same-day updates.
+- [FSRS-5](./fsrs-5) — fixed power forgetting curve with same-day updates.
+- [FSRS-4.5](./fsrs-4dot5) — fixed power curve without a same-day formula.
+- [FSRS-4](./fsrs-4) — the first power-curve version in this package.
+- [FSRS-3](./fsrs-3) — the earlier exponential forgetting curve.
