@@ -1,13 +1,14 @@
 import {
   type Grade as KitGrade,
-  gradeSchema as kitGradeSchema,
   Rating as KitRating,
-  ratingSchema as kitRatingSchema,
   State as KitState,
+  defineModel as kitDefineModel,
+  gradeSchema as kitGradeSchema,
+  ratingSchema as kitRatingSchema,
   stateSchema as kitStateSchema,
 } from '@open-spaced-repetition/srs-kit'
-import { FSRSMemoryStateSchema as internalFSRSMemoryStateSchema } from '@/kit/schema.js'
 import {
+  defineModel,
   FSRSMemoryStateSchema,
   type Grade,
   gradeSchema,
@@ -16,9 +17,11 @@ import {
   State,
   stateSchema,
 } from 'ts-fsrs'
+import { FSRSMemoryStateSchema as internalFSRSMemoryStateSchema } from '@/kit/schema.js'
 
 describe('srs-kit primitives', () => {
-  it('re-exports Rating, State, and Grade from srs-kit', () => {
+  it('re-exports model helpers and primitives from srs-kit', () => {
+    expect(defineModel).toBe(kitDefineModel)
     expect(Rating).toBe(KitRating)
     expect(State).toBe(KitState)
     expect(gradeSchema).toBe(kitGradeSchema)
