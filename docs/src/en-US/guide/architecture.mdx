@@ -1,0 +1,56 @@
+---
+title: Architecture
+description: Understand model, chrono, middleware, and scheduler responsibilities in ts-fsrs, compose reusable presets, and follow a review from input to card and revlog
+---
+
+import RunCode from '../../components/RunCode'
+import architectureCode from '@/snippets/run-code/architecture.ts?raw'
+
+# Architecture
+
+The scheduling architecture of ts-fsrs v6 separates the memory model, time handling, and scheduling policies into Model, Chrono, and Middleware, with Scheduler coordinating their execution.
+
+## Responsibilities
+
+| Part | Responsibility |
+| --- | --- |
+| Model | Updates memory state with `step` and calculates the baseline interval with `nextInterval`; FSRS-6 tracks stability and difficulty. |
+| Chrono | Defines the time representation and time arithmetic. `dateChrono` uses JavaScript `Date` values and provides time differences and date arithmetic. |
+| Middleware | Adds scheduling policies and can extend config, card, and revlog schemas. Examples include desired retention, learning steps, and maximum interval. |
+| Scheduler | Combines schemas and defaults, validates configuration and inputs, and coordinates operations such as `newCard`, `review`, `preview`, and `rollback`. |
+
+Model memory state, such as stability and difficulty, is distinct from card states such as New and Learning. Scheduler and Middleware together manage card learning states and scheduling policies.
+
+Your application selects cards, stores the returned card and revlog, and manages users and collections. The scheduler does not persist results for you.
+
+## Scheduler definitions and instances
+
+`defineScheduler({ model, chrono })` creates a definition. `.use(...)` returns a new definition with the added middleware and its inferred types; the original definition remains reusable. `.create({ config })` validates a user's configuration and creates an independent scheduler instance.
+
+:::note Reuse the complete definition
+Keep the definition, including its `.use(...)` composition, at program level. Create instances when user or collection configuration becomes available.
+:::
+
+```ts twoslash file="../../snippets/run-code/architecture.ts"
+```
+
+<RunCode code={architectureCode} />
+
+This example deliberately caps the interval at one day. The model still computes stability as `2.3065`; the maximum-interval policy changes the due date to January 2. The original card stays New, while the returned card is Review. This small preset has no learning-step middleware, statistics, or fuzzing.
+
+## Follow a review
+
+1. Pass `card`, `grade`, and `now` to `review`. The scheduler validates the input and uses Chrono to calculate elapsed time.
+2. Middleware runs around the core operation. Desired-retention middleware supplies the retention target before the interval is calculated.
+3. The core operation calculates the next memory state and calls the model for a baseline interval when needed. Middleware can supply or adjust the final scheduling interval.
+4. After the chain returns, the scheduler uses Chrono to calculate `dueAt` from the review time and final interval and returns a new card and revlog. The card contains the next memory state; the revlog retains the previous memory state and this review's rating and time.
+
+## Middleware order
+
+For `.use(A, B)`, when each review handler calls `next()`, the execution order is:
+
+`A before next() → B before next() → core → B after next() → A after next()`
+
+Code before `next()` prepares the operation; code after it sees the result of downstream handlers. Registration order therefore affects which policy has the final say. In this example, desired retention is set before the core runs, and maximum interval clamps the result afterward. When adding learning steps, register maximum-interval middleware after learning-step middleware. The learning-step middleware restores the configured learning interval on the return path, preventing day-based interval policies from overriding it.
+
+Continue with [state transitions](./state-transitions) for card lifecycle behavior, or [FSRS-6 formulas](./model/fsrs-6) for the mathematics.
