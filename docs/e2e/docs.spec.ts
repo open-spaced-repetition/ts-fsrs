@@ -35,6 +35,15 @@ const runCodeRoutes = filesIn(buildRoot)
   .filter((file) => readFileSync(file, 'utf8').includes('run-code-test'))
   .map(routeFor)
 
+const mathRoutes = filesIn(buildRoot)
+  .filter((file) => file.endsWith('.md'))
+  .filter((file) => readFileSync(file, 'utf8').includes('```math'))
+  .map((file) => routeFor(file.replace(/\.md$/, '.html')))
+
+if (mathRoutes.length === 0) {
+  throw new Error('No formula pages found in docs build.')
+}
+
 const snippets = new Map<
   string,
   { readonly file: string; readonly outputFile: string }
@@ -135,6 +144,36 @@ for (const route of [
         (image: HTMLImageElement) => image.complete && image.naturalWidth > 0
       )
     ).toBe(true)
+  })
+}
+
+for (const route of mathRoutes) {
+  test(`Model formulas render on ${route}`, async ({ page }) => {
+    const pageErrors: string[] = []
+    page.on('pageerror', (error) => pageErrors.push(error.message))
+
+    await page.goto(route)
+    expect(await page.locator('math[display="block"]').count()).toBeGreaterThan(
+      0
+    )
+    expect(
+      await page.locator('math:not([display="block"])').count()
+    ).toBeGreaterThan(0)
+    const mathScroll = page
+      .locator(
+        '.rp-codeblock:has(math[display="block"]) .rp-codeblock__content__scroll-container'
+      )
+      .first()
+    await expect(mathScroll).toHaveCSS('scrollbar-width', 'none')
+    await expect(mathScroll).toHaveCSS('padding-top', '8px')
+    await expect(
+      page
+        .locator(
+          '.rp-codeblock:has(math[display="block"]) .rp-code-button-group'
+        )
+        .first()
+    ).toBeHidden()
+    expect(pageErrors).toEqual([])
   })
 }
 
