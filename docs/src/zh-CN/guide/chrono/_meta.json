@@ -1,0 +1,6 @@
+[
+  { "type": "file", "name": "index", "label": "概览" },
+  "date",
+  "numeric",
+  "temporal-instant"
+]

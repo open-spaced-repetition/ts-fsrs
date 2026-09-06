@@ -1,0 +1,49 @@
+---
+title: Chrono 概覽
+description: 選擇 ts-fsrs 的時間表示，理解 projection 與天數運算，並透過 defineChrono 自訂 dateChrono
+---
+
+import RunCode from '../../../components/RunCode'
+import chronoCode from '@/snippets/run-code/chrono.ts?raw'
+
+# Chrono 概覽
+
+Chrono 決定排程器如何表示時間、計算經過的天數，以及確定下次到期時間。模型使用以天為單位的間隔，Chrono 負責把這些間隔與應用程式中的時間值連接起來。
+
+## 選擇預設
+
+從 `ts-fsrs` 匯入 `dateChrono`、`numericChrono`、`temporalInstantChrono` 和 `defineChrono`。
+
+| 預設 | 時間值 | 天數運算 |
+| --- | --- | --- |
+| `dateChrono` | JavaScript `Date` | `difference` 計算 UTC 日期差；`add` 按固定 24 小時增加天數，支援小數。 |
+| `numericChrono` | 以天為單位的數字 | `difference(from, to)` 為 `to - from`；`add(from, days)` 為 `from + days`。 |
+| `temporalInstantChrono` | `Temporal.Instant` | 支援設定時區，並可選擇是否保留時間差的小數天數。 |
+
+各預設的詳細說明： [Date](./date)、[Numeric](./numeric)、[Temporal Instant](./temporal-instant)。
+
+## 定義與執行時操作
+
+`Chrono` 定義包含 `schema`、`projection`、`defaultValue` 和 `create`。將定義傳給 `defineScheduler({ model, chrono })`；需要單獨進行時間運算時，呼叫定義的 `create()`。排程器也透過 `scheduler.chrono` 提供設定完成的執行時物件。
+
+| 操作 | 含義 |
+| --- | --- |
+| `now()` | 呼叫端省略 `now` 時提供時間值。 |
+| `difference(from, to)` | 回傳模型使用的經過天數。 |
+| `add(from, days)` | 將最終的天數間隔轉換為到期時間。 |
+| `compare(left, right)` | 可選的精確時間比較，回傳負數、零或正數；Date 和 Temporal 預設均提供此操作。 |
+
+Date 和 Temporal 預設在 card 與 revlog 中保留複習時間，Numeric 不加入這些欄位。projection 先將這些欄位轉換為 `{ previous, current }`，再由排程器計算經過天數。複習與撤銷時的對應關係見 [Date](./date)。
+
+## 用 defineChrono 自訂經過天數
+
+下面的範例保留 Date 預設的 schema、projection、預設值和精確比較，只將經過時間改為按固定 24 小時計算的小數天數。重用這些部分，可以保留輸入驗證以及 card/revlog 的欄位約定。如果需要改變儲存欄位，應一併定義對應的 schema、複習與撤銷 projection，以及預設值。
+
+```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
+```
+
+<RunCode code={chronoCode} />
+
+同樣的兩小時時間差，UTC 日期預設得到 `1`，自訂 Chrono 得到 `0.08333333333333333`。呼叫 `add(from, 0.5)` 增加十二小時，得到 1 月 2 日 11:00 UTC。
+
+這個自訂 Chrono 計算固定時長，不處理當地日曆天或日光節約時間。如果需要這些日曆規則，選擇 Temporal 預設。模型與排程策略的組合方式見[架構](../architecture)。

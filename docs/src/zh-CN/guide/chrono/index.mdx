@@ -1,0 +1,49 @@
+---
+title: Chrono 概览
+description: 选择 ts-fsrs 的时间表示，理解 projection 和天数运算，并通过 defineChrono 自定义 dateChrono
+---
+
+import RunCode from '../../../components/RunCode'
+import chronoCode from '@/snippets/run-code/chrono.ts?raw'
+
+# Chrono 概览
+
+Chrono 决定调度器如何表示时间、计算经过的天数，以及确定下次到期时间。模型使用以天为单位的间隔，Chrono 负责把这些间隔与应用中的时间值连接起来。
+
+## 选择预设
+
+从 `ts-fsrs` 导入 `dateChrono`、`numericChrono`、`temporalInstantChrono` 和 `defineChrono`。
+
+| 预设 | 时间值 | 天数运算 |
+| --- | --- | --- |
+| `dateChrono` | JavaScript `Date` | `difference` 计算 UTC 日期差；`add` 按固定 24 小时增加天数，支持小数。 |
+| `numericChrono` | 以天为单位的数字 | `difference(from, to)` 为 `to - from`；`add(from, days)` 为 `from + days`。 |
+| `temporalInstantChrono` | `Temporal.Instant` | 支持配置时区，并可选择是否保留时间差的小数天数。 |
+
+各预设的详细说明： [Date](./date)、[Numeric](./numeric)、[Temporal Instant](./temporal-instant)。
+
+## 定义与运行时操作
+
+`Chrono` 定义包含 `schema`、`projection`、`defaultValue` 和 `create`。将定义传给 `defineScheduler({ model, chrono })`；需要单独进行时间运算时，调用定义的 `create()`。调度器也通过 `scheduler.chrono` 暴露配置完成的运行时对象。
+
+| 操作 | 含义 |
+| --- | --- |
+| `now()` | 调用方省略 `now` 时提供时间值。 |
+| `difference(from, to)` | 返回模型使用的经过天数。 |
+| `add(from, days)` | 将最终的天数间隔转换为到期时间。 |
+| `compare(left, right)` | 可选的精确时间比较，返回负数、零或正数；Date 和 Temporal 预设均提供此操作。 |
+
+Date 和 Temporal 预设在 card 与 revlog 中保留复习时间，Numeric 不添加这些字段。projection 先将这些字段转换为 `{ previous, current }`，再由调度器计算经过天数。复习与撤销时的对应关系见 [Date](./date)。
+
+## 用 defineChrono 自定义经过天数
+
+下面的示例保留 Date 预设的 schema、projection、默认值和精确比较，只将经过时间改为按固定 24 小时计算的小数天数。复用这些部分，可以保留输入校验以及 card/revlog 的字段约定。如果需要改变存储字段，应一并定义对应的 schema、复习与撤销 projection，以及默认值。
+
+```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
+```
+
+<RunCode code={chronoCode} />
+
+同样的两小时时间差，UTC 日期预设得到 `1`，自定义 Chrono 得到 `0.08333333333333333`。调用 `add(from, 0.5)` 增加十二小时，得到 1 月 2 日 11:00 UTC。
+
+这个自定义 Chrono 计算固定时长，不处理当地日历天或夏令时。如果需要这些日历规则，选择 Temporal 预设。模型与调度策略的组合方式见[架构](../architecture)。
