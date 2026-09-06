@@ -1,0 +1,38 @@
+---
+title: DefaultScheduler
+description: DefaultScheduler プリセットを設定し、FSRS モデルバージョンを選び、プリセットと自前の defineScheduler 定義のどちらを使うか判断する
+---
+
+import RunCode from '../../../components/RunCode'
+import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
+
+# DefaultScheduler
+
+`DefaultScheduler` は、すぐ使えるスケジューラインスタンスを返す非同期ファクトリです。モデル（既定は FSRS-6）を `dateChrono` と標準のスケジュールポリシーに組み合わせるため、設定するのはオプションだけです。内部ではカスタムの `defineScheduler` と同じ「定義とインスタンス」の仕組みを使っています——プリセットは部品を便利に組み立てたものです。
+
+## オプション
+
+| オプション | 既定値 | 用途 |
+| --- | --- | --- |
+| `version` | `'FSRS-6'` | FSRS モデルを選びます。`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`、`'FSRS-6'`。プリセットは選択したバージョン向けにパラメータを移行します。 |
+| `weights` | プリセットの重み | 任意の学習済み重み。省略すると選択したバージョンの既定値を使います。 |
+| `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
+| `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
+| `learningSteps` | プリセットのステップ | `enableShortTerm` 有効時に適用する学習ステップ。 |
+| `relearningSteps` | プリセットのステップ | `enableShortTerm` 有効時に適用する再学習ステップ。 |
+| `enableFuzz` | `false` | 有効にすると間隔を分散して変化を付けます。 |
+| `maximumInterval` | `36500` | 間隔の日数上限。 |
+| `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |
+
+`DefaultScheduler` は常に `dateChrono` を使い、[ミドルウェア](../middleware/built-in)ページに示す順序で標準ポリシーを組み合わせます。目標保持率、fuzzing、統計、scheduled days、学習ステップ、最大間隔、単調間隔の順です。`version` を選ぶのはモデルと移行後のパラメータだけを変え、このポリシー構成は変わりません。
+
+```ts twoslash file="../../../snippets/run-code/default-scheduler.ts"
+```
+
+<RunCode code={defaultSchedulerCode} />
+
+このファクトリは非同期なので、返されたインスタンスを使う前に `await DefaultScheduler(...)` します。この例はよく使う既定値を明示しています。`version`、`desiredRetention`、学習・再学習ステップ、fuzzing、`maximumInterval` です。`weights` を省略すると、選択した FSRS バージョンのプリセットを使います。
+
+## プリセットかカスタム定義か
+
+既定の FSRS モデル・`dateChrono`・標準のポリシー構成が製品に合うなら `DefaultScheduler` を使います——最速で正しい出発点です。別のモデルや chrono が必要な場合、ポリシーを増減したい場合、ユーザーごとに検証する設定を公開したい場合は `defineScheduler` を使います。どちらも最終的には同じスケジューラインスタンス API（`newCard`、`review`、`rollback`、`preview`、`forget`）になります。定義とインスタンスのモデルは[スケジューラ概要](./index)を参照してください。
