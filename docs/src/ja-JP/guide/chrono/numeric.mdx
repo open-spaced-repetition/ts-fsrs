@@ -1,0 +1,20 @@
+---
+title: Numeric
+description: numericChrono で相対日数を扱い、ゼロを起点とする projection と用途を理解する
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-numeric.ts?raw'
+
+# Numeric
+
+`numericChrono` は相対時間を使った実験に向いています。projection は常に `previous: 0` と `current: time` を返し、`now()` は `0` を返します。card や revlog に時刻フィールドを追加せず、カードの前回の復習日時も記録しません。Unix タイムスタンプをミリ秒のまま渡さず、経過日数を明示的に渡してください。復習を繰り返す用途では、時刻フィールドを保存する Chrono を定義できます。
+
+## プリセットを実行する
+
+```ts twoslash file="../../../snippets/run-code/chrono-numeric.ts"
+```
+
+<RunCode code={presetCode} />
+
+演算は日単位の数値をそのまま使います。projection の起点はゼロなので、復習時刻に 4.5 を渡すと、前のカードに関係なく経過日数は4.5日になります。

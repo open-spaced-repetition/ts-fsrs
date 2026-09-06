@@ -1,0 +1,20 @@
+---
+title: Numeric
+description: Use numericChrono for relative day values and understand its zero-based projection
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-numeric.ts?raw'
+
+# Numeric
+
+`numericChrono` is useful for relative-time experiments: its projection always returns `previous: 0` and `current: time`, its `now()` returns `0`, and it adds no card or revlog time fields. It does not track a card's last review. Do not pass Unix timestamps in milliseconds; supply elapsed days explicitly, or define a Chrono with persistent time fields for repeated reviews.
+
+## Try the preset
+
+```ts twoslash file="../../../snippets/run-code/chrono-numeric.ts"
+```
+
+<RunCode code={presetCode} />
+
+The arithmetic uses day values directly. Projection still starts from zero, so a review time of 4.5 means 4.5 elapsed days, regardless of the previous card.
