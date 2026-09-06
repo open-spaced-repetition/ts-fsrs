@@ -1,0 +1,24 @@
+---
+title: Utils
+description: ts-fsrs 根入口导出的小型数值辅助函数参考 —— clamp 与 roundTo
+---
+
+# Utils
+
+根入口导出两个小型数值辅助函数：
+
+```ts
+import { clamp, roundTo } from 'ts-fsrs'
+```
+
+| 导出 | 签名 | 行为 |
+| --- | --- | --- |
+| `clamp` | `clamp(value, min, max)` | 将 `value` 限制在 `[min, max]` 内。 |
+| `roundTo` | `roundTo(num, decimals)` | 将 `num` 四舍五入到 `decimals` 位小数。 |
+
+```ts
+clamp(15, 0, 10)   // 10
+roundTo(2.3065, 2) // 2.31
+```
+
+这些都是不带调度状态的普通函数。

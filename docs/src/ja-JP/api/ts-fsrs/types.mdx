@@ -1,0 +1,21 @@
+---
+title: 型
+description: ts-fsrs ルートからエクスポートされる型のリファレンス
+---
+
+# 型
+
+**インポート：** `import type { DefaultSchedulerCard } from 'ts-fsrs'`
+
+ルートは、スケジューラが生成し、その中を流れる型に加えて、`@open-spaced-repetition/srs-kit` のフレームワーク型を再エクスポートします：
+
+| グループ | 例 |
+| --- | --- |
+| スケジューラ | スケジューラのカード・復習入力・復習ログと `DefaultScheduler` の型（`DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`）。 |
+| モデル | モデル・モデルコア・境界値・記憶状態の schema/状態の型。 |
+| Chrono | chrono と chrono-schema の型。 |
+| ミドルウェア / schema | ミドルウェアとオブジェクト schema の型。 |
+
+型のみのインポートはランタイムコードを追加しないため、`import type` は安全です。
+
+**参照** — [アーキテクチャ](../../guide/architecture)（モデル・chrono・ミドルウェア・スケジューラが型とどう対応するか）。

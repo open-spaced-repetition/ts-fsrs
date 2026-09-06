@@ -1,0 +1,52 @@
+---
+title: ts-fsrs API 概要
+description: ts-fsrs の公開 API の索引——各定義、プリセット、ポリシー、モデル、型にそれぞれ専用のリファレンスページがあります
+---
+
+# ts-fsrs API 概要
+
+`ts-fsrs` は、スケジューリング機構を `ts-fsrs` ルートといくつかのサブパスのエントリポイントとして公開しています。以下の各公開定義と領域には、インポートパス、挙動、対応する[ガイド](../../guide/)のトピックへのリンクを備えた専用ページがあります。
+
+## ルートの定義
+
+| ページ | 内容 |
+| --- | --- |
+| [DefaultScheduler](./default-scheduler) | 既製のスケジューラプリセット（既定は FSRS-6）。 |
+| [defineScheduler](./define-scheduler) | モデルと chrono から再利用可能なスケジューラを組み立てます。 |
+| [Scheduler](./scheduler) | `.create()` と `DefaultScheduler` が返すインスタンス（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
+| [defineModel](./define-model) | バージョン付きの FSRS モデルを定義にまとめます。 |
+| [defineChrono](./define-chrono) | 独自の時間抽象を定義します。 |
+| [defineMiddleware](./middlewares/define-middleware) | schema を拡張し、スケジューラコアの周囲で実行します。 |
+
+## 組み込みポリシー
+
+`ts-fsrs/middlewares` の各ポリシーには、実行可能な例を備えた専用ページがあります：
+
+| ページ | ミドルウェア |
+| --- | --- |
+| [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./middlewares/stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./middlewares/monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./middlewares/scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./middlewares/leech) | `schedulerLeechMiddleware` |
+
+## 値と型
+
+| ページ | 内容 |
+| --- | --- |
+| [Chrono プリセット](./chrono-presets) | `dateChrono`、`numericChrono`、`temporalInstantChrono`。 |
+| [Rating、Grade、State](./rating-grade-state) | 評価・グレード・カード状態とその schema。 |
+| [Utils](./utils) | `clamp`、`roundTo` の数値ヘルパー。 |
+| [型](./types) | エクスポートされるスケジューラ・モデル・ミドルウェアの型。 |
+
+## エントリポイント
+
+| ページ | 内容 |
+| --- | --- |
+| [モデル](./models) | `ts-fsrs/models/fsrs-3` から `fsrs-6` まで。 |
+| [リスケジュール](./reschedule) | `ts-fsrs/reschedule` のリスケジュールヘルパー。 |
+
+[DefaultScheduler](./default-scheduler) か [defineScheduler](./define-scheduler) から始めてください。部品の組み合わせ方は[ガイド](../../guide/)で説明しています。

@@ -1,0 +1,24 @@
+---
+title: 模型
+description: ts-fsrs/models/fsrs-3 到 fsrs-6 下有版本之模型進入點的參考
+---
+
+# 模型
+
+**匯入**
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+| 子路徑 | 模型 |
+| --- | --- |
+| `ts-fsrs/models/fsrs-6` | FSRS-6（預設） |
+| `ts-fsrs/models/fsrs-5` | FSRS-5 |
+| `ts-fsrs/models/fsrs-4dot5` | FSRS-4.5 |
+| `ts-fsrs/models/fsrs-4` | FSRS-4 |
+| `ts-fsrs/models/fsrs-3` | FSRS-3 |
+
+每個子路徑都匯出模型定義、預設權重，以及設定與記憶狀態 schema。
+
+**另見** — [defineModel](./define-model)、[模型指南](../../guide/model)（各版本的公式）。

@@ -1,0 +1,26 @@
+---
+title: Stats
+description: 組み込みミドルウェア schedulerStatsMiddleware——reps と lapses のカウンタを管理する
+---
+
+import RunCode from '../../../../components/RunCode'
+import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+
+# Stats
+
+`ts-fsrs/middlewares` は `schedulerStatsMiddleware` をエクスポートします：
+
+```ts
+import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+これはカードの `reps` と `lapses` を管理します。忘却（lapse）は Review 状態のカードへの Again 評価です。
+
+```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```
+
+<RunCode code={statsCode} />
+
+同じカードで Good、続いて Again と評価すると、`reps` は `2` になり、Again は 1 回の `lapse` として数えられます。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

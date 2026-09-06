@@ -1,0 +1,27 @@
+---
+title: defineMiddleware
+description: defineMiddleware のリファレンス——schema を拡張し、スケジューラコアの周囲でハンドラを実行する
+---
+
+# defineMiddleware
+
+**インポート：** `import { defineMiddleware } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+defineMiddleware(definition): Middleware
+```
+
+**定義フィールド**
+
+| フィールド | 備考 |
+| --- | --- |
+| `name` | 必須。 |
+| `schema.config` / `card` / `revlog` / `cardInitInput` | フィールドを宣言し検証します。 |
+| `defaultValue.card` | カードの作成時や forget 時にフィールドを提供します。 |
+| `handlers.review` / `handlers.rollback` | `next()` の周囲で実行し、`ctx.result` を更新します。 |
+
+**登録** — `.use(...)` でスケジューラ定義に追加します。組み込みポリシーは `ts-fsrs/middlewares` とルートからエクスポートされます。
+
+**参照** — [組み込みポリシーガイド](../../../guide/middleware/built-in)、[ミドルウェア概要](../../../guide/middleware) と [ライフサイクル](../../../guide/middleware/lifecycle)（ハンドラの順序、rollback）。

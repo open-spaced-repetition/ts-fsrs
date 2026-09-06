@@ -1,0 +1,26 @@
+---
+title: Leech
+description: 内置中间件 schedulerLeechMiddleware —— 遗忘超过阈值时暂停卡片
+---
+
+import RunCode from '../../../../components/RunCode'
+import leechCode from '@/snippets/run-code/api-leech.ts?raw'
+
+# Leech
+
+`ts-fsrs/middlewares` 导出 `schedulerLeechMiddleware`：
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它从统计中间件读取遗忘次数，每当遗忘达到 `leechThreshold` 的正整数倍时，将 `scheduleStatus` 设为 `suspended`。默认阈值 `0` 关闭暂停；你的应用在选卡时必须遵守该状态。
+
+```ts twoslash file="../../../../snippets/run-code/api-leech.ts"
+```
+
+<RunCode code={leechCode} />
+
+当 `leechThreshold: 1` 时，两次遗忘会暂停卡片。
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。

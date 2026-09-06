@@ -1,0 +1,21 @@
+---
+title: Types
+description: Reference for the types exported from the ts-fsrs root
+---
+
+# Types
+
+**Import:** `import type { DefaultSchedulerCard } from 'ts-fsrs'`
+
+The root re-exports the types produced by and flowing through the scheduler, plus its framework types from `@open-spaced-repetition/srs-kit`:
+
+| Group | Examples |
+| --- | --- |
+| Scheduler | scheduler card, review input, revlog, and `DefaultScheduler` types (`DefaultSchedulerCard`, `DefaultSchedulerCardInput`, `DefaultSchedulerRevlog`, `DefaultSchedulerOptions`). |
+| Model | model, model-core, bounds, and memory-state schema/state types. |
+| Chrono | chrono and chrono-schema types. |
+| Middleware / schema | middleware and object-schema types. |
+
+Type-only imports add no runtime code, so `import type` is safe.
+
+**See** — [Guide architecture](../../guide/architecture) (how model, chrono, middleware, and scheduler map to the types).
