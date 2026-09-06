@@ -1,0 +1,56 @@
+---
+title: 排程器概覽
+description: 用 defineScheduler 把模型與 chrono 組合成可重用的排程器定義，用 .create 為每個設定建立獨立排程器，並與 DefaultScheduler 預設對照
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/scheduler.ts?raw'
+
+# 排程器概覽
+
+排程器是你的應用程式用來建立卡片、安排複習的物件。通常不必從頭建置：`defineScheduler({ model, chrono })` 把兩部分組合成可重用的定義，而 `DefaultScheduler` 是基於同一套機制做好的預設。各部分如何組裝見[整體架構](../architecture)；每個元件的詳細說明見[模型](../model)、[Chrono](../chrono) 與[中介軟體](../middleware)。
+
+<Prompt
+  title="實作或說明一個排程器"
+  description="複製這段提示詞，讓 AI Agent 遵守 Scheduler 契約，避免混入模型、chrono 或中介軟體的行為。"
+  prompt={`使用目前 ts-fsrs Scheduler 契約完成以下任務：[描述任務]。
+
+1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/scheduler/index.md'))} 與 ${withSiteOrigin(withBase('/zh-TW/guide/scheduler/default-scheduler.md'))}，了解「定義與實例」模型及現成預設。
+2. 用 defineScheduler({ model, chrono }) 組合排程器；用 .use(...) 加入中介軟體，用 .create({ config }) 建立實例。
+3. 讓模型只負責記憶狀態更新與間隔計算、chrono 負責時間值與天數運算、中介軟體負責環繞核心的策略。
+4. 把可重用定義保留在程式層級，用 .create({ config }) 驗證使用者的設定。
+5. 當預設 FSRS 模型、dateChrono 與標準策略契合時，優先使用 DefaultScheduler。
+6. 使用目前 public API，並為所實作的排程行為加入聚焦測試。`}
+/>
+
+## 定義與實例
+
+排程器存在於兩個階段：
+
+| 階段 | 是什麼 | 如何取得 |
+| --- | --- | --- |
+| 定義 | 純 schema 描述：一個模型、一個 chrono，以及選用的中介軟體。不持有設定，也不持有卡片資料。 | `defineScheduler({ model, chrono })` 與 `.use(...)` |
+| 實例 | 綁定到一份已驗證設定、可運作的排程器。 | `definition.create({ config })` |
+
+`defineScheduler` 保留具體的模型與 chrono 型別，因此 schema 與處理函式在貫穿 `.use(...)` 時始終有型別檢查。`.use(middlewareA, middlewareB)` 回傳加入這些中介軟體（依序）的新定義；原定義不變，仍可重用。呼叫 `.create({ config })` 會依組合出的 schema 驗證該設定，並回傳狀態獨立、互不共享的排程器實例。
+
+:::note 保留定義，按需建立實例
+把包含所組合中介軟體的定義保留在程式層級。當某使用者或集合的設定就緒時再呼叫 `.create({ config })`。每次呼叫都會驗證設定並回傳獨立實例，因此兩次 `.create()` 不會共享排程狀態。
+:::
+
+## 重用同一份定義建立多個排程器
+
+下面用一份定義建置兩個排程器，二者唯一的差別是目標保留率。由於 `schedulerDesiredRetentionMiddleware` 把 `desiredRetention` 併入設定 schema，`.create()` 可以在每個實例上接受並驗證它：
+
+```ts twoslash file="../../../snippets/run-code/scheduler.ts" fold height=520
+```
+
+<RunCode code={schedulerCode} />
+
+更低的目標保留率會讓間隔變大：exam 排程器首次 Good 複習在 1 月 9 日到期，而 library 排程器在 1 月 3 日到期。定義本身從未改變，兩個排程器只是透過各自驗證過的設定而不同。
+
+## 現成預設
+
+`DefaultScheduler` 是非同步工廠，用同樣的「定義與實例」機制組裝出預設 FSRS-6 模型、`dateChrono` 與標準排程策略的排程器，你只需傳入選項。選項與版本見[DefaultScheduler](./default-scheduler)；想先跑起來見[快速開始](../quick-start)。
