@@ -8,5 +8,6 @@
   { "type": "dir-section-header", "name": "model", "label": "模型" },
   { "type": "dir-section-header", "name": "chrono", "label": "Chrono" },
   { "type": "dir-section-header", "name": "middleware", "label": "中间件" },
-  { "type": "dir-section-header", "name": "scheduler", "label": "调度器" }
+  { "type": "dir-section-header", "name": "scheduler", "label": "调度器" },
+  { "type": "dir-section-header", "name": "optimizer", "label": "训练器" }
 ]
