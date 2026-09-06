@@ -1,0 +1,56 @@
+---
+title: 调度器概览
+description: 用 defineScheduler 把模型与 chrono 组合成可复用的调度器定义，用 .create 为每个配置创建独立调度器，并与 DefaultScheduler 预设对照
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/scheduler.ts?raw'
+
+# 调度器概览
+
+调度器是你的应用用来创建卡片、安排复习的对象。通常不必从头构建：`defineScheduler({ model, chrono })` 把两部分组合成可复用的定义，而 `DefaultScheduler` 是基于同一套机制做好的预设。各部分如何拼装见[整体架构](../architecture)；每个部件的详细说明见[模型](../model)、[Chrono](../chrono) 与[中间件](../middleware)。
+
+<Prompt
+  title="实现或解释一个调度器"
+  description="复制这段提示词，让 AI Agent 遵守 Scheduler 契约，避免混入模型、chrono 或中间件的行为。"
+  prompt={`使用当前 ts-fsrs Scheduler 契约完成以下任务：[描述任务]。
+
+1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/scheduler/index.md'))} 与 ${withSiteOrigin(withBase('/zh-CN/guide/scheduler/default-scheduler.md'))}，了解「定义与实例」模型及现成预设。
+2. 用 defineScheduler({ model, chrono }) 组合调度器；用 .use(...) 添加中间件，用 .create({ config }) 创建实例。
+3. 让模型只负责记忆状态更新与间隔计算、chrono 负责时间值与天数运算、中间件负责环绕核心的策略。
+4. 把可复用定义保留在程序层级，用 .create({ config }) 校验用户的配置。
+5. 当默认 FSRS 模型、dateChrono 与标准策略契合时，优先使用 DefaultScheduler。
+6. 使用当前公共 API，并为所实现的调度行为添加聚焦测试。`}
+/>
+
+## 定义与实例
+
+调度器存在于两个阶段：
+
+| 阶段 | 是什么 | 如何获得 |
+| --- | --- | --- |
+| 定义 | 纯 schema 描述：一个模型、一个 chrono，以及可选的中间件。不持有配置，也不持有卡片数据。 | `defineScheduler({ model, chrono })` 与 `.use(...)` |
+| 实例 | 绑定到一份已校验配置、可工作的调度器。 | `definition.create({ config })` |
+
+`defineScheduler` 保留具体的模型与 chrono 类型，因此 schema 与处理函数在贯穿 `.use(...)` 时始终有类型检查。`.use(middlewareA, middlewareB)` 返回加入这些中间件（按序）的新定义；原定义不变，仍可复用。调用 `.create({ config })` 会按组合出的 schema 校验该配置，并返回状态独立、互不共享的调度器实例。
+
+:::note 保留定义，按需创建实例
+把包含所组合中间件的定义保留在程序层级。当某用户或集合的配置就绪时再调用 `.create({ config })`。每次调用都会校验配置并返回独立实例，因此两次 `.create()` 不会共享调度状态。
+:::
+
+## 复用同一份定义创建多个调度器
+
+下面用一份定义构建两个调度器，二者唯一的差别是目标保留率。由于 `schedulerDesiredRetentionMiddleware` 把 `desiredRetention` 并入配置 schema，`.create()` 可以在每个实例上接受并校验它：
+
+```ts twoslash file="../../../snippets/run-code/scheduler.ts" fold height=520
+```
+
+<RunCode code={schedulerCode} />
+
+更低的目标保留率会让间隔变大：exam 调度器首次 Good 复习在 1 月 9 日到期，而 library 调度器在 1 月 3 日到期。定义本身从未改变，两个调度器只是通过各自校验过的配置而不同。
+
+## 现成预设
+
+`DefaultScheduler` 是异步工厂，用同样的「定义与实例」机制组装出默认 FSRS-6 模型、`dateChrono` 与标准调度策略的调度器，你只需传入选项。选项与版本见[DefaultScheduler](./default-scheduler)；想先跑起来见[快速开始](../quick-start)。

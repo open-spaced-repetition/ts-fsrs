@@ -1,0 +1,38 @@
+---
+title: DefaultScheduler
+description: 配置 DefaultScheduler 预设、选择 FSRS 模型版本，并判断何时用预设、何时用自定义 defineScheduler 定义
+---
+
+import RunCode from '../../../components/RunCode'
+import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
+
+# DefaultScheduler
+
+`DefaultScheduler` 是异步工厂，返回一个可直接使用的调度器实例。它把模型（默认 FSRS-6）与 `dateChrono` 以及标准调度策略组合在一起，因此你只需配置它的选项。内部它与自定义 `defineScheduler` 使用同一套「定义与实例」机制——预设只是把各部分装配起来的便捷方式。
+
+## 选项
+
+| 选项 | 默认 | 用途 |
+| --- | --- | --- |
+| `version` | `'FSRS-6'` | 选择 FSRS 模型：`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'` 或 `'FSRS-6'`。预设会为所选版本迁移参数。 |
+| `weights` | 预设权重 | 可选的训练权重；省略时使用所选版本的预设默认值。 |
+| `desiredRetention` | `0.9` | 在计算间隔前应用的目标保留率。 |
+| `enableShortTerm` | `true` | 启用学习与再学习步骤。 |
+| `learningSteps` | 预设步骤 | `enableShortTerm` 开启时应用的学习步骤。 |
+| `relearningSteps` | 预设步骤 | `enableShortTerm` 开启时应用的再学习步骤。 |
+| `enableFuzz` | `false` | 开启时分散间隔以增加变化。 |
+| `maximumInterval` | `36500` | 间隔的天数上限。 |
+| `clearStatsOnForget` | `true` | `forget` 是否清空 `reps` 与 `lapses`。 |
+
+`DefaultScheduler` 始终使用 `dateChrono`，并按[中间件](../middleware/built-in)页面所述的顺序组合标准策略：目标保留率、模糊间隔、统计、scheduled days、学习步骤、最大间隔、单调间隔。选择 `version` 只改变模型及其迁移后的参数，不改变这套策略。
+
+```ts twoslash file="../../../snippets/run-code/default-scheduler.ts"
+```
+
+<RunCode code={defaultSchedulerCode} />
+
+该工厂是异步的，使用返回的实例前要先 `await DefaultScheduler(...)`。示例把常用默认值写得很明确：`version`、`desiredRetention`、学习与再学习步骤、模糊间隔和 `maximumInterval`。省略 `weights` 即用所选 FSRS 版本的预设。
+
+## 预设还是自定义定义
+
+当默认的 FSRS 模型、`dateChrono` 与标准策略集契合你的产品时，用 `DefaultScheduler`——这是最快且正确的起点。当需要不同的模型或 chrono、增减策略，或需要为每个用户校验配置时，用 `defineScheduler`。二者最终都落到同一套调度器实例 API（`newCard`、`review`、`rollback`、`preview` 与 `forget`）。定义与实例模型见[调度器概览](./index)。

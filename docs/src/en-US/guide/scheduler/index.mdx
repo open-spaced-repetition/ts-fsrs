@@ -1,0 +1,56 @@
+---
+title: Scheduler overview
+description: Compose a reusable scheduler definition with defineScheduler, create independent schedulers per configuration with .create, and compare with the DefaultScheduler preset
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/scheduler.ts?raw'
+
+# Scheduler overview
+
+A scheduler is the object your application calls to create cards and schedule reviews. You rarely build one from scratch: `defineScheduler({ model, chrono })` composes the two parts into a reusable definition, and `DefaultScheduler` is a ready-made preset built from the same machinery. See [Architecture](../architecture) for how model, chrono, and middleware fit together, or the [Model](../model), [Chrono](../chrono), and [Middleware](../middleware) guides for each part.
+
+<Prompt
+  title="Implement or explain a scheduler"
+  description="Copy this prompt to keep an AI agent inside the Scheduler contract instead of mixing in model, chrono, or middleware behavior."
+  prompt={`Use the current ts-fsrs Scheduler contract for this task: [describe the task].
+
+1. Read ${withSiteOrigin(withBase('/guide/scheduler/index.md'))} and ${withSiteOrigin(withBase('/guide/scheduler/default-scheduler.md'))} for the definition-and-instance model and the ready-made preset.
+2. Compose a scheduler with defineScheduler({ model, chrono }); add middleware with .use(...) and create instances with .create({ config }).
+3. Keep the model limited to memory-state updates and interval math, the chrono to time values and day arithmetic, and middleware to policy around the core.
+4. Keep the reusable definition at the program level and validate a user's configuration with .create({ config }).
+5. Prefer DefaultScheduler when the default FSRS model, dateChrono, and standard policies fit.
+6. Use the current public API and add focused tests for the scheduling behavior you implement.`}
+/>
+
+## Definition and instance
+
+A scheduler exists in two stages:
+
+| Stage | What it is | How you get it |
+| --- | --- | --- |
+| Definition | A schema-only description: a model, a chrono, and optional middleware. It holds no configuration and no card data. | `defineScheduler({ model, chrono })` and `.use(...)` |
+| Instance | A working scheduler bound to one validated configuration. | `definition.create({ config })` |
+
+`defineScheduler` keeps the concrete model and chrono types, so schemas and handlers stay type-checked through `.use(...)`. `.use(middlewareA, middlewareB)` returns a new definition with the middleware added in order; the original definition is unchanged and stays reusable. Calling `.create({ config })` validates that configuration against the composed schemas and returns an independent scheduler whose state is its own.
+
+:::note Keep the definition, create the instances
+Hold the definition, including its composed middleware, at the program level. Call `.create({ config })` when a user or collection configuration becomes available. Each call validates that configuration and returns a separate instance, so two `.create()` calls never share scheduling state.
+:::
+
+## Reuse one definition for many schedulers
+
+Here one definition builds two schedulers whose only difference is the target retention. Because `schedulerDesiredRetentionMiddleware` contributes `desiredRetention` to the config schema, `.create()` accepts and validates it per instance:
+
+```ts twoslash file="../../../snippets/run-code/scheduler.ts" fold height=520
+```
+
+<RunCode code={schedulerCode} />
+
+The lower retention target lets the interval grow, so the exam scheduler's first Good review is due on January 9 while the library scheduler's is due on January 3. The definition itself never changes; the two schedulers differ only through their validated configurations.
+
+## Ready-made preset
+
+`DefaultScheduler` is an asynchronous factory that assembles the same definition-and-instance machinery with the FSRS-6 model (by default), `dateChrono`, and the standard scheduling policies, so you only pass options. See [DefaultScheduler](./default-scheduler) for the options and versions, or [Quick start](../quick-start) to run it first.
