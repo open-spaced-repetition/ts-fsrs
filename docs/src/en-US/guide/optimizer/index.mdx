@@ -1,0 +1,60 @@
+---
+title: Optimizer overview
+description: Retrain FSRS weights from your review history with the binding, choose the Node or browser-Worker runtime, and follow the CSV-to-parameters pipeline
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+
+# Optimizer overview
+
+FSRS ships default model weights, but you can retrain them from your own review logs so the intervals match the people you serve. The Optimizer runs on `@open-spaced-repetition/binding`, which converts review-log CSV into training items, estimates parameters, and reports how well the result predicts held-out reviews. The trained weights plug straight back into `DefaultScheduler` or a custom `defineScheduler` through `weights`. See [Model](../model) for what weights mean and [Scheduler](../scheduler) for where they are applied.
+
+<Prompt
+  title="Implement or explain FSRS weight training"
+  description="Copy this prompt to keep an AI agent inside the Optimizer contract: review-log CSV in, trained weights out, through the shared binding."
+  prompt={`Use the current ts-fsrs Optimizer contract for this task: [describe the task].
+
+1. Read ${withSiteOrigin(withBase('/guide/optimizer/index.md'))} and ${withSiteOrigin(withBase('/guide/optimizer/train-evaluate.md'))} for the runtime choices and the review-log pipeline.
+2. Convert review-log CSV with convertCsvToFsrsItems; pass the day the next day starts and a timezone or UTC offset.
+3. Train with computeParameters(items, { enableShortTerm }) and use the returned weights in DefaultScheduler or a custom defineScheduler.
+4. Report fit with evaluateWithTimeSeriesSplits; keep review logs, ratings, and state transitions accurate.
+5. Prefer the napi-rs binding in Node and the wasip1 wasm build in a browser Worker.
+6. Use the current public API and add focused tests for the training path you implement.`}
+/>
+
+## One package, two runtimes
+
+The binding ships one API, and loading resolves the build for your environment automatically: it searches for an available native package and, in a browser or Worker, falls back to a WebAssembly build. Install the package your environment needs:
+
+Native module (Node, servers, and CLIs):
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding" />
+
+WASI Preview 1 (wasip1) WebAssembly:
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
+
+wasm32-wasi WebAssembly:
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+```ts
+import { computeParameters } from '@open-spaced-repetition/binding'
+```
+
+Your environment resolves the matching build: a server or CLI uses the native module, and a browser or Web Worker uses a wasm build.
+
+:::note COOP/COEP and threading
+WebAssembly runs threadless or threaded. Threadless wasm needs no Cross-Origin-Opener-Policy or Cross-Origin-Embedder-Policy headers and reports progress through Worker messages rather than shared memory. A threaded build requires the page to be `crossOriginIsolated`, that is, served with COOP and COEP headers.
+:::
+
+## The review-log pipeline
+
+Training follows a short pipeline, each step a binding call:
+
+1. `convertCsvToFsrsItems` turns review-log CSV into a list of `FSRSItem`s.
+2. `computeParameters` trains weights from those items and returns the weight array.
+3. `evaluateWithTimeSeriesSplits` measures how well the parameters predict held-out reviews.
+
+You can also ask the binding to recommend learning and relearning steps with `computeOptimalSteps`. Walk through each call in [Train and evaluate](./train-evaluate), or run a real training in the trainer on the [Playground](../../playground) page.

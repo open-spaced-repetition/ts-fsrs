@@ -8,5 +8,6 @@
   { "type": "dir-section-header", "name": "model", "label": "Model" },
   { "type": "dir-section-header", "name": "chrono", "label": "Chrono" },
   { "type": "dir-section-header", "name": "middleware", "label": "Middleware" },
-  { "type": "dir-section-header", "name": "scheduler", "label": "Scheduler" }
+  { "type": "dir-section-header", "name": "scheduler", "label": "Scheduler" },
+  { "type": "dir-section-header", "name": "optimizer", "label": "Optimizer" }
 ]

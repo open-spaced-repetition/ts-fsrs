@@ -1,0 +1,75 @@
+---
+title: 訓練與評估
+description: 沿 binding 走通複習記錄流程——把 CSV 轉成項、訓練權重、評估擬合，並調整步驟
+---
+
+import RunCode from '../../../components/RunCode'
+import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+
+# 訓練與評估
+
+訓練透過幾次 binding 呼叫把複習歷史跑完。輸入是一份複習記錄 CSV；輸出是可直接交給 `DefaultScheduler` 或自訂 `defineScheduler` 的權重陣列。
+
+範例匯入 `@open-spaced-repetition/binding`。在 Node 中是原生 napi 模組；在瀏覽器中解析為 WASI Preview 1 的 wasm 建置（多執行緒說明見[訓練器概覽](./index)）。
+
+## 把複習記錄轉成項
+
+`convertCsvToFsrsItems` 讀取 CSV 文字，並依卡片把各行歸併為 `FSRSItem`。欄位如下：
+
+| 欄位 | 含義 |
+| --- | --- |
+| `card_id` | 卡片穩定識別碼。 |
+| `review_time` | 複習時間，epoch 毫秒。 |
+| `review_rating` | 評分，1 Again 到 4 Easy。 |
+| `review_duration` | 複習耗時，毫秒。 |
+| `review_state` | 複習時的卡片狀態。 |
+
+傳入 `nextDayStartsAt`（新一天開始的小時）以及 IANA 時區（如 `'UTC'`）或固定的 UTC 分鐘偏移。對 `Uint8Array` 輸入，該呼叫同步回傳項：
+
+```ts
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
+
+// One card with two reviews: first review today, second the next day.
+const csv = [
+  'review_time,card_id,review_rating,review_duration,review_state',
+  '1704067200000,card-one,3,1000,0',
+  '1704153600000,card-one,4,900,2',
+].join('\n')
+
+// The day starts at 04:00 local, in the UTC timezone.
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+
+console.log(
+  JSON.stringify(
+    {
+      itemCount: items.length,
+      reviewsPerItem: items.map((item) => item.reviews.length),
+      ratings: items.map((item) => item.reviews.map((review) => review.rating)),
+    },
+    null,
+    2
+  )
+)
+```
+
+<RunCode code={optimizerCsvCode} />
+
+一張卡片的兩次複習變成一個 `FSRSItem`，其 `reviews` 依時間順序保存兩列。沒有在另一天出現後續複習的卡片會被丟棄，因為訓練需要在首次複習之後有一個保留率觀測。
+
+## 訓練權重
+
+`computeParameters(items, options)` 是非同步的，回傳訓練好的權重。`enableShortTerm` 必填；`numRelearningSteps` 與 `trainingConfig` 選填，`progress` 在訓練期間回報 `(current, total)`：
+
+```ts
+const weights = await computeParameters(items, {
+  enableShortTerm: true,
+})
+```
+
+`trainingConfig`（epochs、batch size、seed、最大序列長度、學習率與 L2 權重）選填，缺省時使用 binding 的預設值。`computeParameters` 執行真正的訓練迴圈，因此應在 Worker 而非主執行緒中呼叫。[Playground](../../playground)頁的訓練器就在 Web Worker 裡執行同一路徑並即時回報進度。回傳的 `weights` 陣列就是傳給 `DefaultScheduler({ weights })` 或 `defineScheduler` 設定、用於替換模型預設值的東西。
+
+## 評估擬合
+
+`evaluateWithTimeSeriesSplits(items, options)` 依時間切分複習歷史，回傳帶 `logLoss` 與 `rmseBins` 的 `ModelEvaluation`，供你判斷訓練權重對留出複習的預測品質。`computeOptimalSteps` 更進一步：給定複習與目標保留率，推薦學習與再學習步驟的時長。
+
+安裝命令與兩種執行環境見[訓練器概覽](./index)。

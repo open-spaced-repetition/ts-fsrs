@@ -1,0 +1,60 @@
+---
+title: Optimizer 概要
+description: binding で復習ログから FSRS の重みを再学習し、Node かブラウザ / Worker の実行環境を選び、CSV からパラメータまでの流れを理解する
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+
+# Optimizer 概要
+
+FSRS は既定のモデル重みを同梱していますが、自分たちの製品の復習ログから再学習して、間隔をサービス対象のユーザーに合わせることができます。Optimizer は `@open-spaced-repetition/binding` の上で動きます。復習ログ CSV を訓練用アイテムに変換し、パラメータを推定し、その結果が保留した復習をどれだけ予測できるかを報告します。訓練した重みは `weights` 経由でそのまま `DefaultScheduler` やカスタムの `defineScheduler` に渡せます。重みの意味は[モデル](../model)、適用される場所は[スケジューラ](../scheduler)を参照してください。
+
+<Prompt
+  title="FSRS の重み学習を実装または説明する"
+  description="このプロンプトをコピーすると、AI Agent が Optimizer 契約（復習ログ CSV を入れて訓練済み重みを出す）に従い、共有の binding を介します。"
+  prompt={`現在の ts-fsrs Optimizer 契約を使って、次のタスクに対応してください：[タスクを記述]。
+
+1. ${withSiteOrigin(withBase('/ja-JP/guide/optimizer/index.md'))} と ${withSiteOrigin(withBase('/ja-JP/guide/optimizer/train-evaluate.md'))} を読み、実行環境の選択と復習ログのパイプラインを理解する。
+2. convertCsvToFsrsItems で復習ログ CSV を変換し、翌日が始まる時刻とタイムゾーンまたは UTC オフセットを渡す。
+3. computeParameters(items, { enableShortTerm }) で訓練し、返された重みを DefaultScheduler かカスタムの defineScheduler で使う。
+4. 適合度は evaluateWithTimeSeriesSplits で報告する。復習ログ・評価・状態遷移を正確に保つ。
+5. Node ではネイティブ binding、ブラウザの Worker では wasip1 の wasm ビルドを優先する。
+6. 現在の public API を使い、実装した訓練パスに焦点を絞ったテストを追加する。`}
+/>
+
+## 一つのパッケージ、二つの実行環境
+
+binding は単一の import で同じ API を公開し、読み込み時に実行環境向けのビルドを自動で解決します。利用可能なネイティブパッケージを探し、ブラウザや Worker では WebAssembly にフォールバックします。環境に合わせて該当するパッケージをインストールします。
+
+ネイティブモジュール（Node・サーバー・CLI）：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding" />
+
+WASI Preview 1（wasip1）WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
+
+wasm32-wasi WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+```ts
+import { computeParameters } from '@open-spaced-repetition/binding'
+```
+
+実行環境が対応するビルドを解決します。サーバーや CLI はネイティブモジュール、ブラウザや Web Worker は wasm ビルドを使います。
+
+:::note COOP/COEP とスレッド
+WebAssembly は threadless またはスレッドありで実行できます。threadless wasm は Cross-Origin-Opener-Policy や Cross-Origin-Embedder-Policy ヘッダなしで動作し、進捗は共有メモリではなく Worker メッセージで報告します。スレッドありのビルドは、ページが `crossOriginIsolated`（COOP と COEP ヘッダ付きで配信される状態）であることを必要とします。
+:::
+
+## 復習ログのパイプライン
+
+訓練は数回の binding 呼び出しからなる短いパイプラインです。
+
+1. `convertCsvToFsrsItems` が復習ログ CSV を `FSRSItem` のリストに変換します。
+2. `computeParameters` がそのアイテムから重みを訓練し、重みの配列を返します。
+3. `evaluateWithTimeSeriesSplits` がパラメータによる保留復習の予測品質を測定します。
+
+`computeOptimalSteps` を使えば、学習・再学習ステップの推奨も binding に依頼できます。各呼び出しの詳細は[学習と評価](./train-evaluate)、実際の訓練の実行は[Playground](../../playground)ページのトレーナーを参照してください。
