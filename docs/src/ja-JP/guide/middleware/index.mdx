@@ -1,0 +1,64 @@
+---
+title: ミドルウェア概要
+description: ミドルウェアがスケジューラにポリシーやアプリケーション固有のフィールドを追加する仕組みと、defineMiddleware による定義を理解する
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
+
+# ミドルウェア概要
+
+ミドルウェアは、スケジューラにスケジューリングのポリシーやアプリケーション固有のフィールドを追加します。モデルが記憶状態と間隔を計算し、chrono のプリセットがその間隔を期限に変換します。ミドルウェアはその間に位置し、目標保持率や間隔の調整、学習ステップの管理、モデルが扱わないカードの追加データの更新を担います。各部分の役割は[アーキテクチャ](../architecture)を参照してください。
+
+:::note ミドルウェアの境界
+スケジューラはモデル・chrono・ミドルウェアを組み合わせます。モデルは記憶状態の更新と間隔計算に限定し、chrono は時間値と日数演算を担います。ミドルウェアはコア操作の前に入力を提供し、その後に結果を調整し、両者が定義しないフィールドを保持します。
+:::
+
+<Prompt
+  title="ミドルウェアポリシーを実装または説明する"
+  description="このプロンプトをコピーすると、AI Agent がスケジューラの内部や永続化に踏み込まずに Middleware 契約へ従います。"
+  prompt={`現在の ts-fsrs Middleware 契約を使って、次のタスクに対応してください：[タスクを記述]。
+
+1. ${withSiteOrigin(withBase('/ja-JP/guide/middleware/index.md'))}、${withSiteOrigin(withBase('/ja-JP/guide/middleware/lifecycle.md'))}、${withSiteOrigin(withBase('/ja-JP/guide/middleware/built-in.md'))} を読み、ミドルウェアがスケジューラをどう拡張するか理解する。
+2. 挙動を定義する前に、config、card、revlog、cardInitInput の schema を宣言する。
+3. ミドルウェアの責務を schema、defaultValue、review/rollback ハンドラに限定する。記憶状態の更新と間隔計算はモデル、時間値と日数演算は chrono に任せる。
+4. next() をちょうど一回呼ぶ。desiredRetention などの入力は呼び出し前に設定し、計算結果の確認や調整は呼び出し後に行う。
+5. ロールバックでは ctx.input.card と ctx.input.revlog だけを読み、ctx.result.card だけに書き込み、review ハンドラが保存した古い値を復元する。
+6. ハンドラ内でデータベースへの書き込みや通知などの外部操作を行わない。確定した復習結果の保存はアプリケーションの役割。
+7. 挙動が既存の組み込みポリシーでカバーできるなら、それを再利用する。
+8. 現在の public API を使い、書いたハンドラごとに焦点を絞ったテストを追加する。`}
+/>
+
+## フィールドと処理を定義する
+
+`Middleware` の定義には必須の `name` と、任意のスキーマ、デフォルト値、ハンドラがあります。`defineMiddleware()` はスキーマからハンドラ内の型を推論します。`ts-fsrs` からインポートでき、組み込みポリシーは `ts-fsrs/middlewares` からも利用できます。
+
+| 定義 | 用途 |
+| --- | --- |
+| `schema.config` | `create({ config })` に渡す設定を検証します。ミドルウェアはスケジューラの設定オブジェクトを共有します。 |
+| `schema.card` | 入出力カードのフィールドを宣言し、検証します。 |
+| `schema.revlog` | ロールバックに必要な値を含め、復習ログのフィールドを宣言し、検証します。 |
+| `schema.cardInitInput` | カード ID など、`newCard()` が受け取る追加の入力を宣言します。 |
+| `defaultValue.card` | カードの作成時とリセット時にフィールドの値を設定します。`ctx.operation` で操作を区別できます。 |
+| `handlers.review` / `handlers.rollback` | 次のハンドラを呼び出す前後で `ctx.result` を更新します。実行方法は[ライフサイクル](./lifecycle)を参照してください。 |
+
+スキーマは実行時の検証と TypeScript の型推論の両方に使われます。以下の例では Standard Schema に対応した Zod を使います。アプリケーションで実行するには、ts-fsrs に加えてインストールしてください。
+
+<PackageManagerTabs command="install zod" />
+
+## 取り消し可能な連続正解カウンタを追加する
+
+この例では、Again 以外の評価で `streak` を増やし、上限を `streakLimit` とします。Again ではゼロに戻します。復習ハンドラで変更前のカウンタを revlog に保存するため、リセット後に取り消しても元の値を復元できます。
+
+```ts twoslash file="../../../snippets/run-code/middleware.ts" fold height=520
+```
+
+<RunCode code={middlewareCode} />
+
+カウンタは `0` から `1` に増え、Again で `0` に戻り、ロールバックで `1` に復元されます。プレビューでは Again、Hard、Good、Easy の順に `0, 2, 2, 2` となり、入力カードのカウンタは `1` のままです。
+
+`base.use(streakMiddleware)` は新しいスケジューラ定義を返し、元の `base` は変更しません。戻り値を保持するか、例のように続けて `.create()` を呼び出してください。ミドルウェアは `use` で組み合わせるため、ハンドラはスケジューラのコアを囲んで一定の順序で実行されます——詳細は[ライフサイクル](./lifecycle)を参照してください。
+
+既成のポリシーは一般的なケースをカバーし、`DefaultScheduler` は既にそれらを組み合わせています。[組み込みポリシー](./built-in) を参照するか、既成のスケジューラを使う場合は[クイックスタート](../quick-start)を参照してください。
