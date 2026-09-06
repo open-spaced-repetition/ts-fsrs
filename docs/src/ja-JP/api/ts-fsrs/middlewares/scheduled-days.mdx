@@ -1,0 +1,26 @@
+---
+title: ScheduledDays
+description: 組み込みミドルウェア schedulerScheduledDaysMiddleware——最終間隔を整数のスケジュール日数として保存する
+---
+
+import RunCode from '../../../../components/RunCode'
+import scheduledDaysCode from '@/snippets/run-code/api-scheduled-days.ts?raw'
+
+# ScheduledDays
+
+`ts-fsrs/middlewares` は `schedulerScheduledDaysMiddleware` をエクスポートします：
+
+```ts
+import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
+```
+
+これは最終間隔を非負の整数日 `scheduledDays` としてカードに保存し、変更前の値を復習ログに記録します。rollback 時に復習がその値を復元できるようにするためです。
+
+```ts twoslash file="../../../../snippets/run-code/api-scheduled-days.ts"
+```
+
+<RunCode code={scheduledDaysCode} />
+
+Good の復習はカードに `scheduledDays: 2` を保存し、復習ログは変更前の `0` を保持します。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

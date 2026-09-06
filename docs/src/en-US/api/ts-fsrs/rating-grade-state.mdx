@@ -1,0 +1,31 @@
+---
+title: Rating, Grade, State
+description: The rating and state enums and their validation schemas used by reviews and cards
+---
+
+# Rating, Grade, State
+
+```ts
+import { Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } from 'ts-fsrs'
+```
+
+`Rating` covers every rating a review can carry, including a manual one:
+
+| Member | Value |
+| --- | --- |
+| `Rating.Manual` | `0` |
+| `Rating.Again` | `1` |
+| `Rating.Hard` | `2` |
+| `Rating.Good` | `3` |
+| `Rating.Easy` | `4` |
+
+`Grade` is the subset of ratings the scheduler schedules with — `Again`, `Hard`, `Good`, and `Easy` (1 through 4). `State` describes a card's lifecycle position:
+
+| Member | Value |
+| --- | --- |
+| `State.New` | `0` |
+| `State.Learning` | `1` |
+| `State.Review` | `2` |
+| `State.Relearning` | `3` |
+
+`ratingSchema`, `gradeSchema`, and `stateSchema` validate their respective values and are used in type inference. The returned card's `state` and each revlog's `rating` are these enums. See the [Guide](../../guide/state-transitions) for how states transition during reviews.

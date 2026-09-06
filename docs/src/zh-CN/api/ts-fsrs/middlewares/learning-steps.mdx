@@ -1,0 +1,26 @@
+---
+title: LearningSteps
+description: 内置中间件 schedulerLearningStepsMiddleware —— 在短期调度中应用学习与再学习步骤
+---
+
+import RunCode from '../../../../components/RunCode'
+import learningStepsCode from '@/snippets/run-code/api-learning-steps.ts?raw'
+
+# LearningSteps
+
+`ts-fsrs/middlewares` 导出 `schedulerLearningStepsMiddleware`：
+
+```ts
+import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+开启短期调度时，它应用配置的 `learningSteps` 与 `relearningSteps`，并维护卡片的 `learningStep` 与学习状态。
+
+```ts twoslash file="../../../../snippets/run-code/api-learning-steps.ts"
+```
+
+<RunCode code={learningStepsCode} />
+
+对 New 卡片的一次 Good 复习会使其进入 Learning（状态 `1`），并在几分钟内安排下一步。
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。

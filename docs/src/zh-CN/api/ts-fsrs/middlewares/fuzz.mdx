@@ -1,0 +1,24 @@
+---
+title: Fuzzing
+description: 内置中间件 schedulerFuzzingMiddleware —— 开启 enableFuzz 时为增加变化而分散间隔
+---
+
+import RunCode from '../../../../components/RunCode'
+import fuzzCode from '@/snippets/run-code/api-fuzz.ts?raw'
+
+# Fuzzing
+
+`ts-fsrs/middlewares` 导出 `schedulerFuzzingMiddleware` 以及 `createSchedulerFuzzingMiddleware()` 工厂：
+
+```ts
+import { schedulerFuzzingMiddleware } from 'ts-fsrs/middlewares'
+```
+
+开启 `enableFuzz` 时，它使用 `cardId` 与复习次数分散间隔，因此对固定卡片的结果保持可复现。它需要配置中的 `maximumInterval` 来约束分散范围。
+
+```ts twoslash file="../../../../snippets/run-code/api-fuzz.ts"
+```
+
+<RunCode code={fuzzCode} />
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。
