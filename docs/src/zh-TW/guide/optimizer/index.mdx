@@ -1,0 +1,60 @@
+---
+title: 訓練器概覽
+description: 用 binding 從複習記錄重新訓練 FSRS 權重，選擇 Node 或瀏覽器 / Worker 執行環境，並走通從 CSV 到參數的流程
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+
+# 訓練器概覽
+
+FSRS 內建預設模型權重，但你可以用自己產品的複習記錄重新訓練它們，讓間隔更貼合所服務的使用者。訓練器（Optimizer）運行於 `@open-spaced-repetition/binding` 之上：把複習記錄 CSV 轉成訓練項、估算參數，並回報結果對留出複習的預測品質。訓練出的權重透過 `weights` 直接餵回 `DefaultScheduler` 或自訂 `defineScheduler`。權重的含義見[模型](../model)，權重的使用位置見[排程器](../scheduler)。
+
+<Prompt
+  title="實作或說明 FSRS 權重訓練"
+  description="複製這段提示詞，讓 AI Agent 遵守訓練器契約：複習記錄 CSV 進、訓練權重出，經由共享的 binding。"
+  prompt={`使用目前 ts-fsrs 訓練器契約完成以下任務：[描述任務]。
+
+1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/optimizer/index.md'))} 與 ${withSiteOrigin(withBase('/zh-TW/guide/optimizer/train-evaluate.md'))}，了解執行環境選擇與複習記錄流程。
+2. 用 convertCsvToFsrsItems 轉換複習記錄 CSV，傳入「新一天開始的小時」以及時區或 UTC 偏移。
+3. 用 computeParameters(items, { enableShortTerm }) 訓練，並把回傳的權重用於 DefaultScheduler 或自訂 defineScheduler。
+4. 用 evaluateWithTimeSeriesSplits 回報擬合品質；保證複習記錄、評分與狀態轉換準確。
+5. Node 裡優先使用原生 binding，瀏覽器 Worker 裡使用 wasip1 的 wasm 建置。
+6. 使用目前 public API，並為所實作的訓練路徑加入聚焦測試。`}
+/>
+
+## 一個套件，兩種執行環境
+
+binding 用同一個匯入暴露同一套 API，載入時會依執行環境自動解析建置：搜尋可用的原生套件，在瀏覽器或 Worker 中回退到 WebAssembly。依需求安裝對應套件：
+
+原生模組（Node、伺服器與 CLI）：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding" />
+
+WASI Preview 1（wasip1）WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
+
+wasm32-wasi WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+```ts
+import { computeParameters } from '@open-spaced-repetition/binding'
+```
+
+你的執行環境會解析到相符的建置：伺服器或 CLI 用原生模組，瀏覽器或 Web Worker 用 wasm 建置。
+
+:::note COOP/COEP 與多執行緒
+WebAssembly 可執行 threadless 或多執行緒。threadless wasm 無需 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 標頭即可運作，進度經 Worker 訊息回傳而非共享記憶體。多執行緒建置要求頁面處於 `crossOriginIsolated`，即以帶 COOP 與 COEP 標頭的方式提供。
+:::
+
+## 複習記錄流程
+
+訓練由幾個 binding 呼叫組成一條短流程：
+
+1. `convertCsvToFsrsItems` 把複習記錄 CSV 轉成一組 `FSRSItem`。
+2. `computeParameters` 根據這些項訓練權重並回傳權重陣列。
+3. `evaluateWithTimeSeriesSplits` 衡量這些參數對留出複習的預測品質。
+
+你還可以用 `computeOptimalSteps` 讓 binding 推薦學習與再學習步驟。逐個呼叫見[訓練與評估](./train-evaluate)；想跑一次真實訓練，用[Playground](../../playground)頁的訓練器。

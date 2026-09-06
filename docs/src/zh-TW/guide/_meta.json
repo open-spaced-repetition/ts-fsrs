@@ -33,5 +33,10 @@
     "type": "dir-section-header",
     "name": "scheduler",
     "label": "排程器"
+  },
+  {
+    "type": "dir-section-header",
+    "name": "optimizer",
+    "label": "訓練器"
   }
 ]
