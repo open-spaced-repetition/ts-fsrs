@@ -26,7 +26,7 @@ export const checkFSRS4Parameters = (
   return parameters
 }
 
-export const migrateFSRS4Parameters = (parameters?: number[]): number[] => {
+export const migrateFSRS4Parameters = (parameters?: readonly number[]): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS4_DEFAULT_WEIGHTS]
   }
