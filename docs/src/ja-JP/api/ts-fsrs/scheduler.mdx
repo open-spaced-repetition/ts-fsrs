@@ -1,0 +1,45 @@
+---
+title: Scheduler
+description: defineScheduler.create と DefaultScheduler が返すスケジューラインスタンスのリファレンス
+---
+
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/api-scheduler.ts?raw'
+
+# Scheduler
+
+`defineScheduler(...).create({ config })` と `DefaultScheduler(options)` はどちらも独立した**スケジューラインスタンス**を返します。これはアプリケーションがカードの作成、スケジュール設定、ロールバック、レビューのプレビューを行うために呼び出すオブジェクトです。
+
+**メソッド**
+
+| メソッド | シグネチャ | 戻り値 |
+| --- | --- | --- |
+| `newCard` | `newCard(input?)` | デフォルト状態のカード。 |
+| `review` | `review({ card, grade, now? })` | レビューの `{ card, revlog }`。 |
+| `preview` | `preview({ card, now? })` | 4 つのグレードそれぞれに対応する `{ grade, card, revlog }` の遅延イテラブル。 |
+| `rollback` | `rollback({ card, revlog })` | 保存された revlog を使い、レビュー前のカードを復元します。 |
+| `forget` | `forget({ card, now? })` | デフォルトを通してリセットされたカード。 |
+
+`review` と `preview` は入力カードを決して変更せず、新しいカードを返します。`rollback` はレビューの `{ card, revlog }` を受け取り、レビュー前のカードを復元します。
+
+## カードの状態と scheduleStatus
+
+返されるカードはどれも、`state` と `scheduleStatus` の二つのキュー用フィールドを持ちます。`state` は数値のライフサイクル位置（New・Learning・Review・Relearning）で、[Rating, Grade, State](./rating-grade-state) を参照してください。`scheduleStatus` はスケジューラが排程時に維持する文字列のキューラベルです。
+
+| 値 | 意味 |
+| --- | --- |
+| `'new'` | 初回復習を待つ新しいカード。 |
+| `'learning'` | 学習・再学習ステップ内のカード。 |
+| `'review'` | 復習キューにあるカード。 |
+| 拡張 | ミドルウェアが追加の状態を設定できます。たとえば [Leech](./middlewares/leech) は忘却回数が閾値を超えたカードに `'suspended'` を設定します。 |
+
+schema は三つのコア値を認識し、状態を追加するミドルウェアは型を絞り込みます。次に復習するカードを選ぶときは、ミドルウェアが書き込んだ状態（`'suspended'` など）を尊重してください。
+
+```ts twoslash file="../../../snippets/run-code/api-scheduler.ts"
+```
+
+<RunCode code={schedulerCode} />
+
+`newCard` は状態 `0`（New）で始まり、Good レビューで `2`（Review）に移ります。`preview` は 4 つの候補を生成し、`rollback` は元の期限を復元します。
+
+**関連** — [defineScheduler](./define-scheduler)、[DefaultScheduler](./default-scheduler)、[ガイド: レビューを追う](../../guide/architecture)。

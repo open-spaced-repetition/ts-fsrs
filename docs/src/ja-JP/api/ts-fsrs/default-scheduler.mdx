@@ -1,0 +1,34 @@
+---
+title: DefaultScheduler
+description: DefaultScheduler のリファレンス——すぐ使えるスケジューラプリセットを返す非同期ファクトリ
+---
+
+# DefaultScheduler
+
+**インポート：** `import { DefaultScheduler } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+DefaultScheduler(options?): Promise<DefaultScheduler>
+```
+
+**オプション**（`DefaultSchedulerOptions`）
+
+| オプション | 既定値 | 備考 |
+| --- | --- | --- |
+| `version` | `'FSRS-6'` | `'FSRS-3'` … `'FSRS-6'`。バージョンごとにパラメータが移行されます。 |
+| `weights` | プリセットの重み | 任意の学習済み重み。 |
+| `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
+| `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
+| `learningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
+| `relearningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
+| `enableFuzz` | `false` | 有効にすると間隔を分散させます。 |
+| `maximumInterval` | `36500` | 間隔の日数上限。 |
+| `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |
+
+**挙動** — 既定では FSRS-6 を `dateChrono` と組み込みポリシーに組み合わせ、`newCard`、`review`、`rollback`、`preview`、`forget` を公開するインスタンスを返します。
+
+**関連型** — `DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`。
+
+**参照** — [DefaultScheduler プリセット](../../guide/scheduler/default-scheduler)、[組み込みポリシー](../../guide/middleware/built-in)。

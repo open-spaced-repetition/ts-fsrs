@@ -1,0 +1,26 @@
+---
+title: LearningSteps
+description: Built-in middleware schedulerLearningStepsMiddleware — applies learning and relearning steps in short-term scheduling
+---
+
+import RunCode from '../../../../components/RunCode'
+import learningStepsCode from '@/snippets/run-code/api-learning-steps.ts?raw'
+
+# LearningSteps
+
+`ts-fsrs/middlewares` export `schedulerLearningStepsMiddleware`:
+
+```ts
+import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+When short-term scheduling is enabled, it applies the configured `learningSteps` and `relearningSteps` and maintains the card's `learningStep` and learning state.
+
+```ts twoslash file="../../../../snippets/run-code/api-learning-steps.ts"
+```
+
+<RunCode code={learningStepsCode} />
+
+A Good review on a New card moves it into Learning (state `1`) and schedules the next step within minutes.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

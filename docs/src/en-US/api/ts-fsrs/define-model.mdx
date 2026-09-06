@@ -1,0 +1,62 @@
+---
+title: defineModel
+description: Reference for defineModel and the Model and ModelCore API it returns
+---
+
+import RunCode from '../../../components/RunCode'
+import modelCode from '@/snippets/run-code/api-model.ts?raw'
+
+# defineModel
+
+**Import:** `import { defineModel } from 'ts-fsrs'`
+
+**Signature**
+
+```ts
+defineModel(definition): Model
+```
+
+`defineModel` packages a model's schemas, defaults, and model-core factory into a **Model** definition while keeping its types concrete. Pass the `Model` as `model` to `defineScheduler({ model, chrono })`.
+
+## Model
+
+A `Model` definition exposes:
+
+| Member | Type / meaning |
+| --- | --- |
+| `name` | The model's name. |
+| `schema.config` | Schema that validates the model's configuration. |
+| `schema.memoryState` | Schema for the memory state. |
+| `defaultValue.memoryState` | `({ config }) => memoryState` — the starting memory state for a new card. |
+| `create` | Builds a `ModelCore` from a config. |
+
+```ts
+const model = FSRS6Model.create({
+  config: { weights: FSRS6_DEFAULT_WEIGHTS, enableShortTerm: true, numRelearningSteps: 1 },
+})
+```
+
+`create` takes a config and optional `migrate`, `clip`, `check`, and `bypass` flags. Use `bypass` only when the scheduler has already parsed, migrated, clipped, checked, and frozen the config.
+
+## ModelCore
+
+`create` returns a `ModelCore` with the model's computation:
+
+| Member | Type / meaning |
+| --- | --- |
+| `config` | The parsed configuration. |
+| `bounds` | Memory-state bounds (`S_min`, `S_max`, …). |
+| `algorithm` | The model's algorithm value. |
+| `step` | `({ memoryState, rating, elapsedDays }) => memoryState` — updates memory on a review. |
+| `nextInterval` | `(memoryState, desiredRetention) => days` — the base interval. |
+| `forgettingCurve` | `(memoryState, elapsedDays) => probability` — estimated recall. |
+| `forward` | Replays a history and returns the memory state after each review. |
+
+```ts twoslash file="../../../snippets/run-code/api-model.ts"
+```
+
+<RunCode code={modelCode} />
+
+A first Good review yields stability `2.3065` and difficulty `2.1181`; `nextInterval` returns `2` whole days, and `forgettingCurve` estimates recall near `0.9095` at that interval.
+
+The model only updates memory and computes intervals — scheduling policy lives in the [middleware](./middlewares/define-middleware). See [Models](./models) for the versioned entry points and the [Model guide](../../guide/model) for the contract and formulas.
