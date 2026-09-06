@@ -1,0 +1,64 @@
+---
+title: 中间件概览
+description: 理解中间件如何为调度器添加调度策略与应用字段，并了解如何使用 defineMiddleware 定义字段与处理函数
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
+
+# 中间件概览
+
+中间件为调度器添加调度策略和应用所需的字段。模型计算记忆状态与间隔，chrono 预设把这些间隔转换为到期时间；中间件位于两者之间，可以调整目标保留率或间隔、管理学习步骤，以及维护模型从未见过的额外卡片数据。各部分的职责见[整体架构](../architecture)。
+
+:::note 中间件边界
+调度器由模型、chrono 与中间件组合而成。让模型只负责记忆状态更新与间隔计算，让 chrono 负责时间值与天数运算；中间件在核心操作之前提供输入、在其后调整结果，并承载这两者未定义的字段。
+:::
+
+<Prompt
+  title="实现或解释一个中间件策略"
+  description="复制这段提示词，让 AI Agent 遵守 Middleware 契约，避免混入调度器内部实现或持久化逻辑。"
+  prompt={`使用当前 ts-fsrs Middleware 契约完成以下任务：[描述任务]。
+
+1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/middleware/index.md'))}、${withSiteOrigin(withBase('/zh-CN/guide/middleware/lifecycle.md'))} 和 ${withSiteOrigin(withBase('/zh-CN/guide/middleware/built-in.md'))}，了解中间件如何扩展调度器。
+2. 在定义行为前，先声明 config、card、revlog 和 cardInitInput 的 schema。
+3. 将中间件限制为 schema、defaultValue 以及 review/rollback 处理函数；让模型负责记忆状态更新与间隔计算，让 chrono 负责时间值与天数运算。
+4. 恰好调用一次 next()。在它之前设置 desiredRetention 等输入；在它之后读取或调整计算结果。
+5. 撤销时只读取 ctx.input.card 和 ctx.input.revlog，只写入 ctx.result.card，并恢复复习处理函数保存的旧值。
+6. 不要在处理函数中写数据库、发通知或执行其他外部操作；由应用保存最终选定的复习结果。
+7. 当内置策略已能覆盖该行为时，优先复用。
+8. 使用当前公共 API，并为所写的处理函数添加聚焦测试。`}
+/>
+
+## 定义字段与行为
+
+`Middleware` 定义包含必填的 `name`，以及可选的 schema、默认值和处理函数。`defineMiddleware()` 根据 schema 推导处理函数中的类型。可以从 `ts-fsrs` 导入；内置策略也可从 `ts-fsrs/middlewares` 导入。
+
+| 定义 | 用途 |
+| --- | --- |
+| `schema.config` | 校验传给 `create({ config })` 的配置。中间件共用调度器的配置对象。 |
+| `schema.card` | 声明并校验输入、输出卡片上的字段。 |
+| `schema.revlog` | 声明并校验复习日志字段，包括撤销所需的旧值。 |
+| `schema.cardInitInput` | 声明 `newCard()` 接受的额外输入，例如卡片 ID。 |
+| `defaultValue.card` | 在创建或重置卡片时提供字段值，通过 `ctx.operation` 区分这两种操作。 |
+| `handlers.review` / `handlers.rollback` | 在调用下一个处理函数前后，更新 `ctx.result`。运行方式见[生命周期](./lifecycle)。 |
+
+Schema 同时提供运行时校验与 TypeScript 类型推导。下面使用实现了 Standard Schema 的 Zod。在自己的应用中运行示例时，除 ts-fsrs 外还需要安装它：
+
+<PackageManagerTabs command="install zod" />
+
+## 添加支持撤销的连续答对计数
+
+示例中，除 Again 外的评分都会让 `streak` 加一，最多累积到 `streakLimit`；Again 会将它清零。复习处理函数把原计数保存到 revlog，因此即使清零后撤销，也能恢复之前的值：
+
+```ts twoslash file="../../../snippets/run-code/middleware.ts" fold height=520
+```
+
+<RunCode code={middlewareCode} />
+
+计数从 `0` 增加到 `1`，评为 Again 后回到 `0`，撤销后恢复为 `1`。预览中，Again、Hard、Good、Easy 对应的计数分别是 `0、2、2、2`，输入卡片的计数仍为 `1`。
+
+`base.use(streakMiddleware)` 返回新的调度器定义，原来的 `base` 不变。需要保存返回值，或像示例一样继续调用 `.create()`。由于中间件通过 `use` 组合，处理函数会按固定顺序环绕调度器核心——详见[生命周期](./lifecycle)。
+
+现成的策略覆盖了常见场景，`DefaultScheduler` 已组合了它们。见[内置策略](./built-in)；直接使用现成调度器见[快速开始](../quick-start)。
