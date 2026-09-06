@@ -1,0 +1,49 @@
+---
+title: Chrono の概要
+description: ts-fsrs の時間表現を選び、projection と日数演算を理解し、defineChrono で dateChrono をカスタマイズする
+---
+
+import RunCode from '../../../components/RunCode'
+import chronoCode from '@/snippets/run-code/chrono.ts?raw'
+
+# Chrono の概要
+
+Chrono は、スケジューラーが時間をどう表現し、経過日数と次の復習日時をどう計算するかを定めます。モデルは日単位の間隔を扱い、Chrono がその間隔をアプリケーションの時刻値に結び付けます。
+
+## プリセットを選ぶ
+
+`dateChrono`、`numericChrono`、`temporalInstantChrono`、`defineChrono` は `ts-fsrs` からインポートできます。
+
+| プリセット | 時刻値 | 日数の計算 |
+| --- | --- | --- |
+| `dateChrono` | JavaScript の `Date` | `difference` は UTC の日付差を計算します。`add` は1日を24時間として加算し、小数も扱えます。 |
+| `numericChrono` | 日単位の数値 | `difference(from, to)` は `to - from`、`add(from, days)` は `from + days` です。 |
+| `temporalInstantChrono` | `Temporal.Instant` | タイムゾーンを指定でき、日数差に小数部分を含めるかどうかも選べます。 |
+
+各プリセットの詳細： [Date](./date)、[Numeric](./numeric)、[Temporal Instant](./temporal-instant)。
+
+## 定義と実行時の操作
+
+`Chrono` の定義には `schema`、`projection`、`defaultValue`、`create` が含まれます。定義を `defineScheduler({ model, chrono })` に渡します。時間演算だけを使いたい場合は、定義の `create()` を呼び出してください。設定済みの実行時オブジェクトには `scheduler.chrono` からもアクセスできます。
+
+| 操作 | 役割 |
+| --- | --- |
+| `now()` | 呼び出し側が `now` を省略したときに時刻値を返します。 |
+| `difference(from, to)` | モデルが使う経過日数を返します。 |
+| `add(from, days)` | 最終的な日数間隔を次の復習日時に変換します。 |
+| `compare(left, right)` | 正確な前後関係を負数・ゼロ・正数で返す任意の操作です。Date と Temporal のプリセットで利用できます。 |
+
+Date と Temporal のプリセットは card と revlog に復習日時を保持しますが、Numeric はこれらのフィールドを追加しません。projection がフィールドを `{ previous, current }` に変換し、スケジューラーが経過日数を計算します。復習とロールバック時の対応は [Date](./date) を参照してください。
+
+## defineChrono で経過日数をカスタマイズする
+
+以下の例は Date プリセットの schema、projection、デフォルト値、正確な時刻比較をそのまま使い、経過時間だけを24時間単位の小数日数に変更します。これらを再利用することで、入力検証と card/revlog のフィールドの整合性を保てます。保存するフィールドを変える場合は、対応する schema、復習とロールバックの projection、デフォルト値をまとめて定義してください。
+
+```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
+```
+
+<RunCode code={chronoCode} />
+
+同じ2時間の差でも、UTC 日付のプリセットでは `1`、カスタム Chrono では `0.08333333333333333` になります。`add(from, 0.5)` は12時間を加算し、1月2日 11:00 UTC を返します。
+
+このカスタム Chrono は固定の経過時間を計算し、現地の暦日や夏時間は扱いません。こうした暦のルールが必要な場合は Temporal プリセットを選んでください。モデルとスケジューリングポリシーの組み合わせ方は[アーキテクチャ](../architecture)を参照してください。

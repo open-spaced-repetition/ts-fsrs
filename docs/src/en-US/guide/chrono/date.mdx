@@ -1,0 +1,33 @@
+---
+title: Date
+description: Use dateChrono with UTC date differences, fixed-duration addition, and card and revlog time fields
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
+
+# Date
+
+`dateChrono` is the preset used by `DefaultScheduler`. Its time schema accepts valid `Date` objects, so convert stored strings or timestamps to `Date` before calling the scheduler. The current schema also rejects `new Date(0)` (the exact Unix epoch) and invalid dates.
+
+Do not use `difference` as a precise timestamp comparison: two times on the same UTC date have a difference of zero with `dateChrono`. Crossing midnight from 23:00 to 01:00 produces one day, even though only two hours have passed. Its `add(from, 0.5)` still adds exactly twelve hours; these two operations are not inverses.
+
+## How projection participates in scheduling
+
+Projection maps card or revlog fields to `{ previous, current }`. For Date and Temporal presets:
+
+- During review, `previous` is `card.lastReviewAt ?? card.dueAt`, and `current` is the supplied review time.
+- The scheduler uses `difference(previous, current)` as elapsed days, except for a New card, whose elapsed days are always zero.
+- After the model and middleware determine the interval, `add(current, interval)` supplies the next due time. Card defaults set `dueAt` and `lastReviewAt`; revlog defaults record the review's time pair.
+- During rollback, projection reads `{ revlog }` instead of `{ card, time }`: `previous` comes from `revlog.dueAt`, and `current` from `revlog.reviewTime`.
+
+Revlog records the state before the review and the times needed for rollback. `revlog.dueAt` stores `previous`: the last review time, falling back to `card.dueAt` when there is no last review. `revlog.reviewTime` stores the current review time. Rollback reads this saved time pair.
+
+## Try the preset
+
+```ts twoslash file="../../../snippets/run-code/chrono-date.ts"
+```
+
+<RunCode code={presetCode} />
+
+Across midnight, the UTC date difference is one day; adding half a day advances the time by twelve hours.

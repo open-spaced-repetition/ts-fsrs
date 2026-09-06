@@ -14,7 +14,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 **モデル**は FSRS アルゴリズムとそのパラメーターです。`FSRS6Model` が現行版で、FSRS-3 から FSRS-5 もそれらで蓄積した復習履歴のために利用できます。
 
-**時刻体系**は時間の表現方法を決めます。`dateChrono` は `Date`、`numericChrono` はタイムスタンプ、`temporalInstantChrono` は `Temporal.Instant` を使います。
+**時刻体系**は時間の表現方法を決めます。`dateChrono` は `Date`、`numericChrono` は日単位の数値、`temporalInstantChrono` は `Temporal.Instant` を使います。
 
 **Middleware** はスケジューリングのポリシーを担います。例えば `schedulerLearningStepsMiddleware`、`schedulerFuzzingMiddleware`、`schedulerMaximumIntervalMiddleware`、`schedulerLeechMiddleware` があります。スケジューラーを作成する前に `.use(...)` で組み合わせます。
 

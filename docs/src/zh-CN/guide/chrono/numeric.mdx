@@ -1,0 +1,20 @@
+---
+title: Numeric
+description: 使用 numericChrono 表示相对天数，理解以零为起点的 projection 及其适用范围
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-numeric.ts?raw'
+
+# Numeric
+
+`numericChrono` 适合相对时间实验：projection 始终返回 `previous: 0` 和 `current: time`，`now()` 返回 `0`，也不会为 card 或 revlog 添加时间字段。它不记录卡片的上次复习时间。不要传入 Unix 毫秒时间戳；应明确传入经过的天数，或为连续复习定义带有持久化时间字段的 Chrono。
+
+## 运行预设
+
+```ts twoslash file="../../../snippets/run-code/chrono-numeric.ts"
+```
+
+<RunCode code={presetCode} />
+
+运算直接使用天数值。projection 仍从零开始，因此复习时间 4.5 表示经过 4.5 天，与之前的卡片无关。
