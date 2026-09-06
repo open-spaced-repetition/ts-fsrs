@@ -1,0 +1,33 @@
+---
+title: Date
+description: 使用 dateChrono 計算 UTC 日期差與固定時長，理解 card 和 revlog 的時間欄位
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
+
+# Date
+
+`DefaultScheduler` 使用 `dateChrono`。它的時間 schema 接受有效的 `Date` 物件，因此呼叫排程器前，應先將儲存的字串或時間戳記轉換為 `Date`。目前的 schema 也會拒絕 `new Date(0)`（Unix 紀元起點）和無效日期。
+
+不要用 `difference` 精確比較時間先後：對於 `dateChrono`，同一 UTC 日期內的兩個時間點之差為零。從 23:00 跨過午夜到次日 01:00，雖然只經過兩小時，結果仍為一天。而 `add(from, 0.5)` 一律增加十二小時，因此這兩個操作不是互逆運算。
+
+## projection 如何參與排程
+
+projection 將 card 或 revlog 的欄位轉換為 `{ previous, current }`。對於 Date 和 Temporal 預設：
+
+- 複習時，`previous` 取 `card.lastReviewAt ?? card.dueAt`，`current` 取傳入的複習時間。
+- 排程器使用 `difference(previous, current)` 計算經過天數；New 卡片例外，經過天數一律為零。
+- 模型和 middleware 確定間隔後，`add(current, interval)` 給出下次到期時間。Card 預設值設定 `dueAt` 和 `lastReviewAt`，revlog 預設值記錄本次複習的時間對。
+- 撤銷時，projection 讀取 `{ revlog }`，而非 `{ card, time }`：`previous` 來自 `revlog.dueAt`，`current` 來自 `revlog.reviewTime`。
+
+revlog 記錄複習前的狀態和撤銷所需的時間資訊。`revlog.dueAt` 保存 `previous`，也就是上一次複習時間；尚未複習時，則使用 `card.dueAt`。`revlog.reviewTime` 保存本次複習時間。rollback 從日誌中讀取這組時間資訊。
+
+## 執行預設
+
+```ts twoslash file="../../../snippets/run-code/chrono-date.ts"
+```
+
+<RunCode code={presetCode} />
+
+跨過午夜時，UTC 日期差為一天；增加半天則讓時間往後移動十二小時。

@@ -14,7 +14,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 **模型**是 FSRS 演算法及其參數。`FSRS6Model` 是目前版本；FSRS-3 至 FSRS-5 仍然保留，用於建立在這些版本上的既有複習歷史。
 
-**時間系統**決定如何表示時間。`dateChrono` 使用 `Date`，`numericChrono` 使用時間戳記，`temporalInstantChrono` 使用 `Temporal.Instant`。
+**時間系統**決定如何表示時間。`dateChrono` 使用 `Date`，`numericChrono` 使用以天為單位的數字，`temporalInstantChrono` 使用 `Temporal.Instant`。
 
 **Middleware** 負責排程策略，例如 `schedulerLearningStepsMiddleware`、`schedulerFuzzingMiddleware`、`schedulerMaximumIntervalMiddleware`、`schedulerLeechMiddleware`。建立排程器前，透過 `.use(...)` 組合它們。
 

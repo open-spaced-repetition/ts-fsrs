@@ -1,5 +1,8 @@
 [
-  { "type": "section-header", "label": "快速上手" },
+  {
+    "type": "section-header",
+    "label": "快速上手"
+  },
   "index",
   "quick-start",
   "architecture",
@@ -11,5 +14,10 @@
     "collapsible": true,
     "collapsed": true,
     "label": "模型"
+  },
+  {
+    "type": "dir-section-header",
+    "name": "chrono",
+    "label": "Chrono"
   }
 ]
