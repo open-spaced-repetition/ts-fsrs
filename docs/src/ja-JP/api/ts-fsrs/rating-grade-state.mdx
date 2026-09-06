@@ -1,0 +1,31 @@
+---
+title: Rating, Grade, State
+description: 復習とカードで使う評価・グレード・状態の enum と、その検証 schema
+---
+
+# Rating, Grade, State
+
+```ts
+import { Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } from 'ts-fsrs'
+```
+
+`Rating` は、復習が持ちうるすべての評価をカバーします（手動のものを含む）：
+
+| メンバー | 値 |
+| --- | --- |
+| `Rating.Manual` | `0` |
+| `Rating.Again` | `1` |
+| `Rating.Hard` | `2` |
+| `Rating.Good` | `3` |
+| `Rating.Easy` | `4` |
+
+`Grade` は、スケジューラがスケジューリングに使う評価の部分集合——`Again`、`Hard`、`Good`、`Easy`（1 〜 4）です。`State` はカードのライフサイクル上の位置を表します：
+
+| メンバー | 値 |
+| --- | --- |
+| `State.New` | `0` |
+| `State.Learning` | `1` |
+| `State.Review` | `2` |
+| `State.Relearning` | `3` |
+
+`ratingSchema`、`gradeSchema`、`stateSchema` はそれぞれの値を検証し、型推論で使われます。返されたカードの `state` と各復習ログの `rating` はこれらの enum です。復習中に状態がどう遷移するかは[状態遷移](../../guide/state-transitions)を参照してください。

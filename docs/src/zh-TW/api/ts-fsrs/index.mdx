@@ -1,0 +1,52 @@
+---
+title: ts-fsrs API 概覽
+description: ts-fsrs 公開 API 的索引——每個定義、預設、策略、模型與型別都有各自的參考頁面
+---
+
+# ts-fsrs API 概覽
+
+`ts-fsrs` 透過 `ts-fsrs` 根匯入與幾個子路徑進入點公開其排程機制。下方每個公開定義與領域都有各自的頁面，含匯入路徑、行為，以及指向對應[指南](../../guide/)主題的連結。
+
+## 根定義
+
+| 頁面 | 它是什麼 |
+| --- | --- |
+| [DefaultScheduler](./default-scheduler) | 現成的排程器預設（預設為 FSRS-6）。 |
+| [defineScheduler](./define-scheduler) | 從模型與 chrono 組成可重用的排程器。 |
+| [Scheduler](./scheduler) | `.create()` 與 `DefaultScheduler` 回傳的實例（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
+| [defineModel](./define-model) | 把有版本的 FSRS 模型包裝成定義。 |
+| [defineChrono](./define-chrono) | 定義自訂時間抽象。 |
+| [defineMiddleware](./middlewares/define-middleware) | 擴充 schema，並環繞排程器核心執行。 |
+
+## 內建策略
+
+來自 `ts-fsrs/middlewares` 的每個策略都有各自的頁面，附可執行的範例：
+
+| 頁面 | 中介軟體 |
+| --- | --- |
+| [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./middlewares/stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./middlewares/monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./middlewares/scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./middlewares/leech) | `schedulerLeechMiddleware` |
+
+## 值與型別
+
+| 頁面 | 它是什麼 |
+| --- | --- |
+| [Chrono 預設](./chrono-presets) | `dateChrono`、`numericChrono`、`temporalInstantChrono`。 |
+| [Rating、Grade、State](./rating-grade-state) | 評分、等級與卡片狀態及其 schema。 |
+| [Utils](./utils) | `clamp`、`roundTo` 數值輔助函式。 |
+| [型別](./types) | 匯出的排程器、模型與中介軟體型別。 |
+
+## 進入點
+
+| 頁面 | 它是什麼 |
+| --- | --- |
+| [模型](./models) | `ts-fsrs/models/fsrs-3` 到 `fsrs-6`。 |
+| [Reschedule](./reschedule) | `ts-fsrs/reschedule` 重新排程輔助工具。 |
+
+從 [DefaultScheduler](./default-scheduler) 或 [defineScheduler](./define-scheduler) 開始；[指南](../../guide/)說明如何組合各元件。

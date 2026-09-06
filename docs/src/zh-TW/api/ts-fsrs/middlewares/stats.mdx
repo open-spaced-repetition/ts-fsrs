@@ -1,0 +1,26 @@
+---
+title: Stats
+description: 內建中介軟體 schedulerStatsMiddleware——維護 reps 與 lapses 計數器
+---
+
+import RunCode from '../../../../components/RunCode'
+import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+
+# Stats
+
+`ts-fsrs/middlewares` 匯出 `schedulerStatsMiddleware`：
+
+```ts
+import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它維護卡片上的 `reps` 與 `lapses`。遺忘是指 Review 卡片上評為 Again。
+
+```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```
+
+<RunCode code={statsCode} />
+
+同一張卡片先評 Good 再評 Again 之後，`reps` 是 `2`，而這次 Again 計為一次 `lapse`。
+
+**另見** — [內建策略](../../../guide/middleware/built-in)。

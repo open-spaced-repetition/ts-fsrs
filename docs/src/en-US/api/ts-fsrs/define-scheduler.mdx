@@ -1,0 +1,30 @@
+---
+title: defineScheduler
+description: Reference for defineScheduler — compose a reusable scheduler definition from a model and chrono
+---
+
+# defineScheduler
+
+**Import:** `import { defineScheduler } from 'ts-fsrs'`
+
+**Signature**
+
+```ts
+defineScheduler({ model, chrono }): SchedulerDefinition
+```
+
+**Parameters**
+
+| Parameter | Type | Notes |
+| --- | --- | --- |
+| `model` | `Model` | Owns memory-state updates and interval math, e.g. `FSRS6Model`. |
+| `chrono` | `Chrono` | Owns the time representation and day arithmetic. |
+
+**Returns** — a reusable definition with two methods:
+
+```ts
+definition.use(...middleware): SchedulerDefinition   // new definition; original unchanged
+definition.create({ config }): Scheduler              // validates config, independent instance
+```
+
+**See** — [Scheduler overview](../../guide/scheduler) (definition-and-instance model), [defineModel](./define-model), [defineChrono](./define-chrono).

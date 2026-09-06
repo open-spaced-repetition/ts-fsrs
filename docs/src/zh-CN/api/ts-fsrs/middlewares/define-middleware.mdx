@@ -1,0 +1,27 @@
+---
+title: defineMiddleware
+description: defineMiddleware 参考 —— 扩展 schema 并在调度器核心周围运行处理函数
+---
+
+# defineMiddleware
+
+**导入：** `import { defineMiddleware } from 'ts-fsrs'`
+
+**签名**
+
+```ts
+defineMiddleware(definition): Middleware
+```
+
+**定义字段**
+
+| 字段 | 说明 |
+| --- | --- |
+| `name` | 必需。 |
+| `schema.config` / `card` / `revlog` / `cardInitInput` | 声明并校验字段。 |
+| `defaultValue.card` | 创建或遗忘卡片时提供字段。 |
+| `handlers.review` / `handlers.rollback` | 围绕 `next()` 运行；更新 `ctx.result`。 |
+
+**注册** —— 用 `.use(...)` 添加到调度器定义。内置策略从 `ts-fsrs/middlewares` 及根入口导出。
+
+**另见** —— [指南：内置策略](../../../guide/middleware/built-in)、[中间件指南](../../../guide/middleware)与[生命周期](../../../guide/middleware/lifecycle)（处理函数顺序、撤销）。

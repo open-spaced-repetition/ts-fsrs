@@ -1,0 +1,27 @@
+---
+title: defineMiddleware
+description: Reference for defineMiddleware — extend schemas and run handlers around the scheduler core
+---
+
+# defineMiddleware
+
+**Import:** `import { defineMiddleware } from 'ts-fsrs'`
+
+**Signature**
+
+```ts
+defineMiddleware(definition): Middleware
+```
+
+**Definition fields**
+
+| Field | Notes |
+| --- | --- |
+| `name` | Required. |
+| `schema.config` / `card` / `revlog` / `cardInitInput` | Declare and validate fields. |
+| `defaultValue.card` | Supply fields when creating or forgetting a card. |
+| `handlers.review` / `handlers.rollback` | Run around `next()`; update `ctx.result`. |
+
+**Registration** — add to a scheduler definition with `.use(...)`. Built-in policies export from `ts-fsrs/middlewares` and the root.
+
+**See** — [Guide: Built-in policies](../../../guide/middleware/built-in), [Middleware guide](../../../guide/middleware) and [Lifecycle](../../../guide/middleware/lifecycle) (handler order, rollback).

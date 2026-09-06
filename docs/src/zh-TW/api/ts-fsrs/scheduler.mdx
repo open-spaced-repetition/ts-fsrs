@@ -1,0 +1,45 @@
+---
+title: Scheduler
+description: defineScheduler.create 與 DefaultScheduler 回傳之排程器實例的參考
+---
+
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/api-scheduler.ts?raw'
+
+# Scheduler
+
+`defineScheduler(...).create({ config })` 與 `DefaultScheduler(options)` 都會回傳獨立的**排程器實例**。應用程式會呼叫此物件來建立卡片，以及排程、復原與預覽複習。
+
+**方法**
+
+| 方法 | 簽章 | 回傳 |
+| --- | --- | --- |
+| `newCard` | `newCard(input?)` | 處於預設狀態的卡片。 |
+| `review` | `review({ card, grade, now? })` | 該次複習的 `{ card, revlog }`。 |
+| `preview` | `preview({ card, now? })` | 四個評分各自對應之 `{ grade, card, revlog }` 的惰性可迭代物件。 |
+| `rollback` | `rollback({ card, revlog })` | 使用其儲存的 revlog，復原為複習前的卡片。 |
+| `forget` | `forget({ card, now? })` | 透過其預設值重置的卡片。 |
+
+`review` 與 `preview` 絕不會修改傳入的卡片；它們會回傳新卡片。`rollback` 接受一次複習的 `{ card, revlog }`，並還原為複習前的卡片。
+
+## 卡片狀態與 scheduleStatus
+
+每個回傳的卡片都攜帶兩個佇列欄位：`state` 與 `scheduleStatus`。`state` 是數值生命週期位置（New、Learning、Review、Relearning），見 [Rating, Grade, State](./rating-grade-state)。`scheduleStatus` 是排程器在排程時維護的字串佇列標籤：
+
+| 值 | 含義 |
+| --- | --- |
+| `'new'` | 等待首次複習的新卡片。 |
+| `'learning'` | 處於學習或再學習步驟的卡片。 |
+| `'review'` | 進入複習佇列的卡片。 |
+| 擴充 | 中介軟體可賦予更多狀態——例如 [Leech](./middlewares/leech) 會在卡片遺忘超過閾值時設為 `'suspended'`。 |
+
+schema 只辨識三種核心值；新增狀態的中介軟體會相應收窄型別。選擇下次要複習的卡片時，請遵守中介軟體寫入的狀態（如 `'suspended'`）。
+
+```ts twoslash file="../../../snippets/run-code/api-scheduler.ts"
+```
+
+<RunCode code={schedulerCode} />
+
+`newCard` 從狀態 `0`（New）開始；Good 複習會將它移到 `2`（Review）；`preview` 產生四個候選；`rollback` 還原原本的到期時間。
+
+**另見** — [defineScheduler](./define-scheduler)、[DefaultScheduler](./default-scheduler)、[指南：追蹤一次複習](../../guide/architecture)。

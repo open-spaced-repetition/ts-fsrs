@@ -1,0 +1,26 @@
+---
+title: DesiredRetention
+description: Built-in middleware schedulerDesiredRetentionMiddleware — applies the desired retention target before interval calculation
+---
+
+import RunCode from '../../../../components/RunCode'
+import desiredRetentionCode from '@/snippets/run-code/api-desired-retention.ts?raw'
+
+# DesiredRetention
+
+`ts-fsrs/middlewares` export `schedulerDesiredRetentionMiddleware`:
+
+```ts
+import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
+```
+
+It contributes `desiredRetention` to the scheduler config and applies it before the model computes an interval, so a lower retention yields a longer interval.
+
+```ts twoslash file="../../../../snippets/run-code/api-desired-retention.ts"
+```
+
+<RunCode code={desiredRetentionCode} />
+
+Running the same review at `0.9` and `0.8` retention schedules the due time three days apart while stability stays equal.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

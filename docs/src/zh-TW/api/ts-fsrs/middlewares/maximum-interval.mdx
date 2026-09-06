@@ -1,0 +1,26 @@
+---
+title: MaximumInterval
+description: 內建中介軟體 schedulerMaximumIntervalMiddleware——將天級間隔上限設為 maximumInterval
+---
+
+import RunCode from '../../../../components/RunCode'
+import maximumIntervalCode from '@/snippets/run-code/api-maximum-interval.ts?raw'
+
+# MaximumInterval
+
+`ts-fsrs/middlewares` 匯出 `schedulerMaximumIntervalMiddleware`：
+
+```ts
+import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
+```
+
+當中介軟體鏈回傳時，它把最終的天級間隔限制在 `maximumInterval` 以內。
+
+```ts twoslash file="../../../../snippets/run-code/api-maximum-interval.ts"
+```
+
+<RunCode code={maximumIntervalCode} />
+
+把上限設為一天，會將 Good 複習的到期時間限制在隔天，即使模型仍把穩定性保持在 `2.3065`。
+
+**另見** — [內建策略](../../../guide/middleware/built-in)。

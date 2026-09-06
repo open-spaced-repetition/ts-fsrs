@@ -1,0 +1,30 @@
+---
+title: defineScheduler
+description: defineScheduler 的參考——從模型與 chrono 組成可重用的排程器定義
+---
+
+# defineScheduler
+
+**匯入：** `import { defineScheduler } from 'ts-fsrs'`
+
+**簽章**
+
+```ts
+defineScheduler({ model, chrono }): SchedulerDefinition
+```
+
+**參數**
+
+| 參數 | 型別 | 備註 |
+| --- | --- | --- |
+| `model` | `Model` | 負責記憶狀態更新與間隔計算，例如 `FSRS6Model`。 |
+| `chrono` | `Chrono` | 負責時間表示與天數運算。 |
+
+**回傳** — 一個可重用的定義，帶有兩個方法：
+
+```ts
+definition.use(...middleware): SchedulerDefinition   // new definition; original unchanged
+definition.create({ config }): Scheduler              // validates config, independent instance
+```
+
+**另見** — [排程器指南](../../guide/scheduler)（定義與實例模型）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

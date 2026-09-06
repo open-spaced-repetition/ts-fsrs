@@ -1,0 +1,26 @@
+---
+title: Stats
+description: Built-in middleware schedulerStatsMiddleware — maintains the reps and lapses counters
+---
+
+import RunCode from '../../../../components/RunCode'
+import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+
+# Stats
+
+`ts-fsrs/middlewares` export `schedulerStatsMiddleware`:
+
+```ts
+import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+It maintains `reps` and `lapses` on the card. A lapse is an Again rating on a Review card.
+
+```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```
+
+<RunCode code={statsCode} />
+
+After a Good then an Again on the same card, `reps` is `2` and the Again counts as one `lapse`.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

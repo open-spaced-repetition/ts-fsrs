@@ -1,0 +1,31 @@
+---
+title: Rating、Grade、State
+description: 複習與卡片使用的評分與狀態列舉及其驗證 schema
+---
+
+# Rating、Grade、State
+
+```ts
+import { Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } from 'ts-fsrs'
+```
+
+`Rating` 涵蓋一次複習可攜帶的每個評分，包括一個手動值：
+
+| 成員 | 值 |
+| --- | --- |
+| `Rating.Manual` | `0` |
+| `Rating.Again` | `1` |
+| `Rating.Hard` | `2` |
+| `Rating.Good` | `3` |
+| `Rating.Easy` | `4` |
+
+`Grade` 是排程器用來排程的評分子集——`Again`、`Hard`、`Good` 與 `Easy`（1 到 4）。`State` 描述卡片在生命週期中的位置：
+
+| 成員 | 值 |
+| --- | --- |
+| `State.New` | `0` |
+| `State.Learning` | `1` |
+| `State.Review` | `2` |
+| `State.Relearning` | `3` |
+
+`ratingSchema`、`gradeSchema` 與 `stateSchema` 驗證各自的值，並用於型別推導。回傳卡片的 `state` 與每份 revlog 的 `rating` 都是這些列舉。複習期間狀態如何轉換見[指南](../../guide/state-transitions)。

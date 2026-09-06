@@ -1,0 +1,34 @@
+---
+title: DefaultScheduler
+description: DefaultScheduler 的參考——回傳現成排程器預設的非同步工廠
+---
+
+# DefaultScheduler
+
+**匯入：** `import { DefaultScheduler } from 'ts-fsrs'`
+
+**簽章**
+
+```ts
+DefaultScheduler(options?): Promise<DefaultScheduler>
+```
+
+**選項**（`DefaultSchedulerOptions`）
+
+| 選項 | 預設 | 備註 |
+| --- | --- | --- |
+| `version` | `'FSRS-6'` | `'FSRS-3'` … `'FSRS-6'`；參數會依版本遷移。 |
+| `weights` | 預設權重 | 選用的訓練權重。 |
+| `desiredRetention` | `0.9` | 間隔計算前的目標保留率。 |
+| `enableShortTerm` | `true` | 啟用學習與再學習步驟。 |
+| `learningSteps` | 預設步驟 | 短期排程開啟時套用。 |
+| `relearningSteps` | 預設步驟 | 短期排程開啟時套用。 |
+| `enableFuzz` | `false` | 啟用時分散間隔。 |
+| `maximumInterval` | `36500` | 間隔天數的上限。 |
+| `clearStatsOnForget` | `true` | `forget` 是否清除 `reps` 與 `lapses`。 |
+
+**行為** — 以 FSRS-6（預設）組合 `dateChrono` 與內建策略；回傳的實例暴露 `newCard`、`review`、`rollback`、`preview` 與 `forget`。
+
+**相關型別** — `DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`。
+
+**另見** — [DefaultScheduler 預設](../../guide/scheduler/default-scheduler)、[內建策略](../../guide/middleware/built-in)。
