@@ -1,0 +1,23 @@
+---
+title: 內建策略
+description: 了解 ts-fsrs 隨附的中介軟體策略，以及 DefaultScheduler 如何依序組合它們
+---
+
+# 內建策略
+
+以下匯出同時位於 `ts-fsrs/middlewares` 和 `ts-fsrs` 根入口：
+
+| 中介軟體 | 行為 |
+| --- | --- |
+| `schedulerDesiredRetentionMiddleware` | 在計算間隔前套用設定中的 `desiredRetention`，取值範圍為 `(0, 1]`。 |
+| `schedulerLearningStepsMiddleware` | 啟用 `enableShortTerm` 時套用 `learningSteps` 和 `relearningSteps`，維護 `learningStep` 與學習狀態。 |
+| `schedulerFuzzingMiddleware` | 啟用 `enableFuzz` 時分散間隔，使用 `cardId` 與複習次數產生可重現的結果。`createSchedulerFuzzingMiddleware()` 支援自訂範圍與亂數產生器。 |
+| `schedulerMaximumIntervalMiddleware` | 將天級間隔限制在 `maximumInterval` 以內；呼叫鏈回傳時，明確指定的學習步驟可以覆寫這個上限。 |
+| `schedulerStatsMiddleware` | 維護 `reps` 與 `lapses`，由 `clearStatsOnForget` 決定重設時是否清除。Review 狀態的卡片評為 Again 才計為一次遺忘。 |
+| `schedulerMonotonicIntervalMiddleware` | 在 `maximumInterval` 限制內調整不同評分的天級間隔順序；達到上限時，間隔可以相同。 |
+| `schedulerScheduledDaysMiddleware` | 將最終間隔儲存為卡片上非負的整天數 `scheduledDays`，並把原值寫入 revlog。不到一天的步驟記為 `0`。 |
+| `schedulerLeechMiddleware` | 遺忘次數每達到正數 `leechThreshold` 的整數倍時，將 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 關閉此行為；應用程式選卡時需要自行遵守該狀態。 |
+
+`DefaultScheduler` 已包含前七項，順序為目標保留率 → 模糊間隔 → 統計 → scheduled days → 學習步驟 → 最大間隔 → 單調間隔。Leech 需要在自行組合定義時視需要加入。順序為何重要見[生命週期](./lifecycle)；中介軟體如何執行見[概覽](./index)。
+
+直接使用現成排程器見[快速開始](../quick-start)；依應用程式需要組合策略見[整體架構](../architecture)。

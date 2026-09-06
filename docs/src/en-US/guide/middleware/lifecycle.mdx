@@ -1,0 +1,30 @@
+---
+title: Lifecycle
+description: Follow how middleware handlers run in order around the scheduler core, and how rollback and preview reuse the same handlers
+---
+
+# Lifecycle
+
+Handlers run synchronously around the scheduler core in the order the middleware was registered. `.use(a, b)` and `.use(a).use(b)` register the same order, and each `use` returns a new definition without changing the original. The scheduler core sits in the middle of the chain, so code before `next()` prepares the operation and code after it sees the result.
+
+## Order around the core
+
+For `.use(a, b)`, the call order is:
+
+```text
+a: before next()
+  b: before next()
+    scheduler core
+  b: after next()
+a: after next()
+```
+
+Call `next()` once to continue the normal scheduling flow. Set inputs such as `ctx.desiredRetention` before it; inspect or change the computed result after it. In review, `ctx.scheduledDays` is the interval in days. The scheduler applies the configured chrono after the handlers finish to calculate the due time, then validates the result.
+
+Order matters when policies interact: register `schedulerScheduledDaysMiddleware` before the interval policies so it records their final result on unwind; keep learning steps before the maximum- and monotonic-interval policies so explicit steps retain their delay. Register leech before handlers that set `scheduleStatus` after `next()`, so suspension is applied last. The [Built-in policies](./built-in) page lists each policy and how `DefaultScheduler` orders them.
+
+## Review and rollback
+
+Rollback uses its own handlers in the same registration order. A rollback handler receives `ctx.input.card` and `ctx.input.revlog`, and writes only `ctx.result.card`. Schema declarations alone do not restore custom fields: save the required old values during review and restore them in the rollback handler, as the streak example on the [Overview](./index) does.
+
+Preview runs the review handlers for the requested candidate ratings. Keep handlers free of database writes, notifications, and other external effects; persist the selected review result in your application. `forget()` resets a card with its defaults rather than running a separate handler, so the streak example resets the counter to zero.
