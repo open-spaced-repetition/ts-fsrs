@@ -4,7 +4,7 @@ description: defineScheduler.create と DefaultScheduler が返すスケジュ�
 ---
 
 import RunCode from '../../../components/RunCode'
-import schedulerCode from '@/snippets/run-code/api-scheduler.ts?raw'
+import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 
 # Scheduler
 
@@ -35,11 +35,11 @@ import schedulerCode from '@/snippets/run-code/api-scheduler.ts?raw'
 
 schema は三つのコア値を認識し、状態を追加するミドルウェアは型を絞り込みます。次に復習するカードを選ぶときは、ミドルウェアが書き込んだ状態（`'suspended'` など）を尊重してください。
 
-```ts twoslash file="../../../snippets/run-code/api-scheduler.ts"
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/scheduler.ts"
 ```
 
 <RunCode code={schedulerCode} />
 
 `newCard` は状態 `0`（New）で始まり、Good レビューで `2`（Review）に移ります。`preview` は 4 つの候補を生成し、`rollback` は元の期限を復元します。
 
-**関連** — [defineScheduler](./define-scheduler)、[DefaultScheduler](./default-scheduler)、[ガイド: レビューを追う](../../guide/architecture)。
+**関連** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)、[ガイド: レビューを追う](../../guide/architecture)。

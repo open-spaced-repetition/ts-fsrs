@@ -4,7 +4,7 @@ description: 內建中介軟體 schedulerScheduledDaysMiddleware——將最終�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import scheduledDaysCode from '@/snippets/run-code/api-scheduled-days.ts?raw'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
 
 # ScheduledDays
 
@@ -16,7 +16,7 @@ import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 
 它把最終間隔儲存為卡片上非負的整數 `scheduledDays`，並在 revlog 中記錄先前的值，因此複習可以在 rollback 時還原它。
 
-```ts twoslash file="../../../../snippets/run-code/api-scheduled-days.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```
 
 <RunCode code={scheduledDaysCode} />

@@ -1,0 +1,46 @@
+---
+title: ミドルウェア
+description: ts-fsrs/middlewares の索引 — 組み込みポリシーと、併せてエクスポートされる既定値・補助関数・スキーマ
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/middlewares/helpers.ts?raw'
+
+# ミドルウェア
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+ミドルウェアはスケジューラのスキーマを拡張し、コア処理の前後でロジックを実行できます。独自のミドルウェアは [defineMiddleware](../define/define-middleware) で作成します。
+
+## 組み込みポリシー
+
+| ページ | エクスポート |
+| --- | --- |
+| [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./leech) | `schedulerLeechMiddleware` |
+
+## 併せてエクスポートされるもの
+
+各ポリシーの挙動はそれぞれのページを参照してください。このエントリポイントは、関連する既定値・補助関数・スキーマもエクスポートします。
+
+| グループ | エクスポート |
+| --- | --- |
+| 既定値 | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
+| 補助関数 | `calculateLearningSteps`, `calculateScheduleDay`, `fnv1aMulberry32Rng` |
+| 設定スキーマ | `desiredRetentionConfigSchema`, `learningStepsConfigSchema`, `fuzzingConfigSchema`, `statsConfigSchema`, `monotonicIntervalConfigSchema`, `leechConfigSchema` |
+| フィールドスキーマ | `learningStepFieldsSchema`, `fuzzingCardFieldsSchema`, `fuzzingCardInitInputSchema`, `fuzzingRevlogFieldsSchema`, `statsFieldsSchema`, `scheduledDaysFieldsSchema`, `leechCardFieldsSchema` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/helpers.ts"
+```
+
+<RunCode code={code} />
+
+**参照** — [defineMiddleware](../define/define-middleware)、[組み込みポリシー](../../../guide/middleware/built-in)。

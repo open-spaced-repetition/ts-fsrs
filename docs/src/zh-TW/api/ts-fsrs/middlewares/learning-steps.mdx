@@ -4,7 +4,7 @@ description: 內建中介軟體 schedulerLearningStepsMiddleware——在短期�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import learningStepsCode from '@/snippets/run-code/api-learning-steps.ts?raw'
+import learningStepsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts?raw'
 
 # LearningSteps
 
@@ -16,7 +16,7 @@ import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
 
 啟用短期排程時，它會套用設定的 `learningSteps` 與 `relearningSteps`，並維護卡片的 `learningStep` 與學習狀態。
 
-```ts twoslash file="../../../../snippets/run-code/api-learning-steps.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
 ```
 
 <RunCode code={learningStepsCode} />

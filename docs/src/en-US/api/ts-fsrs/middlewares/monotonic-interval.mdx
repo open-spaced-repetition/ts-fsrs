@@ -4,7 +4,7 @@ description: Built-in middleware schedulerMonotonicIntervalMiddleware — orders
 ---
 
 import RunCode from '../../../../components/RunCode'
-import monotonicCode from '@/snippets/run-code/api-monotonic-interval.ts?raw'
+import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts?raw'
 
 # MonotonicInterval
 
@@ -16,7 +16,7 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 It orders the scheduled day interval across the four ratings so harder ratings never schedule later than easier ones (subject to `maximumInterval`).
 
-```ts twoslash file="../../../../snippets/run-code/api-monotonic-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```
 
 <RunCode code={monotonicCode} />

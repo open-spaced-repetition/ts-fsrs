@@ -1,5 +1,9 @@
 [
-  "define-middleware",
+  {
+    "type": "file",
+    "name": "index",
+    "label": "概要"
+  },
   "desired-retention",
   "learning-steps",
   "fuzz",

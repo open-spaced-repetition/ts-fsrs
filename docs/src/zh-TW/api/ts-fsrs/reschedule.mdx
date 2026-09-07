@@ -4,7 +4,7 @@ description: ts-fsrs/reschedule 進入點——在一般複習流程之外重播
 ---
 
 import RunCode from '../../../components/RunCode'
-import rescheduleCode from '@/snippets/run-code/api-reschedule.ts?raw'
+import rescheduleCode from '@/snippets/run-code/api/ts-fsrs/reschedule.ts?raw'
 
 # Reschedule
 
@@ -38,7 +38,7 @@ const result = reschedule.reschedule({ history, initialCard: card })
 // result.card     — the card after the last review
 ```
 
-```ts twoslash file="../../../snippets/run-code/api-reschedule.ts"
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/reschedule.ts"
 ```
 
 <RunCode code={rescheduleCode} />
@@ -47,4 +47,4 @@ const result = reschedule.reschedule({ history, initialCard: card })
 
 **相關型別** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`，以及推導型別 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
 
-**另見** — [defineScheduler](./define-scheduler)、[DefaultScheduler](./default-scheduler)。
+**另見** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。

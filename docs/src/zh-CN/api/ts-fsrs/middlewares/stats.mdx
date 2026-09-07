@@ -4,7 +4,7 @@ description: 内置中间件 schedulerStatsMiddleware —— 维护 reps 与 lap
 ---
 
 import RunCode from '../../../../components/RunCode'
-import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+import statsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/stats.ts?raw'
 
 # Stats
 
@@ -16,7 +16,7 @@ import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
 
 它在卡片上维护 `reps` 与 `lapses`。一次遗忘指 Review 状态的卡片被评为 Again。
 
-```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/stats.ts"
 ```
 
 <RunCode code={statsCode} />

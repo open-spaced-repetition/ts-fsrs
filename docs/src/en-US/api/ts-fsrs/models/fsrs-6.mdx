@@ -1,0 +1,55 @@
+---
+title: FSRS-6
+description: Reference for ts-fsrs/models/fsrs-6 — the default model, its weights, bounds, parameter helpers, and decay
+---
+
+import RunCode from '../../../../components/RunCode'
+import fsrs6Code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-6.ts?raw'
+
+# FSRS-6
+
+The default model. [DefaultScheduler](../default-scheduler) uses it, and
+[defineScheduler](../define/define-scheduler) takes it as the `model` argument.
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+## Model
+
+| Export | Kind | What it is |
+| --- | --- | --- |
+| `FSRS6Model` | model definition | Pass to `defineScheduler({ model })`. |
+| `FSRS6Algorithm` | class | Algorithm class for stability, difficulty, and retrievability calculations. The model creates the instance; direct construction is usually unnecessary. |
+
+## Constants
+
+| Export | Value | What it is |
+| --- | --- | --- |
+| `FSRS6_DEFAULT_WEIGHTS` | 21 numbers | Default weight array; its length is the required parameter count. |
+| `FSRS6_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | Stability and difficulty limits allowed by the model. |
+| `FSRS6_DECAY` | `0.1542` | Decay parameter controlling the shape of the forgetting curve. |
+| `FSRS6_W17_W18_CEILING` | `2` | Upper bound for `w17` and `w18`. `clipFSRS6Parameters` lowers it further when `numRelearningSteps > 1`. |
+
+## Parameters
+
+| Export | Signature | Behavior |
+| --- | --- | --- |
+| `clipFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => number[]` | Clamps out-of-range weights to their allowed ranges, leaving in-range values unchanged. |
+| `checkFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => weights` | Returns the input untouched, or throws `FSRSValidationError` if any weight is out of bounds or the length is wrong. |
+| `migrateFSRS6Parameters` | `(weights?) => number[]` | Migrates weights according to the version-specific rules; uses defaults for absent or empty input. |
+| `computeDecayFactor` | `(decayOrWeights) => { decay, factor }` | Computes the forgetting curve's decay exponent and scaling factor. Note the returned `decay` is negated: `0.1542` in gives `-0.1542`. |
+
+## Schemas
+
+| Export | Validates |
+| --- | --- |
+| `fsrs6ConfigSchema` | `{ weights, enableShortTerm, numRelearningSteps }`. |
+| `decaySchema` | A decay parameter in the inclusive range `[0.1, 0.8]`. |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-6.ts"
+```
+
+<RunCode code={fsrs6Code} />
+
+**See** — [defineModel](../define/define-model), [Model guide](../../../guide/model/fsrs-6).
