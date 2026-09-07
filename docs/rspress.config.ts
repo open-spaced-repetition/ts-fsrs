@@ -219,7 +219,7 @@ export default defineConfig({
         // the per-locale feeds rather than at one locale's `.xml`.
         icon: { svg: rssIcon },
         mode: 'link',
-        content: '/guide/llms#feeds',
+        content: withBase('/guide/llms#feeds', base),
       },
     ],
     editLink: {
