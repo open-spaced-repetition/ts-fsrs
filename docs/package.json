@@ -1,0 +1,21 @@
+{
+  "name": "@ts-fsrs/website",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "rspress:dev": "rspress dev",
+    "rspress:build": "rspress build",
+    "preview": "rspress preview",
+    "prepare:packages": "node scripts/prepare-wasm-package.mjs",
+    "verify:packages": "node scripts/verify-packages.mjs"
+  },
+  "dependencies": {
+    "@open-spaced-repetition/binding-wasm32-wasip1": "workspace:^",
+    "ts-fsrs": "workspace:*"
+  },
+  "devDependencies": {
+    "@rspress/core": "2.0.19",
+    "@rspress/plugin-rss": "2.0.19"
+  }
+}
