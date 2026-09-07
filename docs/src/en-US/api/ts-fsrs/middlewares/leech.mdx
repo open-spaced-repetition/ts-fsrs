@@ -4,7 +4,7 @@ description: Built-in middleware schedulerLeechMiddleware — suspends cards tha
 ---
 
 import RunCode from '../../../../components/RunCode'
-import leechCode from '@/snippets/run-code/api-leech.ts?raw'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 
 # Leech
 
@@ -16,7 +16,7 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 
 It reads lapses from the stats middleware and sets `scheduleStatus` to `suspended` whenever lapses reach a positive integer multiple of `leechThreshold`. The default threshold `0` disables suspension; your application must respect the status when selecting cards.
 
-```ts twoslash file="../../../../snippets/run-code/api-leech.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```
 
 <RunCode code={leechCode} />

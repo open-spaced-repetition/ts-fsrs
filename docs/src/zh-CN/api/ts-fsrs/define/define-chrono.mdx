@@ -1,0 +1,29 @@
+---
+title: defineChrono
+description: defineChrono 参考 —— 为调度器定义自定义时间抽象
+---
+
+# defineChrono
+
+**导入：** `import { defineChrono } from 'ts-fsrs'`
+
+**签名**
+
+```ts
+defineChrono(definition): Chrono
+```
+
+定义携带 `schema`、`projection`、`defaultValue` 与一个 `create` 工厂。
+
+**运行时操作** —— Chrono 提供调度器调用的时间函数：
+
+| 操作 | 含义 |
+| --- | --- |
+| `now()` | 调用方省略 `now` 时提供时间。 |
+| `difference(from, to)` | 返回供模型使用的经过天数。 |
+| `add(from, days)` | 把最终间隔转换为到期时间。 |
+| `compare(left, right)` | 可选的精确排序。 |
+
+**预设** —— [`dateChrono`、`numericChrono`、`temporalInstantChrono`](../chrono-presets)。
+
+**另见** —— [Chrono 指南](../../../guide/chrono)（投影与 `defineChrono` 示例）。

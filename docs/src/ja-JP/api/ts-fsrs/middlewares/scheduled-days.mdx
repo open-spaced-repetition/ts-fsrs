@@ -4,7 +4,7 @@ description: 組み込みミドルウェア schedulerScheduledDaysMiddleware—�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import scheduledDaysCode from '@/snippets/run-code/api-scheduled-days.ts?raw'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
 
 # ScheduledDays
 
@@ -16,7 +16,7 @@ import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 
 これは最終間隔を非負の整数日 `scheduledDays` としてカードに保存し、変更前の値を復習ログに記録します。rollback 時に復習がその値を復元できるようにするためです。
 
-```ts twoslash file="../../../../snippets/run-code/api-scheduled-days.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```
 
 <RunCode code={scheduledDaysCode} />

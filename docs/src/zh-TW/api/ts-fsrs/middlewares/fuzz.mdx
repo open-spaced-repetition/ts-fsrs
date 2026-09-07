@@ -4,7 +4,7 @@ description: 內建中介軟體 schedulerFuzzingMiddleware——啟用 enableFuz
 ---
 
 import RunCode from '../../../../components/RunCode'
-import fuzzCode from '@/snippets/run-code/api-fuzz.ts?raw'
+import fuzzCode from '@/snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts?raw'
 
 # Fuzzing
 
@@ -16,7 +16,7 @@ import { schedulerFuzzingMiddleware } from 'ts-fsrs/middlewares'
 
 當 `enableFuzz` 開啟時，它會用 `cardId` 與複習次數分散間隔，因此固定卡片的結果仍可重現。設定中需要 `maximumInterval` 來限制分散的範圍。
 
-```ts twoslash file="../../../../snippets/run-code/api-fuzz.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts"
 ```
 
 <RunCode code={fuzzCode} />

@@ -1,0 +1,46 @@
+---
+title: 中间件
+description: ts-fsrs/middlewares 索引——内置策略，以及与之一同导出的默认值、辅助函数与 schema
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/middlewares/helpers.ts?raw'
+
+# 中间件
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+中间件可扩展调度器的数据校验规则（schema），并在核心处理前后执行逻辑。用 [defineMiddleware](../define/define-middleware) 编写自己的中间件。
+
+## 内置策略
+
+| 页面 | 导出 |
+| --- | --- |
+| [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./leech) | `schedulerLeechMiddleware` |
+
+## 其他导出
+
+各内置策略的行为详见对应页面。此入口还导出相关默认值、辅助函数和数据校验规则。
+
+| 分组 | 导出 |
+| --- | --- |
+| 默认值 | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
+| 辅助函数 | `calculateLearningSteps`, `calculateScheduleDay`, `fnv1aMulberry32Rng` |
+| 配置校验规则 | `desiredRetentionConfigSchema`, `learningStepsConfigSchema`, `fuzzingConfigSchema`, `statsConfigSchema`, `monotonicIntervalConfigSchema`, `leechConfigSchema` |
+| 字段校验规则 | `learningStepFieldsSchema`, `fuzzingCardFieldsSchema`, `fuzzingCardInitInputSchema`, `fuzzingRevlogFieldsSchema`, `statsFieldsSchema`, `scheduledDaysFieldsSchema`, `leechCardFieldsSchema` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/helpers.ts"
+```
+
+<RunCode code={code} />
+
+**参见** —— [defineMiddleware](../define/define-middleware)，[内置策略](../../../guide/middleware/built-in)。

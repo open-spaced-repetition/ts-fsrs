@@ -4,7 +4,7 @@ description: 内置中间件 schedulerMonotonicIntervalMiddleware —— 跨评�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import monotonicCode from '@/snippets/run-code/api-monotonic-interval.ts?raw'
+import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts?raw'
 
 # MonotonicInterval
 
@@ -16,7 +16,7 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 它跨四种评分排序已安排的天级间隔，使更难的评分永远不会比更容易的评分安排得更晚（受 `maximumInterval` 约束）。
 
-```ts twoslash file="../../../../snippets/run-code/api-monotonic-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```
 
 <RunCode code={monotonicCode} />

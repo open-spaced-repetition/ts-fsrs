@@ -4,7 +4,7 @@ description: 内置中间件 schedulerScheduledDaysMiddleware —— 将最终�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import scheduledDaysCode from '@/snippets/run-code/api-scheduled-days.ts?raw'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
 
 # ScheduledDays
 
@@ -16,7 +16,7 @@ import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 
 它将最终间隔以非负整数 `scheduledDays` 保存在卡片上，并在 revlog 中记录原值，使复习在回滚时可以恢复它。
 
-```ts twoslash file="../../../../snippets/run-code/api-scheduled-days.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```
 
 <RunCode code={scheduledDaysCode} />
