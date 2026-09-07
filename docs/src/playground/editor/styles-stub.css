@@ -1,0 +1,11 @@
+/*
+ * Every `monaco-editor/esm/**\/*.css` import resolves here (see
+ * rspress.config.ts). Rspress splits CSS with a `chunks: 'all'` cache group, so
+ * Monaco's ~300 kB of per-component styles would otherwise be emitted into the
+ * site-wide stylesheet that every documentation route downloads.
+ *
+ * The file must stay a stylesheet: the imports are ordinary CSS side effects,
+ * and dropping them at resolve time makes Rspack emit a module that throws at
+ * runtime. Empty content contributes nothing to the bundle, while
+ * `createMonacoEditor` injects the equivalent prebuilt `editor.main.css`.
+ */

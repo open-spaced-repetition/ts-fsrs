@@ -1,0 +1,25 @@
+---
+title: Playground
+description: 在浏览器中编辑并运行带真实类型提示的 ts-fsrs 与 WASIP1 优化器示例。
+sidebar: false
+---
+
+import LivePlayground from '../components/LivePlayground'
+import RevlogTrainer from '../components/RevlogTrainer'
+
+
+# Playground
+
+直接在浏览器中运行当前工作区的构建。Monaco 使用仓库中 `ts-fsrs` 与 `@open-spaced-repetition/binding` 的真实声明，因此悬停信息、诊断、补全与跳转定义都和实际包一致。
+
+<LivePlayground />
+
+## 使用 WASIP1 binding 训练
+
+配套包的浏览器入口、CSV 转换、`FSRSBindingItem` / `FSRSBindingReview` 创建以及全部优化器调用都留在同一个专用 Worker 内。主线程只读取所选 `File` 的文本并发送给 Worker。
+
+<RevlogTrainer />
+
+该链接会下载一份来自 `fsrs-rs` 的[示例 `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv)，包含 123,730 条复习记录，大小为 4,626,708 bytes。binding 使用 Rust `csv` 解析器，正确支持 CRLF、引号和字段内逗号。转换器按 `card_id` 分组并按 `review_time` 排序，从最后一个 New/Learning 块开始保留历史。所选 IANA 时区会逐条解析时间戳的当地时间与夏令时，早于所选 `nextDayStartsAt` 的当地复习计入前一学习日；转换器以这些学习日之间的完整日数计算 `deltaT`，只创建当前 `deltaT > 0` 的训练项。
+
+短期参数是可选的：启用后可建模当天内的复习，关闭后只训练长期权重。无论哪种方式，页面都会完整显示返回的 `weights` 数组，不舍入、不截断。

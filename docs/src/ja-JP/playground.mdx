@@ -1,0 +1,25 @@
+---
+title: Playground
+description: 実際の型ヒント付きで ts-fsrs と WASIP1 オプティマイザーをブラウザー実行します。
+sidebar: false
+---
+
+import LivePlayground from '../components/LivePlayground'
+import RevlogTrainer from '../components/RevlogTrainer'
+
+
+# Playground
+
+現在のワークスペースビルドをブラウザーで直接実行できます。Monaco はリポジトリ内の `ts-fsrs` と `@open-spaced-repetition/binding` の実際の宣言を読み込むため、ホバー、診断、補完、定義ジャンプが公開パッケージと一致します。
+
+<LivePlayground />
+
+## WASIP1 binding で学習
+
+コンパニオンパッケージのブラウザーエントリー、CSV 変換、`FSRSBindingItem` / `FSRSBindingReview` の生成、オプティマイザー呼び出しはすべて同じ専用 Worker 内に残ります。メインスレッドは選択した `File` のテキストを読み、それを Worker に送るだけです。
+
+<RevlogTrainer />
+
+このリンクからは `fsrs-rs` の[サンプル `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv) をダウンロードできます。123,730 件の復習レコードを含む 4,626,708 bytes のデータセットです。binding の Rust `csv` パーサーは CRLF、引用符、フィールド内のカンマを正しく処理します。コンバーターは `card_id` ごとにグループ化して `review_time` 順に並べ、最後の New/Learning ブロックから履歴を保持します。選択した IANA タイムゾーンで各タイムスタンプの現地時刻と夏時間を解決し、選択した `nextDayStartsAt` より前の現地時刻を前の学習日に割り当てます。その学習日間の整数日の距離を `deltaT` として計算し、現在の `deltaT > 0` の学習アイテムだけを生成します。
+
+短期パラメーターは任意です。有効にすると当日中の復習をモデル化し、無効にすると長期のみの重みを学習します。いずれの場合も、返された完全な `weights` 配列を丸めず、省略せずに表示します。

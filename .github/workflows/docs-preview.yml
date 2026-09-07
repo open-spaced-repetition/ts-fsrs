@@ -5,6 +5,9 @@ on:
     types: [opened, synchronize, reopened, ready_for_review, labeled]
     paths:
       - 'docs/**'
+      - 'packages/fsrs/src/**'
+      - 'packages/srs-kit/src/**'
+      - 'packages/binding/src/**'
       - 'packages/fsrs/package.json'
       - 'packages/srs-kit/package.json'
       - 'packages/binding/package.json'
@@ -52,12 +55,21 @@ jobs:
           toolchain: 1.94.1
           targets: wasm32-wasip1
 
+      - name: Cache sample review log
+        uses: actions/cache@v6
+        with:
+          path: docs/src/public/revlog.csv
+          key: revlog-csv-v1
+
       - name: Build docs and dependencies
         run: pnpm docs:build
         env:
           DOCS_SITE_ORIGIN: ${{ env.PREVIEW_URL }}
           DOCS_REPO_SLUG: ${{ github.event.pull_request.head.repo.full_name }}
           DOCS_REPO_REF: ${{ github.event.pull_request.head.ref }}
+
+      - name: Test docs
+        run: pnpm --filter @ts-fsrs/website test:docs
 
       - name: Save preview metadata
         env:

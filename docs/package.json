@@ -7,15 +7,29 @@
     "rspress:dev": "rspress dev",
     "rspress:build": "rspress build",
     "preview": "rspress preview",
+    "check": "biome check .",
+    "check:fix": "biome check --write .",
+    "typecheck": "tsc --noEmit --pretty false",
+    "test:docs": "vitest run --config vitest.config.ts",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
+    "prepare:revlog": "node scripts/fetch-revlog.mjs",
     "verify:packages": "node scripts/verify-packages.mjs"
   },
   "dependencies": {
     "@open-spaced-repetition/binding-wasm32-wasip1": "workspace:^",
+    "clsx": "^2.1.1",
+    "monaco-editor": "0.55.1",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-json-view-lite": "^2.5.0",
     "ts-fsrs": "workspace:*"
   },
   "devDependencies": {
+    "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@rspress/core": "2.0.19",
-    "@rspress/plugin-rss": "2.0.19"
+    "@rspress/plugin-rss": "2.0.19",
+    "@types/react": "19.2.18",
+    "tailwindcss": "^4.3.3",
+    "typescript-compiler": "npm:typescript@6.0.3"
   }
 }

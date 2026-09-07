@@ -1,0 +1,25 @@
+---
+title: Playground
+description: Edit and run typed ts-fsrs and WASIP1 optimizer examples without blocking the page.
+sidebar: false
+---
+
+import LivePlayground from '../components/LivePlayground'
+import RevlogTrainer from '../components/RevlogTrainer'
+
+
+# Playground
+
+Run the current workspace build directly in your browser. Monaco reads the real `ts-fsrs` and `@open-spaced-repetition/binding` declarations, so hover information, diagnostics, completions, and go-to-definition match the packages in this repository.
+
+<LivePlayground />
+
+## Train with the WASIP1 binding
+
+The companion package's browser entry, CSV conversion, `FSRSBindingItem` / `FSRSBindingReview` creation, and every optimizer call stay inside the same dedicated Worker. The main thread only reads the selected `File` as text and sends that text to the Worker.
+
+<RevlogTrainer />
+
+The link downloads a [sample `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv) from `fsrs-rs`: 123,730 review records, 4,626,708 bytes. Parsing uses the binding's Rust `csv` implementation, so quoted fields, embedded commas, and CRLF records are supported. The converter groups rows by `card_id`, sorts each history by `review_time`, and keeps the history beginning at the last New/Learning block. The selected IANA timezone resolves local time and daylight-saving transitions for each timestamp; the selected `nextDayStartsAt` hour assigns earlier local reviews to the previous study day. The converter derives each `FSRSBindingReview.deltaT` as the whole-day distance between those study dates and creates training items only when the current review has `deltaT > 0`.
+
+Short-term parameters are optional: enable them to model same-day reviews, or turn them off to train long-term-only weights. Either way the complete returned `weights` array is displayed without rounding or truncation.
