@@ -29,7 +29,7 @@ export function useMonacoEditor(
   onChangeRef.current = onChange
   const generationRef = useRef(0)
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [ready, setReady] = useState(false)
 
   const load = useCallback(async (initialValue: string) => {
