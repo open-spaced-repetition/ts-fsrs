@@ -24,7 +24,10 @@ const review = scheduler.review({ card, grade: Rating.Good, now })
 const previewCount = Array.from(
   scheduler.preview({ card: review.card, now: review.card.dueAt })
 ).length
-const rolledBack = scheduler.rollback({ card: review.card, revlog: review.revlog })
+const rolledBack = scheduler.rollback({
+  card: review.card,
+  revlog: review.revlog,
+})
 
 console.log(
   JSON.stringify({
