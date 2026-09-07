@@ -61,9 +61,9 @@ const REQUIRE_CALL = /\brequire\(\s*["'`]([^"'`]+)["'`]\s*\)/g
 
 async function loadLazyModules(code: string): Promise<void> {
   for (const [, specifier] of code.matchAll(REQUIRE_CALL)) {
-    const load = lazyModules[specifier]
-    if (!load || loadedLazyModules.has(specifier)) continue
-    loadedLazyModules.set(specifier, await load())
+    if (!Object.hasOwn(lazyModules, specifier)) continue
+    if (loadedLazyModules.has(specifier)) continue
+    loadedLazyModules.set(specifier, await lazyModules[specifier]())
   }
 }
 
