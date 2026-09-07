@@ -11,6 +11,7 @@
     "check:fix": "biome check --write .",
     "typecheck": "tsc --noEmit --pretty false",
     "test:docs": "vitest run --config vitest.config.ts",
+    "test:e2e": "playwright test",
     "prepare:packages": "node scripts/prepare-wasm-package.mjs",
     "prepare:revlog": "node scripts/fetch-revlog.mjs",
     "verify:packages": "node scripts/verify-packages.mjs"
@@ -25,6 +26,7 @@
     "ts-fsrs": "workspace:*"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.1",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@rspress/core": "2.0.19",
     "@rspress/plugin-rss": "2.0.19",
