@@ -228,14 +228,12 @@ Rating.Easy
 ## API Documentation
 
 - Repository overview: [github.com/open-spaced-repetition/ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs#readme)
-- TypeDoc API docs: [open-spaced-repetition.github.io/ts-fsrs](https://open-spaced-repetition.github.io/ts-fsrs/)
 - Optimizer package: [`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)
 - Simplified Chinese README: [README_CN.md](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/packages/fsrs/README_CN.md)
 - Japanese README: [README_JA.md](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/packages/fsrs/README_JA.md)
 
 ## Examples
 
-- Browser example: [example/example.html](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html)
 - Full-stack demo: [ts-fsrs-demo](https://github.com/ishiko732/ts-fsrs-demo)
 - Other:
   - [spaced](https://github.com/zsh-eng/spaced)

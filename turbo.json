@@ -73,10 +73,6 @@
     "dev": {
       "cache": false,
       "persistent": true
-    },
-    "docs": {
-      "dependsOn": ["build"],
-      "outputs": ["../../docs/**"]
     }
   }
 }

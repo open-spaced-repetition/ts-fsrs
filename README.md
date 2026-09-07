@@ -6,7 +6,6 @@
 
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 **ts-fsrs is a TypeScript toolkit for building spaced repetition systems with FSRS.**
 
@@ -63,7 +62,6 @@ For detailed usage, advanced examples, browser/WASI setup, and API notes:
 
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
-- [TypeDoc API docs](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [State transition diagram for cards](./ts-fsrs-workflow.drawio)
 
 ## Examples
