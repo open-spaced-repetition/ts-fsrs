@@ -4,7 +4,7 @@ description: Built-in middleware schedulerScheduledDaysMiddleware — stores the
 ---
 
 import RunCode from '../../../../components/RunCode'
-import scheduledDaysCode from '@/snippets/run-code/api-scheduled-days.ts?raw'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
 
 # ScheduledDays
 
@@ -16,7 +16,7 @@ import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 
 It stores the final interval as a nonnegative whole `scheduledDays` on the card and records the previous value in the revlog, so a review can restore it on rollback.
 
-```ts twoslash file="../../../../snippets/run-code/api-scheduled-days.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```
 
 <RunCode code={scheduledDaysCode} />

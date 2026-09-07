@@ -1,0 +1,48 @@
+---
+title: Middlewares
+description: Index of ts-fsrs/middlewares — the built-in policies and the defaults, helpers, and schemas exported alongside them
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/middlewares/helpers.ts?raw'
+
+# Middlewares
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+Middleware can extend a scheduler's schemas and run logic before and after core processing. Build your
+own with [defineMiddleware](../define/define-middleware).
+
+## Built-in policies
+
+| Page | Export |
+| --- | --- |
+| [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./leech) | `schedulerLeechMiddleware` |
+
+## Also exported
+
+Each policy's page covers its own behavior. The entry point also exports the
+pieces the policies are built from.
+
+| Group | Exports |
+| --- | --- |
+| Defaults | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
+| Helpers | `calculateLearningSteps`, `calculateScheduleDay`, `fnv1aMulberry32Rng` |
+| Config schemas | `desiredRetentionConfigSchema`, `learningStepsConfigSchema`, `fuzzingConfigSchema`, `statsConfigSchema`, `monotonicIntervalConfigSchema`, `leechConfigSchema` |
+| Field schemas | `learningStepFieldsSchema`, `fuzzingCardFieldsSchema`, `fuzzingCardInitInputSchema`, `fuzzingRevlogFieldsSchema`, `statsFieldsSchema`, `scheduledDaysFieldsSchema`, `leechCardFieldsSchema` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/helpers.ts"
+```
+
+<RunCode code={code} />
+
+**See** — [defineMiddleware](../define/define-middleware), [Built-in policies](../../../guide/middleware/built-in).

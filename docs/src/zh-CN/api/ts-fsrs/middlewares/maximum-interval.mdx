@@ -4,7 +4,7 @@ description: 内置中间件 schedulerMaximumIntervalMiddleware —— 将天级
 ---
 
 import RunCode from '../../../../components/RunCode'
-import maximumIntervalCode from '@/snippets/run-code/api-maximum-interval.ts?raw'
+import maximumIntervalCode from '@/snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts?raw'
 
 # MaximumInterval
 
@@ -16,7 +16,7 @@ import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 在中间件调用链返回时，它将最终天级间隔限制在 `maximumInterval` 以内。
 
-```ts twoslash file="../../../../snippets/run-code/api-maximum-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts"
 ```
 
 <RunCode code={maximumIntervalCode} />

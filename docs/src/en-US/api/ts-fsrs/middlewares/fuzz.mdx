@@ -4,7 +4,7 @@ description: Built-in middleware schedulerFuzzingMiddleware — spreads interval
 ---
 
 import RunCode from '../../../../components/RunCode'
-import fuzzCode from '@/snippets/run-code/api-fuzz.ts?raw'
+import fuzzCode from '@/snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts?raw'
 
 # Fuzzing
 
@@ -16,7 +16,7 @@ import { schedulerFuzzingMiddleware } from 'ts-fsrs/middlewares'
 
 When `enableFuzz` is on, it spreads intervals using the `cardId` and review count, so results stay reproducible for a fixed card. It needs a `maximumInterval` in the config to bound the spread.
 
-```ts twoslash file="../../../../snippets/run-code/api-fuzz.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts"
 ```
 
 <RunCode code={fuzzCode} />

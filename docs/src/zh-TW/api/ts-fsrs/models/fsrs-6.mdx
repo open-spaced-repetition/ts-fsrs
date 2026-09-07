@@ -1,0 +1,52 @@
+---
+title: FSRS-6
+description: ts-fsrs/models/fsrs-6 的參考——權重、邊界與參數輔助函式
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-6.ts?raw'
+
+# FSRS-6
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+## 模型
+
+| 匯出 | 種類 | 說明 |
+| --- | --- | --- |
+| `FSRS6Model` | 模型定義 | 傳給 `defineScheduler({ model })`。 |
+| `FSRS6Algorithm` | 類別 | 計算穩定性、難度和回憶機率的演算法類別。模型會建立其實例，通常無需直接實例化。 |
+
+## 常數
+
+| 匯出 | 取值 | 說明 |
+| --- | --- | --- |
+| `FSRS6_DEFAULT_WEIGHTS` | 21 個數值 | 預設權重陣列，其長度即所需的參數數量。 |
+| `FSRS6_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | 模型允許的穩定性與難度上下限。 |
+| `FSRS6_DECAY` | `0.1542` | 控制遺忘曲線形狀的衰減參數。 |
+| `FSRS6_W17_W18_CEILING` | `2` | `w17` 與 `w18` 的上界。 |
+
+## 參數
+
+| 匯出 | 簽章 | 行為 |
+| --- | --- | --- |
+| `clipFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => number[]` | 將超出範圍的權重限制在對應的允許範圍內，範圍內的值保持不變。 |
+| `checkFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => weights` | 原樣回傳輸入；若任一權重越界或長度不符，拋出 `FSRSValidationError`。 |
+| `migrateFSRS6Parameters` | `(weights?) => number[]` | 依該版本的遷移規則轉換權重；未提供權重或陣列為空時使用預設值。 |
+| `computeDecayFactor` | `(decayOrWeights) => { decay, factor }` | 計算遺忘曲線的衰減指數與縮放因子。回傳的 `decay` 為負值：傳入 `0.1542` 得到 `-0.1542`。 |
+
+## 資料驗證規則（Schema）
+
+| 匯出 | 驗證 |
+| --- | --- |
+| `fsrs6ConfigSchema` | `{ weights, enableShortTerm, numRelearningSteps }` |
+| `decaySchema` | 取值範圍為 `[0.1, 0.8]` 的衰減參數。 |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-6.ts"
+```
+
+<RunCode code={code} />
+
+**參見** —— [模型概覽](./)，[模型指南](../../../guide/model/fsrs-6)。

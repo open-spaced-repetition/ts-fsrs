@@ -4,7 +4,7 @@ description: 組み込みミドルウェア schedulerStatsMiddleware——reps �
 ---
 
 import RunCode from '../../../../components/RunCode'
-import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+import statsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/stats.ts?raw'
 
 # Stats
 
@@ -16,7 +16,7 @@ import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
 
 これはカードの `reps` と `lapses` を管理します。忘却（lapse）は Review 状態のカードへの Again 評価です。
 
-```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/stats.ts"
 ```
 
 <RunCode code={statsCode} />

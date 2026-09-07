@@ -4,7 +4,7 @@ description: 組み込みミドルウェア schedulerMaximumIntervalMiddleware�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import maximumIntervalCode from '@/snippets/run-code/api-maximum-interval.ts?raw'
+import maximumIntervalCode from '@/snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts?raw'
 
 # MaximumInterval
 
@@ -16,7 +16,7 @@ import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 これはミドルウェアチェーンが戻る際、最終的な日単位の間隔を `maximumInterval` に制限します。
 
-```ts twoslash file="../../../../snippets/run-code/api-maximum-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts"
 ```
 
 <RunCode code={maximumIntervalCode} />
