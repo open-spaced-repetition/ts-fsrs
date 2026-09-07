@@ -1,6 +1,5 @@
 [
-  { "text": "Home", "link": "/" },
-  { "text": "Installation", "link": "/installation/" },
+  { "text": "Guide", "link": "/guide/", "activeMatch": "/guide/" },
   { "text": "Playground", "link": "/playground" },
   { "text": "Updates", "link": "/updates/" }
 ]
