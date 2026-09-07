@@ -7,7 +7,6 @@
 [![fsrs version](https://img.shields.io/badge/FSRS-v6-blue?style=flat-square)](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-6)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
-[![Deploy](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/deploy.yml?style=flat-square&logo=githubpages&label=Pages)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/deploy.yml)
 
 **ts-fsrs は、FSRS を使った間隔反復システムを構築するための TypeScript ツールキットです。**
 
@@ -64,7 +63,6 @@ console.log(result.log)
 
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
-- [TypeDoc API ドキュメント](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [カードの状態遷移図](./ts-fsrs-workflow.drawio)
 
 ## 例

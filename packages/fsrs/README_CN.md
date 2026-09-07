@@ -219,12 +219,10 @@ Rating.Easy
 ## API 文档
 
 - 仓库主页：[github.com/open-spaced-repetition/ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs#readme)
-- TypeDoc API 文档：[open-spaced-repetition.github.io/ts-fsrs](https://open-spaced-repetition.github.io/ts-fsrs/)
 - 优化器包：[`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)
 
 ## 示例
 
-- 浏览器示例：[example/example.html](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html)
 - 完整示例项目：[ts-fsrs-demo](https://github.com/ishiko732/ts-fsrs-demo)
 - 其他：
   - [spaced](https://github.com/zsh-eng/spaced)

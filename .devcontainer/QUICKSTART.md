@@ -224,7 +224,6 @@ If you're in China and experiencing slow downloads, you can enable proxy setting
 ## Additional Resources
 
 - [Dev Containers Documentation](https://code.visualstudio.com/docs/devcontainers/containers)
-- [ts-fsrs Documentation](https://open-spaced-repetition.github.io/ts-fsrs/)
 - [FSRS Algorithm Wiki](https://github.com/open-spaced-repetition/fsrs4anki/wiki)
 - [Project README](../README.md)
 

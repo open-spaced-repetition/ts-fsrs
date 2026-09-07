@@ -227,12 +227,10 @@ Rating.Easy
 ## API ドキュメント
 
 - リポジトリ概要：[github.com/open-spaced-repetition/ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs#readme)
-- TypeDoc API ドキュメント：[open-spaced-repetition.github.io/ts-fsrs](https://open-spaced-repetition.github.io/ts-fsrs/)
 - オプティマイザーパッケージ：[`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)
 
 ## 例
 
-- ブラウザ例：[example/example.html](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/example/example.html)
 - フルスタックデモ：[ts-fsrs-demo](https://github.com/ishiko732/ts-fsrs-demo)
 - その他の例：
   - [spaced](https://github.com/zsh-eng/spaced)
