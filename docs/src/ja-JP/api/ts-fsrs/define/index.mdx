@@ -1,0 +1,17 @@
+---
+title: 定義
+description: define* 定義関数 — スケジューラ・モデル・時間抽象・ミドルウェアの宣言
+---
+
+# 定義
+
+`define*` 関数はスケジューラ、モデル、時間抽象、ミドルウェアを定義します。スケジューラ定義の `.create()` を呼ぶと、設定が検証され、復習のスケジューリングに使えるインスタンスが生成されます。
+
+| ページ | 生成するもの | 渡す先 |
+| --- | --- | --- |
+| [defineScheduler](./define-scheduler) | スケジューラ定義 | `.create({ config })` |
+| [defineModel](./define-model) | モデル定義 | `defineScheduler({ model })` |
+| [defineChrono](./define-chrono) | 時間抽象（Chrono） | `defineScheduler({ chrono })` |
+| [defineMiddleware](./define-middleware) | ミドルウェア | `.use(middleware)` |
+
+**参照** — 既成のモデル定義は [モデル](../models/)、組み込みの時間実装は [Chrono プリセット](../chrono-presets)、定義から得られるインスタンスは [Scheduler](../scheduler)。

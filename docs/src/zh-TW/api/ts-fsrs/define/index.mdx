@@ -1,0 +1,17 @@
+---
+title: 定義
+description: define* 定義函式——宣告排程器、模型、時間抽象與中介軟體
+---
+
+# 定義
+
+`define*` 函式用於定義排程器、模型、時間抽象和中介軟體。對排程器定義呼叫 `.create()` 時，會驗證設定並建立可用於複習排程的實例。
+
+| 頁面 | 產出 | 傳給 |
+| --- | --- | --- |
+| [defineScheduler](./define-scheduler) | 排程器定義 | `.create({ config })` |
+| [defineModel](./define-model) | 模型定義 | `defineScheduler({ model })` |
+| [defineChrono](./define-chrono) | 時間抽象（Chrono） | `defineScheduler({ chrono })` |
+| [defineMiddleware](./define-middleware) | 中介軟體 | `.use(middleware)` |
+
+**參見** —— [模型](../models/) 提供現成的模型定義，[Chrono 預設](../chrono-presets) 提供內建時間實作，[Scheduler](../scheduler) 是這些定義建立的排程器實例。

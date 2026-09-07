@@ -1,15 +1,13 @@
 [
   { "type": "file", "name": "index", "label": "Overview" },
   "default-scheduler",
-  "define-scheduler",
   "scheduler",
-  "define-model",
-  "define-chrono",
+  { "type": "dir", "name": "define", "label": "Definitions" },
   "chrono-presets",
   "rating-grade-state",
-  "models",
+  { "type": "dir", "name": "models", "label": "Models" },
+  { "type": "dir", "name": "middlewares", "label": "Middlewares" },
   "reschedule",
   "utils",
-  "types",
-  { "type": "dir-section-header", "name": "middlewares", "label": "Middleware" }
+  "types"
 ]

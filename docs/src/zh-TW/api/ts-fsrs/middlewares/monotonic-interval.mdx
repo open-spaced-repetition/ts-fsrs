@@ -4,7 +4,7 @@ description: 內建中介軟體 schedulerMonotonicIntervalMiddleware——跨評
 ---
 
 import RunCode from '../../../../components/RunCode'
-import monotonicCode from '@/snippets/run-code/api-monotonic-interval.ts?raw'
+import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts?raw'
 
 # MonotonicInterval
 
@@ -16,7 +16,7 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 它會排序四種評分之間的排程天級間隔，使較難的評分永遠不會排得比容易的評分晚（受限於 `maximumInterval`）。
 
-```ts twoslash file="../../../../snippets/run-code/api-monotonic-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```
 
 <RunCode code={monotonicCode} />

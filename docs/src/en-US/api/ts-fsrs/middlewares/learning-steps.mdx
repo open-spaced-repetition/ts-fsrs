@@ -4,7 +4,7 @@ description: Built-in middleware schedulerLearningStepsMiddleware — applies le
 ---
 
 import RunCode from '../../../../components/RunCode'
-import learningStepsCode from '@/snippets/run-code/api-learning-steps.ts?raw'
+import learningStepsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts?raw'
 
 # LearningSteps
 
@@ -16,7 +16,7 @@ import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
 
 When short-term scheduling is enabled, it applies the configured `learningSteps` and `relearningSteps` and maintains the card's `learningStep` and learning state.
 
-```ts twoslash file="../../../../snippets/run-code/api-learning-steps.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
 ```
 
 <RunCode code={learningStepsCode} />

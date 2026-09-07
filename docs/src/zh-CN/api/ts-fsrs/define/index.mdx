@@ -1,0 +1,17 @@
+---
+title: 定义
+description: define* 定义函数——声明调度器、模型、时间抽象与中间件
+---
+
+# 定义
+
+`define*` 函数用于定义调度器、模型、时间抽象和中间件。对调度器定义调用 `.create()` 时，会校验配置并创建可用于复习调度的实例。
+
+| 页面 | 产出 | 传给 |
+| --- | --- | --- |
+| [defineScheduler](./define-scheduler) | 调度器定义 | `.create({ config })` |
+| [defineModel](./define-model) | 模型定义 | `defineScheduler({ model })` |
+| [defineChrono](./define-chrono) | 时间抽象（Chrono） | `defineScheduler({ chrono })` |
+| [defineMiddleware](./define-middleware) | 中间件 | `.use(middleware)` |
+
+**参见** —— [模型](../models/) 提供现成的模型定义，[Chrono 预设](../chrono-presets) 提供内置时间实现，[Scheduler](../scheduler) 是这些定义创建的调度器实例。

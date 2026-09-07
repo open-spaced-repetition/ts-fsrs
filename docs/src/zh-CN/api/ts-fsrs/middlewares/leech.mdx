@@ -4,7 +4,7 @@ description: 内置中间件 schedulerLeechMiddleware —— 遗忘超过阈值�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import leechCode from '@/snippets/run-code/api-leech.ts?raw'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 
 # Leech
 
@@ -16,7 +16,7 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 
 它从统计中间件读取遗忘次数，每当遗忘达到 `leechThreshold` 的正整数倍时，将 `scheduleStatus` 设为 `suspended`。默认阈值 `0` 关闭暂停；你的应用在选卡时必须遵守该状态。
 
-```ts twoslash file="../../../../snippets/run-code/api-leech.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```
 
 <RunCode code={leechCode} />

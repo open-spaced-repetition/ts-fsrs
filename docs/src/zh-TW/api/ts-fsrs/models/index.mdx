@@ -1,0 +1,47 @@
+---
+title: 模型
+description: ts-fsrs/models/fsrs-3 到 fsrs-6 各版本進入點的參考
+---
+
+# 模型
+
+每個 FSRS 版本都是獨立的進入點，建置時只會打包實際用到的那個。
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+| 子路徑 | 頁面 | 模型 |
+| --- | --- | --- |
+| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 |
+| `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
+| `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
+| `ts-fsrs/models/fsrs-4` | [FSRS-4](./fsrs-4) | FSRS-4 |
+| `ts-fsrs/models/fsrs-3` | [FSRS-3](./fsrs-3) | FSRS-3 |
+
+## 共同結構
+
+各版本進入點採用一致的匯出結構；下表中的 `x` 代表版本號。
+
+| 匯出 | 種類 | 說明 |
+| --- | --- | --- |
+| `FSRSxModel` | 模型定義 | `defineScheduler({ model })` |
+| `FSRSxAlgorithm` | 類別 | — |
+| `FSRSx_DEFAULT_WEIGHTS` | 常數 | — |
+| `FSRSx_MODEL_BOUNDS` | 常數 | `{ sMin, sMax, dMin, dMax }` |
+| `clipFSRSxParameters` | 函式 | — |
+| `checkFSRSxParameters` | 函式 | — |
+| `migrateFSRSxParameters` | 函式 | — |
+| `fsrsxConfigSchema` | 資料驗證規則 | — |
+
+各版本還會匯出衰減參數、縮放因子等常數，以及參數上限和專屬輔助函式，詳見對應頁面。
+
+## 記憶狀態
+
+`FSRSMemoryStateSchema` 從 `ts-fsrs` 根進入點匯出，因為記憶狀態的結構（`{ stability, difficulty }`）在所有模型間共用。
+
+```ts
+import { FSRSMemoryStateSchema } from 'ts-fsrs'
+```
+
+**參見** —— [defineModel](../define/define-model) 用於封裝自訂模型，[模型指南](../../../guide/model/) 講解各版本的公式。

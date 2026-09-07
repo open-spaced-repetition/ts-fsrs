@@ -4,7 +4,7 @@ description: The ts-fsrs/reschedule entry point — replay review history and re
 ---
 
 import RunCode from '../../../components/RunCode'
-import rescheduleCode from '@/snippets/run-code/api-reschedule.ts?raw'
+import rescheduleCode from '@/snippets/run-code/api/ts-fsrs/reschedule.ts?raw'
 
 # Reschedule
 
@@ -38,7 +38,7 @@ const result = reschedule.reschedule({ history, initialCard: card })
 // result.card     — the card after the last review
 ```
 
-```ts twoslash file="../../../snippets/run-code/api-reschedule.ts"
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/reschedule.ts"
 ```
 
 <RunCode code={rescheduleCode} />
@@ -47,4 +47,4 @@ const result = reschedule.reschedule({ history, initialCard: card })
 
 **Related types** — `RescheduleReview`, `NonManualReview`, `ReplayResult`, `RescheduleResult`, and the inference types `CardOf`, `MemoryStateOf`, `TimeOf`, `ScheduleResultOf`.
 
-**See** — [defineScheduler](./define-scheduler), [DefaultScheduler](./default-scheduler).
+**See** — [defineScheduler](./define/define-scheduler), [DefaultScheduler](./default-scheduler).

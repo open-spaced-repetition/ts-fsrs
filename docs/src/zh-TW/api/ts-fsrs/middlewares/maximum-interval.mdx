@@ -4,7 +4,7 @@ description: 內建中介軟體 schedulerMaximumIntervalMiddleware——將天�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import maximumIntervalCode from '@/snippets/run-code/api-maximum-interval.ts?raw'
+import maximumIntervalCode from '@/snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts?raw'
 
 # MaximumInterval
 
@@ -16,7 +16,7 @@ import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 當中介軟體鏈回傳時，它把最終的天級間隔限制在 `maximumInterval` 以內。
 
-```ts twoslash file="../../../../snippets/run-code/api-maximum-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts"
 ```
 
 <RunCode code={maximumIntervalCode} />

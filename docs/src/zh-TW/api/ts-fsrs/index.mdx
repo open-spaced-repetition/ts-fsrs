@@ -1,22 +1,24 @@
 ---
 title: ts-fsrs API 概覽
-description: ts-fsrs 公開 API 的索引——每個定義、預設、策略、模型與型別都有各自的參考頁面
+description: 受支援的 ts-fsrs API 索引——面向應用程式碼的定義、預設、策略、模型與型別
 ---
 
 # ts-fsrs API 概覽
 
-`ts-fsrs` 透過 `ts-fsrs` 根匯入與幾個子路徑進入點公開其排程機制。下方每個公開定義與領域都有各自的頁面，含匯入路徑、行為，以及指向對應[指南](../../guide/)主題的連結。
+`ts-fsrs` 透過 `ts-fsrs` 根匯入與幾個子路徑進入點公開其排程機制。下方每個頁面都給出匯入路徑、行為，以及指向對應[指南](../../guide/)主題的連結。
+
+本參考文件介紹受支援的 API。套件的進入點可能匯出比這裡更多的內容——內部實作、相容層，以及為舊版 API 保留的輔助函式。未出現在這些頁面上的內容不建議在應用程式碼中使用，且可能在未升級主版本號的情況下變更或移除。
 
 ## 根定義
 
 | 頁面 | 它是什麼 |
 | --- | --- |
 | [DefaultScheduler](./default-scheduler) | 現成的排程器預設（預設為 FSRS-6）。 |
-| [defineScheduler](./define-scheduler) | 從模型與 chrono 組成可重用的排程器。 |
+| [defineScheduler](./define/define-scheduler) | 從模型與 chrono 組成可重用的排程器。 |
 | [Scheduler](./scheduler) | `.create()` 與 `DefaultScheduler` 回傳的實例（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
-| [defineModel](./define-model) | 把有版本的 FSRS 模型包裝成定義。 |
-| [defineChrono](./define-chrono) | 定義自訂時間抽象。 |
-| [defineMiddleware](./middlewares/define-middleware) | 擴充 schema，並環繞排程器核心執行。 |
+| [defineModel](./define/define-model) | 把有版本的 FSRS 模型包裝成定義。 |
+| [defineChrono](./define/define-chrono) | 定義自訂時間抽象。 |
+| [defineMiddleware](./define/define-middleware) | 擴充資料驗證規則（schema），並在排程器核心處理前後執行邏輯。 |
 
 ## 內建策略
 
@@ -46,7 +48,7 @@ description: ts-fsrs 公開 API 的索引——每個定義、預設、策略、
 
 | 頁面 | 它是什麼 |
 | --- | --- |
-| [模型](./models) | `ts-fsrs/models/fsrs-3` 到 `fsrs-6`。 |
+| [模型](./models/) | `ts-fsrs/models/fsrs-3` 到 `fsrs-6`，每個版本一頁。 |
 | [Reschedule](./reschedule) | `ts-fsrs/reschedule` 重新排程輔助工具。 |
 
-從 [DefaultScheduler](./default-scheduler) 或 [defineScheduler](./define-scheduler) 開始；[指南](../../guide/)說明如何組合各元件。
+從 [DefaultScheduler](./default-scheduler) 或 [defineScheduler](./define/define-scheduler) 開始；[指南](../../guide/)說明如何組合各元件。

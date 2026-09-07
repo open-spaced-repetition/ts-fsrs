@@ -4,7 +4,7 @@ description: 組み込みミドルウェア schedulerLeechMiddleware——忘却
 ---
 
 import RunCode from '../../../../components/RunCode'
-import leechCode from '@/snippets/run-code/api-leech.ts?raw'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 
 # Leech
 
@@ -16,7 +16,7 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 
 これは統計ミドルウェアから忘却回数を読み取り、忘却回数が `leechThreshold` の正の整数倍に達するたびに `scheduleStatus` を `suspended` に設定します。既定の閾値 `0` では停止を無効にします。カードを選択する際は、アプリケーションがこの状態を尊重する必要があります。
 
-```ts twoslash file="../../../../snippets/run-code/api-leech.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```
 
 <RunCode code={leechCode} />

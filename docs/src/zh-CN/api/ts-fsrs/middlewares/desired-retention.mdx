@@ -4,7 +4,7 @@ description: 内置中间件 schedulerDesiredRetentionMiddleware —— 在计�
 ---
 
 import RunCode from '../../../../components/RunCode'
-import desiredRetentionCode from '@/snippets/run-code/api-desired-retention.ts?raw'
+import desiredRetentionCode from '@/snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts?raw'
 
 # DesiredRetention
 
@@ -16,7 +16,7 @@ import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
 
 它为调度器配置贡献 `desiredRetention`，并在模型计算间隔前应用它，因此较低的保留率会产生更长的间隔。
 
-```ts twoslash file="../../../../snippets/run-code/api-desired-retention.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts"
 ```
 
 <RunCode code={desiredRetentionCode} />

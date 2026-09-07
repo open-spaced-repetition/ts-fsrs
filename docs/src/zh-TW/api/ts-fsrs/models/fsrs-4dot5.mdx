@@ -1,0 +1,51 @@
+---
+title: FSRS-4.5
+description: ts-fsrs/models/fsrs-4dot5 的參考——權重、邊界與參數輔助函式
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-4dot5.ts?raw'
+
+# FSRS-4.5
+
+```ts
+import { FSRS4Dot5Model, FSRS4Dot5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-4dot5'
+```
+
+## 模型
+
+| 匯出 | 種類 | 說明 |
+| --- | --- | --- |
+| `FSRS4Dot5Model` | 模型定義 | 傳給 `defineScheduler({ model })`。 |
+| `FSRS4Dot5Algorithm` | 類別 | 計算穩定性、難度和回憶機率的演算法類別。模型會建立其實例，通常無需直接實例化。 |
+
+## 常數
+
+| 匯出 | 取值 | 說明 |
+| --- | --- | --- |
+| `FSRS4Dot5_DEFAULT_WEIGHTS` | 17 個數值 | 預設權重陣列，其長度即所需的參數數量。 |
+| `FSRS4Dot5_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | 模型允許的穩定性與難度上下限。 |
+| `FSRS4Dot5_DECAY` | `0.5` | 控制遺忘曲線形狀的衰減參數。 |
+| `FSRS4Dot5_FACTOR` | — | 與衰減參數搭配的縮放因子。 |
+
+## 參數
+
+| 匯出 | 簽章 | 行為 |
+| --- | --- | --- |
+| `clipFSRS4Dot5Parameters` | `(weights) => number[]` | 將超出範圍的權重限制在對應的允許範圍內，範圍內的值保持不變。 |
+| `checkFSRS4Dot5Parameters` | `(weights) => weights` | 原樣回傳輸入；若任一權重越界或長度不符，拋出 `FSRSValidationError`。 |
+| `migrateFSRS4Dot5Parameters` | `(weights?) => number[]` | 未提供權重或陣列為空時回傳預設權重；否則複製前 17 項，不補齊較短的陣列。 |
+
+
+## 資料驗證規則（Schema）
+
+| 匯出 | 驗證 |
+| --- | --- |
+| `fsrs4Dot5ConfigSchema` | `{ weights }` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-4dot5.ts"
+```
+
+<RunCode code={code} />
+
+**參見** —— [模型概覽](./)，[模型指南](../../../guide/model/fsrs-4dot5)。

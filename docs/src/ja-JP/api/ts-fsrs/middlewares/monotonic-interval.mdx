@@ -4,7 +4,7 @@ description: 組み込みミドルウェア schedulerMonotonicIntervalMiddleware
 ---
 
 import RunCode from '../../../../components/RunCode'
-import monotonicCode from '@/snippets/run-code/api-monotonic-interval.ts?raw'
+import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts?raw'
 
 # MonotonicInterval
 
@@ -16,7 +16,7 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 これは 4 つの評価にわたってスケジュールされる日単位の間隔を順序付け、難しい評価が易しい評価より後の日時に予定されないようにします（`maximumInterval` の範囲内で）。
 
-```ts twoslash file="../../../../snippets/run-code/api-monotonic-interval.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```
 
 <RunCode code={monotonicCode} />

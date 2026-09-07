@@ -4,7 +4,7 @@ description: Built-in middleware schedulerStatsMiddleware — maintains the reps
 ---
 
 import RunCode from '../../../../components/RunCode'
-import statsCode from '@/snippets/run-code/api-stats.ts?raw'
+import statsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/stats.ts?raw'
 
 # Stats
 
@@ -16,7 +16,7 @@ import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
 
 It maintains `reps` and `lapses` on the card. A lapse is an Again rating on a Review card.
 
-```ts twoslash file="../../../../snippets/run-code/api-stats.ts"
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/stats.ts"
 ```
 
 <RunCode code={statsCode} />
