@@ -117,6 +117,9 @@ test('Playground runs its default example', async ({ page }) => {
   await expect(run).toBeEnabled()
   await run.click()
 
+  await expect(run).toBeDisabled()
+  await expect(run).toBeEnabled()
+
   const output = page.getByTestId('playground-output')
   await expect(output).toHaveAttribute('data-state', /^(success|error)$/)
   expect(
