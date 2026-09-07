@@ -54,7 +54,6 @@ pnpm check
 pnpm test
 pnpm test:coverage
 pnpm build
-pnpm docs
 ```
 
 Useful package-scoped commands:
