@@ -1,7 +1,8 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   assert,
   assignObjectFields,
+  isFiniteNumber,
   isFunction,
   isObject,
   noop,
@@ -20,6 +21,39 @@ describe('isObject', () => {
     expect(isObject(42)).toBe(false)
     expect(isObject('str')).toBe(false)
     expect(isObject([1, 2])).toBe(false)
+  })
+})
+
+describe('isFiniteNumber', () => {
+  it('narrows finite numbers without coercing other values', () => {
+    const finiteValues: unknown[] = [
+      0,
+      -1,
+      1.5,
+      Number.MIN_VALUE,
+      Number.MAX_VALUE,
+    ]
+    for (const value of finiteValues) {
+      expect(isFiniteNumber(value)).toBe(true)
+      if (isFiniteNumber(value)) {
+        expectTypeOf(value).toEqualTypeOf<number>()
+      }
+    }
+    for (const value of [
+      NaN,
+      Infinity,
+      -Infinity,
+      undefined,
+      null,
+      '1',
+      true,
+      1n,
+      {},
+      [],
+      Object(1),
+    ]) {
+      expect(isFiniteNumber(value)).toBe(false)
+    }
   })
 })
 
