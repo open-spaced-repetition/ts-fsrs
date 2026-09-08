@@ -9,7 +9,6 @@ import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from '@/models/fsrs-6/constants.js'
 import { FSRS6Model } from '@/models/fsrs-6/model.js'
-import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from '@/models/fsrs-7/index.js'
 import { schedulerLearningStepsMiddleware } from '../learning-steps/middleware.js'
 import type { StepUnit } from '../learning-steps/types.js'
 import { schedulerScheduledDaysMiddleware } from '../scheduled-days/middleware.js'
@@ -32,8 +31,8 @@ const config = {
 }
 
 describe('fuzzing with explicit learning steps', () => {
-  const FSRS7SchedulerDefinition = defineScheduler({
-    model: FSRS7Model,
+  const schedulerDefinition = defineScheduler({
+    model: FSRS6Model,
     chrono: dateChrono,
   }).use(
     schedulerFuzzingMiddleware,
@@ -41,9 +40,10 @@ describe('fuzzing with explicit learning steps', () => {
     schedulerLearningStepsMiddleware
   )
   function createCore(fractionalDays: boolean, step: StepUnit) {
-    return FSRS7SchedulerDefinition.create({
+    const core = schedulerDefinition.create({
       config: {
-        weights: FSRS7_DEFAULT_WEIGHTS,
+        weights: FSRS6_DEFAULT_WEIGHTS,
+        numRelearningSteps: 0,
         enableFuzz: true,
         maximumInterval: 36500,
         fractionalDays,
@@ -52,6 +52,8 @@ describe('fuzzing with explicit learning steps', () => {
         relearningSteps: [],
       },
     })
+    vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+    return core
   }
 
   it.each([
@@ -113,16 +115,19 @@ it.each([
   false,
   true,
 ])('shares fractionalDays config between fuzzing and scheduled days (%s)', (fractionalDays) => {
-  const scheduler = defineScheduler({ model: FSRS7Model, chrono: dateChrono })
+  const scheduler = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
     .use(schedulerFuzzingMiddleware, schedulerScheduledDaysMiddleware)
     .create({
       config: {
-        weights: FSRS7_DEFAULT_WEIGHTS,
+        weights: FSRS6_DEFAULT_WEIGHTS,
+        enableShortTerm: false,
+        numRelearningSteps: 0,
         enableFuzz: true,
         maximumInterval: 36500,
         fractionalDays,
       },
     })
+  vi.spyOn(scheduler.model, 'nextInterval').mockReturnValue(0.25)
   const card = scheduler.newCard({ now, cardId: 'fractional' })
   const result = scheduler.review({ card, now, grade: Rating.Again })
   const interval = scheduler.model.nextInterval(result.card, 0.9)
