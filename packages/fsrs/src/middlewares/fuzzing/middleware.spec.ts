@@ -65,6 +65,9 @@ describe('fuzzing with explicit learning steps', () => {
       ['2.4d', 3456],
     ] as const) {
       const core = createCore(fractionalDays, step)
+      expect(
+        core.chrono.difference(now, new Date(now.getTime() + DAY / 2))
+      ).toBe(fractionalDays ? 0.5 : 0)
       const card = core.newCard({ now })
       expect(card.learningStep).toBe(0)
       const result = core.review({ card, now, grade: Rating.Again })

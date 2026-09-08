@@ -1,9 +1,9 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateSchema } from '@/schema/field.js'
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 import { isObject } from '@/schema/index.js'
 import {
   dateCardFieldsSchema,
-  dateConfigSchema,
   dateRevlogFieldsSchema,
   MS_PER_DAY,
 } from './schema.js'
@@ -15,7 +15,7 @@ const differenceByMode = {
 
 export const dateChrono = defineChrono({
   schema: {
-    config: dateConfigSchema,
+    config: fractionalDaysConfigSchema,
     card: dateCardFieldsSchema,
     revlog: dateRevlogFieldsSchema,
     time: dateSchema,

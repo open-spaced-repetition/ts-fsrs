@@ -1,12 +1,14 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateChrono } from '@/chrono/presets/date/chrono.js'
+import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/chrono.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2Model } from '@/model/sm2.test.js'
 import { type Grade, Rating, State } from '@/primitives/index.js'
 import {
   defineSchema,
+  fractionalDaysConfigSchema,
   isObject,
   numberSchema,
   type StandardSchemaV1,
@@ -56,6 +58,88 @@ const usedCore = usedScheduler.create({
 })
 
 describe('defineScheduler', () => {
+  it.each([
+    undefined,
+    false,
+    true,
+  ])('shares flat fractionalDays config with Date chrono and middleware (%s)', (fractionalDays) => {
+    const capture = defineMiddleware({
+      name: 'test.shared-fractional-days',
+      schema: { config: fractionalDaysConfigSchema },
+      handlers: {
+        review(ctx, next) {
+          expect(ctx.config.fractionalDays).toBe(fractionalDays ?? false)
+          expect(ctx.elapsedDays).toBe(fractionalDays ? 2 / 1440 : 1)
+          next()
+        },
+      },
+    })
+    const definition = defineScheduler({
+      model: SM2Model,
+      chrono: dateChrono,
+    }).use(capture)
+    const shared = definition.create({ config: { ...config, fractionalDays } })
+    expect(shared.config.fractionalDays).toBe(fractionalDays ?? false)
+    const from = new Date('2026-09-08T23:59:00Z')
+    const to = new Date('2026-09-09T00:01:00Z')
+    const card = {
+      ...shared.newCard({ now: from }),
+      state: State.Review,
+      lastReviewAt: from,
+    }
+    const result = shared.review({ card, now: to, grade: Rating.Good })
+    expect(shared.rollback(result).lastReviewAt).toEqual(from)
+    // A parsed config can be reused without introducing a nested chrono config.
+    expect(definition.create({ config: shared.config }).config).toEqual(
+      shared.config
+    )
+    expect(() =>
+      definition.create({
+        config: { ...config, fractionalDays: 'true' } as never,
+      })
+    ).toThrow('fractionalDays')
+  })
+
+  it('accepts Temporal timezone and fractionalDays in the same flat config', () => {
+    const capture = defineMiddleware({
+      name: 'test.shared-temporal-fractional-days',
+      schema: { config: fractionalDaysConfigSchema },
+      handlers: {
+        review(ctx, next) {
+          expect(ctx.config.fractionalDays).toBe(true)
+          expect(ctx.elapsedDays).toBe(2 / 1440)
+          next()
+        },
+      },
+    })
+    const definition = defineScheduler({
+      model: SM2Model,
+      chrono: temporalInstantChrono,
+    }).use(capture)
+    const shared = definition.create({
+      config: { ...config, timezone: 'Asia/Tokyo', fractionalDays: true },
+    })
+    expect(shared.config).toMatchObject({
+      timezone: 'Asia/Tokyo',
+      fractionalDays: true,
+    })
+    const from = Temporal.Instant.from('2026-09-08T14:59:00Z')
+    const to = Temporal.Instant.from('2026-09-08T15:01:00Z')
+    const card = {
+      ...shared.newCard({ now: from }),
+      state: State.Review,
+      lastReviewAt: from,
+    }
+    const result = shared.review({ card, now: to, grade: Rating.Good })
+    expect(shared.rollback(result).lastReviewAt).toBe(from)
+    expect(definition.create({ config }).config).toMatchObject({
+      timezone: 'UTC',
+      fractionalDays: false,
+    })
+    expect(() =>
+      definition.create({ config: { ...config, timezone: 'not-a-timezone' } })
+    ).toThrow('timezone')
+  })
   it('preserves model name', () => {
     expect(scheduler.name).toBe('sm2')
     expectTypeOf(scheduler.name).toEqualTypeOf<'sm2'>()
@@ -335,13 +419,13 @@ describe('defineScheduler', () => {
     expect(
       chronoScheduler.schema.config.parse({
         ...config,
-        chrono: { offset: 9 },
-      }).chrono
-    ).toEqual({ offset: 9 })
+        offset: 9,
+      }).offset
+    ).toBe(9)
     expect(() =>
       chronoScheduler.schema.config.parse({
         ...config,
-        chrono: { offset: 'bad' },
+        offset: 'bad',
       })
     ).toThrow('Expected offset config')
   })
@@ -459,7 +543,6 @@ describe('defineScheduler', () => {
   it('infers composed config type', () => {
     expectTypeOf<SchedulerConfigOf<typeof scheduler>>().toEqualTypeOf<{
       readonly weights: readonly number[]
-      readonly chrono: Record<string, never>
       readonly clearStatsOnForget: boolean
     }>()
   })
@@ -469,7 +552,6 @@ describe('defineScheduler', () => {
       SchedulerConfigOf<typeof middlewareScheduler>
     >().toEqualTypeOf<{
       readonly weights: readonly number[]
-      readonly chrono: Record<string, never>
       readonly source: string
       readonly clearStatsOnForget: boolean
     }>()
@@ -478,7 +560,6 @@ describe('defineScheduler', () => {
   it('preserves middleware config type through use()', () => {
     expectTypeOf<SchedulerConfigOf<typeof usedScheduler>>().toEqualTypeOf<{
       readonly weights: readonly number[]
-      readonly chrono: Record<string, never>
       readonly source: string
       readonly clearStatsOnForget: boolean
     }>()
@@ -487,7 +568,6 @@ describe('defineScheduler', () => {
   it('preserves prior config type through chained use()', () => {
     expectTypeOf<SchedulerConfigOf<typeof chainedScheduler>>().toEqualTypeOf<{
       readonly weights: readonly number[]
-      readonly chrono: Record<string, never>
       readonly source: string
       readonly clearStatsOnForget: boolean
     }>()

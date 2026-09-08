@@ -48,7 +48,7 @@ function applyNewCardDefaults(ctx: {
     Object.assign(
       target,
       chronoDefault({
-        config: defaultValue.config.chrono as Readonly<unknown>,
+        config: defaultValue.config,
         time,
       })
     )

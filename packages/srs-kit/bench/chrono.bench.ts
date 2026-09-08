@@ -1,7 +1,8 @@
 import { bench, describe } from 'vitest'
-import { dateChrono, dateConfigSchema } from '@/chrono/presets/date/index.js'
+import { dateChrono } from '@/chrono/presets/date/index.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.js'
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 
 const NS_PER_DAY = 86_400_000_000_000n
 const temporalImplementations = ['native', 'polyfill'] as const
@@ -76,7 +77,7 @@ describe('numericChrono preset', () => {
 describe('dateChrono preset', () => {
   const now = new Date('2026-06-20T00:00:00.000Z')
   const later = new Date('2026-06-21T12:00:00.000Z')
-  const config = dateConfigSchema.parse(undefined)
+  const config = fractionalDaysConfigSchema.parse({})
   const core = dateChrono.create({ config })
   const card = { dueAt: now, lastReviewAt: now }
   const previous = { previous: now, current: later }

@@ -3,26 +3,6 @@ import { defineSchema, isObject } from '@/schema/index.js'
 
 export const MS_PER_DAY = 86_400_000
 
-export type DateConfig = {
-  readonly fractionalDays: boolean
-}
-
-export const dateConfigSchema = defineSchema<
-  Partial<DateConfig> | undefined,
-  DateConfig
->((value) => {
-  if (value === undefined) return { value: { fractionalDays: false } }
-  if (!isObject(value)) {
-    return { issues: [{ message: 'Expected date config' }] }
-  }
-  const fractionalDays =
-    value.fractionalDays === undefined ? false : value.fractionalDays
-  if (typeof fractionalDays !== 'boolean') {
-    return { issues: [{ message: 'Expected fractionalDays to be a boolean' }] }
-  }
-  return { value: { fractionalDays } }
-})
-
 export type DateCardInputFields = {
   dueAt: Date
   lastReviewAt?: Date | null

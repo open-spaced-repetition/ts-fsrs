@@ -1,3 +1,4 @@
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 import { defineSchema, isObject } from '@/schema/index.js'
 
 export type TemporalInstantConfig = {
@@ -65,13 +66,14 @@ export const temporalInstantConfigSchema = defineSchema<
     return { issues: [{ message: 'Expected valid timezone' }] }
   }
 
-  const fractionalDays =
-    value.fractionalDays === undefined ? false : value.fractionalDays
-  if (typeof fractionalDays !== 'boolean') {
-    return { issues: [{ message: 'Expected fractionalDays to be a boolean' }] }
+  const fractional = fractionalDaysConfigSchema['~standard'].validate(value)
+  if (fractional.issues) return fractional
+  return {
+    value: {
+      timezone: timezoneId,
+      fractionalDays: fractional.value.fractionalDays,
+    },
   }
-
-  return { value: { timezone: timezoneId, fractionalDays } }
 })
 
 export const temporalInstantSchema = defineSchema<Temporal.Instant>((value) => {

@@ -4,27 +4,32 @@ import type {
   ChronoRevlogOf,
   ChronoTimeOf,
 } from '@/chrono/infer.js'
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 import { parse } from '@/schema/index.js'
-import { dateChrono, dateConfigSchema, dateDiffInDays } from './index.js'
+import { dateChrono, dateDiffInDays } from './index.js'
 
 describe('dateChrono', () => {
-  it('validates fractionalDays and defaults omitted configuration', () => {
-    for (const input of [undefined, {}, { fractionalDays: undefined }]) {
-      expect(dateConfigSchema.parse(input)).toEqual({ fractionalDays: false })
+  it('reuses the shared schema and defaults omitted fractionalDays', () => {
+    expect(dateChrono.schema.config).toBe(fractionalDaysConfigSchema)
+    for (const input of [{}, { fractionalDays: undefined }]) {
+      expect(fractionalDaysConfigSchema.parse(input)).toEqual({
+        fractionalDays: false,
+      })
     }
     for (const fractionalDays of [false, true]) {
-      expect(dateConfigSchema.parse({ fractionalDays })).toEqual({
+      expect(fractionalDaysConfigSchema.parse({ fractionalDays })).toEqual({
         fractionalDays,
       })
     }
     for (const input of [
+      undefined,
       null,
       'UTC',
       { fractionalDays: 1 },
       { fractionalDays: 'true' },
       { fractionalDays: null },
     ]) {
-      expect(() => dateConfigSchema.parse(input)).toThrow()
+      expect(() => fractionalDaysConfigSchema.parse(input)).toThrow()
     }
   })
   it('can preserve elapsed fractional days without changing the default', () => {
@@ -42,7 +47,7 @@ describe('dateChrono', () => {
     ).toBe(1)
     expect(
       dateChrono
-        .create({ config: dateConfigSchema.parse(undefined) })
+        .create({ config: fractionalDaysConfigSchema.parse({}) })
         .difference(from, to)
     ).toBe(1)
   })
@@ -65,7 +70,7 @@ describe('dateChrono', () => {
       compare,
       difference,
       now: getCurrent,
-    } = dateChrono.create({ config: dateConfigSchema.parse(undefined) })
+    } = dateChrono.create({ config: fractionalDaysConfigSchema.parse({}) })
     const current = getCurrent()
 
     expect(current).toBeInstanceOf(Date)
