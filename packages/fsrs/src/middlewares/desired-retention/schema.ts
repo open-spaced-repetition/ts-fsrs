@@ -1,6 +1,7 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
 
 export type DesiredRetentionConfig = {
+  /** Must be strictly between 0 and 1. */
   readonly desiredRetention: number
 }
 
@@ -11,9 +12,9 @@ export const desiredRetentionConfigSchema =
       typeof value.desiredRetention !== 'number' ||
       !Number.isFinite(value.desiredRetention) ||
       value.desiredRetention <= 0 ||
-      value.desiredRetention > 1
+      value.desiredRetention >= 1
     ) {
-      return { issues: [{ message: 'Expected desiredRetention in (0, 1]' }] }
+      return { issues: [{ message: 'Expected desiredRetention in (0, 1)' }] }
     }
 
     return { value: { desiredRetention: value.desiredRetention } }
