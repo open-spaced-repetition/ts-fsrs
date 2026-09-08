@@ -1,8 +1,19 @@
-import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
+import {
+  defineSchema,
+  fractionalDaysConfigSchema,
+  isObject,
+} from '@open-spaced-repetition/srs-kit'
+
+export type FuzzingConfigInput = {
+  readonly enableFuzz: boolean
+  readonly maximumInterval: number
+  readonly fractionalDays?: boolean
+}
 
 export type FuzzingConfig = {
   readonly enableFuzz: boolean
   readonly maximumInterval: number
+  readonly fractionalDays: boolean
 }
 
 export type FuzzingCardFields = {
@@ -24,7 +35,10 @@ function parseCardId(value: unknown): string | number | undefined {
   return undefined
 }
 
-export const fuzzingConfigSchema = defineSchema<FuzzingConfig>((value) => {
+export const fuzzingConfigSchema = defineSchema<
+  FuzzingConfigInput,
+  FuzzingConfig
+>((value) => {
   if (!isObject(value)) {
     return { issues: [{ message: 'Expected fuzzing config object' }] }
   }
@@ -43,7 +57,15 @@ export const fuzzingConfigSchema = defineSchema<FuzzingConfig>((value) => {
     }
   }
 
-  return { value: { enableFuzz, maximumInterval } }
+  const fractional = fractionalDaysConfigSchema['~standard'].validate(value)
+  if (fractional.issues) return fractional
+  return {
+    value: {
+      enableFuzz,
+      maximumInterval,
+      fractionalDays: fractional.value.fractionalDays,
+    },
+  }
 })
 
 export const fuzzingCardInitInputSchema = defineSchema<FuzzingCardInitInput>(
