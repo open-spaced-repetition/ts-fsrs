@@ -17,6 +17,10 @@ import { schedulerMaximumIntervalMiddleware } from '../middlewares/maximum-inter
 import { schedulerMonotonicIntervalMiddleware } from '../middlewares/monotonic-interval/middleware.js'
 import { schedulerScheduledDaysMiddleware } from '../middlewares/scheduled-days/middleware.js'
 import type { fsrs6ConfigSchema } from '../models/fsrs-6/parameters.js'
+import type {
+  FSRS7MemoryStateSchema,
+  fsrs7ConfigSchema,
+} from '../models/fsrs-7/schema.js'
 
 const defaultSchedulerMiddlewares = [
   schedulerDesiredRetentionMiddleware,
@@ -35,15 +39,24 @@ type DefaultSchedulerModel = Model<{
   readonly algorithm: unknown
 }>
 
-export type DefaultSchedulerCreate = SchedulerCreate<
-  SchedulerEnvFor<
-    DefaultSchedulerModel,
-    typeof dateChrono,
-    typeof defaultSchedulerMiddlewares
-  >,
-  DefaultSchedulerModel,
+type FSRS7DefaultSchedulerModel = Model<{
+  readonly name: string
+  readonly config: typeof fsrs7ConfigSchema
+  readonly memoryState: typeof FSRS7MemoryStateSchema
+  readonly algorithm: unknown
+}>
+
+type CreateFor<M extends AnyModel> = SchedulerCreate<
+  SchedulerEnvFor<M, typeof dateChrono, typeof defaultSchedulerMiddlewares>,
+  M,
   typeof dateChrono
 >
+
+export type DefaultSchedulerCreate<
+  Version extends DefaultSchedulerVersion = 'FSRS-6',
+> = Version extends 'FSRS-7'
+  ? CreateFor<FSRS7DefaultSchedulerModel>
+  : CreateFor<DefaultSchedulerModel>
 
 // Runtime presets are widened to avoid expanding every model's middleware union.
 function createRuntimeDefaultSchedulerDefinition(
@@ -55,9 +68,10 @@ function createRuntimeDefaultSchedulerDefinition(
   }) => {
     readonly use: (...middlewares: AnyMiddleware[]) => AnyScheduler
   }
-  return createDefinition({ model, chrono: dateChrono }).use(
-    ...defaultSchedulerMiddlewares
-  )
+  return createDefinition({
+    model,
+    chrono: dateChrono,
+  }).use(...defaultSchedulerMiddlewares)
 }
 
 export type DefaultSchedulerVersion =
@@ -66,6 +80,7 @@ export type DefaultSchedulerVersion =
   | 'FSRS-4.5'
   | 'FSRS-5'
   | 'FSRS-6'
+  | 'FSRS-7'
 
 type MigrateParameters = (
   parameters?: number[],
@@ -131,6 +146,12 @@ const schedulerPresetLoaders: Record<
       model: FSRS6Model,
       migrateParameters: migrateFSRS6Parameters,
     }
+  },
+  'FSRS-7': async () => {
+    const { FSRS7Model, migrateFSRS7Parameters } = await import(
+      '../models/fsrs-7/index.js'
+    )
+    return { model: FSRS7Model, migrateParameters: migrateFSRS7Parameters }
   },
 }
 

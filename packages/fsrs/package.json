@@ -63,6 +63,17 @@
       },
       "default": "./dist/models/fsrs-5.mjs"
     },
+    "./models/fsrs-7": {
+      "require": {
+        "types": "./dist/models/fsrs-7.d.cts",
+        "default": "./dist/models/fsrs-7.cjs"
+      },
+      "import": {
+        "types": "./dist/models/fsrs-7.d.mts",
+        "default": "./dist/models/fsrs-7.mjs"
+      },
+      "default": "./dist/models/fsrs-7.mjs"
+    },
     "./models/fsrs-6": {
       "require": {
         "types": "./dist/models/fsrs-6.d.cts",
