@@ -5,6 +5,28 @@ import { FSRS7_DEFAULT_WEIGHTS, FSRS7_MODEL_BOUNDS } from './constants.js'
 import type { FSRS7State } from './schema.js'
 
 describe('FSRS7Algorithm', () => {
+  it('falls back to bisection when the Newton derivative becomes non-finite', () => {
+    const algorithm = new FSRS7Algorithm(FSRS7_DEFAULT_WEIGHTS, {
+      ...FSRS7_MODEL_BOUNDS,
+      stabilityFastMin: Number.MIN_VALUE,
+    })
+    const state = {
+      stability: 10,
+      stabilityFast: Number.MIN_VALUE,
+      difficulty: 5,
+    }
+    // The fast component's scale overflows: recall stays finite, but its derivative is 0 * Infinity.
+    const curve = algorithm.curve(10, state)
+    expect(curve.retrievability).toBeGreaterThan(0)
+    expect(curve.retrievability).toBeLessThan(1)
+    expect(curve.derivative).toBeNaN()
+
+    const interval = algorithm.next_interval(state, 0.9)
+    expect(interval).toBeGreaterThan(0)
+    expect(interval).toBeLessThanOrEqual(FSRS7_MODEL_BOUNDS.sMax)
+    expect(algorithm.curve(interval, state).retrievability).toBeCloseTo(0.9, 8)
+  })
+
   it('matches FSRS-7 memory-state progression from fsrs-rs and benchmark', () => {
     const algorithm = new FSRS7Algorithm(
       FSRS7_DEFAULT_WEIGHTS,
