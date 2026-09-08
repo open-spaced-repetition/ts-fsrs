@@ -1,5 +1,5 @@
 import type { AnyObjectSchema, SchemaInput } from './standard.js'
-import { isObject } from './utils.js'
+import { isFiniteNumber, isObject } from './utils.js'
 import { defineSchema } from './validators.js'
 
 export type FieldDefault<Schema extends AnyObjectSchema, DefaultContext> = (
@@ -17,7 +17,7 @@ export const emptyObjectSchema = defineSchema<Record<string, never>>(
 )
 
 export const numberSchema = defineSchema<unknown, number>((value) =>
-  typeof value === 'number' && Number.isFinite(value)
+  isFiniteNumber(value)
     ? { value }
     : { issues: [{ message: 'Expected finite number' }] }
 )
