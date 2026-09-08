@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
 import { dateChrono } from './presets/date/chrono.js'
+import { dateConfigSchema } from './presets/date/schema.js'
 import { numericChrono } from './presets/numeric/chrono.js'
 import { temporalInstantChrono } from './presets/temporal-instant/chrono.js'
 
@@ -10,7 +11,9 @@ const chronoNumeric = numericChrono
 const chronoDate = dateChrono
 const chronoTemporalInstant = temporalInstantChrono
 const coreNumeric = numericChrono.create()
-const coreDate = dateChrono.create()
+const coreDate = dateChrono.create({
+  config: dateConfigSchema.parse(undefined),
+})
 const coreTemporalInstant = temporalInstantChrono.create({
   config: { timezone: 'UTC', fractionalDays: false },
 })
@@ -32,6 +35,14 @@ describe('defineChrono type display', () => {
     readonly time: SRSSchema<{
         input: Date;
         output: Date;
+    }>;
+    readonly config: SRSSchema<{
+        input: {
+            readonly fractionalDays?: boolean | undefined;
+        } | undefined;
+        output: {
+            readonly fractionalDays: boolean;
+        };
     }>;
     readonly fields: {
         readonly card: SRSSchema<{

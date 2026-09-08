@@ -20,5 +20,7 @@ export type ChronoConfigPart<
     ? EmptyPart
     : { readonly chrono: Record<string, never> }
   : Mode extends 'input'
-    ? { readonly chrono: SchemaInputOf<T, 'config'> }
+    ? undefined extends SchemaInputOf<T, 'config'>
+      ? { readonly chrono?: SchemaInputOf<T, 'config'> }
+      : { readonly chrono: SchemaInputOf<T, 'config'> }
     : { readonly chrono: SchemaOutputOf<T, 'config'> }

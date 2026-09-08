@@ -5,9 +5,47 @@ import type {
   ChronoTimeOf,
 } from '@/chrono/infer.js'
 import { parse } from '@/schema/index.js'
-import { dateChrono, dateDiffInDays } from './index.js'
+import { dateChrono, dateConfigSchema, dateDiffInDays } from './index.js'
 
 describe('dateChrono', () => {
+  it('validates fractionalDays and defaults omitted configuration', () => {
+    for (const input of [undefined, {}, { fractionalDays: undefined }]) {
+      expect(dateConfigSchema.parse(input)).toEqual({ fractionalDays: false })
+    }
+    for (const fractionalDays of [false, true]) {
+      expect(dateConfigSchema.parse({ fractionalDays })).toEqual({
+        fractionalDays,
+      })
+    }
+    for (const input of [
+      null,
+      'UTC',
+      { fractionalDays: 1 },
+      { fractionalDays: 'true' },
+      { fractionalDays: null },
+    ]) {
+      expect(() => dateConfigSchema.parse(input)).toThrow()
+    }
+  })
+  it('can preserve elapsed fractional days without changing the default', () => {
+    const from = new Date('2026-06-20T23:59:00Z')
+    const to = new Date('2026-06-21T00:01:00Z')
+    const fractional = dateChrono.create({ config: { fractionalDays: true } })
+    expect(fractional.difference(from, to)).toBe(2 / 1440)
+    expect(fractional.difference(to, from)).toBe(-2 / 1440)
+    expect(fractional.difference(from, from)).toBe(0)
+    expect(fractional.add(from, 2 / 1440)).toEqual(to)
+    expect(
+      dateChrono
+        .create({ config: { fractionalDays: false } })
+        .difference(from, to)
+    ).toBe(1)
+    expect(
+      dateChrono
+        .create({ config: dateConfigSchema.parse(undefined) })
+        .difference(from, to)
+    ).toBe(1)
+  })
   it('provides a Date adapter with due and last-review fields', () => {
     expectTypeOf<ChronoTimeOf<typeof dateChrono>>().toEqualTypeOf<Date>()
     expectTypeOf<ChronoCardOf<typeof dateChrono>>().toEqualTypeOf<{
@@ -22,7 +60,12 @@ describe('dateChrono', () => {
     const now = new Date('2026-06-20T00:00:00.000Z')
     const later = new Date('2026-06-21T12:00:00.000Z')
     const epoch = new Date(0)
-    const { add, compare, difference, now: getCurrent } = dateChrono.create()
+    const {
+      add,
+      compare,
+      difference,
+      now: getCurrent,
+    } = dateChrono.create({ config: dateConfigSchema.parse(undefined) })
     const current = getCurrent()
 
     expect(current).toBeInstanceOf(Date)
@@ -198,7 +241,7 @@ describe('dateChrono', () => {
     expect(add(now, 2.25)).toEqual(new Date('2026-06-22T06:00:00.000Z'))
     expect(
       dateChrono.defaultValue.card!({
-        config: {},
+        config: { fractionalDays: false },
         time: now,
         previous: {
           previous: now,
@@ -208,13 +251,13 @@ describe('dateChrono', () => {
     ).toEqual({ dueAt: now, lastReviewAt: later })
     expect(
       dateChrono.defaultValue.card!({
-        config: {},
+        config: { fractionalDays: false },
         time: now,
       })
     ).toEqual({ dueAt: now, lastReviewAt: null })
     expect(
       dateChrono.defaultValue.revlog!({
-        config: {},
+        config: { fractionalDays: false },
         time: now,
         previous: {
           previous: now,
@@ -224,7 +267,7 @@ describe('dateChrono', () => {
     ).toEqual({ dueAt: now, reviewTime: later })
     expect(
       dateChrono.defaultValue.revlog!({
-        config: {},
+        config: { fractionalDays: false },
         time: now,
       })
     ).toEqual({ dueAt: now, reviewTime: now })
