@@ -154,11 +154,8 @@ describe('DefaultScheduler FSRS-7', () => {
         }
         expect(result.revlog.stabilityFast).toBe(card.stabilityFast)
         expect(result.revlog.scheduledDays).toBe(card.scheduledDays)
-        // Existing Date rollback makes a reviewed card due at the undone review time.
-        expect(scheduler.rollback(result)).toEqual({
-          ...card,
-          dueAt: card.state === State.New ? card.dueAt : time,
-        })
+        // Rollback restores the pre-review card exactly, due date included.
+        expect(scheduler.rollback(result)).toEqual(card)
         results.push(result)
         card = result.card
       }
