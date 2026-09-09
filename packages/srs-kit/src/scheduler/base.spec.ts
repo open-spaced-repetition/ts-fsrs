@@ -752,6 +752,45 @@ describe('SchedulerCore.review', () => {
 })
 
 describe('SchedulerCore middleware handlers', () => {
+  it('records projected due dates without changing elapsed days in review, preview, and forward', () => {
+    const elapsedDays: number[] = []
+    const elapsedMiddleware = defineMiddleware({
+      name: Symbol('capture-elapsed-days'),
+      handlers: {
+        review(ctx, next) {
+          elapsedDays.push(ctx.elapsedDays)
+          next()
+        },
+      },
+    })
+    const dateCore = defineScheduler({ model: SM2Model, chrono: dateChrono })
+      .use(elapsedMiddleware)
+      .create({ config })
+    const createdAt = new Date('2026-01-01T00:00:00Z')
+    const reviewedAt = new Date('2026-01-02T00:00:00Z')
+    const now = new Date('2026-01-10T00:00:00Z')
+    const card = dateCore.newCard({ now: createdAt })
+    expect(card.lastReviewAt).toBeNull()
+    const first = dateCore.review({ card, grade: Rating.Good, now: reviewedAt })
+    const records = [
+      dateCore.review({ card: first.card, grade: Rating.Good, now }),
+      ...dateCore.preview({ card: first.card, now }),
+      ...dateCore.forward({
+        initialCard: first.card,
+        history: [{ rating: Rating.Good, reviewTime: now }],
+      }),
+    ]
+
+    expect(elapsedDays).toEqual([0, 8, 8, 8, 8, 8, 8])
+    for (const result of records) {
+      expect(result.revlog.dueAt).toEqual(first.card.dueAt)
+      expect(result.revlog.lastReviewAt).toEqual(first.card.lastReviewAt)
+      expect(result.revlog.reviewTime).toEqual(now)
+      expect(result.card.lastReviewAt).toEqual(now)
+      expect(dateCore.rollback(result)).toEqual(first.card)
+    }
+  })
+
   it('applies review and preview chrono defaults after middleware unwinds', () => {
     const seen: unknown[] = []
     const middleware = defineMiddleware({
@@ -1677,6 +1716,38 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.lastReviewAt).toBe(null)
   })
 
+  it('supplies the same missing-previous context on newCard and on new-card rollback', () => {
+    const seen: { readonly present: boolean; readonly value: unknown }[] = []
+    const cardDefault = dateChrono.defaultValue.card!
+    const spiedChrono = {
+      ...dateChrono,
+      defaultValue: {
+        ...dateChrono.defaultValue,
+        card(ctx: Parameters<typeof cardDefault>[0]) {
+          seen.push({ present: 'previous' in ctx, value: ctx.previous })
+          return cardDefault(ctx)
+        },
+      },
+    } as typeof dateChrono
+    const spiedCore = defineScheduler({
+      model: SM2Model,
+      chrono: spiedChrono,
+    }).create({ config })
+    const card = spiedCore.newCard({ now: new Date('2026-06-28T00:00:00Z') })
+    const reviewed = spiedCore.review({
+      card,
+      grade: Rating.Good,
+      now: new Date('2026-06-30T00:00:00Z'),
+    })
+
+    const restored = spiedCore.rollback(reviewed)
+
+    expect(reviewed.revlog.state).toBe(State.New)
+    expect(seen).toHaveLength(3)
+    expect(seen[2]).toEqual(seen[0])
+    expect(restored).toEqual(card)
+  })
+
   it('restores non-new chrono card fields from revlog projection', () => {
     const dateCore = defineScheduler({
       model: SM2Model,
@@ -1707,8 +1778,8 @@ describe('SchedulerCore.rollback', () => {
     })
 
     expect(restored.scheduleStatus).toBe('review')
-    expect(restored.dueAt).toEqual(revlog.reviewTime)
-    expect(restored.lastReviewAt).toEqual(revlog.dueAt)
+    expect(restored.dueAt).toEqual(revlog.dueAt)
+    expect(restored.lastReviewAt).toEqual(revlog.lastReviewAt)
   })
 
   it('allows rollback when chrono card defaults are absent', () => {

@@ -59,6 +59,7 @@ describe('dateChrono', () => {
     }>()
     expectTypeOf<ChronoRevlogOf<typeof dateChrono>>().toEqualTypeOf<{
       dueAt: Date
+      lastReviewAt: Date | null
       reviewTime: Date
     }>()
 
@@ -106,7 +107,7 @@ describe('dateChrono', () => {
         dueAt: now,
         reviewTime: later,
       })
-    ).toEqual({ dueAt: now, reviewTime: later })
+    ).toEqual({ dueAt: now, lastReviewAt: null, reviewTime: later })
     expect(() =>
       parse(dateChrono.schema.revlog, {
         dueAt: null,
@@ -127,10 +128,10 @@ describe('dateChrono', () => {
     expect(
       parse(dateChrono.projection, {
         card: {
-          dueAt: now,
+          dueAt: later,
           lastReviewAt: now,
         },
-        time: later,
+        time: new Date('2026-06-25T00:00:00.000Z'),
       })
     ).toEqual({ previous: now, current: later })
     expect(
@@ -141,7 +142,7 @@ describe('dateChrono', () => {
         },
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(dateChrono.projection, {
         card: parse(dateChrono.schema.card, {
@@ -150,7 +151,7 @@ describe('dateChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(dateChrono.projection, {
         card: parse(dateChrono.schema.card, {
@@ -158,12 +159,13 @@ describe('dateChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(dateChrono.projection, {
         revlog: {
-          dueAt: now,
-          reviewTime: later,
+          dueAt: later,
+          lastReviewAt: now,
+          reviewTime: new Date('2026-06-25T00:00:00.000Z'),
         },
       })
     ).toEqual({ previous: now, current: later })
@@ -196,6 +198,21 @@ describe('dateChrono', () => {
       })
     ).toThrow('Expected valid Date')
     expect(() => parse(dateChrono.schema.card, null)).toThrow()
+    expect(() => parse(dateChrono.schema.revlog, null)).toThrow()
+    expect(() =>
+      parse(dateChrono.schema.revlog, {
+        dueAt: now,
+        lastReviewAt: 'never',
+        reviewTime: later,
+      })
+    ).toThrow('Expected valid Date fields')
+    expect(() =>
+      parse(dateChrono.schema.revlog, {
+        dueAt: now,
+        lastReviewAt: now,
+        reviewTime: 'never',
+      })
+    ).toThrow('Expected valid Date fields')
     expect(() =>
       parse(dateChrono.schema.card, {
         dueAt: new Date(Number.NaN),
@@ -248,10 +265,7 @@ describe('dateChrono', () => {
       dateChrono.defaultValue.card!({
         config: { fractionalDays: false },
         time: now,
-        previous: {
-          previous: now,
-          current: later,
-        },
+        previous: later,
       })
     ).toEqual({ dueAt: now, lastReviewAt: later })
     expect(
@@ -260,22 +274,23 @@ describe('dateChrono', () => {
         time: now,
       })
     ).toEqual({ dueAt: now, lastReviewAt: null })
+    const dueAt = new Date('2026-06-19T00:00:00.000Z')
     expect(
       dateChrono.defaultValue.revlog!({
         config: { fractionalDays: false },
-        time: now,
+        time: dueAt,
         previous: {
           previous: now,
           current: later,
         },
       })
-    ).toEqual({ dueAt: now, reviewTime: later })
+    ).toEqual({ dueAt, lastReviewAt: now, reviewTime: later })
     expect(
       dateChrono.defaultValue.revlog!({
         config: { fractionalDays: false },
         time: now,
       })
-    ).toEqual({ dueAt: now, reviewTime: now })
+    ).toEqual({ dueAt: now, lastReviewAt: null, reviewTime: now })
   })
 
   it('compares only UTC calendar dates', () => {

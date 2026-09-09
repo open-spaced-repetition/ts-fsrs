@@ -69,11 +69,12 @@ function fromLegacyCard(
 
 function fromLegacyRevlog(
   revlog: ReviewLog,
-  cardId: DefaultSchedulerCard['cardId']
+  card: DefaultSchedulerCard
 ): ReviewResult['revlog'] {
   return {
-    cardId,
-    dueAt: revlog.due,
+    cardId: card.cardId,
+    dueAt: card.dueAt,
+    lastReviewAt: card.lastReviewAt,
     stability: revlog.stability,
     difficulty: revlog.difficulty,
     scheduledDays: revlog.scheduled_days,
@@ -82,19 +83,6 @@ function fromLegacyRevlog(
     state: revlog.state,
     scheduleStatus: scheduleStatusByState[revlog.state],
     reviewTime: revlog.review,
-  }
-}
-
-function toLegacyRevlog(revlog: ReviewResult['revlog']): ReviewLog {
-  return {
-    rating: revlog.rating,
-    state: revlog.state,
-    due: revlog.dueAt,
-    stability: revlog.stability,
-    difficulty: revlog.difficulty,
-    scheduled_days: revlog.scheduledDays,
-    learning_steps: revlog.learningStep,
-    review: revlog.reviewTime,
   }
 }
 
@@ -107,7 +95,7 @@ export function legacyReview(
   const result = legacyNext(options, card, now, grade)
   return {
     card: fromLegacyCard(result.card, card.cardId),
-    revlog: fromLegacyRevlog(result.log, card.cardId),
+    revlog: fromLegacyRevlog(result.log, card),
   }
 }
 
@@ -124,23 +112,11 @@ export function legacyNext(
   )
 }
 
-export function legacyRollback(
-  options: DefaultSchedulerOptions,
-  result: ReviewResult
-): Card {
-  return new FSRS(toLegacyParameters(options)).rollback(
-    toLegacyCard(result.card),
-    toLegacyRevlog(result.revlog)
-  )
-}
-
 export function expectRollbackParity(
   actual: DefaultSchedulerCard,
-  expected: Card | DefaultSchedulerCard
+  expected: DefaultSchedulerCard
 ): void {
-  const expectedCard =
-    'cardId' in expected ? expected : fromLegacyCard(expected, actual.cardId)
-  expect(actual).toEqual(expectedCard)
+  expect(actual).toEqual(expected)
 }
 
 export function expectRevlogParity(

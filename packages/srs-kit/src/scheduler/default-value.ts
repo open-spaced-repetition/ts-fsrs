@@ -40,7 +40,7 @@ function applyNewCardDefaults(ctx: {
   readonly defaultValue: DefaultValueContext
   readonly middlewares: readonly AnyMiddleware[]
   readonly chronoDefault?: ChronoDefaultRuntimeFn
-  readonly time: ChronoDefaultCtx<unknown, unknown>['time']
+  readonly time: ChronoDefaultCtx<unknown, unknown, 'card'>['time']
 }) {
   const { target, defaultValue, middlewares, chronoDefault, time } = ctx
 
@@ -50,6 +50,7 @@ function applyNewCardDefaults(ctx: {
       chronoDefault({
         config: defaultValue.config,
         time,
+        previous: null,
       })
     )
   }

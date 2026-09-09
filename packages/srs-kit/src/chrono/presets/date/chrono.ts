@@ -38,8 +38,8 @@ export const dateChrono = defineChrono({
 
       return {
         value: {
-          previous: card.value.lastReviewAt ?? card.value.dueAt,
-          current: time.value,
+          previous: card.value.lastReviewAt,
+          current: card.value.dueAt,
         },
       }
     }
@@ -51,8 +51,8 @@ export const dateChrono = defineChrono({
 
     return {
       value: {
-        previous: revlog.value.dueAt,
-        current: revlog.value.reviewTime,
+        previous: revlog.value.lastReviewAt,
+        current: revlog.value.dueAt,
       },
     }
   },
@@ -60,12 +60,13 @@ export const dateChrono = defineChrono({
     card({ previous, time }) {
       return {
         dueAt: time,
-        lastReviewAt: previous?.current ?? null,
+        lastReviewAt: previous ?? null,
       }
     },
     revlog({ time, previous }) {
       return {
-        dueAt: previous?.previous ?? time,
+        dueAt: time,
+        lastReviewAt: previous?.previous ?? null,
         reviewTime: previous?.current ?? time,
       }
     },

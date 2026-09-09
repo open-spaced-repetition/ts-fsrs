@@ -93,21 +93,22 @@ describe('defineChrono', () => {
       defaultValue: {
         card({ config, previous, time }) {
           expectTypeOf(config).toEqualTypeOf<Readonly<Record<string, never>>>()
-          expectTypeOf(previous).toEqualTypeOf<
-            | Readonly<{
-                readonly previous: number
-                readonly current: number
-              }>
-            | undefined
-          >()
+          expectTypeOf(previous).toEqualTypeOf<number | null | undefined>()
           expectTypeOf(time).toEqualTypeOf<number>()
 
           return {
-            previous: previous?.current ?? null,
+            previous: previous ?? null,
             current: time,
           }
         },
         revlog({ previous, time }) {
+          expectTypeOf(previous).toEqualTypeOf<
+            | Readonly<{
+                readonly previous: number | null
+                readonly current: number
+              }>
+            | undefined
+          >()
           return {
             elapsedDays: previous ? time - previous.current : 0,
           }
