@@ -186,4 +186,26 @@ describe('FSRS7Algorithm', () => {
     expect(derivative).toBeLessThan(0)
     expect(derivative).toBeCloseTo(difference, 8)
   })
+
+  it('exposes the fast and slow trace components behind the mixture', () => {
+    const algorithm = new FSRS7Algorithm(
+      FSRS7_DEFAULT_WEIGHTS,
+      FSRS7_MODEL_BOUNDS
+    )
+    const state = { stability: 10, stabilityFast: 8, difficulty: 5 }
+
+    // Both traces start fully recalled; only the mixture carries the epsilon rescale.
+    const zero = algorithm.curve(0, state)
+    expect(zero.fast).toBe(1)
+    expect(zero.slow).toBe(1)
+
+    for (const t of [0.01, 1, 10]) {
+      const { retrievability, fast, slow } = algorithm.curve(t, state)
+      // The fast trace decays first, which is what bends the mixture early on.
+      expect(fast).toBeLessThan(slow)
+      // The mixture is a convex combination, so it sits between the components.
+      expect(retrievability).toBeGreaterThan(fast)
+      expect(retrievability).toBeLessThan(slow)
+    }
+  })
 })
