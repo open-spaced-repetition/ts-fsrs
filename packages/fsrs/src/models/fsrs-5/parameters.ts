@@ -4,16 +4,16 @@ import { clamp, roundTo } from '@/help.js'
 import { isNumberArray } from '@/kit/schema-utils.js'
 import { FSRS5_DEFAULT_WEIGHTS, FSRS5ParameterBounds } from './constants.js'
 
-export const clipFSRS5Parameters = (parameters: number[]): number[] => {
+export const clipFSRS5Parameters = (
+  parameters: readonly number[]
+): number[] => {
   const clip = FSRS5ParameterBounds().slice(0, parameters.length)
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)
   )
 }
 
-export const checkFSRS5Parameters = (
-  parameters: number[] | readonly number[]
-) => {
+export const checkFSRS5Parameters = (parameters: readonly number[]) => {
   const clipped = clipFSRS5Parameters(Array.from(parameters))
   const isValid =
     parameters.length === FSRS5_DEFAULT_WEIGHTS.length &&
@@ -26,7 +26,9 @@ export const checkFSRS5Parameters = (
   return parameters
 }
 
-export const migrateFSRS5Parameters = (parameters?: number[]): number[] => {
+export const migrateFSRS5Parameters = (
+  parameters?: readonly number[]
+): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS5_DEFAULT_WEIGHTS]
   }
