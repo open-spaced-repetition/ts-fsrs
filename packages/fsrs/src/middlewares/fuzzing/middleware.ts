@@ -74,7 +74,8 @@ export function createSchedulerFuzzingMiddleware(
           const seed = `${card.cardId}${reps}`
           candidate.nextInterval = (memoryState, desiredRetention) => {
             const interval = nextInterval(memoryState, desiredRetention)
-            if (interval < 2.5) return Math.round(interval)
+            if (interval < 2.5)
+              return ctx.config.fractionalDays ? interval : Math.round(interval)
 
             const { minInterval, maxInterval } = getFuzzRange(
               interval,

@@ -1,6 +1,7 @@
 import {
   defineMiddleware,
   defineScheduler,
+  fractionalDaysConfigSchema,
   Rating,
   State,
 } from '@open-spaced-repetition/srs-kit'
@@ -36,6 +37,25 @@ function createCore(scheduledDays = 2.9) {
 }
 
 describe('schedulerScheduledDaysMiddleware', () => {
+  it.each([
+    0,
+    1 / 86400,
+    0.5,
+    2.9,
+    -1,
+  ])('preserves fractional intervals with parsed config (%s)', (days) => {
+    const ctx = {
+      config: fractionalDaysConfigSchema.parse({
+        fractionalDays: true,
+      }),
+      input: { card: { scheduledDays: 0.25 } },
+      result: { card: { scheduledDays: 0 }, revlog: { scheduledDays: 0 } },
+      scheduledDays: days,
+    }
+    schedulerScheduledDaysMiddleware.handlers!.review!(ctx as never, () => {})
+    expect(ctx.result.card.scheduledDays).toBe(Math.max(0, days))
+    expect(ctx.result.revlog.scheduledDays).toBe(0.25)
+  })
   it('defaults a new card scheduledDays to zero', () => {
     expect(createCore().newCard({ now }).scheduledDays).toBe(0)
   })
@@ -52,6 +72,7 @@ describe('schedulerScheduledDaysMiddleware', () => {
 
   it('defaults a missing scheduled interval to zero', () => {
     const ctx = {
+      config: fractionalDaysConfigSchema.parse({}),
       input: { card: { scheduledDays: 7 } },
       result: {
         card: { scheduledDays: -1 },

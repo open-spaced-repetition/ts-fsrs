@@ -108,15 +108,13 @@ export function composeSchema(ctx: {
     const modelResult = validateSync(modelConfigSchema, value)
     if (modelResult.issues) return modelResult
 
-    let chronoValue: unknown = {}
-    if (chronoConfigSchema) {
-      const chronoResult = validateSync(chronoConfigSchema, value.chrono)
-      if (chronoResult.issues) return chronoResult
-      chronoValue = chronoResult.value
-    }
-
-    const result: Record<PropertyKey, unknown> = { chrono: chronoValue }
+    const result: Record<PropertyKey, unknown> = {}
     assignObjectFields(result, modelResult.value)
+    if (chronoConfigSchema) {
+      const chronoResult = validateSync(chronoConfigSchema, value)
+      if (chronoResult.issues) return chronoResult
+      assignObjectFields(result, chronoResult.value)
+    }
 
     for (const schema of middlewareConfigSchemas) {
       const middlewareResult = validateSync(schema, value)

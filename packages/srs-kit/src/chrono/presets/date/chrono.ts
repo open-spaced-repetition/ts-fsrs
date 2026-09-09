@@ -1,5 +1,6 @@
 import { defineChrono } from '@/chrono/define-chrono.js'
 import { dateSchema } from '@/schema/field.js'
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 import { isObject } from '@/schema/index.js'
 import {
   dateCardFieldsSchema,
@@ -7,8 +8,14 @@ import {
   MS_PER_DAY,
 } from './schema.js'
 
+const differenceByMode = {
+  elapsed: elapsedUtcDays,
+  calendar: dateDiffInDays,
+}
+
 export const dateChrono = defineChrono({
   schema: {
+    config: fractionalDaysConfigSchema,
     card: dateCardFieldsSchema,
     revlog: dateRevlogFieldsSchema,
     time: dateSchema,
@@ -63,7 +70,10 @@ export const dateChrono = defineChrono({
       }
     },
   },
-  create() {
+  create({ config }) {
+    const differenceMode = config.fractionalDays ? 'elapsed' : 'calendar'
+    const difference = differenceByMode[differenceMode]
+
     return {
       now,
       compare,
@@ -79,9 +89,13 @@ const compare = (left: Date, right: Date): number => {
   const rightTime = right.getTime()
   return leftTime < rightTime ? -1 : leftTime > rightTime ? 1 : 0
 }
-const difference = (from: Date, to: Date): number => dateDiffInDays(from, to)
 const add = (from: Date, days: number): Date =>
   new Date(from.getTime() + days * MS_PER_DAY)
+
+/** Elapsed UTC time in fixed 24-hour days, independent of calendar boundaries. */
+function elapsedUtcDays(from: Date, to: Date): number {
+  return (to.getTime() - from.getTime()) / MS_PER_DAY
+}
 
 export function dateDiffInDays(last: Date, cur: Date): number {
   const utc1 = Date.UTC(

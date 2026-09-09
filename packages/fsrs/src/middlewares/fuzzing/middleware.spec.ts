@@ -2,12 +2,16 @@ import {
   defineMiddleware,
   defineScheduler,
   Rating,
+  State,
   schedulerStatsMiddleware,
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS } from '@/models/fsrs-6/constants.js'
 import { FSRS6Model } from '@/models/fsrs-6/model.js'
+import { schedulerLearningStepsMiddleware } from '../learning-steps/middleware.js'
+import type { StepUnit } from '../learning-steps/types.js'
+import { schedulerScheduledDaysMiddleware } from '../scheduled-days/middleware.js'
 import { withFuzzing } from './core.js'
 import {
   createSchedulerFuzzingMiddleware,
@@ -25,6 +29,118 @@ const config = {
   enableFuzz: true,
   maximumInterval: 36_500,
 }
+
+describe('fuzzing with explicit learning steps', () => {
+  const schedulerDefinition = defineScheduler({
+    model: FSRS6Model,
+    chrono: dateChrono,
+  }).use(
+    schedulerFuzzingMiddleware,
+    schedulerScheduledDaysMiddleware,
+    schedulerLearningStepsMiddleware
+  )
+  function createCore(fractionalDays: boolean, step: StepUnit) {
+    const core = schedulerDefinition.create({
+      config: {
+        weights: FSRS6_DEFAULT_WEIGHTS,
+        numRelearningSteps: 0,
+        enableFuzz: true,
+        maximumInterval: 36500,
+        fractionalDays,
+        enableShortTerm: true,
+        learningSteps: [step],
+        relearningSteps: [],
+      },
+    })
+    vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+    return core
+  }
+
+  it.each([
+    false,
+    true,
+  ])('preserves a positive step at learningStep=0 with fractionalDays=%s', (fractionalDays) => {
+    for (const [step, minutes] of [
+      ['0.01m', 1 / 60],
+      ['10m', 10],
+      ['1d', 1440],
+      ['2.4d', 3456],
+    ] as const) {
+      const core = createCore(fractionalDays, step)
+      expect(
+        core.chrono.difference(now, new Date(now.getTime() + DAY / 2))
+      ).toBe(fractionalDays ? 0.5 : 0)
+      const card = core.newCard({ now })
+      expect(card.learningStep).toBe(0)
+      const result = core.review({ card, now, grade: Rating.Again })
+      expect(result.card.dueAt.getTime() - now.getTime()).toBe(minutes * 60000)
+      expect(result.card.scheduledDays).toBe(
+        fractionalDays ? minutes / 1440 : Math.floor(minutes / 1440)
+      )
+      expect(result.card.learningStep).toBe(0)
+      expect(result.card.state).toBe(
+        minutes < 1440 ? State.Learning : State.Review
+      )
+      expect(core.rollback(result)).toEqual(card)
+    }
+  })
+
+  it.each([
+    false,
+    true,
+  ])('uses the configured rounding for zero steps and graduation with fractionalDays=%s', (fractionalDays) => {
+    for (const step of ['0m', '0.001m', '1m'] as const) {
+      const core = createCore(fractionalDays, step)
+      const card = core.newCard({ now })
+      const first = core.review({ card, now, grade: Rating.Again })
+      const result =
+        step === '1m'
+          ? core.review({ card: first.card, now, grade: Rating.Good })
+          : first
+      const interval = core.model.nextInterval(result.card, 0.9)
+      expect(interval).toBeGreaterThan(0)
+      expect(interval).toBeLessThan(0.5)
+      expect(result.card.dueAt.getTime() - now.getTime()).toBe(
+        fractionalDays ? Math.trunc(interval * DAY) : 0
+      )
+      expect(result.card.scheduledDays).toBe(fractionalDays ? interval : 0)
+      expect(result.card.state).toBe(State.Review)
+      expect(result.card.learningStep).toBe(0)
+    }
+  })
+})
+
+it.each([
+  undefined,
+  false,
+  true,
+])('shares fractionalDays config between fuzzing and scheduled days (%s)', (fractionalDays) => {
+  const scheduler = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+    .use(schedulerFuzzingMiddleware, schedulerScheduledDaysMiddleware)
+    .create({
+      config: {
+        weights: FSRS6_DEFAULT_WEIGHTS,
+        enableShortTerm: false,
+        numRelearningSteps: 0,
+        enableFuzz: true,
+        maximumInterval: 36500,
+        fractionalDays,
+      },
+    })
+  vi.spyOn(scheduler.model, 'nextInterval').mockReturnValue(0.25)
+  const card = scheduler.newCard({ now, cardId: 'fractional' })
+  const result = scheduler.review({ card, now, grade: Rating.Again })
+  const interval = scheduler.model.nextInterval(result.card, 0.9)
+  expect(withFuzzing(interval, 0, scheduler.config, 'fractional1')).toBe(
+    fractionalDays ? interval : 0
+  )
+  expect(scheduler.config.fractionalDays).toBe(fractionalDays ?? false)
+  expect(result.card.scheduledDays).toBe(fractionalDays ? interval : 0)
+  expect(result.card.dueAt.getTime() - now.getTime()).toBe(
+    fractionalDays ? Math.trunc(interval * DAY) : 0
+  )
+  expect(scheduler.rollback(result)).toEqual(card)
+})
 
 const fuzzFirstCore = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
   .use(schedulerFuzzingMiddleware, schedulerStatsMiddleware)

@@ -284,7 +284,6 @@ describe('defineScheduler type display', () => {
         };
         output: {
             readonly weights: readonly number[];
-            readonly chrono: Record<string, never>;
         };
     }>;
     readonly cardInitInput: SchedulerCardInitSchema<number>;
@@ -362,7 +361,6 @@ describe('defineScheduler type display', () => {
         };
         output: {
             readonly weights: readonly number[];
-            readonly chrono: Record<string, never>;
             readonly clearStatsOnForget: boolean;
         };
     }>;
@@ -445,7 +443,6 @@ describe('defineScheduler type display', () => {
         };
         output: {
             readonly weights: readonly number[];
-            readonly chrono: Record<string, never>;
             readonly clearStatsOnForget: boolean;
         };
     }>;
@@ -528,7 +525,6 @@ describe('defineScheduler type display', () => {
     sm2NumericCoreWithMiddleware: `const sm2NumericCoreWithMiddleware: SchedulerCore<{
     readonly config: {
         readonly weights: readonly number[];
-        readonly chrono: Record<string, never>;
         readonly clearStatsOnForget: boolean;
     };
     readonly cardInitInput: {
@@ -592,7 +588,6 @@ describe('defineScheduler type display', () => {
     sm2NumericCore: `const sm2NumericCore: SchedulerCore<{
     readonly config: {
         readonly weights: readonly number[];
-        readonly chrono: Record<string, never>;
         readonly clearStatsOnForget: boolean;
     };
     readonly cardInitInput: {
@@ -756,7 +751,6 @@ describe('defineScheduler type display', () => {
         };
         output: {
             readonly weights: readonly number[];
-            readonly chrono: Record<string, never>;
         };
     }>;
     readonly cardInitInput: SchedulerCardInitSchema<number>;
@@ -827,7 +821,6 @@ describe('defineScheduler type display', () => {
     sm2WithSuspendCore: `const sm2WithSuspendCore: SchedulerCore<{
     readonly config: {
         readonly weights: readonly number[];
-        readonly chrono: Record<string, never>;
     };
     readonly cardInitInput: {
         readonly now?: number | undefined;
@@ -905,7 +898,6 @@ describe('defineScheduler type display', () => {
 }`,
     SM2NumericSchedulerConfigOutput: `type SM2NumericSchedulerConfigOutput = {
     readonly weights: readonly number[];
-    readonly chrono: Record<string, never>;
     readonly clearStatsOnForget: boolean;
 }`,
   }

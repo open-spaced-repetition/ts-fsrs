@@ -47,7 +47,8 @@ const createTemporalFixture = () => {
   }).create({
     config: {
       ...modelConfig,
-      chrono: { timezone: 'UTC', fractionalDays: false },
+      timezone: 'UTC',
+      fractionalDays: false,
     },
   })
 

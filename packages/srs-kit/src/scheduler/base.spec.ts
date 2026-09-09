@@ -59,7 +59,6 @@ describe('SchedulerCore.create', () => {
   it('validates config and returns core', () => {
     expect(core.config).toEqual({
       ...config,
-      chrono: {},
       clearStatsOnForget: true,
     })
     expect(core.model).not.toBe(SM2Model)
@@ -84,7 +83,6 @@ describe('SchedulerCore.create', () => {
 
     expect(c.config).toEqual({
       weights: SM2_DEFAULT_WEIGHTS,
-      chrono: {},
       clearStatsOnForget: true,
     })
     expect(c.config).not.toHaveProperty('desiredRetention')
@@ -1658,7 +1656,8 @@ describe('SchedulerCore.rollback', () => {
     }).create({
       config: {
         ...config,
-        chrono: { timezone: 'UTC', fractionalDays: false },
+        timezone: 'UTC',
+        fractionalDays: false,
       },
     })
     const dueAt = Temporal.Instant.from('2026-06-28T00:00:00Z')

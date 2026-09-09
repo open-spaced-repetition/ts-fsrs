@@ -4,6 +4,7 @@ export type {
 } from '@vendor/standard-schema.js'
 export * from './cache.js'
 export * from './field.js'
+export * from './fractional-days.js'
 export * from './infer.js'
 export * from './iterable.js'
 export * from './middleware.js'

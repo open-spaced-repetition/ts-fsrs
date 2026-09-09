@@ -14,6 +14,40 @@ describe('fuzzing core', () => {
     expect(withFuzzing(2.4, 1, config, 'seed')).toBe(2)
   })
 
+  it.each([
+    undefined,
+    false,
+    true,
+  ])('honors fractionalDays=%s for short or disabled-fuzz intervals', (fractionalDays) => {
+    for (const enableFuzz of [false, true]) {
+      for (const interval of [0, 1 / 86400, 10 / 1440, 1, 2.4, 2.5, 3.4]) {
+        if (enableFuzz && interval >= 2.5) continue
+        expect(
+          withFuzzing(
+            interval,
+            0,
+            { ...config, enableFuzz, fractionalDays },
+            'seed'
+          )
+        ).toBe(fractionalDays ? interval : Math.round(interval))
+      }
+    }
+  })
+
+  it('still produces the same integer fuzz result at and above 2.5 days', () => {
+    for (const interval of [2.5, 2.6, 10.25]) {
+      const integer = withFuzzing(interval, 0, config, 'boundary-seed')
+      const fractional = withFuzzing(
+        interval,
+        0,
+        { ...config, fractionalDays: true },
+        'boundary-seed'
+      )
+      expect(fractional).toBe(integer)
+      expect(Number.isInteger(fractional)).toBe(true)
+    }
+  })
+
   it('fuzzes the 2.5 interval boundary inside its range', () => {
     const range = getFuzzRange(2.5, 0, config.maximumInterval)
     const interval = withFuzzing(2.5, 0, config, 'boundary-seed')

@@ -1,4 +1,4 @@
-import type { FuzzingConfig } from './schema.js'
+import type { FuzzingConfigInput } from './schema.js'
 
 export type FuzzRange = {
   readonly start: number
@@ -66,15 +66,17 @@ export const fnv1aMulberry32Rng: FuzzingRng = (seed) =>
   mulberry32(fnv1a32(seed))
 
 /**
- * Returns an integer interval with optional deterministic fuzzing applied.
+ * Applies deterministic fuzzing, preserving unfuzzed fractional intervals when configured.
  */
 export function withFuzzing(
   interval: number,
   elapsedDays: number,
-  config: FuzzingConfig,
+  config: FuzzingConfigInput,
   seed?: string
 ) {
-  if (!config.enableFuzz || interval < 2.5) return Math.round(interval)
+  if (!config.enableFuzz || interval < 2.5) {
+    return config.fractionalDays ? interval : Math.round(interval)
+  }
 
   const { minInterval, maxInterval } = getFuzzRange(
     interval,
