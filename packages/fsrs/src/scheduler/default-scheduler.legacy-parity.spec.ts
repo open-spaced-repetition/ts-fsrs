@@ -13,7 +13,6 @@ import {
   expectSequenceParity,
   legacyNext,
   legacyReview,
-  legacyRollback,
 } from './default-scheduler.legacy-test-utils.js'
 import {
   createStateCard,
@@ -39,6 +38,7 @@ const revlogKeys = [
   'cardId',
   'difficulty',
   'dueAt',
+  'lastReviewAt',
   'learningStep',
   'rating',
   'reviewTime',
@@ -80,7 +80,8 @@ describe('DefaultScheduler legacy parity', () => {
 
       expect(Object.keys(actual.revlog).sort()).toEqual(revlogKeys)
       expect(actual.revlog.cardId).toBe(card.cardId)
-      expect(actual.revlog.dueAt).toEqual(legacy.log.due)
+      expect(actual.revlog.dueAt).toEqual(card.dueAt)
+      expect(actual.revlog.lastReviewAt).toEqual(card.lastReviewAt)
       expect(actual.revlog.stability).toBe(legacy.log.stability)
       expect(actual.revlog.difficulty).toBe(legacy.log.difficulty)
       expect(actual.revlog.scheduledDays).toBe(legacy.log.scheduled_days)
@@ -183,10 +184,7 @@ describe('DefaultScheduler legacy parity', () => {
         const actual = scheduler.review({ card, grade, now })
 
         expectSequenceParity(actual, expected, card, enableShortTerm)
-        expectRollbackParity(
-          scheduler.rollback(actual),
-          legacyRollback(options, expected)
-        )
+        expectRollbackParity(scheduler.rollback(actual), card)
 
         card = actual.card
         const delay = Math.floor(random() * 15) * DAY
@@ -195,9 +193,7 @@ describe('DefaultScheduler legacy parity', () => {
       }
     })
 
-    it.each(
-      states
-    )('rolls state %s back to the legacy input', async (state) => {
+    it.each(states)('restores the input card for state %s', async (state) => {
       const scheduler = await DefaultScheduler(options)
       const card = createStateCard(state)
 
@@ -328,10 +324,7 @@ describe('DefaultScheduler legacy parity', () => {
       })
 
       expectFullParity(actual, expected)
-      expectRollbackParity(
-        scheduler.rollback(actual),
-        legacyRollback(options, expected)
-      )
+      expectRollbackParity(scheduler.rollback(actual), card)
       expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
     })
 

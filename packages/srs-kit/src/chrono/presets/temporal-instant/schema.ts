@@ -16,8 +16,16 @@ export type TemporalInstantCardOutputFields = {
   lastReviewAt: Temporal.Instant | null
 }
 
+export type TemporalInstantRevlogInputFields = {
+  dueAt: Temporal.Instant
+  lastReviewAt?: Temporal.Instant | null
+  reviewTime: Temporal.Instant
+}
+
+/** Pre-review card timestamps plus the time of the recorded review. */
 export type TemporalInstantRevlogFields = {
   dueAt: Temporal.Instant
+  lastReviewAt: Temporal.Instant | null
   reviewTime: Temporal.Instant
 }
 
@@ -118,23 +126,23 @@ export const temporalInstantCardFieldsSchema = defineSchema<
   return { value: { dueAt: dueAt.data, lastReviewAt: lastReviewAt.data } }
 })
 
-export const temporalInstantRevlogFieldsSchema =
-  defineSchema<TemporalInstantRevlogFields>((value) => {
-    if (!isObject(value) || !('dueAt' in value) || !('reviewTime' in value)) {
-      return invalidInstantFields()
-    }
+export const temporalInstantRevlogFieldsSchema = defineSchema<
+  TemporalInstantRevlogInputFields,
+  TemporalInstantRevlogFields
+>((value) => {
+  if (!isObject(value) || !('reviewTime' in value)) {
+    return invalidInstantFields()
+  }
 
-    const dueAt = temporalInstantSchema.safeParse(value.dueAt)
-    if (!dueAt.success) {
-      return invalidInstantFields()
-    }
+  const card = temporalInstantCardFieldsSchema['~standard'].validate(value)
+  if (card.issues) return card
 
-    const reviewTime = temporalInstantSchema.safeParse(value.reviewTime)
-    if (!reviewTime.success) {
-      return invalidInstantFields()
-    }
+  const reviewTime = temporalInstantSchema.safeParse(value.reviewTime)
+  if (!reviewTime.success) {
+    return invalidInstantFields()
+  }
 
-    return {
-      value: { dueAt: dueAt.data, reviewTime: reviewTime.data },
-    }
-  })
+  const revlog = card.value as TemporalInstantRevlogFields
+  revlog.reviewTime = reviewTime.data
+  return { value: revlog }
+})

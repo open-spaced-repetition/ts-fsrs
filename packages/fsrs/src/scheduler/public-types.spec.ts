@@ -83,6 +83,7 @@ describe('public scheduler types', () => {
         scheduleStatus: 'new' | 'learning' | 'review' | 'suspended'
         rating: Grade
         dueAt: Date
+        lastReviewAt: Date | null
         reviewTime: Date
         stability: number
         difficulty: number
