@@ -27,6 +27,24 @@ describe('FSRS7Algorithm', () => {
     expect(algorithm.curve(interval, state).retrievability).toBeCloseTo(0.9, 8)
   })
 
+  it('clamps negative elapsed days to zero like fsrs-rs instead of returning NaN', () => {
+    const algorithm = new FSRS7Algorithm(
+      FSRS7_DEFAULT_WEIGHTS,
+      FSRS7_MODEL_BOUNDS
+    )
+    const state = { stability: 10, stabilityFast: 8, difficulty: 5 }
+    const zero = algorithm.curve(0, state)
+    // fsrs-rs applies t.max(0.0) at every scalar entry point, so t < 0 behaves as t = 0.
+    for (const t of [-1e-9, -0.001, -1, -36500]) {
+      const curve = algorithm.curve(t, state)
+      expect(curve.retrievability).toBe(zero.retrievability)
+      expect(curve.derivative).toBe(zero.derivative)
+      expect(algorithm.next_state(state, t, Rating.Good)).toEqual(
+        algorithm.next_state(state, 0, Rating.Good)
+      )
+    }
+  })
+
   it('matches FSRS-7 memory-state progression from fsrs-rs and benchmark', () => {
     const algorithm = new FSRS7Algorithm(
       FSRS7_DEFAULT_WEIGHTS,

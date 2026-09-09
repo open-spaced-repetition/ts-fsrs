@@ -37,10 +37,12 @@ export class FSRS7Algorithm {
 
   private fast_component(t: number, s: number) {
     const w = this.weights
+    // Negative elapsed time would drive `base` below zero and make Math.pow return NaN.
+    const days = Math.max(t, 0)
     const decay = -clamp(w[23] * Math.pow(s, w[33] - 0.3), 0.01, 0.95)
     const factor = Math.exp(Math.min(Math.log(w[25]) / decay, 60)) - 1
     const scale = factor / s
-    const base = 1 + scale * t
+    const base = 1 + scale * days
     return {
       recall: Math.pow(base, decay),
       derivative: decay * Math.pow(base, decay - 1) * scale,
@@ -60,11 +62,12 @@ export class FSRS7Algorithm {
   /** Computes the curve from memory values already clamped by the caller. */
   private compute_curve(t: number, s: number, sFast: number, d: number) {
     const w = this.weights
-    const fast = this.fast_component(t, sFast)
+    const days = Math.max(t, 0)
+    const fast = this.fast_component(days, sFast)
     const decay = -clamp(w[24], 0.01, 0.95)
     const scale =
       ((Math.pow(w[26], 1 / decay) - 1) * Math.exp((d - 5) * (w[32] - 0.3))) / s
-    const base = 1 + scale * t
+    const base = 1 + scale * days
     const slow = Math.pow(base, decay)
     const derivative = decay * Math.pow(base, decay - 1) * scale
     const weight1 = w[27] * Math.pow(sFast, -w[29])
