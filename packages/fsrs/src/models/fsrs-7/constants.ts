@@ -1,6 +1,8 @@
 import type { ModelBounds } from '@open-spaced-repetition/srs-kit/model'
 import type { FSRS7State } from './schema.js'
 
+export const INIT_S_MAX = 100.0
+
 export const FSRS7_MODEL_BOUNDS = Object.freeze({
   sMin: 0.0001,
   sMax: 36500,
