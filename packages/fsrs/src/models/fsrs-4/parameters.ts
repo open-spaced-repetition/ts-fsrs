@@ -4,16 +4,16 @@ import { clamp } from '@/help.js'
 import { isNumberArray } from '@/kit/schema-utils.js'
 import { FSRS4_DEFAULT_WEIGHTS, FSRS4ParameterBounds } from './constants.js'
 
-export const clipFSRS4Parameters = (parameters: number[]): number[] => {
+export const clipFSRS4Parameters = (
+  parameters: readonly number[]
+): number[] => {
   const clip = FSRS4ParameterBounds().slice(0, parameters.length)
   return clip.map(([min, max], index) =>
     clamp(parameters[index] ?? 0, min, max)
   )
 }
 
-export const checkFSRS4Parameters = (
-  parameters: number[] | readonly number[]
-) => {
+export const checkFSRS4Parameters = (parameters: readonly number[]) => {
   const clipped = clipFSRS4Parameters(Array.from(parameters))
   const isValid =
     parameters.length === FSRS4_DEFAULT_WEIGHTS.length &&
@@ -26,7 +26,9 @@ export const checkFSRS4Parameters = (
   return parameters
 }
 
-export const migrateFSRS4Parameters = (parameters?: number[]): number[] => {
+export const migrateFSRS4Parameters = (
+  parameters?: readonly number[]
+): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS4_DEFAULT_WEIGHTS]
   }

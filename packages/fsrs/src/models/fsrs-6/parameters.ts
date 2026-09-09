@@ -57,7 +57,7 @@ export const clipFSRS6Parameters = (
 }
 
 export const checkFSRS6Parameters = (
-  parameters: number[] | readonly number[],
+  parameters: readonly number[],
   numRelearningSteps = 0,
   enableShortTerm = true
 ) => {
@@ -77,7 +77,9 @@ export const checkFSRS6Parameters = (
   return parameters
 }
 
-export const migrateFSRS6Parameters = (parameters?: number[]): number[] => {
+export const migrateFSRS6Parameters = (
+  parameters?: readonly number[]
+): number[] => {
   if (!Array.isArray(parameters) || parameters.length === 0) {
     return [...FSRS6_DEFAULT_WEIGHTS]
   }
