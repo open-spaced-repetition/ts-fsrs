@@ -146,7 +146,7 @@ export interface ChronoDefaultCtx<
   readonly config: Readonly<Config>
   /** Due time being written: the next one for cards, the pre-review one for revlogs. */
   readonly time: Value
-  /** Cards receive one event time; revlogs receive a projection whose `current` is that event time. */
+  /** Cards receive one event time, null when none precedes; revlogs receive a projection whose `current` is that event time. */
   readonly previous?: Key extends 'card'
     ? Value | null
     : Readonly<ChronoTimeProjection<Value>>

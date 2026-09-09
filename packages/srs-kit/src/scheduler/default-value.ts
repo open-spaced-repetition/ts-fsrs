@@ -50,6 +50,7 @@ function applyNewCardDefaults(ctx: {
       chronoDefault({
         config: defaultValue.config,
         time,
+        previous: null,
       })
     )
   }

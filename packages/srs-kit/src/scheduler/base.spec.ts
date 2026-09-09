@@ -1716,6 +1716,38 @@ describe('SchedulerCore.rollback', () => {
     expect(restored.lastReviewAt).toBe(null)
   })
 
+  it('supplies the same missing-previous context on newCard and on new-card rollback', () => {
+    const seen: { readonly present: boolean; readonly value: unknown }[] = []
+    const cardDefault = dateChrono.defaultValue.card!
+    const spiedChrono = {
+      ...dateChrono,
+      defaultValue: {
+        ...dateChrono.defaultValue,
+        card(ctx: Parameters<typeof cardDefault>[0]) {
+          seen.push({ present: 'previous' in ctx, value: ctx.previous })
+          return cardDefault(ctx)
+        },
+      },
+    } as typeof dateChrono
+    const spiedCore = defineScheduler({
+      model: SM2Model,
+      chrono: spiedChrono,
+    }).create({ config })
+    const card = spiedCore.newCard({ now: new Date('2026-06-28T00:00:00Z') })
+    const reviewed = spiedCore.review({
+      card,
+      grade: Rating.Good,
+      now: new Date('2026-06-30T00:00:00Z'),
+    })
+
+    const restored = spiedCore.rollback(reviewed)
+
+    expect(reviewed.revlog.state).toBe(State.New)
+    expect(seen).toHaveLength(3)
+    expect(seen[2]).toEqual(seen[0])
+    expect(restored).toEqual(card)
+  })
+
   it('restores non-new chrono card fields from revlog projection', () => {
     const dateCore = defineScheduler({
       model: SM2Model,
