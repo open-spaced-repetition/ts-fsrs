@@ -13,8 +13,16 @@ export type DateCardOutputFields = {
   lastReviewAt: Date | null
 }
 
+export type DateRevlogInputFields = {
+  dueAt: Date
+  lastReviewAt?: Date | null
+  reviewTime: Date
+}
+
+/** Pre-review card timestamps plus the time of the recorded review. */
 export type DateRevlogFields = {
   dueAt: Date
+  lastReviewAt: Date | null
   reviewTime: Date
 }
 
@@ -54,17 +62,23 @@ export const dateCardFieldsSchema = defineSchema<
   }
 })
 
-export const dateRevlogFieldsSchema = defineSchema<DateRevlogFields>(
-  (value: unknown) => {
-    if (!isObject(value) || !('dueAt' in value) || !('reviewTime' in value)) {
-      return invalidDateFields()
-    }
-
-    const { dueAt, reviewTime } = value
-    if (!isValidDate(dueAt) || !isValidDate(reviewTime)) {
-      return invalidDateFields()
-    }
-
-    return { value: { dueAt, reviewTime } }
+export const dateRevlogFieldsSchema = defineSchema<
+  DateRevlogInputFields,
+  DateRevlogFields
+>((value) => {
+  if (!isObject(value) || !('reviewTime' in value)) {
+    return invalidDateFields()
   }
-)
+
+  const card = dateCardFieldsSchema['~standard'].validate(value)
+  if (card.issues) return card
+
+  const { reviewTime } = value
+  if (!isValidDate(reviewTime)) {
+    return invalidDateFields()
+  }
+
+  const revlog = card.value as DateRevlogFields
+  revlog.reviewTime = reviewTime
+  return { value: revlog }
+})

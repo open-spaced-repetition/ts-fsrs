@@ -56,7 +56,7 @@ describe('numericChrono', () => {
     })
     expect(projectionValue).toEqual({ previous: 0, current: 4.5 })
     const elapsed = difference(
-      projectionValue.previous,
+      projectionValue.previous ?? 0,
       projectionValue.current
     )
     expect(elapsed).toBe(4.5)

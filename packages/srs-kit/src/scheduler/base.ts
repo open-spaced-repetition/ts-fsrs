@@ -47,7 +47,7 @@ export interface BaseSchedulerContext<
 interface PreparedReview<Env extends BlankSchedulerEnv> {
   readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
   readonly time: {
-    readonly previous: SchedulerCoreEnv<Env>['chrono']
+    readonly previous: SchedulerCoreEnv<Env>['chrono'] | null
     readonly current: SchedulerCoreEnv<Env>['chrono']
   }
   readonly elapsedDays: number
@@ -416,7 +416,7 @@ export class BaseScheduler<
     const elapsedDays =
       card.state === State.New
         ? 0
-        : this.chrono.difference(time.previous, time.current)
+        : this.chrono.difference(time.previous ?? time.current, now)
 
     const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
     const memoryStateByGrade = new Map<Grade, Record<string, unknown>>()
@@ -560,25 +560,22 @@ export class BaseScheduler<
     prepared: PreparedReview<Env>,
     ctx: ReviewMiddlewareOperationContext<Env>
   ): void {
-    if (ctx.scheduledDays === undefined) {
+    const {
+      result,
+      scheduledDays,
+      input: { now },
+    } = ctx
+    if (scheduledDays === undefined) {
       throw new Error('Expected scheduledDays after review middleware')
     }
-    this.applyChronoDefaults(ctx.result, prepared, ctx.scheduledDays)
-  }
-
-  private applyChronoDefaults(
-    result: ReviewResultDraft<Env>,
-    prepared: PreparedReview<Env>,
-    scheduledDays: number
-  ): void {
     const chronoCardDefault = this.schedulerDefinition.chrono.defaultValue?.card
     if (chronoCardDefault) {
       Object.assign(
         result.card,
         chronoCardDefault({
           config: this.config,
-          time: this.chrono.add(prepared.time.current, scheduledDays),
-          previous: prepared.time,
+          time: this.chrono.add(now, scheduledDays),
+          previous: now,
         })
       )
     }
@@ -591,7 +588,7 @@ export class BaseScheduler<
         chronoRevlogDefault({
           config: this.config,
           time: prepared.time.current,
-          previous: prepared.time,
+          previous: { previous: prepared.time.previous, current: now },
         })
       )
     }
@@ -614,13 +611,8 @@ export class BaseScheduler<
     const isNew = revlog.state === State.New
     const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
       config: this.config,
-      previous: isNew
-        ? undefined
-        : {
-            previous: 0,
-            current: projection.previous,
-          },
-      time: isNew ? projection.previous : projection.current,
+      previous: isNew ? null : projection.previous,
+      time: projection.current,
     })
     if (cardFields) {
       Object.assign(result.card, cardFields)

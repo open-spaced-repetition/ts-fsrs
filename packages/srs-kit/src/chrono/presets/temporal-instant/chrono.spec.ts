@@ -58,6 +58,7 @@ describe('temporalInstantChrono', () => {
     }>()
     expectTypeOf<ChronoRevlogOf<typeof temporalInstantChrono>>().toEqualTypeOf<{
       dueAt: Temporal.Instant
+      lastReviewAt: Temporal.Instant | null
       reviewTime: Temporal.Instant
     }>()
 
@@ -143,7 +144,7 @@ describe('temporalInstantChrono', () => {
         dueAt: now,
         reviewTime: later,
       })
-    ).toEqual({ dueAt: now, reviewTime: later })
+    ).toEqual({ dueAt: now, lastReviewAt: null, reviewTime: later })
     expect(() =>
       parse(temporalInstantChrono.schema.revlog, {
         dueAt: null,
@@ -161,15 +162,12 @@ describe('temporalInstantChrono', () => {
         reviewTime: {},
       })
     ).toThrow('Expected Temporal.Instant fields')
-    expect(
-      parse(temporalInstantChrono.projection, {
-        card: {
-          dueAt: now,
-          lastReviewAt: now,
-        },
-        time: later,
-      })
-    ).toEqual({ previous: now, current: later })
+    const projection = parse(temporalInstantChrono.projection, {
+      card: { dueAt: later, lastReviewAt: now },
+      time: createInstant(NS_PER_DAY * 2n),
+    })
+    expect(projection.previous).toBe(now)
+    expect(projection.current).toBe(later)
     expect(
       parse(temporalInstantChrono.projection, {
         card: {
@@ -178,7 +176,7 @@ describe('temporalInstantChrono', () => {
         },
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(temporalInstantChrono.projection, {
         card: parse(temporalInstantChrono.schema.card, {
@@ -187,7 +185,7 @@ describe('temporalInstantChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(temporalInstantChrono.projection, {
         card: parse(temporalInstantChrono.schema.card, {
@@ -195,12 +193,13 @@ describe('temporalInstantChrono', () => {
         }),
         time: later,
       })
-    ).toEqual({ previous: now, current: later })
+    ).toEqual({ previous: null, current: now })
     expect(
       parse(temporalInstantChrono.projection, {
         revlog: {
-          dueAt: now,
-          reviewTime: later,
+          dueAt: later,
+          lastReviewAt: now,
+          reviewTime: createInstant(NS_PER_DAY * 2n),
         },
       })
     ).toEqual({ previous: now, current: later })
@@ -235,6 +234,14 @@ describe('temporalInstantChrono', () => {
       })
     ).toThrow('Expected Temporal.Instant')
     expect(() => parse(temporalInstantChrono.schema.card, null)).toThrow()
+    expect(() => parse(temporalInstantChrono.schema.revlog, null)).toThrow()
+    expect(() =>
+      parse(temporalInstantChrono.schema.revlog, {
+        dueAt: now,
+        lastReviewAt: {},
+        reviewTime: later,
+      })
+    ).toThrow('Expected Temporal.Instant fields')
     expect(() =>
       parse(temporalInstantChrono.schema.card, {
         dueAt: {},
@@ -284,10 +291,7 @@ describe('temporalInstantChrono', () => {
       temporalInstantChrono.defaultValue.card!({
         config: temporalConfig,
         time: now,
-        previous: {
-          previous: now,
-          current: later,
-        },
+        previous: later,
       })
     ).toEqual({ dueAt: now, lastReviewAt: later })
     expect(
@@ -300,17 +304,16 @@ describe('temporalInstantChrono', () => {
       temporalInstantChrono.defaultValue.revlog!({
         config: temporalConfig,
         time: now,
-        previous: {
-          previous: now,
-          current: later,
-        },
       })
-    ).toEqual({ dueAt: now, reviewTime: later })
-    expect(
-      temporalInstantChrono.defaultValue.revlog!({
-        config: temporalConfig,
-        time: now,
-      })
-    ).toEqual({ dueAt: now, reviewTime: now })
+    ).toEqual({ dueAt: now, lastReviewAt: null, reviewTime: now })
+    const dueAt = createInstant(NS_PER_DAY / 2n)
+    const revlog = temporalInstantChrono.defaultValue.revlog!({
+      config: temporalConfig,
+      time: dueAt,
+      previous: { previous: now, current: later },
+    })
+    expect(revlog.dueAt).toBe(dueAt)
+    expect(revlog.lastReviewAt).toBe(now)
+    expect(revlog.reviewTime).toBe(later)
   })
 })

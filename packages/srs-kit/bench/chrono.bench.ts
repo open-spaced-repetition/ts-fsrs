@@ -94,7 +94,7 @@ describe('dateChrono preset', () => {
   bench('default card', () => {
     dateChrono.defaultValue.card?.({
       config: { fractionalDays: false },
-      previous,
+      previous: later,
       time: now,
     })
   })
@@ -162,7 +162,7 @@ function describeTemporalInstant(
     bench('default card', () => {
       temporalInstantChrono.defaultValue.card?.({
         config,
-        previous,
+        previous: later,
         time: now,
       })
     })

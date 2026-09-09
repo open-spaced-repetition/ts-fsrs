@@ -76,7 +76,9 @@ type ChronoSchemaFields<Env extends BlankChronoEnv> = ChronoPart<
 // Chrono Projection
 // ==========
 export interface ChronoTimeProjection<Time> {
-  readonly previous: Time
+  /** Previous event time, or null when no previous event exists. */
+  readonly previous: Time | null
+  /** Current entity time; Date/Temporal cards and revlogs project their due date. */
   readonly current: Time
 }
 
@@ -136,14 +138,22 @@ export type ChronoProjectionRuntimeSchema =
 // ==========
 // Chrono
 // ==========
-export interface ChronoDefaultCtx<Config, Value> {
+export interface ChronoDefaultCtx<
+  Config,
+  Value,
+  Key extends 'card' | 'revlog' = 'revlog',
+> {
   readonly config: Readonly<Config>
+  /** Due time being written: the next one for cards, the pre-review one for revlogs. */
   readonly time: Value
-  readonly previous?: Readonly<ChronoTimeProjection<Value>>
+  /** Cards receive one event time; revlogs receive a projection whose `current` is that event time. */
+  readonly previous?: Key extends 'card'
+    ? Value | null
+    : Readonly<ChronoTimeProjection<Value>>
 }
 
 export type ChronoDefaultRuntimeFn = (
-  ctx: ChronoDefaultCtx<unknown, unknown>
+  ctx: ChronoDefaultCtx<unknown, unknown, 'card'>
 ) => object
 
 export type AnyChronoSchema = {
@@ -169,7 +179,7 @@ type ChronoDefaultPart<
   : {
       readonly [K in Key]?: FieldDefault<
         ChronoFieldSchema<Env, Key>,
-        ChronoDefaultCtx<ChronoConfig<Env>, SchemaOutput<Env['time']>>
+        ChronoDefaultCtx<ChronoConfig<Env>, SchemaOutput<Env['time']>, Key>
       >
     }
 
