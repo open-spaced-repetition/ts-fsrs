@@ -2,6 +2,7 @@ import { bench, describe } from 'vitest'
 import { dateChrono } from '@/chrono/presets/date/index.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.js'
+import { fractionalDaysConfigSchema } from '@/schema/fractional-days.js'
 
 const NS_PER_DAY = 86_400_000_000_000n
 const temporalImplementations = ['native', 'polyfill'] as const
@@ -76,12 +77,13 @@ describe('numericChrono preset', () => {
 describe('dateChrono preset', () => {
   const now = new Date('2026-06-20T00:00:00.000Z')
   const later = new Date('2026-06-21T12:00:00.000Z')
-  const core = dateChrono.create()
+  const config = fractionalDaysConfigSchema.parse({})
+  const core = dateChrono.create({ config })
   const card = { dueAt: now, lastReviewAt: now }
   const previous = { previous: now, current: later }
 
   bench('create', () => {
-    dateChrono.create()
+    dateChrono.create({ config })
   })
   bench('now', () => {
     core.now()
@@ -90,10 +92,18 @@ describe('dateChrono preset', () => {
     dateChrono.projection['~standard'].validate({ card, time: later })
   })
   bench('default card', () => {
-    dateChrono.defaultValue.card?.({ config: {}, previous, time: now })
+    dateChrono.defaultValue.card?.({
+      config: { fractionalDays: false },
+      previous,
+      time: now,
+    })
   })
   bench('default revlog', () => {
-    dateChrono.defaultValue.revlog?.({ config: {}, previous, time: now })
+    dateChrono.defaultValue.revlog?.({
+      config: { fractionalDays: false },
+      previous,
+      time: now,
+    })
   })
   bench('difference', () => {
     core.difference(now, later)

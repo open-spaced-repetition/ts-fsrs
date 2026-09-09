@@ -13,7 +13,7 @@ describe('fuzzingConfigSchema', () => {
         enableFuzz: true,
         maximumInterval: 365,
       })
-    ).toEqual({ enableFuzz: true, maximumInterval: 365 })
+    ).toEqual({ enableFuzz: true, maximumInterval: 365, fractionalDays: false })
   })
 
   it.each([
@@ -23,6 +23,9 @@ describe('fuzzingConfigSchema', () => {
     { enableFuzz: true, maximumInterval: 0 },
     { enableFuzz: true, maximumInterval: 1.5 },
     { enableFuzz: true, maximumInterval: Number.NaN },
+    { enableFuzz: true, maximumInterval: 365, fractionalDays: null },
+    { enableFuzz: true, maximumInterval: 365, fractionalDays: 1 },
+    { enableFuzz: true, maximumInterval: 365, fractionalDays: 'true' },
   ])('rejects invalid config %#', (value) => {
     expect(() => fuzzingConfigSchema.parse(value)).toThrow()
   })

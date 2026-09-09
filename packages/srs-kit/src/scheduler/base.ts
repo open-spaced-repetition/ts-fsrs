@@ -190,7 +190,7 @@ export class BaseScheduler<
       bypass: true,
     }) as ReturnType<M['create']>
     this.chrono = Reflect.apply(chrono.create, chrono, [
-      { config: config.chrono },
+      { config },
     ]) as ReturnType<C['create']>
     this.reviewHandlers = middlewares.map(
       (middleware) => middleware.handlers?.review
@@ -576,7 +576,7 @@ export class BaseScheduler<
       Object.assign(
         result.card,
         chronoCardDefault({
-          config: this.config.chrono,
+          config: this.config,
           time: this.chrono.add(prepared.time.current, scheduledDays),
           previous: prepared.time,
         })
@@ -589,7 +589,7 @@ export class BaseScheduler<
       Object.assign(
         result.revlog,
         chronoRevlogDefault({
-          config: this.config.chrono,
+          config: this.config,
           time: prepared.time.current,
           previous: prepared.time,
         })
@@ -613,7 +613,7 @@ export class BaseScheduler<
     )
     const isNew = revlog.state === State.New
     const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
-      config: this.config.chrono,
+      config: this.config,
       previous: isNew
         ? undefined
         : {
