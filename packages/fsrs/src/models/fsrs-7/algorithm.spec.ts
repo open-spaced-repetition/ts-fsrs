@@ -208,4 +208,25 @@ describe('FSRS7Algorithm', () => {
       expect(retrievability).toBeLessThan(slow)
     }
   })
+
+  it('reports mixture weights that recombine the components into retrievability', () => {
+    const algorithm = new FSRS7Algorithm(
+      FSRS7_DEFAULT_WEIGHTS,
+      FSRS7_MODEL_BOUNDS
+    )
+    const state = { stability: 10, stabilityFast: 8, difficulty: 5 }
+    const { fastWeight, slowWeight } = algorithm.curve(1, state)
+
+    // Weights come from the memory state alone, so time does not move them.
+    for (const t of [0, 0.01, 10, 100]) {
+      const c = algorithm.curve(t, state)
+      expect(c.fastWeight).toBe(fastWeight)
+      expect(c.slowWeight).toBe(slowWeight)
+      // Undo the epsilon rescale and the blend reproduces retrievability.
+      const blended =
+        (c.fastWeight * c.fast + c.slowWeight * c.slow) /
+        (c.fastWeight + c.slowWeight)
+      expect(blended * (1 - 2e-5) + 1e-5).toBeCloseTo(c.retrievability, 12)
+    }
+  })
 })

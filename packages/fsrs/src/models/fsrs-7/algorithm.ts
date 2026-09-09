@@ -50,8 +50,8 @@ export class FSRS7Algorithm {
   }
 
   /**
-   * Retrievability, its derivative with respect to elapsed days, and the two
-   * trace components behind the mixture.
+   * Retrievability and its elapsed-day derivative, plus the raw trace recalls
+   * and the unnormalised weights mixing them.
    */
   curve(t: number, state: Readonly<FSRS7State>) {
     const { sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax } =
@@ -83,10 +83,10 @@ export class FSRS7Algorithm {
       derivative:
         ((weight1 * fast.derivative + weight2 * derivative) / total) *
         (1 - 2e-5),
-      /** Fast-trace recall, before mixing and the epsilon rescale. */
       fast: fast.recall,
-      /** Slow-trace recall, before mixing and the epsilon rescale. */
       slow,
+      fastWeight: weight1,
+      slowWeight: weight2,
     }
   }
 
