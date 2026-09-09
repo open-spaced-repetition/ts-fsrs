@@ -7,16 +7,16 @@ import {
   FSRS4Dot5ParameterBounds,
 } from './constants.js'
 
-export const clipFSRS4Dot5Parameters = (parameters: number[]): number[] => {
+export const clipFSRS4Dot5Parameters = (
+  parameters: readonly number[]
+): number[] => {
   const clip = FSRS4Dot5ParameterBounds().slice(0, parameters.length)
   return clip.map(([min, max], index) =>
     clamp(parameters[index] || 0, min, max)
   )
 }
 
-export const checkFSRS4Dot5Parameters = (
-  parameters: number[] | readonly number[]
-) => {
+export const checkFSRS4Dot5Parameters = (parameters: readonly number[]) => {
   const clipped = clipFSRS4Dot5Parameters(Array.from(parameters))
   const isValid =
     parameters.length === FSRS4Dot5_DEFAULT_WEIGHTS.length &&

@@ -57,7 +57,7 @@ export const clipFSRS6Parameters = (
 }
 
 export const checkFSRS6Parameters = (
-  parameters: number[] | readonly number[],
+  parameters: readonly number[],
   numRelearningSteps = 0,
   enableShortTerm = true
 ) => {
