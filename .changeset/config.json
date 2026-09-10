@@ -27,5 +27,5 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@open-spaced-repetition/binding-test"]
+  "ignore": ["@open-spaced-repetition/binding-test", "@ts-fsrs/website"]
 }
