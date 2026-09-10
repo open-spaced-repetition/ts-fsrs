@@ -1,5 +1,23 @@
 # @open-spaced-repetition/srs-kit
 
+## 0.1.0-beta.7
+
+### Minor Changes
+
+- [#522](https://github.com/open-spaced-repetition/ts-fsrs/pull/522) [`786c0e7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/786c0e7e158321f26829ee8f728c37ece1345323) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): unify card and revlog time projections so rollback restores the pre-review due date
+
+- [#519](https://github.com/open-spaced-repetition/ts-fsrs/pull/519) [`785736a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/785736a81b7bc0f205d96ed57feac9e80d0603a6) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(kit): simplify chrono config to share options with middleware.
+
+### Patch Changes
+
+- [#492](https://github.com/open-spaced-repetition/ts-fsrs/pull/492) [`3db41a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3db41a48d21a9c7d1e6a44ee772df1302402171e) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: separate model parameter migration, clipping, and validation
+
+- [#493](https://github.com/open-spaced-repetition/ts-fsrs/pull/493) [`c186b67`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c186b67a4cc025388561f873025cfc51caf13410) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): expose flattened scheduler config input and output types.
+
+- [#503](https://github.com/open-spaced-repetition/ts-fsrs/pull/503) [`212e311`](https://github.com/open-spaced-repetition/ts-fsrs/commit/212e3112aba2107d55a247d2cbd94e6e96d9e70f) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten named card return type displays across scheduler APIs.
+
+- [#495](https://github.com/open-spaced-repetition/ts-fsrs/pull/495) [`0cfeb96`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0cfeb96b4cfdc0477c3eef31c8284ef3326b99ef) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten composed `newCard` return type displays.
+
 ## 0.1.0-beta.6
 
 ### Minor Changes
