@@ -9,7 +9,7 @@ import temporalCode from '@/snippets/run-code/chrono-temporal.ts?raw'
 
 # Temporal Instant
 
-將 `timezone` 和 `fractionalDays` 直接放在排程器 config 頂層，例如 `config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`。省略這兩個欄位時使用預設值 `'UTC'` 和 `false`，沒有巢狀的 `config.chrono`。直接呼叫預設需要完整設定：`temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`；透過排程器建立實例時會驗證設定並補齊預設值。
+將 `timezone` 和 `fractionalDays` 直接放在排程器 config 頂層，例如 `config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`。省略這兩個欄位時使用預設值 `'UTC'` 和 `false`。直接呼叫預設需要完整設定：`temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`；透過排程器建立實例時會驗證設定並補齊預設值。
 
 `fractionalDays: false` 表示按指定時區計算日曆日期差；設為 `true` 時，時間差包含該時區下的小數天數。`add` 在 UTC 下使用固定 24 小時，在其他時區下按日曆天計算；跨越日光節約時間切換時，當地的一天可能短於或長於 24 小時。增加小數天數時，使用相鄰當地日的實際長度。此預設不提供自訂每日換日時間。
 
