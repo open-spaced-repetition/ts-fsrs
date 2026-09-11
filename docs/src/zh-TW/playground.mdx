@@ -1,0 +1,24 @@
+---
+title: Playground
+description: 直接在瀏覽器中編輯並執行 ts-fsrs 與 WASIP1 最佳化器範例，使用真實型別宣告、Worker 輸出與複習日誌訓練
+sidebar: false
+---
+
+import LivePlayground from '../components/LivePlayground'
+import RevlogTrainer from '../components/RevlogTrainer'
+
+# Playground
+
+直接在瀏覽器中執行目前工作區的建置。Monaco 使用儲存庫中 `ts-fsrs` 與 `@open-spaced-repetition/binding` 的真實宣告，因此懸停資訊、診斷、補全與跳至定義都與實際 package 一致。
+
+<LivePlayground />
+
+## 使用 WASIP1 binding 訓練
+
+配套 package 的瀏覽器入口、CSV 轉換、`FSRSBindingItem` / `FSRSBindingReview` 建立，以及所有最佳化器呼叫都留在同一個專用 Worker 內。主執行緒只讀取所選 `File` 的文字並傳送給 Worker。
+
+<RevlogTrainer />
+
+此連結會下載來自 `fsrs-rs` 的[範例 `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv)，包含 123,730 筆複習記錄，大小為 4,626,708 bytes。binding 使用 Rust `csv` parser，可正確處理 CRLF、引號與欄位內逗號。轉換器依 `card_id` 分組並按 `review_time` 排序，從最後一個 New/Learning 區塊開始保留歷史。所選 IANA 時區會逐筆解析時間戳記的當地時間與日光節約時間；早於所選 `nextDayStartsAt` 的當地複習會計入前一個學習日。轉換器以這些學習日之間的完整日數計算 `deltaT`，只建立目前 `deltaT > 0` 的訓練項目。
+
+短期參數為選用項目：啟用後可建模同一天內的複習，關閉後只訓練長期權重。無論採用哪一種方式，頁面都會完整顯示回傳的 `weights` 陣列，不四捨五入也不截斷。

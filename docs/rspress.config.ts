@@ -95,6 +95,12 @@ export default defineConfig({
       description: 'ts-fsrs 开发者文档',
     },
     {
+      lang: 'zh-TW',
+      label: '繁體中文',
+      title: 'ts-fsrs',
+      description: 'ts-fsrs 開發者文件',
+    },
+    {
       lang: 'ja-JP',
       label: '日本語',
       title: 'ts-fsrs',
@@ -191,6 +197,12 @@ export default defineConfig({
           test: /^\/zh-CN\/updates\//,
           title: 'ts-fsrs 更新',
           language: 'zh-CN',
+        },
+        {
+          id: 'updates-zh-tw',
+          test: /^\/zh-TW\/updates\//,
+          title: 'ts-fsrs 更新',
+          language: 'zh-TW',
         },
         {
           id: 'updates-ja',

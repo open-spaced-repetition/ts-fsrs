@@ -12,7 +12,7 @@ describe('defineScheduler guide source', () => {
     const snippet = readFileSync(join(root, snippetPath), 'utf8')
     expect(snippet).toContain('defineScheduler({')
 
-    for (const locale of ['en-US', 'zh-CN', 'ja-JP']) {
+    for (const locale of ['en-US', 'zh-CN', 'zh-TW', 'ja-JP']) {
       const quickStart = readFileSync(
         join(root, '../..', locale, 'guide/quick-start.mdx'),
         'utf8'

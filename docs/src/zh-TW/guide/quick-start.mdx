@@ -1,0 +1,33 @@
+---
+title: 快速開始
+description: 安裝 ts-fsrs，並在瀏覽器的專用 Worker 中執行完整 defineScheduler 範例，以 Rating.Good 完成第一次卡片複習
+---
+
+import { PackageManagerTabs } from '@rspress/core/theme'
+import RunCode from '../../components/RunCode'
+import code from '@/snippets/run-code/define-scheduler.ts?raw'
+
+# 快速開始
+
+## 安裝
+
+`ts-fsrs` 需要 Node.js 24 或更新版本。
+
+<PackageManagerTabs command="install ts-fsrs" />
+
+只有需要訓練 FSRS 參數或轉換複習日誌 CSV 時，才需要另外安裝 `@open-spaced-repetition/binding`。
+
+## 建立排程器
+
+`defineScheduler` 使用 FSRS-6 模型與以日期為基礎的時間系統，建立可重複使用的 definition。`.create()` 會驗證設定並回傳獨立的排程器。
+
+```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
+```
+
+<RunCode code={code} />
+
+程式碼區塊的複製按鈕會複製原始程式碼；也可以直接在專用 Worker 中執行。固定的 `now` 讓輸出保持可重現。
+
+- `newCard()` 會建立符合此排程器預設結構的新卡片。
+- `review()` 會回傳新的卡片與複習日誌，不會修改輸入卡片。
+- 需要多個排程器時保留 definition；需要策略時，在 `.create()` 前透過 `.use(...)` 組合 middleware。

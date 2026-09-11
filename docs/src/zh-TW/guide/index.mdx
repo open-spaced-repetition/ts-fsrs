@@ -1,0 +1,35 @@
+---
+title: 介紹
+description: 說明 ts-fsrs 的用途，以及模型、時間系統與選用 middleware 如何組合成可重複使用且具備型別安全的排程器定義
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+
+# 介紹
+
+`ts-fsrs` 是用於建立 FSRS 間隔重複系統的 TypeScript 工具包。宣告式 API 會將模型、時間系統與選用 middleware 組合成可重複使用的排程器定義。
+
+## 組成部分
+
+**模型**是 FSRS 演算法及其參數。`FSRS6Model` 是目前版本；FSRS-3 至 FSRS-5 仍然保留，用於建立在這些版本上的既有複習歷史。
+
+**時間系統**決定如何表示時間。`dateChrono` 使用 `Date`，`numericChrono` 使用時間戳記，`temporalInstantChrono` 使用 `Temporal.Instant`。
+
+**Middleware** 負責排程策略，例如 `schedulerLearningStepsMiddleware`、`schedulerFuzzingMiddleware`、`schedulerMaximumIntervalMiddleware`、`schedulerLeechMiddleware`。建立排程器前，透過 `.use(...)` 組合它們。
+
+`defineScheduler` 將這些項目組合成 definition。`.create()` 會驗證設定並回傳獨立的排程器，因此同一個 definition 可以建立多個排程器。
+
+<Prompt
+  title="在 TypeScript 應用程式中整合 ts-fsrs"
+  description="複製這段提示詞並傳送給 AI Agent，讓它安裝 ts-fsrs 並建立可執行的 FSRS-6 排程器。"
+  prompt={`在我的 TypeScript 應用程式中整合 ts-fsrs。
+
+1. 閱讀文件索引 ${withSiteOrigin(withBase('/zh-TW/llms.txt'))}，並跟進其中與排程器 API 有關的頁面。
+2. 安裝 \`ts-fsrs\` package。
+3. 使用 \`defineScheduler\`、\`FSRS6Model\` 與 \`dateChrono\` 建立 FSRS-6 排程器。
+4. 建立一張新卡片，並使用 \`Rating.Good\` 完成一次複習。
+5. 保持實作最小化，並使用目前 ts-fsrs 公開 API。`}
+/>
+
+接下來前往[快速開始](./quick-start)，安裝 package 並在瀏覽器中執行排程器。

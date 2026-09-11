@@ -16,6 +16,11 @@ const pages = [
     markdown: 'ja-JP/guide/llms.md',
     route: '/ja-JP/guide/llms',
   },
+  {
+    locale: 'zh-TW',
+    markdown: 'zh-TW/guide/llms.md',
+    route: '/zh-TW/guide/llms',
+  },
 ]
 
 if (!existsSync(buildRoot)) {

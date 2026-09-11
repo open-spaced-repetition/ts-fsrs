@@ -47,16 +47,23 @@ describe('RevlogTrainer i18n messages', () => {
         zh: '菜单',
         ja: 'メニュー',
       },
+      futureRspressText: {
+        en: 'Future Rspress text',
+        zh: '未来的 Rspress 文案',
+        ja: '将来の Rspress テキスト',
+      },
     })
 
     expect(source.menuTitle).toEqual({
       'en-US': 'Menu',
       'zh-CN': '菜单',
+      'zh-TW': '選單',
       'ja-JP': 'メニュー',
     })
     expect(source.menuTitle).not.toHaveProperty('en')
     expect(source.menuTitle).not.toHaveProperty('zh')
     expect(source.menuTitle).not.toHaveProperty('ja')
+    expect(source.futureRspressText?.['zh-TW']).toBe('Future Rspress text')
 
     for (const locale of I18N_LOCALES) {
       for (const key of messageKeys) {

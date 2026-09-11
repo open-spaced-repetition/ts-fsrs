@@ -60,6 +60,8 @@ describe('landing preview data', () => {
 
     // Also catches Node builds without full ICU data.
     expect(format('en-US')).not.toEqual(format('zh-CN'))
+    expect(format('zh-CN')).not.toEqual(format('zh-TW'))
+    expect(format('zh-TW')).not.toEqual(format('ja-JP'))
     expect(format('zh-CN')).not.toEqual(format('ja-JP'))
   })
 })
