@@ -431,15 +431,16 @@
 
 .release-updates-table {
   width: 100%;
+  min-width: 42rem;
   table-layout: fixed;
 }
 
 .release-updates-table th:first-child {
-  width: 24%;
+  width: 7rem;
 }
 
 .release-updates-table th:nth-child(2) {
-  width: 18%;
+  width: 10rem;
 }
 
 .release-updates-table td {
@@ -468,4 +469,8 @@
 .release-updates-tabs a[aria-current="page"] {
   border-bottom: 2px solid var(--rp-c-brand);
   font-weight: 600;
+}
+
+.release-updates-table td:nth-child(2) {
+  white-space: nowrap;
 }
