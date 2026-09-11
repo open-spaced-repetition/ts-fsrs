@@ -16,7 +16,7 @@ Chrono は、スケジューラーが時間をどう表現し、経過日数と�
 
 | プリセット | 時刻値 | 日数の計算 |
 | --- | --- | --- |
-| `dateChrono` | JavaScript の `Date` | `difference` は UTC の日付差を計算します。`add` は1日を24時間として加算し、小数も扱えます。 |
+| `dateChrono` | JavaScript `Date` | `difference` はデフォルトで UTC の日付差を計算し、`fractionalDays: true` では24時間単位の小数日数を返します。`add` は常に24時間単位で加算し、小数も扱えます。 |
 | `numericChrono` | 日単位の数値 | `difference(from, to)` は `to - from`、`add(from, days)` は `from + days` です。 |
 | `temporalInstantChrono` | `Temporal.Instant` | タイムゾーンを指定でき、日数差に小数部分を含めるかどうかも選べます。 |
 
@@ -24,7 +24,9 @@ Chrono は、スケジューラーが時間をどう表現し、経過日数と�
 
 ## 定義と実行時の操作
 
-`Chrono` の定義には `schema`、`projection`、`defaultValue`、`create` が含まれます。定義を `defineScheduler({ model, chrono })` に渡します。時間演算だけを使いたい場合は、定義の `create()` を呼び出してください。設定済みの実行時オブジェクトには `scheduler.chrono` からもアクセスできます。
+`Chrono` の定義には `schema`、`projection`、`defaultValue`、`create` が含まれます。定義を `defineScheduler({ model, chrono })` に渡します。時間演算だけを使いたい場合は、定義の `create({ config })` を呼び出してください。設定済みの実行時オブジェクトには `scheduler.chrono` からもアクセスできます。
+
+Date と Temporal の `create({ config })` には完全な設定を渡してください。引数なしの `create()` は Numeric など設定が不要なプリセットで使えます。スケジューラーの生成時には設定の検証と schema のデフォルト値の補完が行われます。
 
 | 操作 | 役割 |
 | --- | --- |
@@ -38,6 +40,8 @@ Date と Temporal のプリセットは card と revlog に復習日時を保持
 ## defineChrono で経過日数をカスタマイズする
 
 以下の例は Date プリセットの schema、projection、デフォルト値、正確な時刻比較をそのまま使い、経過時間だけを24時間単位の小数日数に変更します。これらを再利用することで、入力検証と card/revlog のフィールドの整合性を保てます。保存するフィールドを変える場合は、対応する schema、復習とロールバックの projection、デフォルト値をまとめて定義してください。
+
+小数日数だけが必要なら、組み込みの `dateChrono.create({ config: { fractionalDays: true } })` で対応できます。以下は `defineChrono` で操作を上書きする方法を示す例です。
 
 ```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
 ```

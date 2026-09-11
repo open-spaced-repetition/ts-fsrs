@@ -16,7 +16,7 @@ Chrono 決定排程器如何表示時間、計算經過的天數，以及確定�
 
 | 預設 | 時間值 | 天數運算 |
 | --- | --- | --- |
-| `dateChrono` | JavaScript `Date` | `difference` 計算 UTC 日期差；`add` 按固定 24 小時增加天數，支援小數。 |
+| `dateChrono` | JavaScript `Date` | `difference` 預設計算 UTC 日期差；`fractionalDays: true` 時按固定 24 小時計算經過的小數天數。`add` 始終按固定 24 小時增加天數，支援小數。 |
 | `numericChrono` | 以天為單位的數字 | `difference(from, to)` 為 `to - from`；`add(from, days)` 為 `from + days`。 |
 | `temporalInstantChrono` | `Temporal.Instant` | 支援設定時區，並可選擇是否保留時間差的小數天數。 |
 
@@ -24,7 +24,9 @@ Chrono 決定排程器如何表示時間、計算經過的天數，以及確定�
 
 ## 定義與執行時操作
 
-`Chrono` 定義包含 `schema`、`projection`、`defaultValue` 和 `create`。將定義傳給 `defineScheduler({ model, chrono })`；需要單獨進行時間運算時，呼叫定義的 `create()`。排程器也透過 `scheduler.chrono` 提供設定完成的執行時物件。
+`Chrono` 定義包含 `schema`、`projection`、`defaultValue` 和 `create`。將定義傳給 `defineScheduler({ model, chrono })`；需要單獨進行時間運算時，呼叫定義的 `create({ config })`。排程器也透過 `scheduler.chrono` 提供設定完成的執行時物件。
+
+Date 和 Temporal 需要向 `create({ config })` 傳入完整設定；只有 Numeric 等不需要設定的預設可以無參數呼叫 `create()`。透過排程器建立實例時，會驗證設定並補齊 schema 預設值。
 
 | 操作 | 含義 |
 | --- | --- |
@@ -38,6 +40,8 @@ Date 和 Temporal 預設在 card 與 revlog 中保留複習時間，Numeric 不�
 ## 用 defineChrono 自訂經過天數
 
 下面的範例保留 Date 預設的 schema、projection、預設值和精確比較，只將經過時間改為按固定 24 小時計算的小數天數。重用這些部分，可以保留輸入驗證以及 card/revlog 的欄位約定。如果需要改變儲存欄位，應一併定義對應的 schema、複習與撤銷 projection，以及預設值。
+
+如果只需要小數天數，內建的 `dateChrono.create({ config: { fractionalDays: true } })` 已支援此行為。以下自訂範例用於示範如何透過 `defineChrono` 覆寫操作。
 
 ```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
 ```
