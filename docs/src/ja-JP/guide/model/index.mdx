@@ -11,9 +11,9 @@ import modelCode from '@/snippets/run-code/model.ts?raw'
 
 # モデル概要
 
-FSRS モデルは、評価と経過時間から新しい記憶状態を求め、忘却曲線で想起確率を推定し、安定度と目標保持率から基本間隔を計算します。
+FSRS モデルは、評価と経過時間から新しい記憶状態を求め、忘却曲線で想起確率を推定し、記憶状態と目標保持率から基本間隔を計算します。
 
-このセクションの FSRS 用語と数式は [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki)、特に [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) を基準に確認しています。TypeScript API とフレームワークの責務境界は ts-fsrs 自体に基づきます。
+このセクションの FSRS-3 から FSRS-6 の用語と数式は [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki)、特に [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) を基準に確認しています。TypeScript API とフレームワークの責務境界は ts-fsrs 自体に基づきます。
 
 :::note モデルの境界
 モデルが担うのは、記憶状態の更新、忘却曲線の計算、基本間隔の計算です。scheduler は復習処理を統括し、`chrono` は日時と経過時間を扱い、middleware は学習ステップ、ファジング、最大間隔、キュー状態のポリシーを適用します。
@@ -25,7 +25,7 @@ FSRS モデルは、評価と経過時間から新しい記憶状態を求め、
   prompt={`現在の ts-fsrs Model 契約を使って、次のタスクに対応してください：[タスクを記述]。
 
 1. ${withSiteOrigin(withBase('/ja-JP/guide/model/index.md'))} と、選択したモデルバージョンのページを読む。
-2. 必要に応じて、FSRS-6（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-6.md'))}）、FSRS-5（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-5.md'))}）、FSRS-4.5（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-4dot5.md'))}）、FSRS-4（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-4.md'))}）、FSRS-3（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-3.md'))}）の数式と説明を参照する。
+2. 必要に応じて、FSRS-6（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-6.md'))}）、FSRS-5（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-5.md'))}）、FSRS-4.5（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-4dot5.md'))}）、FSRS-4（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-4.md'))}）、FSRS-3（${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-3.md'))}）の数式と説明を参照する。 FSRS-7: ${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-7.md'))}.
 3. モデルを実装する前に、設定 schema と記憶状態 schema を定義する。
 4. モデルの責務を step、nextInterval、forgettingCurve、forward に限定する。
 5. nextInterval には目標保持率を明示的に渡す。
@@ -39,7 +39,7 @@ FSRS モデルは、評価と経過時間から新しい記憶状態を求め、
 | 記号 | 意味 |
 | --- | --- |
 | `math:D` | 難易度。1（最も簡単）から 10（最も難しい）までです。 |
-| `math:S` | 安定度（日数）。`math:t = S` のとき想起確率は 90% です。 |
+| `math:S` | FSRS-3〜6 の安定度（日数）。`math:t = S` のとき想起確率は 90% です。 |
 | `math:R` | `math:t` 日後に思い出せる確率の推定値です。 |
 | `math:G` | 評価。1 は Again、2 は Hard、3 は Good、4 は Easy です。 |
 | `math:t` | 前回の復習からの経過日数です。 |
@@ -48,6 +48,8 @@ FSRS モデルは、評価と経過時間から新しい記憶状態を求め、
 | `math:S_{\min}`、`math:S_{\max}` | モデルが許容する安定度の下限と上限です。 |
 | `math:D_{\min}`、`math:D_{\max}` | モデルが許容する難易度の下限と上限です。 |
 | `math:w_i` | 学習済みのモデル重みです。 |
+
+[FSRS-7](./fsrs-7) は実装のスナップショットを基に別途説明します。速い安定度を追加し、混合曲線を使って小数の日数の間隔を返します。上表の安定度の 90% 定義と `I(r, S)` の記法は FSRS-3〜6 に適用されます。
 
 ## バージョン別モデルを使う
 
@@ -58,7 +60,7 @@ FSRS モデルは、評価と経過時間から新しい記憶状態を求め、
 
 <RunCode code={modelCode} />
 
-この例では、まず目標保持率 90% に対応する復習間隔を計算し、次に `forgettingCurve` でその間隔における想起確率を推定します。`nextInterval` は整数の日数を返すため、結果は 90% とわずかに異なる場合があります。
+この例では、まず目標保持率 90% に対応する復習間隔を計算し、次に `forgettingCurve` でその間隔における想起確率を推定します。FSRS-6 の `nextInterval` は整数の日数を返すため、結果は 90% とわずかに異なる場合があります。
 
 FSRS-6 の設定では、`enableShortTerm` がモデルの同日安定度更新を制御します。`numRelearningSteps` は重みのクリッピングと検査にだけ使われ、再学習ステップのスケジューリングは引き続き middleware が担います。
 
@@ -79,6 +81,7 @@ Schema は public 境界を記述し、scheduler が schema を合成すると�
 
 ## モデルバージョン
 
+- [FSRS-7](./fsrs-7) — 二成分の実装リファレンス。34 個の重みと数値的な間隔計算。
 - [FSRS-6](./fsrs-6) — 現在の既定値で、学習可能な減衰と同日更新を備えます。
 - [FSRS-5](./fsrs-5) — 固定のべき忘却曲線と同日更新を使います。
 - [FSRS-4.5](./fsrs-4dot5) — 固定のべき曲線を使い、同日更新の数式はありません。

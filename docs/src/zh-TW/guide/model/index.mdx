@@ -11,9 +11,9 @@ import modelCode from '@/snippets/run-code/model.ts?raw'
 
 # 模型概覽
 
-FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲線估算回憶機率，並依據穩定性與目標保留率計算基礎間隔。
+FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲線估算回憶機率，並依據記憶狀態與目標保留率計算基礎間隔。
 
-本節的 FSRS 術語與公式依據 [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki) 校對，主要參考其中的 [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)。TypeScript API 與框架職責邊界以 ts-fsrs 本身為準。
+本節的 FSRS-3 至 FSRS-6 術語與公式依據 [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki) 校對，主要參考其中的 [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)。TypeScript API 與框架職責邊界以 ts-fsrs 本身為準。
 
 :::note 模型邊界
 模型只負責記憶狀態更新、遺忘曲線計算和基礎間隔計算。scheduler 負責組織複習流程，`chrono` 負責日期與經過時間，middleware 負責學習步驟、模糊處理、最大間隔限制和佇列狀態策略。
@@ -25,7 +25,7 @@ FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲
   prompt={`使用目前 ts-fsrs Model 契約完成以下任務：[描述任務]。
 
 1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/model/index.md'))} 以及所選模型版本的頁面。
-2. 可依需要對照 FSRS-6（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-6.md'))}）、FSRS-5（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-5.md'))}）、FSRS-4.5（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-4dot5.md'))}）、FSRS-4（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-4.md'))}）和 FSRS-3（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-3.md'))}）的公式與說明。
+2. 可依需要對照 FSRS-6（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-6.md'))}）、FSRS-5（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-5.md'))}）、FSRS-4.5（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-4dot5.md'))}）、FSRS-4（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-4.md'))}）和 FSRS-3（${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-3.md'))}）的公式與說明。 FSRS-7: ${withSiteOrigin(withBase('/zh-TW/guide/model/fsrs-7.md'))}.
 3. 實作模型前先定義設定 schema 和記憶狀態 schema。
 4. 將模型限制為 step、nextInterval、forgettingCurve 和 forward 行為。
 5. 向 nextInterval 明確傳入目標保留率。
@@ -39,7 +39,7 @@ FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲
 | 符號 | 含義 |
 | --- | --- |
 | `math:D` | 難度，範圍為 1（最簡單）至 10（最困難）。 |
-| `math:S` | 穩定性，單位為天；當 `math:t = S` 時回憶機率為 90%。 |
+| `math:S` | FSRS-3 至 FSRS-6 的穩定性，單位為天；當 `math:t = S` 時回憶機率為 90%。 |
 | `math:R` | 經過 `math:t` 天後能夠回憶的估計機率。 |
 | `math:G` | 評分：1 為 Again、2 為 Hard、3 為 Good、4 為 Easy。 |
 | `math:t` | 距離上次複習經過的天數。 |
@@ -48,6 +48,8 @@ FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲
 | `math:S_{\min}`、`math:S_{\max}` | 模型允許的穩定性下限和上限。 |
 | `math:D_{\min}`、`math:D_{\max}` | 模型允許的難度下限和上限。 |
 | `math:w_i` | 訓練得到的模型權重。 |
+
+[FSRS-7](./fsrs-7) 依據其實作快照另行說明：它增加快穩定性，使用混合曲線並回傳小數天間隔。上表中穩定性的 90% 定義和 `I(r, S)` 記法適用於 FSRS-3 至 FSRS-6。
 
 ## 使用版本化模型
 
@@ -58,7 +60,7 @@ FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲
 
 <RunCode code={modelCode} />
 
-範例先依據 90% 的目標保留率計算複習間隔，再透過 `forgettingCurve` 估算到達該間隔時的回憶機率。由於 `nextInterval` 回傳整數天，結果可能與 90% 略有差異。
+範例先依據 90% 的目標保留率計算複習間隔，再透過 `forgettingCurve` 估算到達該間隔時的回憶機率。由於 FSRS-6 的 `nextInterval` 回傳整數天，結果可能與 90% 略有差異。
 
 在 FSRS-6 設定中，`enableShortTerm` 控制模型的同日穩定性更新。`numRelearningSteps` 只參與權重裁剪與檢查；重新學習步驟仍由 middleware 排程。
 
@@ -79,6 +81,7 @@ Schema 描述公開邊界，並在 scheduler 組合 schema 時使用。直接呼
 
 ## 模型版本
 
+- [FSRS-7](./fsrs-7) — 雙分量實作參考，34 個權重與數值求間隔。
 - [FSRS-6](./fsrs-6) — 目前預設版本，支援可訓練衰減與同日更新。
 - [FSRS-5](./fsrs-5) — 使用固定冪函數遺忘曲線，並支援同日更新。
 - [FSRS-4.5](./fsrs-4dot5) — 使用固定冪函數曲線，不包含同日公式。
