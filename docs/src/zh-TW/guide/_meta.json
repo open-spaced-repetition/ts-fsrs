@@ -2,5 +2,6 @@
   { "type": "section-header", "label": "快速上手" },
   "index",
   "quick-start",
+  "state-transitions",
   "llms"
 ]
