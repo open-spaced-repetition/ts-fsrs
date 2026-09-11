@@ -1,0 +1,26 @@
+---
+title: ScheduledDays
+description: Built-in middleware schedulerScheduledDaysMiddleware — stores the final interval as whole scheduled days
+---
+
+import RunCode from '../../../../components/RunCode'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
+
+# ScheduledDays
+
+`ts-fsrs/middlewares` export `schedulerScheduledDaysMiddleware`:
+
+```ts
+import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
+```
+
+It stores the final interval as a nonnegative whole `scheduledDays` on the card and records the previous value in the revlog, so a review can restore it on rollback.
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
+```
+
+<RunCode code={scheduledDaysCode} />
+
+The Good review stores `scheduledDays: 2` on the card while the revlog keeps the previous `0`.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

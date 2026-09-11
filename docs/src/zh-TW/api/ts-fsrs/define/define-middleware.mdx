@@ -1,0 +1,27 @@
+---
+title: defineMiddleware
+description: defineMiddleware 的參考——擴充 schema 並環繞排程器核心執行處理函式
+---
+
+# defineMiddleware
+
+**匯入：** `import { defineMiddleware } from 'ts-fsrs'`
+
+**簽章**
+
+```ts
+defineMiddleware(definition): Middleware
+```
+
+**定義欄位**
+
+| 欄位 | 備註 |
+| --- | --- |
+| `name` | 必填。 |
+| `schema.config` / `card` / `revlog` / `cardInitInput` | 宣告並驗證欄位。 |
+| `defaultValue.card` | 建立或重設卡片時提供欄位值。 |
+| `handlers.review` / `handlers.rollback` | 環繞 `next()` 執行；更新 `ctx.result`。 |
+
+**註冊** — 用 `.use(...)` 加入排程器定義。內建策略從 `ts-fsrs/middlewares` 與根匯出。
+
+**另見** — [指南：內建策略](../../../guide/middleware/built-in)、[中介軟體指南](../../../guide/middleware)與[生命週期](../../../guide/middleware/lifecycle)（處理函式順序、rollback）。

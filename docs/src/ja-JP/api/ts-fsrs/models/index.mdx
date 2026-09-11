@@ -1,0 +1,47 @@
+---
+title: モデル
+description: ts-fsrs/models/fsrs-3 から fsrs-6 までのバージョン別エントリポイントのリファレンス
+---
+
+# モデル
+
+各 FSRS バージョンは独立したエントリポイントとして提供されるため、ビルドには実際に使うモデルだけが含まれます。
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+| サブパス | ページ | モデル |
+| --- | --- | --- |
+| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 |
+| `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
+| `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
+| `ts-fsrs/models/fsrs-4` | [FSRS-4](./fsrs-4) | FSRS-4 |
+| `ts-fsrs/models/fsrs-3` | [FSRS-3](./fsrs-3) | FSRS-3 |
+
+## 共通の構造
+
+各バージョンのエントリポイントは共通のエクスポート構造を持ちます。下表の `x` はバージョンを表します。
+
+| エクスポート | 種別 | 説明 |
+| --- | --- | --- |
+| `FSRSxModel` | モデル定義 | `defineScheduler({ model })` |
+| `FSRSxAlgorithm` | クラス | — |
+| `FSRSx_DEFAULT_WEIGHTS` | 定数 | — |
+| `FSRSx_MODEL_BOUNDS` | 定数 | `{ sMin, sMax, dMin, dMax }` |
+| `clipFSRSxParameters` | 関数 | — |
+| `checkFSRSxParameters` | 関数 | — |
+| `migrateFSRSxParameters` | 関数 | — |
+| `fsrsxConfigSchema` | スキーマ | — |
+
+減衰パラメータやスケーリング係数などの定数、パラメータの上限、固有の補助関数もバージョンごとに公開されます。詳細は各ページを参照してください。
+
+## 記憶状態
+
+`FSRSMemoryStateSchema` はバージョンではなく `ts-fsrs` ルートからエクスポートされます。記憶状態の構造（`{ stability, difficulty }`）はすべてのモデルで共通だからです。
+
+```ts
+import { FSRSMemoryStateSchema } from 'ts-fsrs'
+```
+
+**参照** — 独自モデルをまとめるには [defineModel](../define/define-model)、各バージョンの数式は [モデルガイド](../../../guide/model/)。

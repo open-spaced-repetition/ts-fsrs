@@ -1,0 +1,16 @@
+---
+title: Chrono presets
+description: Reference for dateChrono, numericChrono, and temporalInstantChrono
+---
+
+# Chrono presets
+
+**Import:** `import { dateChrono, numericChrono, temporalInstantChrono } from 'ts-fsrs'`
+
+| Preset | Time value | Day arithmetic |
+| --- | --- | --- |
+| `dateChrono` | `Date` | `difference` counts UTC date boundaries by default, or elapsed fixed 24-hour days with `fractionalDays: true`; `add` always adds fixed 24-hour days. |
+| `numericChrono` | numbers (days) | `difference` = `to - from`; `add` = `from + days`. |
+| `temporalInstantChrono` | `Temporal.Instant` | Configured timezone; optional fractional day differences. |
+
+**See** — [Chrono guide](../../guide/chrono) per preset ([Date](../../guide/chrono/date), [Numeric](../../guide/chrono/numeric), [Temporal Instant](../../guide/chrono/temporal-instant)); [defineChrono](./define/define-chrono) for a custom Chrono.

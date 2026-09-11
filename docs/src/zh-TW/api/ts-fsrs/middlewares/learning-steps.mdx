@@ -1,0 +1,26 @@
+---
+title: LearningSteps
+description: 內建中介軟體 schedulerLearningStepsMiddleware——在短期排程中套用學習與再學習步驟
+---
+
+import RunCode from '../../../../components/RunCode'
+import learningStepsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts?raw'
+
+# LearningSteps
+
+`ts-fsrs/middlewares` 匯出 `schedulerLearningStepsMiddleware`：
+
+```ts
+import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+啟用短期排程時，它會套用設定的 `learningSteps` 與 `relearningSteps`，並維護卡片的 `learningStep` 與學習狀態。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
+```
+
+<RunCode code={learningStepsCode} />
+
+New 卡片上的 Good 複習會把它移入 Learning（狀態 `1`），並在幾分鐘內安排下一步。
+
+**另見** — [內建策略](../../../guide/middleware/built-in)。

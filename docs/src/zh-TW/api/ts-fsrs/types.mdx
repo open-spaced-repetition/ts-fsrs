@@ -1,0 +1,21 @@
+---
+title: 型別
+description: ts-fsrs 根匯出型別的參考
+---
+
+# 型別
+
+**匯入：** `import type { DefaultSchedulerCard } from 'ts-fsrs'`
+
+根會重新匯出排程器所產生、流經排程器的型別，以及來自 `@open-spaced-repetition/srs-kit` 的框架型別：
+
+| 群組 | 範例 |
+| --- | --- |
+| 排程器 | 排程器卡片、複習輸入、revlog 與 `DefaultScheduler` 型別（`DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`）。 |
+| 模型 | 模型、模型核心、界限與記憶狀態的 schema/state 型別。 |
+| Chrono | chrono 與 chrono-schema 型別。 |
+| 中介軟體 / schema | middleware 與 object-schema 型別。 |
+
+純型別匯入不會加入執行時期程式碼，因此 `import type` 是安全的。
+
+**另見** — [架構指南](../../guide/architecture)（模型、chrono、中介軟體與排程器如何對應到這些型別）。

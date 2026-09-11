@@ -1,0 +1,52 @@
+---
+title: FSRS-5
+description: ts-fsrs/models/fsrs-5 的参考——权重、边界与参数辅助函数
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-5.ts?raw'
+
+# FSRS-5
+
+```ts
+import { FSRS5Model, FSRS5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-5'
+```
+
+## 模型
+
+| 导出 | 种类 | 说明 |
+| --- | --- | --- |
+| `FSRS5Model` | 模型定义 | 传给 `defineScheduler({ model })`。 |
+| `FSRS5Algorithm` | 类 | 计算稳定性、难度和回忆概率的算法类。模型会创建其实例，通常无需直接实例化。 |
+
+## 常量
+
+| 导出 | 取值 | 说明 |
+| --- | --- | --- |
+| `FSRS5_DEFAULT_WEIGHTS` | 19 个数值 | 默认权重数组，其长度即所需的参数数量。 |
+| `FSRS5_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | 模型允许的稳定性与难度上下限。 |
+| `FSRS5_DECAY` | `0.5` | 控制遗忘曲线形状的衰减参数。 |
+| `FSRS5_FACTOR` | — | 与衰减参数配套的缩放因子。 |
+| `FSRS5_W17_W18_CEILING` | — | `w17` 与 `w18` 的上界。 |
+
+## 参数
+
+| 导出 | 签名 | 行为 |
+| --- | --- | --- |
+| `clipFSRS5Parameters` | `(weights) => number[]` | 将越界权重限制在对应的允许范围内，范围内的值保持不变。 |
+| `checkFSRS5Parameters` | `(weights) => weights` | 原样返回入参；若任一权重越界或长度不符，抛出 `FSRSValidationError`。 |
+| `migrateFSRS5Parameters` | `(weights?) => number[]` | 按该版本的迁移规则转换权重；未提供权重或数组为空时使用默认值。 |
+
+
+## 数据校验规则（Schema）
+
+| 导出 | 校验 |
+| --- | --- |
+| `fsrs5ConfigSchema` | `{ weights, enableShortTerm }` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-5.ts"
+```
+
+<RunCode code={code} />
+
+**参见** —— [模型概览](./)，[模型指南](../../../guide/model/fsrs-5)。

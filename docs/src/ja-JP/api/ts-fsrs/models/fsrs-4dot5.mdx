@@ -1,0 +1,51 @@
+---
+title: FSRS-4.5
+description: ts-fsrs/models/fsrs-4dot5 のリファレンス — 重み、境界、パラメータ補助関数
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-4dot5.ts?raw'
+
+# FSRS-4.5
+
+```ts
+import { FSRS4Dot5Model, FSRS4Dot5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-4dot5'
+```
+
+## モデル
+
+| エクスポート | 種別 | 説明 |
+| --- | --- | --- |
+| `FSRS4Dot5Model` | モデル定義 | `defineScheduler({ model })` に渡します。 |
+| `FSRS4Dot5Algorithm` | クラス | 安定度、難易度、想起確率を計算するアルゴリズムクラスです。モデルがインスタンスを生成するため、通常は直接生成する必要はありません。 |
+
+## 定数
+
+| エクスポート | 値 | 説明 |
+| --- | --- | --- |
+| `FSRS4Dot5_DEFAULT_WEIGHTS` | 17 個の数値 | 既定の重み配列。その長さが必要なパラメータ数です。 |
+| `FSRS4Dot5_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | モデルで許容される安定度と難易度の範囲。 |
+| `FSRS4Dot5_DECAY` | `0.5` | 忘却曲線の形状を決める減衰パラメータ。 |
+| `FSRS4Dot5_FACTOR` | — | 減衰パラメータに対応するスケーリング係数。 |
+
+## パラメータ
+
+| エクスポート | シグネチャ | 挙動 |
+| --- | --- | --- |
+| `clipFSRS4Dot5Parameters` | `(weights) => number[]` | 範囲外の重みを対応する許容範囲に収めます。範囲内の値は変更しません。 |
+| `checkFSRS4Dot5Parameters` | `(weights) => weights` | 入力をそのまま返します。範囲外の重みや長さの不一致があれば `FSRSValidationError` を投げます。 |
+| `migrateFSRS4Dot5Parameters` | `(weights?) => number[]` | 未指定または空配列なら既定の重みを返します。それ以外は先頭から最大 17 個をコピーし、短い配列は補完しません。 |
+
+
+## スキーマ
+
+| エクスポート | 検証対象 |
+| --- | --- |
+| `fsrs4Dot5ConfigSchema` | `{ weights }` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-4dot5.ts"
+```
+
+<RunCode code={code} />
+
+**参照** — [モデル概要](./)、[モデルガイド](../../../guide/model/fsrs-4dot5)。

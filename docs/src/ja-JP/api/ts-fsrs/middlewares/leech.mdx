@@ -1,0 +1,26 @@
+---
+title: Leech
+description: 組み込みミドルウェア schedulerLeechMiddleware——忘却回数が閾値を超えたカードを停止する
+---
+
+import RunCode from '../../../../components/RunCode'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
+
+# Leech
+
+`ts-fsrs/middlewares` は `schedulerLeechMiddleware` をエクスポートします：
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+これは統計ミドルウェアから忘却回数を読み取り、忘却回数が `leechThreshold` の正の整数倍に達するたびに `scheduleStatus` を `suspended` に設定します。既定の閾値 `0` では停止を無効にします。カードを選択する際は、アプリケーションがこの状態を尊重する必要があります。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
+```
+
+<RunCode code={leechCode} />
+
+`leechThreshold: 1` の場合、忘却が 2 回でカードが停止します。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

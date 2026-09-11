@@ -1,0 +1,21 @@
+---
+title: 类型
+description: 从 ts-fsrs 根入口导出的类型参考
+---
+
+# 类型
+
+**导入：** `import type { DefaultSchedulerCard } from 'ts-fsrs'`
+
+根入口重新导出调度器产生并流经调度器的类型，以及来自 `@open-spaced-repetition/srs-kit` 的框架类型：
+
+| 分组 | 示例 |
+| --- | --- |
+| 调度器 | 调度器卡片、复习输入、复习日志与 `DefaultScheduler` 类型（`DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`）。 |
+| 模型 | 模型、模型核心、边界以及记忆状态 schema/状态类型。 |
+| Chrono | chrono 与 chrono-schema 类型。 |
+| 中间件 / schema | 中间件与对象 schema 类型。 |
+
+仅类型的导入不会添加运行时代码，因此使用 `import type` 是安全的。
+
+**另见** —— [架构指南](../../guide/architecture)（模型、chrono、中间件与调度器如何映射到这些类型）。

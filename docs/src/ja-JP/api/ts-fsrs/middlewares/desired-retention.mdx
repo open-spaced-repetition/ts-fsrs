@@ -1,0 +1,26 @@
+---
+title: DesiredRetention
+description: 組み込みミドルウェア schedulerDesiredRetentionMiddleware——間隔の計算前に目標保持率を適用する
+---
+
+import RunCode from '../../../../components/RunCode'
+import desiredRetentionCode from '@/snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts?raw'
+
+# DesiredRetention
+
+`ts-fsrs/middlewares` は `schedulerDesiredRetentionMiddleware` をエクスポートします：
+
+```ts
+import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
+```
+
+これはスケジューラの config に `desiredRetention` を加え、モデルが間隔を計算する前に適用します。保持率が低いほど間隔は長くなります。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts"
+```
+
+<RunCode code={desiredRetentionCode} />
+
+同じ復習を目標保持率 `0.9` と `0.8` で実行すると、期限は 3 日ずれますが、安定度は等しいままです。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

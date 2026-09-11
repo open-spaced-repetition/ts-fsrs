@@ -1,0 +1,23 @@
+---
+title: Definitions
+description: The define* functions for declaring schedulers, models, time abstractions, and middleware
+---
+
+# Definitions
+
+The `define*` functions define schedulers, models, time abstractions, and
+middleware. Calling `.create()` on a scheduler definition validates the config
+and returns an instance for scheduling reviews.
+
+| Page | Builds | Passed to |
+| --- | --- | --- |
+| [defineScheduler](./define-scheduler) | A scheduler definition | `.create({ config })` |
+| [defineModel](./define-model) | A model definition | `defineScheduler({ model })` |
+| [defineChrono](./define-chrono) | A time abstraction | `defineScheduler({ chrono })` |
+| [defineMiddleware](./define-middleware) | Middleware | `.use(middleware)` |
+
+See [Middlewares](../middlewares/) for built-in scheduling policies and related helpers.
+
+**See** — [Models](../models/) for ready-made model definitions,
+[Chrono presets](../chrono-presets) for ready-made chronos,
+[Scheduler](../scheduler) for the instance the definitions produce.

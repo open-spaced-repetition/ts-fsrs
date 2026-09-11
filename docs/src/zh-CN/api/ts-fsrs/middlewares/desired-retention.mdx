@@ -1,0 +1,26 @@
+---
+title: DesiredRetention
+description: 内置中间件 schedulerDesiredRetentionMiddleware —— 在计算间隔前应用目标保留率
+---
+
+import RunCode from '../../../../components/RunCode'
+import desiredRetentionCode from '@/snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts?raw'
+
+# DesiredRetention
+
+`ts-fsrs/middlewares` 导出 `schedulerDesiredRetentionMiddleware`：
+
+```ts
+import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它为调度器配置贡献 `desiredRetention`，并在模型计算间隔前应用它，因此较低的保留率会产生更长的间隔。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts"
+```
+
+<RunCode code={desiredRetentionCode} />
+
+分别在 `0.9` 与 `0.8` 保留率下运行同一次复习，到期时间会相差三天，而稳定性保持不变。
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。

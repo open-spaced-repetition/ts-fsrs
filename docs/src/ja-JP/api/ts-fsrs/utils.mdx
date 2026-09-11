@@ -1,0 +1,24 @@
+---
+title: Utils
+description: ts-fsrs ルートからエクスポートされる小さな数値ヘルパー（clamp と roundTo）のリファレンス
+---
+
+# Utils
+
+ルートは 2 つの小さな数値ヘルパーをエクスポートしています:
+
+```ts
+import { clamp, roundTo } from 'ts-fsrs'
+```
+
+| エクスポート | シグネチャ | 挙動 |
+| --- | --- | --- |
+| `clamp` | `clamp(value, min, max)` | `value` を `[min, max]` にクランプします。 |
+| `roundTo` | `roundTo(num, decimals)` | `num` を `decimals` 桁に丸めます。 |
+
+```ts
+clamp(15, 0, 10)   // 10
+roundTo(2.3065, 2) // 2.31
+```
+
+これらはスケジューリング状態を持たないプレーンな関数です。

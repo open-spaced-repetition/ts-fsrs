@@ -1,0 +1,30 @@
+---
+title: defineScheduler
+description: defineScheduler のリファレンス——モデルと chrono から再利用可能なスケジューラ定義を組み立てる
+---
+
+# defineScheduler
+
+**インポート：** `import { defineScheduler } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+defineScheduler({ model, chrono }): SchedulerDefinition
+```
+
+**パラメータ**
+
+| パラメータ | 型 | 備考 |
+| --- | --- | --- |
+| `model` | `Model` | 記憶状態の更新と間隔計算を担います。例：`FSRS6Model`。 |
+| `chrono` | `Chrono` | 時刻表現と日数の計算を担います。 |
+
+**戻り値** — 二つのメソッドを持つ再利用可能な定義：
+
+```ts
+definition.use(...middleware): SchedulerDefinition   // new definition; original unchanged
+definition.create({ config }): Scheduler              // validates config, independent instance
+```
+
+**参照** — [スケジューラ概要](../../../guide/scheduler)（定義とインスタンスのモデル）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

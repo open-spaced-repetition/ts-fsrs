@@ -1,0 +1,26 @@
+---
+title: Leech
+description: 內建中介軟體 schedulerLeechMiddleware——卡片遺忘次數超過閾值時將其暫停
+---
+
+import RunCode from '../../../../components/RunCode'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
+
+# Leech
+
+`ts-fsrs/middlewares` 匯出 `schedulerLeechMiddleware`：
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它從 stats 中介軟體讀取遺忘次數，每當遺忘次數達到 `leechThreshold` 的正整數倍時，就把 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 會關閉暫停功能；你的應用程式在選卡時必須遵守此狀態。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
+```
+
+<RunCode code={leechCode} />
+
+使用 `leechThreshold: 1` 時，兩次遺忘就會暫停卡片。
+
+**另見** — [內建策略](../../../guide/middleware/built-in)。

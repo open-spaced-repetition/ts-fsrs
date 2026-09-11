@@ -1,0 +1,50 @@
+---
+title: リスケジュール
+description: ts-fsrs/reschedule エントリポイント——通常の復習フロー外で復習履歴を再生し、カードをリスケジュールする
+---
+
+import RunCode from '../../../components/RunCode'
+import rescheduleCode from '@/snippets/run-code/api/ts-fsrs/reschedule.ts?raw'
+
+# リスケジュール
+
+`ts-fsrs/reschedule` サブパスは、スケジューラの具体的な型を保ったまま、スケジューラに対する復習のリプレイやリスケジュールを行うヘルパーを公開します：
+
+```ts
+import { Reschedule } from 'ts-fsrs/reschedule'
+```
+
+`Reschedule<Scheduler>` はスケジューラインスタンスをラップし、スケジューラのカード・記憶状態・復習・結果の型をそこから推論します。
+
+## リプレイ
+
+`reschedule.replay({ history })` は復習履歴からモデルの記憶状態を再構築します。カードには一切触れません：
+
+```ts
+const replay = reschedule.replay({ history })
+// replay.memoryState      — memory after the last review
+// replay.memoryStates     — memory after each review
+```
+
+履歴の各項目は `{ rating, reviewTime }` のペアです。履歴がモデルの起点から始まらない場合は `initialState` を渡してください。`sortHistory`（既定値 `true`）は chrono の `compare` で履歴を時刻順に並べます。
+
+## リスケジュール
+
+`reschedule.reschedule({ history, initialCard })` はスケジューラに復習を再生させ、各復習が生成したカードと復習ログを返します：
+
+```ts
+const result = reschedule.reschedule({ history, initialCard: card })
+// result.results  — the card and revlog after each review
+// result.card     — the card after the last review
+```
+
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/reschedule.ts"
+```
+
+<RunCode code={rescheduleCode} />
+
+`replay` は履歴だけで安定度（`2.3065`）を再構築します。`reschedule` はスケジューラを通じてカードとその期限を再計算します。
+
+**関連型** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`、および推論型 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
+
+**参照** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。

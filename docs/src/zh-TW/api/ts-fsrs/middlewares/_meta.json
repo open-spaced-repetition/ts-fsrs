@@ -1,0 +1,15 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "概覽"
+  },
+  "desired-retention",
+  "learning-steps",
+  "fuzz",
+  "maximum-interval",
+  "stats",
+  "monotonic-interval",
+  "scheduled-days",
+  "leech"
+]

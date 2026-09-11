@@ -1,0 +1,54 @@
+---
+title: ts-fsrs API overview
+description: Index of the supported ts-fsrs API — the definitions, presets, policies, models, and types meant for application code
+---
+
+# ts-fsrs API overview
+
+`ts-fsrs` exposes its scheduling machinery through the `ts-fsrs` root and a few subpath entry points. Every page below gives the import path, the behavior, and a link to the matching [Guide](../../guide/) topic.
+
+This reference documents the supported API. A package entry point may export more than what is documented here — internals, compatibility shims, and helpers kept for the legacy API. Anything absent from these pages is not recommended for application code and may change or disappear without a major release.
+
+## Root definitions
+
+| Page | What it is |
+| --- | --- |
+| [DefaultScheduler](./default-scheduler) | Ready-made scheduler preset (FSRS-6 by default). |
+| [defineScheduler](./define/define-scheduler) | Compose a reusable scheduler from a model and chrono. |
+| [Scheduler](./scheduler) | The instance that `.create()` and `DefaultScheduler` return (`newCard`, `review`, `rollback`, `preview`, `forget`). |
+| [defineModel](./define/define-model) | Package a versioned FSRS model into a definition. |
+| [defineChrono](./define/define-chrono) | Define a custom time abstraction. |
+| [defineMiddleware](./define/define-middleware) | Extend schemas and run logic before and after scheduler core processing. |
+
+## Built-in policies
+
+Each policy from `ts-fsrs/middlewares` has its own page with a runnable example:
+
+| Page | Middleware |
+| --- | --- |
+| [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./middlewares/stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./middlewares/monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./middlewares/scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./middlewares/leech) | `schedulerLeechMiddleware` |
+
+## Values and types
+
+| Page | What it is |
+| --- | --- |
+| [Chrono presets](./chrono-presets) | `dateChrono`, `numericChrono`, `temporalInstantChrono`. |
+| [Rating, Grade, State](./rating-grade-state) | Ratings, grades, and card states with their schemas. |
+| [Utils](./utils) | `clamp`, `roundTo` numeric helpers. |
+| [Types](./types) | The exported scheduler, model, and middleware types. |
+
+## Entry points
+
+| Page | What it is |
+| --- | --- |
+| [Models](./models/) | `ts-fsrs/models/fsrs-3` through `fsrs-6`, one page per version. |
+| [Reschedule](./reschedule) | `ts-fsrs/reschedule` rescheduling helpers. |
+
+Start from [DefaultScheduler](./default-scheduler) or [defineScheduler](./define/define-scheduler); the [Guide](../../guide/) explains how to combine the pieces.

@@ -1,0 +1,47 @@
+---
+title: 模型
+description: ts-fsrs/models/fsrs-3 到 fsrs-6 各版本入口的参考
+---
+
+# 模型
+
+每个 FSRS 版本都是独立的入口，构建时只会打包实际用到的那个。
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+| 子路径 | 页面 | 模型 |
+| --- | --- | --- |
+| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 |
+| `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
+| `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
+| `ts-fsrs/models/fsrs-4` | [FSRS-4](./fsrs-4) | FSRS-4 |
+| `ts-fsrs/models/fsrs-3` | [FSRS-3](./fsrs-3) | FSRS-3 |
+
+## 共同结构
+
+各版本入口采用一致的导出结构；下表中的 `x` 代表版本号。
+
+| 导出 | 种类 | 说明 |
+| --- | --- | --- |
+| `FSRSxModel` | 模型定义 | `defineScheduler({ model })` |
+| `FSRSxAlgorithm` | 类 | — |
+| `FSRSx_DEFAULT_WEIGHTS` | 常量 | — |
+| `FSRSx_MODEL_BOUNDS` | 常量 | `{ sMin, sMax, dMin, dMax }` |
+| `clipFSRSxParameters` | 函数 | — |
+| `checkFSRSxParameters` | 函数 | — |
+| `migrateFSRSxParameters` | 函数 | — |
+| `fsrsxConfigSchema` | 数据校验规则 | — |
+
+各版本还会导出衰减参数、缩放因子等常量，以及参数上限和专属辅助函数，详见对应页面。
+
+## 记忆状态
+
+`FSRSMemoryStateSchema` 从 `ts-fsrs` 根入口导出，因为记忆状态的结构（`{ stability, difficulty }`）在所有模型间共用。
+
+```ts
+import { FSRSMemoryStateSchema } from 'ts-fsrs'
+```
+
+**参见** —— [defineModel](../define/define-model) 用于封装自定义模型，[模型指南](../../../guide/model/) 讲解各版本的公式。

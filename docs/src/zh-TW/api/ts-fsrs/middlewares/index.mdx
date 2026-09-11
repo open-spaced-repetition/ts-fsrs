@@ -1,0 +1,46 @@
+---
+title: 中介軟體
+description: ts-fsrs/middlewares 索引——內建策略，以及與之一同匯出的預設值、輔助函式與 schema
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/middlewares/helpers.ts?raw'
+
+# 中介軟體
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+中介軟體可擴充排程器的資料驗證規則（schema），並在核心處理前後執行邏輯。用 [defineMiddleware](../define/define-middleware) 撰寫自己的中介軟體。
+
+## 內建策略
+
+| 頁面 | 匯出 |
+| --- | --- |
+| [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./leech) | `schedulerLeechMiddleware` |
+
+## 其他匯出
+
+各內建策略的行為詳見對應頁面。此進入點還匯出相關預設值、輔助函式和資料驗證規則。
+
+| 分組 | 匯出 |
+| --- | --- |
+| 預設值 | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
+| 輔助函式 | `calculateLearningSteps`, `calculateScheduleDay`, `fnv1aMulberry32Rng` |
+| 設定驗證規則 | `desiredRetentionConfigSchema`, `learningStepsConfigSchema`, `fuzzingConfigSchema`, `statsConfigSchema`, `monotonicIntervalConfigSchema`, `leechConfigSchema` |
+| 欄位驗證規則 | `learningStepFieldsSchema`, `fuzzingCardFieldsSchema`, `fuzzingCardInitInputSchema`, `fuzzingRevlogFieldsSchema`, `statsFieldsSchema`, `scheduledDaysFieldsSchema`, `leechCardFieldsSchema` |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/helpers.ts"
+```
+
+<RunCode code={code} />
+
+**參見** —— [defineMiddleware](../define/define-middleware)，[內建策略](../../../guide/middleware/built-in)。

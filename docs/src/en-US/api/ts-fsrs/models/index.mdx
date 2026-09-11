@@ -1,0 +1,53 @@
+---
+title: Models
+description: Reference for the versioned model entry points under ts-fsrs/models/fsrs-3 through fsrs-6
+---
+
+# Models
+
+Each FSRS version ships as its own entry point, so a build only pulls in the
+model it uses.
+
+```ts
+import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+```
+
+| Subpath | Page | Model |
+| --- | --- | --- |
+| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 (default) |
+| `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
+| `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
+| `ts-fsrs/models/fsrs-4` | [FSRS-4](./fsrs-4) | FSRS-4 |
+| `ts-fsrs/models/fsrs-3` | [FSRS-3](./fsrs-3) | FSRS-3 |
+
+## Shared structure
+
+The entry points are deliberately uniform. Reading one page tells you how to
+read the rest — `x` below stands for the version.
+
+| Export | Kind | What it is |
+| --- | --- | --- |
+| `FSRSxModel` | model definition | Pass to `defineScheduler({ model })`. |
+| `FSRSxAlgorithm` | class | Algorithm class instantiated by the model. |
+| `FSRSx_DEFAULT_WEIGHTS` | numbers | Default weight array; its length is the required parameter count. |
+| `FSRSx_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | Stability and difficulty limits. |
+| `clipFSRSxParameters` | function | Clamps out-of-range weights to their allowed ranges, leaving in-range values unchanged. |
+| `checkFSRSxParameters` | function | Returns the input untouched, or throws `FSRSValidationError`. |
+| `migrateFSRSxParameters` | function | Migrates weights according to the version-specific rules; uses defaults for absent or empty input. |
+| `fsrsxConfigSchema` | schema | Validates that version's config object. |
+
+Versions differ in what else they expose — decay and factor constants, ceilings,
+and per-version helpers. Each page lists its own.
+
+## Memory state
+
+`FSRSMemoryStateSchema` is exported from the `ts-fsrs` root rather than from a
+version, because the memory state shape (`{ stability, difficulty }`) is shared
+across every model.
+
+```ts
+import { FSRSMemoryStateSchema } from 'ts-fsrs'
+```
+
+**See** — [defineModel](../define/define-model) to package your own model,
+[Model guide](../../../guide/model/) for the formulas behind each version.
