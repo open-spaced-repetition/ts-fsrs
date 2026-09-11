@@ -1,0 +1,75 @@
+---
+title: 学習と評価
+description: binding で復習ログのパイプラインを追う——CSV をアイテムに変換し、重みを学習し、適合度を評価してステップを調整する
+---
+
+import RunCode from '../../../components/RunCode'
+import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+
+# 学習と評価
+
+学習は数回の binding 呼び出しで復習履歴を処理します。入力は復習ログ CSV、出力は `DefaultScheduler` やカスタムの `defineScheduler` に渡せる重みの配列です。
+
+例は `@open-spaced-repetition/binding` を import します。Node ではネイティブの napi モジュール、ブラウザでは WASI Preview 1 の wasm ビルドに解決されます（スレッドの説明は[Optimizer 概要](./index)を参照）。
+
+## 復習ログをアイテムに変換する
+
+`convertCsvToFsrsItems` は CSV テキストを読み、カードごとに行をまとめて `FSRSItem` にします。列は次のとおりです。
+
+| 列 | 意味 |
+| --- | --- |
+| `card_id` | カードの安定した識別子。 |
+| `review_time` | 復習時刻（epoch ミリ秒）。 |
+| `review_rating` | 評価（1 Again 〜 4 Easy）。 |
+| `review_duration` | 復習に要した時間（ミリ秒）。 |
+| `review_state` | 復習時点のカード状態。 |
+
+`nextDayStartsAt`（翌日が始まる時刻）と、IANA タイムゾーン（`'UTC'` など）か固定の UTC オフセット（分）を渡します。`Uint8Array` 入力の場合は同期でアイテムを返します。
+
+```ts
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
+
+// One card with two reviews: first review today, second the next day.
+const csv = [
+  'review_time,card_id,review_rating,review_duration,review_state',
+  '1704067200000,card-one,3,1000,0',
+  '1704153600000,card-one,4,900,2',
+].join('\n')
+
+// The day starts at 04:00 local, in the UTC timezone.
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+
+console.log(
+  JSON.stringify(
+    {
+      itemCount: items.length,
+      reviewsPerItem: items.map((item) => item.reviews.length),
+      ratings: items.map((item) => item.reviews.map((review) => review.rating)),
+    },
+    null,
+    2
+  )
+)
+```
+
+<RunCode code={optimizerCsvCode} />
+
+1 枚のカードの 2 回の復習は 1 つの `FSRSItem` になり、その `reviews` は両方の行を時系列順に保持します。別の日に後の復習がないカードは捨てられます。訓練には初回復習の後の保持率の観測が必要だからです。
+
+## 重みを学習する
+
+`computeParameters(items, options)` は非同期で、学習済みの重みを返します。`enableShortTerm` は必須です。`numRelearningSteps` と `trainingConfig` は省略でき、`progress` は学習中に `(current, total)` を報告します。
+
+```ts
+const weights = await computeParameters(items, {
+  enableShortTerm: true,
+})
+```
+
+`trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。`computeParameters` は実際の学習ループを実行するため、メインスレッドではなく Worker で呼んでください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
+
+## 適合度を評価する
+
+`evaluateWithTimeSeriesSplits(items, options)` は復習履歴を時刻で分割し、`logLoss` と `rmseBins` を持つ `ModelEvaluation` を返します。学習済みの重みが保留した復習をどれだけ予測するかを判断できます。`computeOptimalSteps` はさらに進み、復習と目標保持率から学習・再学習ステップの推奨時間を返します。
+
+インストールコマンドと二つの実行環境は[Optimizer 概要](./index)を参照してください。

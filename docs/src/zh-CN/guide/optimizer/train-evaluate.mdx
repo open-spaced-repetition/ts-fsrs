@@ -1,0 +1,75 @@
+---
+title: 训练与评估
+description: 沿 binding 走通复习日志流程——把 CSV 转成项、训练权重、评估拟合，并调整步骤
+---
+
+import RunCode from '../../../components/RunCode'
+import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+
+# 训练与评估
+
+训练通过几次 binding 调用把复习历史跑完。输入是一份复习日志 CSV；输出是可直接交给 `DefaultScheduler` 或自定义 `defineScheduler` 的权重数组。
+
+示例导入 `@open-spaced-repetition/binding`。在 Node 中是原生 napi 模块；在浏览器中解析为 WASI Preview 1 的 wasm 构建（多线程说明见[训练器概览](./index)）。
+
+## 把复习日志转成项
+
+`convertCsvToFsrsItems` 读取 CSV 文本，并按卡片把各行归并为 `FSRSItem`。列如下：
+
+| 列 | 含义 |
+| --- | --- |
+| `card_id` | 卡片稳定标识。 |
+| `review_time` | 复习时间，epoch 毫秒。 |
+| `review_rating` | 评分，1 Again 到 4 Easy。 |
+| `review_duration` | 复习耗时，毫秒。 |
+| `review_state` | 复习时的卡片状态。 |
+
+传入 `nextDayStartsAt`（新一天开始的小时）以及 IANA 时区（如 `'UTC'`）或固定的 UTC 分钟偏移。对 `Uint8Array` 输入，该调用同步返回项：
+
+```ts
+import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
+
+// One card with two reviews: first review today, second the next day.
+const csv = [
+  'review_time,card_id,review_rating,review_duration,review_state',
+  '1704067200000,card-one,3,1000,0',
+  '1704153600000,card-one,4,900,2',
+].join('\n')
+
+// The day starts at 04:00 local, in the UTC timezone.
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+
+console.log(
+  JSON.stringify(
+    {
+      itemCount: items.length,
+      reviewsPerItem: items.map((item) => item.reviews.length),
+      ratings: items.map((item) => item.reviews.map((review) => review.rating)),
+    },
+    null,
+    2
+  )
+)
+```
+
+<RunCode code={optimizerCsvCode} />
+
+一张卡片的两次复习变成一个 `FSRSItem`，其 `reviews` 按时间顺序保存两行。没有在另一天出现后续复习的卡片会被丢弃，因为训练需要在首次复习之后有一个保留率观测。
+
+## 训练权重
+
+`computeParameters(items, options)` 是异步的，返回训练好的权重。`enableShortTerm` 必填；`numRelearningSteps` 与 `trainingConfig` 可选，`progress` 在训练期间回报 `(current, total)`：
+
+```ts
+const weights = await computeParameters(items, {
+  enableShortTerm: true,
+})
+```
+
+`trainingConfig`（epochs、batch size、seed、最大序列长度、学习率与 L2 权重）可选，缺省时用 binding 的默认值。`computeParameters` 运行真正的训练循环，因此应在 Worker 而非主线程中调用。[Playground](../../playground)页的训练器就在 Web Worker 里跑同一路径并实时回报进度。返回的 `weights` 数组就是传给 `DefaultScheduler({ weights })` 或 `defineScheduler` 配置、用于替换模型默认值的东西。
+
+## 评估拟合
+
+`evaluateWithTimeSeriesSplits(items, options)` 按时间切分复习历史，返回带 `logLoss` 与 `rmseBins` 的 `ModelEvaluation`，供你判断训练权重对留出复习的预测质量。`computeOptimalSteps` 更进一步：给定复习与目标保留率，推荐学习与再学习步骤的时长。
+
+安装命令与两种运行时见[训练器概览](./index)。

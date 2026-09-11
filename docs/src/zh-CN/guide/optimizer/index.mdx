@@ -1,0 +1,60 @@
+---
+title: 训练器概览
+description: 用 binding 从复习记录重新训练 FSRS 权重，选择 Node 或浏览器 / Worker 运行时，并走通从 CSV 到参数的流程
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+
+# 训练器概览
+
+FSRS 自带默认模型权重，但你可以用自己产品的复习日志重新训练它们，让间隔更贴合所服务的用户。训练器（Optimizer）运行在 `@open-spaced-repetition/binding` 之上：把复习日志 CSV 转成训练项、估算参数，并报告结果对留出复习的预测质量。训练出的权重通过 `weights` 直接喂回 `DefaultScheduler` 或自定义 `defineScheduler`。权重的含义见[模型](../model)，权重的使用位置见[调度器](../scheduler)。
+
+<Prompt
+  title="实现或解释 FSRS 权重训练"
+  description="复制这段提示词，让 AI Agent 遵守训练器契约：复习日志 CSV 进、训练权重出，经由共享的 binding。"
+  prompt={`使用当前 ts-fsrs 训练器契约完成以下任务：[描述任务]。
+
+1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/optimizer/index.md'))} 与 ${withSiteOrigin(withBase('/zh-CN/guide/optimizer/train-evaluate.md'))}，了解运行时选择与复习日志流程。
+2. 用 convertCsvToFsrsItems 转换复习日志 CSV，传入「新一天开始的小时」以及时区或 UTC 偏移。
+3. 用 computeParameters(items, { enableShortTerm }) 训练，并把返回的权重用于 DefaultScheduler 或自定义 defineScheduler。
+4. 用 evaluateWithTimeSeriesSplits 报告拟合质量；保证复习日志、评分与状态转换准确。
+5. Node 里优先用原生 binding，浏览器 Worker 里用 wasip1 的 wasm 构建。
+6. 使用当前公共 API，并为所实现的训练路径添加聚焦测试。`}
+/>
+
+## 一个包，两种运行时
+
+binding 用同一个导入暴露同一套 API，加载时会按运行环境自动解析构建：搜索可用的原生包，在浏览器或 Worker 中回退到 WebAssembly。按需安装对应包：
+
+原生模块（Node、服务器与 CLI）：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding" />
+
+WASI Preview 1（wasip1）WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
+
+wasm32-wasi WebAssembly：
+
+<PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+```ts
+import { computeParameters } from '@open-spaced-repetition/binding'
+```
+
+你的运行环境会解析到匹配的构建：服务器或 CLI 用原生模块，浏览器或 Web Worker 用 wasm 构建。
+
+:::note COOP/COEP 与多线程
+WebAssembly 可运行 threadless 或多线程。threadless wasm 无需 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 头即可工作，进度经 Worker 消息回传而非共享内存。多线程构建要求页面处于 `crossOriginIsolated`，即以带 COOP 与 COEP 头的方式提供。
+:::
+
+## 复习日志流程
+
+训练由几个 binding 调用组成一条短流程：
+
+1. `convertCsvToFsrsItems` 把复习日志 CSV 转成一组 `FSRSItem`。
+2. `computeParameters` 根据这些项训练权重并返回权重数组。
+3. `evaluateWithTimeSeriesSplits` 衡量这些参数对留出复习的预测质量。
+
+你还可以用 `computeOptimalSteps` 让 binding 推荐学习与再学习步骤。逐个调用见[训练与评估](./train-evaluate)；想跑一次真实训练，用[Playground](../../playground)页的训练器。
