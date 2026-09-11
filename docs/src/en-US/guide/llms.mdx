@@ -1,0 +1,38 @@
+---
+title: LLM
+description: Read the ts-fsrs documentation as Markdown through llms.txt and llms-full.txt, and follow releases through the per-locale RSS feeds
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import SiteFile from '@/components/SiteFile'
+
+# LLM
+
+Every page on this site is also published as Markdown, and the updates section is published as an Atom feed, so agents and feed readers never have to parse the rendered HTML.
+
+<Prompt
+  title="Answer ts-fsrs questions from the documentation"
+  description="Copy this prompt so your AI agent reads the current documentation instead of relying on its training data."
+  prompt={`Use the ts-fsrs documentation as your source of truth.
+
+1. Fetch the documentation index at ${withSiteOrigin(withBase('/llms.txt'))}.
+2. Follow the links that cover my question and read their Markdown.
+3. Answer using the current ts-fsrs public API, and cite the pages you used.`}
+/>
+
+## Documentation as Markdown
+
+<SiteFile path="/llms.txt" /> indexes every page, grouped by top navigation, with one description per link.
+
+<SiteFile path="/llms-full.txt" /> concatenates the Markdown of every page into a single file.
+
+<SiteFile path="/guide/index.md" /> is the Markdown behind one page. Append `.md` to any route to get its source.
+
+Start from `llms.txt` when the agent can follow links on demand; reach for `llms-full.txt` when it needs the whole site in one request. Each generated Markdown file opens with a hint line pointing back at these entry points, so an agent that lands on a single page can still discover the rest.
+
+Every language has its own copy of these files, written in that language. Switch languages to get them.
+
+## Feeds
+
+The updates section publishes one Atom feed per locale, and this one is <SiteFile path="/rss/updates.xml" />; switch languages to subscribe to another. Every page also links its feed from the document head, so a reader that supports auto-discovery finds it without reading this section.

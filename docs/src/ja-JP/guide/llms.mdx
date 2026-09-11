@@ -1,0 +1,38 @@
+---
+title: LLM
+description: llms.txt と llms-full.txt で ts-fsrs のドキュメントを Markdown として読み、ロケールごとの RSS フィードで更新を追跡します
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import SiteFile from '@/components/SiteFile'
+
+# LLM
+
+本サイトの各ページは Markdown 版も公開され、更新情報は Atom フィードとしても公開されます。そのため Agent やフィードリーダーがレンダリング済みの HTML を解析する必要はありません。
+
+<Prompt
+  title="ドキュメントに基づいて ts-fsrs の質問に答える"
+  description="このプロンプトをコピーすると、AI Agent は学習データではなく現在のドキュメントを読みます。"
+  prompt={`ts-fsrs のドキュメントを唯一の信頼できる情報源としてください。
+
+1. ドキュメント索引 ${withSiteOrigin(withBase('/ja-JP/llms.txt'))} を取得する。
+2. 私の質問に関係するリンクをたどり、その Markdown を読む。
+3. 現在の ts-fsrs public API を使って回答し、参照したページを示す。`}
+/>
+
+## Markdown 形式のドキュメント
+
+<SiteFile path="/ja-JP/llms.txt" /> は、上部ナビゲーションごとにグループ化した全ページの索引です。各リンクに説明が 1 行付きます。
+
+<SiteFile path="/ja-JP/llms-full.txt" /> は、全ページの Markdown を 1 つのファイルに連結したものです。
+
+<SiteFile path="/ja-JP/guide/index.md" /> は、単一ページの Markdown です。任意のルートに `.md` を付けるとソースを取得できます。
+
+Agent がリンクを随時たどれる場合は `llms.txt` から始め、サイト全体を 1 回のリクエストで取得したい場合は `llms-full.txt` を使います。生成される各 Markdown ファイルの先頭にはこれらのエントリーポイントを示すヒント行があるため、単一ページだけを取得した Agent でも残りのドキュメントを見つけられます。
+
+各言語にそれぞれの一式があり、内容もその言語で書かれています。言語を切り替えると取得できます。
+
+## フィード
+
+更新情報はロケールごとに Atom フィードを 1 つずつ公開しており、このロケールのものは <SiteFile path="/rss/updates-ja.xml" /> です。他のロケールを購読するには言語を切り替えてください。各ページはドキュメントの head からフィードをリンクしているため、自動検出に対応したリーダーはこのセクションを読まなくても見つけられます。
