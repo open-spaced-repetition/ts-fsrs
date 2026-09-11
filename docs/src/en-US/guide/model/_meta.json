@@ -1,5 +1,6 @@
 [
   { "type": "file", "name": "index", "label": "Overview" },
+  "fsrs-7",
   "fsrs-6",
   "fsrs-5",
   { "type": "file", "name": "fsrs-4dot5", "label": "FSRS-4.5" },
