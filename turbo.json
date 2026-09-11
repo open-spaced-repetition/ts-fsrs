@@ -83,7 +83,9 @@
         "DOCS_INDEXABLE",
         "DOCS_REPO_SLUG",
         "DOCS_REPO_REF"
-      ]
+      ],
+      "cache": false,
+      "passThroughEnv": ["GITHUB_TOKEN"]
     },
     "@ts-fsrs/website#rspress:dev": {
       "dependsOn": [
@@ -100,7 +102,8 @@
         "DOCS_INDEXABLE",
         "DOCS_REPO_SLUG",
         "DOCS_REPO_REF"
-      ]
+      ],
+      "passThroughEnv": ["GITHUB_TOKEN"]
     },
     "@ts-fsrs/website#preview": {
       "dependsOn": ["@ts-fsrs/website#rspress:build"],
