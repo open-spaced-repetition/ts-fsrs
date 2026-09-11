@@ -16,7 +16,7 @@ Import `dateChrono`, `numericChrono`, `temporalInstantChrono`, and `defineChrono
 
 | Preset | Time values | Day arithmetic |
 | --- | --- | --- |
-| `dateChrono` | JavaScript `Date` | `difference` counts UTC date boundaries. `add` adds fixed 24-hour days and accepts fractions. |
+| `dateChrono` | JavaScript `Date` | `difference` counts UTC date boundaries by default; with `fractionalDays: true`, it measures elapsed time in fixed 24-hour days. `add` always adds fixed 24-hour days, including fractions. |
 | `numericChrono` | Numbers in days | `difference(from, to)` is `to - from`; `add(from, days)` is `from + days`. |
 | `temporalInstantChrono` | `Temporal.Instant` | Supports a configured timezone and optional fractional day differences. |
 
@@ -24,7 +24,9 @@ See the preset guides for details: [Date](./date), [Numeric](./numeric), and [Te
 
 ## Definition and runtime operations
 
-A `Chrono` definition contains `schema`, `projection`, `defaultValue`, and `create`. Pass the definition to `defineScheduler({ model, chrono })`; call its `create()` when you need the time operations directly. The scheduler also exposes its configured runtime as `scheduler.chrono`.
+A `Chrono` definition contains `schema`, `projection`, `defaultValue`, and `create`. Pass the definition to `defineScheduler({ model, chrono })`; call its `create({ config })` when you need the time operations directly. The scheduler also exposes its configured runtime as `scheduler.chrono`.
+
+For Date and Temporal, pass the complete configuration to `create({ config })`; only presets without configuration, such as Numeric, support `create()` without arguments. Scheduler creation validates configuration and supplies schema defaults.
 
 | Operation | Meaning |
 | --- | --- |
@@ -38,6 +40,8 @@ Date and Temporal presets keep review times in card and revlog fields; Numeric d
 ## Customize elapsed days with defineChrono
 
 This example keeps the Date preset's schemas, projection, defaults, and precise comparison, but measures elapsed time in fixed 24-hour days with fractions. Reusing those parts preserves input validation and the card/revlog contract. If you change the stored fields, define matching schemas, review and rollback projections, and defaults together.
+
+For fractional elapsed days, the built-in `dateChrono.create({ config: { fractionalDays: true } })` already provides this behavior. The following custom definition demonstrates how to override an operation with `defineChrono`.
 
 ```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
 ```
