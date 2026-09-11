@@ -16,7 +16,7 @@ Chrono 决定调度器如何表示时间、计算经过的天数，以及确定�
 
 | 预设 | 时间值 | 天数运算 |
 | --- | --- | --- |
-| `dateChrono` | JavaScript `Date` | `difference` 计算 UTC 日期差；`add` 按固定 24 小时增加天数，支持小数。 |
+| `dateChrono` | JavaScript `Date` | `difference` 默认计算 UTC 日期差；`fractionalDays: true` 时按固定 24 小时计算经过的小数天数。`add` 始终按固定 24 小时增加天数，支持小数。 |
 | `numericChrono` | 以天为单位的数字 | `difference(from, to)` 为 `to - from`；`add(from, days)` 为 `from + days`。 |
 | `temporalInstantChrono` | `Temporal.Instant` | 支持配置时区，并可选择是否保留时间差的小数天数。 |
 
@@ -24,7 +24,9 @@ Chrono 决定调度器如何表示时间、计算经过的天数，以及确定�
 
 ## 定义与运行时操作
 
-`Chrono` 定义包含 `schema`、`projection`、`defaultValue` 和 `create`。将定义传给 `defineScheduler({ model, chrono })`；需要单独进行时间运算时，调用定义的 `create()`。调度器也通过 `scheduler.chrono` 暴露配置完成的运行时对象。
+`Chrono` 定义包含 `schema`、`projection`、`defaultValue` 和 `create`。将定义传给 `defineScheduler({ model, chrono })`；需要单独进行时间运算时，调用定义的 `create({ config })`。调度器也通过 `scheduler.chrono` 暴露配置完成的运行时对象。
+
+Date 和 Temporal 需要向 `create({ config })` 传入完整配置；只有 Numeric 等不需要配置的预设可以无参调用 `create()`。通过调度器创建实例时，会校验配置并补齐 schema 默认值。
 
 | 操作 | 含义 |
 | --- | --- |
@@ -38,6 +40,8 @@ Date 和 Temporal 预设在 card 与 revlog 中保留复习时间，Numeric 不�
 ## 用 defineChrono 自定义经过天数
 
 下面的示例保留 Date 预设的 schema、projection、默认值和精确比较，只将经过时间改为按固定 24 小时计算的小数天数。复用这些部分，可以保留输入校验以及 card/revlog 的字段约定。如果需要改变存储字段，应一并定义对应的 schema、复习与撤销 projection，以及默认值。
+
+如果只需要小数天数，内置的 `dateChrono.create({ config: { fractionalDays: true } })` 已支持该行为。以下自定义示例用于演示如何通过 `defineChrono` 覆盖操作。
 
 ```ts twoslash file="../../../snippets/run-code/chrono.ts" fold height=420
 ```
