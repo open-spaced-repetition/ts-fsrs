@@ -9,7 +9,7 @@ description: dateChrono、numericChrono 與 temporalInstantChrono 的參考
 
 | 預設 | 時間值 | 天數運算 |
 | --- | --- | --- |
-| `dateChrono` | `Date` | `difference` 計算 UTC 日期邊界；`add` 加上固定的 24 小時天數。 |
+| `dateChrono` | `Date` | `difference` 預設按 UTC 日期邊界計數，`fractionalDays: true` 時按固定 24 小時計算經過的小數天數；`add` 始終加上固定的 24 小時天數。 |
 | `numericChrono` | 數字（天數） | `difference` = `to - from`；`add` = `from + days`。 |
 | `temporalInstantChrono` | `Temporal.Instant` | 設定的時區；選用的小數天數差異。 |
 
