@@ -1,0 +1,56 @@
+---
+title: スケジューラ概要
+description: defineScheduler でモデルと chrono を組み合わせて再利用可能な定義を作り、.create で設定ごとに独立したスケジューラを生成し、DefaultScheduler プリセットと比較する
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/scheduler.ts?raw'
+
+# スケジューラ概要
+
+スケジューラは、アプリケーションがカードを作成し復習を予定するために呼ぶオブジェクトです。通常はゼロから組み立てることはありません。`defineScheduler({ model, chrono })` が二つの部品を再利用可能な定義に組み合わせ、`DefaultScheduler` は同じ仕組みから作られた既製のプリセットです。各部分の関係は[アーキテクチャ](../architecture)、各要素の詳細は[モデル](../model)、[Chrono](../chrono)、[ミドルウェア](../middleware) を参照してください。
+
+<Prompt
+  title="スケジューラを実装または説明する"
+  description="このプロンプトをコピーすると、AI Agent がモデル・chrono・ミドルウェアの挙動を混在させずに Scheduler 契約へ従います。"
+  prompt={`現在の ts-fsrs Scheduler 契約を使って、次のタスクに対応してください：[タスクを記述]。
+
+1. ${withSiteOrigin(withBase('/ja-JP/guide/scheduler/index.md'))} と ${withSiteOrigin(withBase('/ja-JP/guide/scheduler/default-scheduler.md'))} を読み、「定義とインスタンス」のモデルと既製プリセットを理解する。
+2. defineScheduler({ model, chrono }) でスケジューラを組み立てる。ミドルウェアは .use(...)、インスタンスは .create({ config }) で作る。
+3. 記憶状態の更新と間隔計算はモデル、時間値と日数演算は chrono、コアを囲むポリシーはミドルウェアに限定する。
+4. 再利用可能な定義はプログラムレベルで保持し、ユーザーの設定は .create({ config }) で検証する。
+5. 既定の FSRS モデル・dateChrono・標準ポリシーで足りるなら DefaultScheduler を優先する。
+6. 現在の public API を使い、実装したスケジュール挙動に焦点を絞ったテストを追加する。`}
+/>
+
+## 定義とインスタンス
+
+スケジューラには二つの段階があります。
+
+| 段階 | 内容 | 得る方法 |
+| --- | --- | --- |
+| 定義 | schema だけの記述。モデル・chrono・任意のミドルウェアで構成され、設定もカードデータも持ちません。 | `defineScheduler({ model, chrono })` と `.use(...)` |
+| インスタンス | 検証済みの一つの設定に束縛された、動作するスケジューラ。 | `definition.create({ config })` |
+
+`defineScheduler` は具体的なモデルと chrono の型を保持するため、`.use(...)` を通しても schema とハンドラの型検査は保たれます。`.use(middlewareA, middlewareB)` はそれらのミドルウェアを順に加えた新しい定義を返し、元の定義は変わらず再利用できます。`.create({ config })` を呼ぶと、組み合わされた schema に対して設定を検証し、状態が独立したスケジューラインスタンスを返します。
+
+:::note 定義を保持し、インスタンスはその都度作成する
+ミドルウェアを組み合わせた定義はプログラムレベルで保持します。ユーザーやコレクションの設定が用意できたら `.create({ config })` を呼びます。呼ぶたびに設定を検証して独立したインスタンスを返すため、二つの `.create()` がスケジュール状態を共有することはありません。
+:::
+
+## 一つの定義を複数のスケジューラで再利用する
+
+次の例では、一つの定義から二つのスケジューラを作り、違いは目標保持率だけです。`schedulerDesiredRetentionMiddleware` が `desiredRetention` を設定 schema に加えるため、`.create()` はインスタンスごとにそれを受け取り検証できます。
+
+```ts twoslash file="../../../snippets/run-code/scheduler.ts" fold height=520
+```
+
+<RunCode code={schedulerCode} />
+
+目標保持率が低いほど間隔は伸びます。exam スケジューラの最初の Good 復習は 1 月 9 日、library スケジューラは 1 月 3 日に期限が来ます。定義自体は決して変わらず、二つのスケジューラはそれぞれ検証された設定によってのみ異なります。
+
+## 既製のプリセット
+
+`DefaultScheduler` は非同期ファクトリで、同じ「定義とインスタンス」の仕組みを使い、既定の FSRS-6 モデル・`dateChrono`・標準のスケジュールポリシーを組み合わせてスケジューラを作ります。渡すのはオプションだけです。オプションとバージョンは[DefaultScheduler](./default-scheduler)、最初に動かす場合は[クイックスタート](../quick-start)を参照してください。
