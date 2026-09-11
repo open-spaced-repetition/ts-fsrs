@@ -1,11 +1,12 @@
 ---
 title: 快速开始
-description: 安装 ts-fsrs，并在浏览器中运行完整的 defineScheduler 示例，用 Rating.Good 复习一张卡片
+description: 安装 ts-fsrs，先使用 DefaultScheduler 快速接入，再在浏览器中运行默认与自定义调度器示例并用 Rating.Good 完成复习
 ---
 
 import { PackageManagerTabs } from '@rspress/core/theme'
 import RunCode from '../../components/RunCode'
-import code from '@/snippets/run-code/define-scheduler.ts?raw'
+import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
+import defineSchedulerCode from '@/snippets/run-code/define-scheduler.ts?raw'
 
 # 快速开始
 
@@ -17,17 +18,32 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
 只有在训练 FSRS 参数或转换复习日志 CSV 时，才需要额外安装 `@open-spaced-repetition/binding`。
 
+## 从 DefaultScheduler 开始
+
+`DefaultScheduler()` 是接入 FSRS 调度最快的方式。它默认使用 FSRS-6，并包含目标保留率、统计、学习步骤、最大间隔、单调间隔和已调度天数等标准策略；模糊可通过选项启用。
+
+```ts twoslash file="../../snippets/run-code/default-scheduler.ts"
+```
+
+<RunCode code={defaultSchedulerCode} />
+
+示例显式列出了常用默认值。可以根据产品调整 `desiredRetention`、学习和重新学习步骤、模糊或 `maximumInterval`；省略 `weights` 即使用所选 FSRS 版本的预设权重。
+
 ## 创建调度器
 
-`defineScheduler` 使用 FSRS-6 模型和基于日期的时间系统创建可复用定义。`.create()` 会校验配置并返回独立的调度器。
+需要选择模型或时间系统，或者自行组合 middleware 时，再使用 `defineScheduler`。它会创建可复用的 definition；`.create()` 会校验配置并返回独立的调度器。
 
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
 
-<RunCode code={code} />
+<RunCode code={defineSchedulerCode} />
+
+:::note 复用调度器定义
+将 `defineScheduler(...)` 的结果（包括通过 `.use(...)` 组合好的 middleware）保留为程序级预设。用户或集合需要调度器时，再调用 `schedulerDefinition.create({ config })`；每次调用都会校验该配置并返回独立实例。
+:::
 
 代码块自带的复制按钮会复制原始源码；也可以直接在专用 Worker 中运行。固定的 `now` 让输出保持可复现。
 
 - `newCard()` 创建符合该调度器默认结构的新卡片。
 - `review()` 返回新的卡片和复习日志，不会修改输入卡片。
-- 需要多个调度器时保留 definition；需要策略时，在 `.create()` 前通过 `.use(...)` 组合 middleware。
+- 在可复用 definition 上通过 `.use(...)` 组合策略 middleware，再创建用户专属的调度器。

@@ -1,11 +1,12 @@
 ---
 title: 快速開始
-description: 安裝 ts-fsrs，並在瀏覽器的專用 Worker 中執行完整 defineScheduler 範例，以 Rating.Good 完成第一次卡片複習
+description: 安裝 ts-fsrs，先以 DefaultScheduler 快速接入，再於瀏覽器執行預設與自訂排程器範例並以 Rating.Good 完成複習
 ---
 
 import { PackageManagerTabs } from '@rspress/core/theme'
 import RunCode from '../../components/RunCode'
-import code from '@/snippets/run-code/define-scheduler.ts?raw'
+import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
+import defineSchedulerCode from '@/snippets/run-code/define-scheduler.ts?raw'
 
 # 快速開始
 
@@ -17,17 +18,32 @@ import code from '@/snippets/run-code/define-scheduler.ts?raw'
 
 只有需要訓練 FSRS 參數或轉換複習日誌 CSV 時，才需要另外安裝 `@open-spaced-repetition/binding`。
 
+## 從 DefaultScheduler 開始
+
+`DefaultScheduler()` 是接入 FSRS 排程最快的方式。它預設使用 FSRS-6，並包含目標保留率、統計、學習步驟、最大間隔、單調間隔與已排程天數等標準策略；模糊可透過選項啟用。
+
+```ts twoslash file="../../snippets/run-code/default-scheduler.ts"
+```
+
+<RunCode code={defaultSchedulerCode} />
+
+範例明確列出常用預設值。可依產品調整 `desiredRetention`、學習與重新學習步驟、模糊或 `maximumInterval`；省略 `weights` 即使用所選 FSRS 版本的預設權重。
+
 ## 建立排程器
 
-`defineScheduler` 使用 FSRS-6 模型與以日期為基礎的時間系統，建立可重複使用的 definition。`.create()` 會驗證設定並回傳獨立的排程器。
+需要選擇模型或時間系統，或自行組合 middleware 時，再使用 `defineScheduler`。它會建立可重複使用的 definition；`.create()` 會驗證設定並回傳獨立的排程器。
 
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
 
-<RunCode code={code} />
+<RunCode code={defineSchedulerCode} />
+
+:::note 重複使用排程器定義
+將 `defineScheduler(...)` 的結果（包括透過 `.use(...)` 組合完成的 middleware）保留為程式層級預設。使用者或集合需要排程器時，再呼叫 `schedulerDefinition.create({ config })`；每次呼叫都會驗證該設定並回傳獨立實例。
+:::
 
 程式碼區塊的複製按鈕會複製原始程式碼；也可以直接在專用 Worker 中執行。固定的 `now` 讓輸出保持可重現。
 
 - `newCard()` 會建立符合此排程器預設結構的新卡片。
 - `review()` 會回傳新的卡片與複習日誌，不會修改輸入卡片。
-- 需要多個排程器時保留 definition；需要策略時，在 `.create()` 前透過 `.use(...)` 組合 middleware。
+- 在可重複使用的 definition 上透過 `.use(...)` 組合策略 middleware，再建立使用者專屬的排程器。
