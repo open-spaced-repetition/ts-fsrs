@@ -1,0 +1,6 @@
+[
+  { "type": "file", "name": "index", "label": "Overview" },
+  "date",
+  "numeric",
+  "temporal-instant"
+]

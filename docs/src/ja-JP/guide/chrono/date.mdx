@@ -1,0 +1,32 @@
+---
+title: Date
+description: dateChrono で UTC の日付差と固定時間の加算を扱い、card と revlog の時刻フィールドを理解する
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
+
+# Date
+
+`DefaultScheduler` は `dateChrono` を使用します。時刻の schema は有効な `Date` オブジェクトを受け付けるため、保存した文字列やタイムスタンプは、スケジューラーに渡す前に `Date` に変換してください。現在の schema は `new Date(0)`（Unix エポックちょうどの時刻）と無効な日付も受け付けません。
+
+スケジューラーの config 直下に `fractionalDays` を指定します（デフォルトは `false`）。直接呼ぶ場合は `dateChrono.create({ config: { fractionalDays: false } })` とします。`false` では同じ UTC 日付内の差はゼロで、23:00 から翌日01:00 の差は1日です。`true` ではこの2時間は `2 / 24` 日になります。`add(from, 0.5)` は常に12時間を加算します。正確な前後比較には `compare` を使ってください。
+
+## projection とスケジューリング
+
+projection は card または revlog のフィールドを `{ previous, current }` に変換します。Date と Temporal のプリセットでは、次のように使われます。
+
+- 復習時の projection は `previous: card.lastReviewAt` と `current: card.dueAt` を返します。
+- 経過日数は `difference(previous ?? current, now)` です。New カードでは常にゼロです。
+- 新しい card は `dueAt: add(now, interval)` と `lastReviewAt: now` を保存します。
+- revlog は復習前の card の `dueAt`、`lastReviewAt` と、今回の `reviewTime: now` を保存します。
+- ロールバック時は `previous: revlog.lastReviewAt` と `current: revlog.dueAt` を返し、復習前の時刻フィールドを復元します。New カードの `lastReviewAt` は `null` に戻ります。
+
+## プリセットを実行する
+
+```ts twoslash file="../../../snippets/run-code/chrono-date.ts"
+```
+
+<RunCode code={presetCode} />
+
+UTC の日付をまたぐと日付差は1日になります。半日を加算すると、時刻は12時間後に進みます。

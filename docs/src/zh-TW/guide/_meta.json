@@ -5,5 +5,6 @@
   "architecture",
   "state-transitions",
   "llms",
-  { "type": "dir-section-header", "name": "model", "label": "模型" }
+  { "type": "dir-section-header", "name": "model", "label": "模型" },
+  { "type": "dir-section-header", "name": "chrono", "label": "Chrono" }
 ]
