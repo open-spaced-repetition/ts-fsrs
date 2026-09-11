@@ -16,6 +16,8 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 零時長步驟（如 `0m`）目前會回退到模型間隔，不支援負數時長。下文的步驟描述均假定時長非零。
 
+對於帶星號的轉換，如果該評分算出的步驟時長為零、達到一天或更長，或沒有適用步驟，`Again`、`Hard` 或 `Good` 都可能改為進入 `Review`，而不是 `Learning` 或 `Relearning`。
+
 ## 四種狀態
 
 | 狀態 | 含義 | 預設佇列 |

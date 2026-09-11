@@ -18,17 +18,17 @@
   <rect class="canvas" x="1" y="1" width="1198" height="758" rx="24" />
   <text x="600" y="48" font-size="30" font-weight="750" text-anchor="middle">DefaultScheduler state transitions</text>
   <text x="600" y="76" class="subtitle">Default learning steps: 1m, 10m · relearning step: 10m</text>
-  <path class="arrow" d="M290 198 H480" /><text class="label" x="385" y="178"><tspan class="again">Again</tspan><tspan> · </tspan><tspan class="hard">Hard</tspan><tspan> · </tspan><tspan class="good">Good*</tspan></text>
+  <path class="arrow" d="M290 198 H480" /><text class="label" x="385" y="178" style="font-size: 16px"><tspan class="again">Again*</tspan><tspan> · </tspan><tspan class="hard">Hard*</tspan><tspan> · </tspan><tspan class="good">Good*</tspan></text>
   <path class="arrow" d="M270 238 C470 300 700 370 900 393" /><text class="label easy" x="558" y="322">Easy</text>
   <path class="arrow" d="M690 224 C775 250 820 310 916 360" /><text class="label" x="786" y="270"><tspan class="good">Good*</tspan><tspan> · </tspan><tspan class="easy">Easy</tspan></text>
   <path class="arrow" d="M930 444 C850 500 775 560 690 568" /><text class="label again" x="806" y="515">Again*</text>
   <path class="arrow" d="M690 606 C800 600 850 505 930 456" /><text class="label" x="826" y="580"><tspan class="good">Good*</tspan><tspan> · </tspan><tspan class="easy">Easy</tspan></text>
-  <path class="arrow" d="M520 150 C445 80 725 80 650 150" /><text class="label" x="585" y="112"><tspan class="again">Again</tspan><tspan> · </tspan><tspan class="hard">Hard</tspan><tspan> · </tspan><tspan class="good">Good*</tspan></text>
-  <path class="arrow" d="M690 640 C755 725 455 725 520 640" /><text class="label" x="605" y="706"><tspan class="again">Again</tspan><tspan> · </tspan><tspan class="hard">Hard</tspan></text>
+  <path class="arrow" d="M520 150 C445 80 725 80 650 150" /><text class="label" x="585" y="112"><tspan class="again">Again*</tspan><tspan> · </tspan><tspan class="hard">Hard*</tspan><tspan> · </tspan><tspan class="good">Good*</tspan></text>
+  <path class="arrow" d="M690 640 C755 725 455 725 520 640" /><text class="label" x="605" y="706"><tspan class="again">Again*</tspan><tspan> · </tspan><tspan class="hard">Hard*</tspan></text>
   <path class="arrow" d="M1110 380 C1180 320 1180 485 1110 435" /><text class="label" x="1052" y="490"><tspan class="hard">Hard</tspan><tspan> · </tspan><tspan class="good">Good</tspan><tspan> · </tspan><tspan class="easy">Easy</tspan></text>
   <g><rect class="node" x="70" y="150" width="220" height="96" rx="48" stroke="#8b5cf6" /><text class="title" x="180" y="193">New</text><text class="subtitle" x="180" y="221">queue: new</text></g>
   <g><rect class="node" x="480" y="150" width="220" height="96" rx="48" stroke="#0ea5e9" /><text class="title" x="590" y="193">Learning</text><text class="subtitle" x="590" y="221">queue: learning</text></g>
   <g><rect class="node" x="900" y="360" width="220" height="96" rx="48" stroke="#16a34a" /><text class="title" x="1010" y="403">Review</text><text class="subtitle" x="1010" y="431">queue: review</text></g>
   <g><rect class="node" x="480" y="550" width="220" height="96" rx="48" stroke="#f97316" /><text class="title" x="590" y="593">Relearning</text><text class="subtitle" x="590" y="621">queue: learning</text></g>
-  <g><rect class="note" x="72" y="548" width="330" height="126" rx="16" /><text x="94" y="578" font-size="17" font-weight="700">* Depends on short-term steps</text><text x="94" y="606" font-size="16" fill="var(--muted)">Steps under one day stay in</text><text x="94" y="630" font-size="16" fill="var(--muted)">Learning/Relearning;</text><text x="94" y="654" font-size="16" fill="var(--muted)">otherwise → Review.</text></g>
+  <g><rect class="note" x="72" y="548" width="330" height="126" rx="16" /><text x="94" y="578" font-size="17" font-weight="700">* Depends on short-term steps</text><text x="94" y="606" font-size="16" fill="var(--muted)">0 &lt; step &lt; 1 day →</text><text x="94" y="630" font-size="16" fill="var(--muted)">Learning/Relearning;</text><text x="94" y="654" font-size="16" fill="var(--muted)">otherwise → Review.</text></g>
 </svg>

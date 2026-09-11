@@ -16,6 +16,8 @@ The diagram and table show the default steps. Arrow labels are ratings; an aster
 
 Zero-length steps (such as `0m`) currently fall back to the model interval. Negative durations are not supported. The step descriptions below assume non-zero durations.
 
+For the starred transitions, `Again`, `Hard`, or `Good` can lead to `Review` instead of `Learning` or `Relearning` when the duration calculated for that rating is zero or at least one day, or no step applies.
+
 ## What each state means
 
 | State | Meaning | Default queue |
@@ -42,7 +44,7 @@ A step shorter than one day keeps the card in `Learning` or `Relearning`. A step
 `DefaultScheduler` registers `schedulerLearningStepsMiddleware` for you, but it only creates short-term transitions when `enableShortTerm` is `true`. When composing a scheduler with `defineScheduler`, add `.use(schedulerLearningStepsMiddleware)` and configure learning or relearning steps. If short-term scheduling is not enabled, or the middleware is not registered, reviews use the model's long-term interval and do not enter `Learning` or `Relearning`.
 :::
 
-Since `Rating.Manual` is not a review grade, you should only pass of `Again`, `Hard`, `Good`, or `Easy` ratings to `review().
+`Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
 
 ## Run the transitions
 
