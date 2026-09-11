@@ -12,15 +12,17 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler state transition flowchart](../../assets/state-transitions.svg)
 
-The arrow labels show ratings. An asterisk means the transition depends on whether a positive short-term step remains.
+The diagram and table show the default steps. Arrow labels are ratings; an asterisk marks transitions affected by the applicable step and its duration.
+
+Zero-length steps (such as `0m`) currently fall back to the model interval. Negative durations are not supported. The step descriptions below assume non-zero durations.
 
 ## What each state means
 
 | State | Meaning | Default queue |
 | --- | --- | --- |
-| `New` | The card has not been reviewed yet. | `new` |
+| `New` | The card is new or has been reset with `scheduler.forget()`. | `new` |
 | `Learning` | The card is progressing through its initial short-term learning steps. | `learning` |
-| `Review` | The model schedules the card with a long-term interval. | `review` |
+| `Review` | The card is outside short-term learning; its interval may come from the model or a step of one day or longer. | `review` |
 | `Relearning` | A card rated `Again` in `Review` is progressing through short-term relearning steps. | `learning` |
 
 ## How ratings move a card
@@ -32,12 +34,12 @@ With the default learning steps (`1m`, `10m`) and relearning step (`10m`), trans
 | `New` | `Learning` | `Learning` | `Learning` | `Review` |
 | `Learning` | Return to the first step | Repeat the current step | Next step or `Review` | `Review` |
 | `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | Return to the first step | Repeat the current step | Next step or `Review` | `Review` |
+| `Relearning` | Return to the first step | Repeat the current step | `Review` | `Review` |
 
-A positive step shorter than one day keeps the card in `Learning` or `Relearning`. A step of one day or longer uses the exact due time but moves the card to `Review`. When short-term scheduling is disabled, the scheduler uses the model interval. It currently also falls back to the model interval when no positive step applies; this is a known issue, not the intended learning-step behavior.
+A step shorter than one day keeps the card in `Learning` or `Relearning`. A step of one day or longer uses the exact due time but moves the card to `Review`. When short-term scheduling is disabled, the scheduler uses the model interval. It currently also falls back to the model interval when no step applies; this is a known issue, not the intended learning-step behavior.
 
 :::warning Learning states require learning-step policy
-`DefaultScheduler` registers `schedulerLearningStepsMiddleware` for you, but it only creates short-term transitions when `enableShortTerm` is `true`. When composing a scheduler with `defineScheduler`, add `.use(schedulerLearningStepsMiddleware)` and configure positive steps. If short-term scheduling is not enabled, or the middleware is not registered, reviews use the model's long-term interval and do not enter `Learning` or `Relearning`.
+`DefaultScheduler` registers `schedulerLearningStepsMiddleware` for you, but it only creates short-term transitions when `enableShortTerm` is `true`. When composing a scheduler with `defineScheduler`, add `.use(schedulerLearningStepsMiddleware)` and configure learning or relearning steps. If short-term scheduling is not enabled, or the middleware is not registered, reviews use the model's long-term interval and do not enter `Learning` or `Relearning`.
 :::
 
 `Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
