@@ -47,8 +47,28 @@ const runtimeModules: Readonly<Record<string, unknown>> = {
   'ts-fsrs/reschedule': tsFsrsReschedule,
 }
 
+// The home page's Extend snippet needs zod, which would double this Worker's
+// payload for every run, so it is fetched as its own chunk when code imports it.
+const lazyModules: Readonly<Record<string, () => Promise<unknown>>> = {
+  zod: () => import('zod'),
+}
+const loadedLazyModules = new Map<string, unknown>()
+
+// The compiled code calls `require` synchronously, so every lazy specifier it
+// mentions has to be resolved before the executor runs.
+const REQUIRE_CALL = /\brequire\(\s*["'`]([^"'`]+)["'`]\s*\)/g
+
+async function loadLazyModules(code: string): Promise<void> {
+  for (const [, specifier] of code.matchAll(REQUIRE_CALL)) {
+    const load = lazyModules[specifier]
+    if (!load || loadedLazyModules.has(specifier)) continue
+    loadedLazyModules.set(specifier, await load())
+  }
+}
+
 function requireModule(specifier: string): unknown {
   if (Object.hasOwn(runtimeModules, specifier)) return runtimeModules[specifier]
+  if (loadedLazyModules.has(specifier)) return loadedLazyModules.get(specifier)
   throw new Error(`Unsupported playground import: ${specifier}`)
 }
 
@@ -79,6 +99,7 @@ async function execute(request: CodeRunRequest): Promise<void> {
   const logs: RunnerLog[] = []
   const startedAt = performance.now()
   try {
+    await loadLazyModules(request.code)
     const module = { exports: {} }
     const executor = new AsyncFunction(
       'require',

@@ -1,9 +1,10 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import type { PlaygroundDeclaration } from './declarations'
 
 /**
- * Drops the `.mjs` suffix from the declarations' own relative imports.
+ * Drops `suffix` from the declarations' own relative imports.
  *
  * The bundled declarations point at siblings as `./chunk.mjs`, which Node10 —
  * the resolver Monaco uses — cannot map onto the `.d.ts` files published here.
@@ -11,10 +12,16 @@ import type { PlaygroundDeclaration } from './declarations'
  * and the missing types degrade generics into `any`, so an example only shows
  * up as a spurious "implicitly has an 'any' type" on an unrelated line.
  */
-function rewriteRelativeSpecifiers(content: string): string {
+function rewriteRelativeSpecifiers(
+  content: string,
+  suffix: 'js' | 'mjs'
+): string {
   return content
-    .replace(/(from\s+")(\.[^"]*?)\.mjs(")/g, '$1$2$3')
-    .replace(/(import\(")(\.[^"]*?)\.mjs("\))/g, '$1$2$3')
+    .replace(new RegExp(`(from\\s+")(\\.[^"]*?)\\.${suffix}(")`, 'g'), '$1$2$3')
+    .replace(
+      new RegExp(`(import\\(")(\\.[^"]*?)\\.${suffix}("\\))`, 'g'),
+      '$1$2$3'
+    )
 }
 
 function collectModuleDeclarations(
@@ -48,7 +55,10 @@ function collectModuleDeclarations(
       // module as ESM and auto-import writes `ts-fsrs/models/fsrs-6.mjs`, a
       // specifier the package does not expose and the runner cannot resolve.
       declarations.push({
-        content: rewriteRelativeSpecifiers(readFileSync(absolutePath, 'utf8')),
+        content: rewriteRelativeSpecifiers(
+          readFileSync(absolutePath, 'utf8'),
+          'mjs'
+        ),
         filePath: `${virtualRoot}/${relativePath}`.replace(
           /\.d\.mts$/,
           '.d.ts'
@@ -58,6 +68,47 @@ function collectModuleDeclarations(
   }
 
   visit(sourceRoot)
+  return declarations
+}
+
+/**
+ * Collects the declarations `import … from 'zod'` can reach. The `.d.ts` set
+ * types the ESM build the Worker runs, and the re-export graph leaves out the
+ * v3 tree and the mini build.
+ */
+function collectZodDeclarations(): PlaygroundDeclaration[] {
+  const packageRoot = path.dirname(
+    createRequire(import.meta.url).resolve('zod/package.json')
+  )
+  const declarations: PlaygroundDeclaration[] = []
+  const collected = new Set<string>()
+  const pending = ['index.d.ts']
+
+  while (pending.length > 0) {
+    const relative = pending.pop()
+    if (relative === undefined || collected.has(relative)) continue
+    collected.add(relative)
+
+    const content = readFileSync(path.join(packageRoot, relative), 'utf8')
+    declarations.push({
+      content: rewriteRelativeSpecifiers(content, 'js'),
+      filePath: `file:///node_modules/zod/${relative}`,
+    })
+
+    const directory = path.dirname(path.join(packageRoot, relative))
+    for (const [, specifier] of content.matchAll(/from\s+"(\.[^"]+)"/g)) {
+      const target = path.join(directory, specifier.replace(/\.js$/, ''))
+      const candidate = existsSync(`${target}.d.ts`)
+        ? `${target}.d.ts`
+        : path.join(target, 'index.d.ts')
+      if (existsSync(candidate)) {
+        pending.push(
+          path.relative(packageRoot, candidate).split(path.sep).join('/')
+        )
+      }
+    }
+  }
+
   return declarations
 }
 
@@ -87,5 +138,6 @@ export function collectPlaygroundDeclarations(
       filePath:
         'file:///node_modules/@open-spaced-repetition/binding/index.d.ts',
     },
+    ...collectZodDeclarations(),
   ]
 }
