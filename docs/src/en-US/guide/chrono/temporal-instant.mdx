@@ -9,7 +9,7 @@ import temporalCode from '@/snippets/run-code/chrono-temporal.ts?raw'
 
 # Temporal Instant
 
-Configure `temporalInstantChrono` with `timezone` and `fractionalDays` directly in the scheduler config, for example `config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`. Both fields can be omitted to use defaults (`'UTC'` and `false`); there is no nested `config.chrono`. Direct calls require the complete configuration: `temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`. Scheduler creation validates configuration and supplies defaults.
+Configure `temporalInstantChrono` with `timezone` and `fractionalDays` directly in the scheduler config, for example `config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`. Both fields can be omitted to use defaults (`'UTC'` and `false`). Direct calls require the complete configuration: `temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`. Scheduler creation validates configuration and supplies defaults.
 
 With `fractionalDays: false`, `difference` counts calendar days in the configured timezone. With `true`, it includes fractions of a day in that timezone. `add` uses fixed 24-hour days for UTC and calendar days for other timezones; across daylight-saving transitions, a local day can be shorter or longer than 24 hours. Fractional additions use the length of the adjacent local day. This preset does not implement a custom daily rollover hour.
 
