@@ -2,6 +2,7 @@
   { "type": "section-header", "label": "はじめかた" },
   "index",
   "quick-start",
+  "architecture",
   "state-transitions",
   "llms",
   { "type": "dir-section-header", "name": "model", "label": "モデル" }

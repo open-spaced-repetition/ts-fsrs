@@ -1,0 +1,56 @@
+---
+title: アーキテクチャ
+description: ts-fsrs の model、chrono、middleware、scheduler の責務、再利用可能なプリセットの組み立て方、review から card と revlog が生成される流れを説明します
+---
+
+import RunCode from '../../components/RunCode'
+import architectureCode from '@/snippets/run-code/architecture.ts?raw'
+
+# アーキテクチャ
+
+ts-fsrs v6 のスケジューリングアーキテクチャでは、記憶モデル、時間処理、スケジューリングポリシーを Model、Chrono、Middleware に分離し、Scheduler がそれらの実行を調整します。
+
+## 責務の分担
+
+| 要素 | 責務 |
+| --- | --- |
+| Model | `step` で記憶状態を更新し、`nextInterval` で基準の間隔を計算します。FSRS-6 の記憶状態には安定性と難易度が含まれます。 |
+| Chrono | 時刻の表現と時間演算を定義します。`dateChrono` は JavaScript の `Date` を使い、時間差の計算や日時の加減算を提供します。 |
+| Middleware | 目標保持率、学習ステップ、最大間隔などのポリシーを追加し、config、card、revlog の schema を拡張できます。 |
+| Scheduler | schema とデフォルト値を組み合わせ、設定と入力を検証し、`newCard`、`review`、`preview`、`rollback` などを実行します。 |
+
+安定性や難易度などの Model の記憶状態は、New や Learning などのカード状態とは異なります。カードの学習状態とスケジューリングポリシーは Scheduler と Middleware が共同で処理します。
+
+カードの選択、返された card と revlog の保存、ユーザーとコレクションの管理はアプリケーションが担当します。スケジューラは結果を自動で永続化しません。
+
+## スケジューラの定義とインスタンス
+
+`defineScheduler({ model, chrono })` は定義を作成します。`.use(...)` は追加した middleware と推論された型を持つ新しい定義を返し、元の定義も再利用できます。`.create({ config })` はユーザー設定を検証し、独立したスケジューラインスタンスを作成します。
+
+:::note 定義全体を再利用する
+`.use(...)` による組み合わせを含む定義をプログラム単位のプリセットとして保持し、ユーザーやコレクションの設定が決まった時点でインスタンスを作成します。
+:::
+
+```ts twoslash file="../../snippets/run-code/architecture.ts"
+```
+
+<RunCode code={architectureCode} />
+
+この例では最大間隔を意図的に 1 日に制限します。モデルが計算する安定性は `2.3065` のままですが、最大間隔のポリシーが期限を 1 月 2 日に変更します。元のカードは New のままで、返されたカードは Review になります。この最小プリセットには学習ステップ、統計、fuzzing は含まれません。
+
+## review のデータの流れ
+
+1. `card`、`grade`、`now` を `review` に渡します。スケジューラは入力を検証し、Chrono で経過時間を計算します。
+2. Middleware がコア処理を囲んで実行されます。目標保持率の middleware は間隔の計算前に保持率を設定します。
+3. コア処理が次の記憶状態を計算し、必要に応じてモデルを呼び出して基準の間隔を求めます。Middleware は最終的なスケジュール間隔を指定または調整できます。
+4. チェーン全体が戻った後、スケジューラは Chrono を使って復習時刻と最終的な間隔から `dueAt` を算出し、新しい card と revlog を返します。Card は次の記憶状態を持ち、revlog は復習前の記憶状態と今回の評価・復習時刻を保持します。
+
+## Middleware の順序
+
+`.use(A, B)` の各 review handler が `next()` を呼び出す場合、次の順序で実行されます。
+
+`A の next() 前 → B の next() 前 → コア処理 → B の next() 後 → A の next() 後`
+
+`next()` より前のコードは処理を準備し、その後のコードは下流の結果を受け取ります。このため、登録順序によって最後に適用されるポリシーが変わります。この例ではコア処理の前に目標保持率を設定し、その後で最大間隔を制限します。学習ステップを追加する場合は、最大間隔の middleware を学習ステップの middleware より後に登録します。学習ステップの middleware は戻りの段階で設定された学習間隔を復元し、日単位の間隔ポリシーによる上書きを防ぎます。
+
+カードのライフサイクルは[状態遷移](./state-transitions)、数式は [FSRS-6](./model/fsrs-6) を参照してください。
