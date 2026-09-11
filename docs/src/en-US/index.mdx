@@ -1,10 +1,25 @@
 ---
 title: ts-fsrs
-description: TypeScript tools for building spaced repetition systems with FSRS scheduling and parameter optimization
+titleSuffix: Type-safe spaced repetition for TypeScript
+description: A type-safe, composable spaced repetition scheduler framework for TypeScript, with FSRS as the default model
 pageType: home
 link-rss: updates
 hero:
   name: ts-fsrs
-  text: Documentation placeholder
-  tagline: Guides and API documentation are coming soon.
+  text: Spaced repetition, composed.
+  tagline: A type-safe scheduler framework for TypeScript. Start with FSRS-6, then compose models, clocks, and middleware without changing API families.
+  actions:
+    - theme: brand
+      text: Get started
+      link: /guide/
+    - theme: alt
+      text: Open the playground
+      link: /playground
+features:
+  - title: Type-safe by construction
+    details: Schemas drive runtime validation and the inferred input and output types at the same time.
+  - title: Composable without migration
+    details: Start with the default scheduler, then replace models, clocks, and policies on the same core.
+  - title: Lazy by design
+    details: Lazy previews, version-based code splitting, and tree-shakable subpath exports.
 ---

@@ -11,6 +11,14 @@ const highlightedPackageRoots = [
   'file:///node_modules/@open-spaced-repetition/binding/',
 ]
 
+// The bundled declarations are split into hash-named chunks, and each chunk
+// re-exports its neighbours under one-letter aliases — `export { Middleware as
+// A, PreviewItem as At }`. Those aliases are not names anyone can import, and
+// collecting them puts `z`, `A` and the rest of the alphabet in the set, which
+// then matches the hover of any symbol at all. Only the entry declarations
+// carry the public names.
+const CHUNK_DECLARATION = /-[A-Za-z0-9_-]{8,}\.d\.[cm]?ts$/
+
 export function collectHighlightedExportNames(
   declarations: readonly PlaygroundDeclaration[]
 ): ReadonlySet<string> {
@@ -20,7 +28,8 @@ export function collectHighlightedExportNames(
     if (
       !highlightedPackageRoots.some((root) =>
         declaration.filePath.startsWith(root)
-      )
+      ) ||
+      CHUNK_DECLARATION.test(declaration.filePath)
     ) {
       continue
     }
@@ -68,12 +77,21 @@ export function collectHighlightedExportNames(
   return names
 }
 
+// A hover is attributed to ts-fsrs by the names its text mentions, so a name
+// short and generic enough to belong to any library attributes nothing: zod's
+// `z.int()` would be kept purely because ts-fsrs also exports a branded `int`.
+// Anything distinctive — every PascalCase type, every multi-word function — is
+// still matched, and a genuinely ts-fsrs hover names more than `int` anyway.
+function isDistinctive(name: string): boolean {
+  return name.length > 3 || /[A-Z]/.test(name)
+}
+
 export function keepTsFsrsTypeHover(
   node: TwoslashNode,
   exportNames: ReadonlySet<string>
 ): boolean {
   if (node.type !== 'hover') return true
-  return (node.text?.match(/[A-Za-z_$][\w$]*/g) ?? []).some((name) =>
-    exportNames.has(name)
+  return (node.text?.match(/[A-Za-z_$][\w$]*/g) ?? []).some(
+    (name) => isDistinctive(name) && exportNames.has(name)
   )
 }

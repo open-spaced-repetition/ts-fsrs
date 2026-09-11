@@ -60,6 +60,11 @@
   --color-line-success: var(--playground-border-success);
   --color-line-danger: var(--playground-border-danger);
 
+  --color-again: var(--landing-again);
+  --color-hard: var(--landing-hard);
+  --color-good: var(--landing-good);
+  --color-easy: var(--landing-easy);
+
   --shadow-playground: var(--playground-shadow);
   --shadow-primary: var(--playground-primary-shadow);
   --shadow-dot: var(--playground-dot-shadow);
@@ -127,6 +132,11 @@
     var(--playground-border)
   );
 
+  --landing-again: #c23a48;
+  --landing-hard: #c65102;
+  --landing-good: #1f6feb;
+  --landing-easy: #17864b;
+
   --playground-shadow: 0 24px 70px rgba(28, 25, 64, 0.12);
   --playground-primary-shadow: 0 7px 22px
     color-mix(in srgb, var(--rp-c-brand) 24%, transparent);
@@ -135,6 +145,10 @@
 }
 
 .dark {
+  --landing-again: #f08a94;
+  --landing-hard: #ff9d4d;
+  --landing-good: #6fb0fa;
+  --landing-easy: #4ac97e;
   --playground-accent: #45d2bf;
   --playground-border: rgba(255, 255, 255, 0.12);
   --playground-panel: rgba(255, 255, 255, 0.045);
@@ -204,4 +218,187 @@
 .playground-log--json {
   white-space: normal;
   line-height: 1.55;
+}
+
+/* Landing page
+   ------------------------------------------------------------------------ */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .landing-reveal {
+      animation: landing-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 20%;
+    }
+  }
+}
+
+@keyframes landing-reveal {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+/* Build-time Shiki output. The documentation stylesheet only reaches code
+   inside prose, so the landing page's own windows repeat the essentials. */
+.landing-code pre.shiki {
+  margin: 0;
+  padding: 1rem 1.125rem;
+  /* The hero's column is narrower than the longest lines, and a snippet the
+     reader has to scroll sideways reads as broken. Wrapping keeps every line
+     visible; the indent guides below make the continuations legible. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.65;
+  tab-size: 2;
+}
+
+.landing-code pre.shiki code {
+  display: block;
+}
+
+.landing-code .line {
+  display: block;
+  min-height: 1lh;
+  /* A wrapped line continues under its own indentation rather than at the
+     gutter, so the shape of the code survives the wrap. */
+  padding-left: 2ch;
+  text-indent: -2ch;
+}
+
+@media (width > 1000px) {
+  .rp-home-hero .rp-home-hero__container {
+    flex: 1.05;
+  }
+
+  .rp-home-hero .rp-home-hero__image {
+    flex: 1;
+    /* A flex item is sized by its content unless told otherwise, and the code
+       window's widest line would then set the panel's width — switching tabs
+       would resize the whole card. */
+    min-width: 0;
+    max-width: none;
+  }
+}
+
+@media (width <= 1000px) {
+  .rp-home-hero.rp-home-hero {
+    flex-direction: column;
+  }
+
+  .rp-home-hero .rp-home-hero__image {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+
+.rp-home-hero .rp-home-hero__subtitle,
+.rp-home-hero .rp-home-hero__tagline {
+  text-wrap: balance;
+}
+
+@media (width > 1000px) {
+  .rp-home-hero .rp-home-hero__subtitle {
+    max-width: none;
+  }
+
+  html[lang="zh-CN"] .rp-home-hero__subtitle {
+    font-size: 3.375rem;
+  }
+}
+
+.landing-entry-features .rp-home-feature {
+  margin-bottom: -10px;
+  padding-bottom: 10px;
+}
+
+.rp-button.rp-button--big {
+  padding: 0 24px;
+}
+
+@keyframes landing-swap-in {
+  from {
+    opacity: 0;
+    translate: 0 6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes landing-swap-out {
+  from {
+    opacity: 1;
+    translate: 0 0;
+  }
+  to {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+}
+
+.landing-swap-in {
+  animation: landing-swap-in 420ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+.landing-swap-out {
+  animation: landing-swap-out 420ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-swap-in {
+    animation: none;
+  }
+
+  .landing-swap-out {
+    animation: none;
+    opacity: 0;
+  }
+}
+
+/* Every tab reserves up to 18 lines, enough to avoid most layout movement
+   without making the hero as tall as the longest example. */
+.landing-code--fixed pre.shiki {
+  /* The 4px covers the dotted underline Twoslash draws 3px below a hovered
+     token, which would otherwise overflow the last line into a scrollbar. */
+  height: calc(var(--landing-code-lines) * 1lh + 2rem + 8px);
+  overflow: auto;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .landing-stagger > * {
+      animation: landing-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 16%;
+    }
+
+    .landing-stagger > *:nth-child(2) {
+      animation-range: entry 0% cover 20%;
+    }
+
+    .landing-stagger > *:nth-child(3) {
+      animation-range: entry 0% cover 24%;
+    }
+
+    .landing-stagger > *:nth-child(4) {
+      animation-range: entry 0% cover 28%;
+    }
+
+    .landing-stagger > *:nth-child(5) {
+      animation-range: entry 0% cover 32%;
+    }
+
+    .landing-stagger > *:nth-child(6) {
+      animation-range: entry 0% cover 36%;
+    }
+  }
 }

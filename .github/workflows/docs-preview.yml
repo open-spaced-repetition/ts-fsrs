@@ -67,6 +67,8 @@ jobs:
           DOCS_SITE_ORIGIN: ${{ env.PREVIEW_URL }}
           DOCS_REPO_SLUG: ${{ github.event.pull_request.head.repo.full_name }}
           DOCS_REPO_REF: ${{ github.event.pull_request.head.ref }}
+          SPONSORKIT_GITHUB_TOKEN: ${{ secrets.SPONSORKIT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Test docs
         run: pnpm --filter @ts-fsrs/website test:docs

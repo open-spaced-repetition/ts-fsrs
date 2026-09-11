@@ -21,8 +21,16 @@ type TypeScriptEmitOutput = {
   }[]
 }
 
+type TypeScriptDiagnostic = { readonly code: number }
+
 type TypeScriptWorkerClient = {
   getEmitOutput(fileName: string): Promise<TypeScriptEmitOutput>
+  getSemanticDiagnostics(
+    fileName: string
+  ): Promise<readonly TypeScriptDiagnostic[]>
+  getSyntacticDiagnostics(
+    fileName: string
+  ): Promise<readonly TypeScriptDiagnostic[]>
 }
 
 export type MonacoEditorHandle = {
@@ -51,6 +59,7 @@ monacoGlobal.MonacoEnvironment = {
   },
 }
 
+const DIAGNOSTICS_DEBOUNCE_MS = 300
 let configured = false
 let compileSequence = 0
 let stylesInjected = false
@@ -104,11 +113,32 @@ function configureTypeScript(): void {
   })
 }
 
+async function countDiagnostics(uri: monaco.Uri): Promise<number> {
+  const workerFactory = await typeScript.getTypeScriptWorker()
+  const worker = (await workerFactory(uri)) as TypeScriptWorkerClient
+  const fileName = uri.toString()
+  const [semantic, syntactic] = await Promise.all([
+    worker.getSemanticDiagnostics(fileName),
+    worker.getSyntacticDiagnostics(fileName),
+  ])
+  // The worker reports every code the compiler found, including the ones the
+  // editor is configured to swallow.
+  const ignored = new Set(
+    typeScript.typescriptDefaults.getDiagnosticsOptions()
+      .diagnosticCodesToIgnore ?? []
+  )
+  const isReported = ({ code }: TypeScriptDiagnostic) => !ignored.has(code)
+  return (
+    semantic.filter(isReported).length + syntactic.filter(isReported).length
+  )
+}
+
 export function createMonacoEditor(
   container: HTMLElement,
   initialValue: string,
   dark: boolean,
-  onChange: (value: string) => void
+  onChange: (value: string) => void,
+  onDiagnostics: (count: number) => void
 ): MonacoEditorHandle {
   injectEditorStyles()
   configureTypeScript()
@@ -139,11 +169,23 @@ export function createMonacoEditor(
     wordWrap: 'on',
     wrappingIndent: 'same',
   })
+  // Asked directly rather than through `onDidChangeMarkers`, which stays silent
+  // for a file that has no markers to change.
+  let diagnosticsTimer: number | undefined
+  const reportDiagnostics = () => {
+    window.clearTimeout(diagnosticsTimer)
+    diagnosticsTimer = window.setTimeout(() => {
+      void countDiagnostics(uri).then(onDiagnostics, () => {})
+    }, DIAGNOSTICS_DEBOUNCE_MS)
+  }
+  reportDiagnostics()
   const subscription = editor.onDidChangeModelContent(() => {
     onChange(model.getValue())
+    reportDiagnostics()
   })
   return {
     dispose() {
+      window.clearTimeout(diagnosticsTimer)
       subscription.dispose()
       editor.dispose()
       overflowWidgets.remove()
