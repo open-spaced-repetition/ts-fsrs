@@ -1,6 +1,6 @@
 {
   "home.architecture.chrono": "Chrono",
-  "home.architecture.description": "每一个维度都可以单独替换，而调度内核保持不变。",
+  "home.architecture.description": "每一个组件都可以单独替换，而调度内核保持不变。",
   "home.architecture.eyebrow": "架构",
   "home.architecture.immutable": "use() 返回一个新的 definition；已有的 definition 以及由它创建的调度器都不会被改动。",
   "home.architecture.middleware": "中间件",
