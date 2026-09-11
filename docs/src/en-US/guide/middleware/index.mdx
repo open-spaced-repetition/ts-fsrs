@@ -1,0 +1,64 @@
+---
+title: Middleware overview
+description: Understand how middleware adds scheduling policies and application fields to a scheduler, and define fields and handlers with defineMiddleware
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
+
+# Middleware overview
+
+Middleware adds scheduling policies and application fields to a scheduler. The model calculates memory states and intervals, and a chrono preset turns those intervals into due times. Middleware sits between them: it can adjust the target retention or interval, manage learning steps, and maintain extra card data that the model never sees. See [Architecture](../architecture) for how these parts fit together.
+
+:::note Middleware boundary
+A scheduler composes a model, a chrono, and middleware. Keep the model limited to memory-state updates and interval math, and let the chrono own time values and day arithmetic. Middleware supplies inputs before the core operation runs, adjusts the result afterward, and carries the fields those two parts do not define.
+:::
+
+<Prompt
+  title="Implement or explain a middleware policy"
+  description="Copy this prompt to keep an AI agent inside the Middleware contract instead of mixing in scheduler internals or persistence."
+  prompt={`Use the current ts-fsrs Middleware contract for this task: [describe the task].
+
+1. Read ${withSiteOrigin(withBase('/guide/middleware/index.md'))}, ${withSiteOrigin(withBase('/guide/middleware/lifecycle.md'))}, and ${withSiteOrigin(withBase('/guide/middleware/built-in.md'))} for how middleware extends a scheduler.
+2. Declare the config, card, revlog, and cardInitInput schemas before defining behavior.
+3. Keep the middleware limited to schemas, defaultValue, and review/rollback handlers. Let the model own memory-state updates and interval math, and let the chrono own time values and day arithmetic.
+4. Call next() exactly once. Set inputs such as desiredRetention before it; read or adjust the computed result after it.
+5. For rollback, read only ctx.input.card and ctx.input.revlog and write only ctx.result.card. Restore the old values the review handler saved.
+6. Keep handlers free of database writes, notifications, and other external effects; let the application persist the selected review result.
+7. Reuse a built-in policy when it already covers the behavior.
+8. Use the current public API and add focused tests for any handler you write.`}
+/>
+
+## Define fields and behavior
+
+A `Middleware` definition has a required `name` and optional schemas, defaults, and handlers. `defineMiddleware()` infers the handler types from those schemas. Import it from `ts-fsrs`; the built-in policies are also exported from `ts-fsrs/middlewares`.
+
+| Definition | Purpose |
+| --- | --- |
+| `schema.config` | Validates configuration passed to `create({ config })`. Middleware shares the scheduler's config object. |
+| `schema.card` | Declares and validates fields on input and output cards. |
+| `schema.revlog` | Declares and validates fields on review logs, including values needed for rollback. |
+| `schema.cardInitInput` | Declares additional input accepted by `newCard()`, such as a card ID. |
+| `defaultValue.card` | Supplies fields when creating or forgetting a card. `ctx.operation` distinguishes the two operations. |
+| `handlers.review` / `handlers.rollback` | Update `ctx.result` around the next handler in the chain. See [Lifecycle](./lifecycle) for how these run. |
+
+Schemas provide runtime validation as well as TypeScript inference. This example uses Zod, which implements Standard Schema. Install it alongside ts-fsrs to run the example in your application:
+
+<PackageManagerTabs command="install zod" />
+
+## Add a streak counter with rollback
+
+Here, any rating except Again increments `streak`, up to `streakLimit`. Again resets it to zero. The review handler saves the previous streak in the revlog so rollback can restore it even after a reset:
+
+```ts twoslash file="../../../snippets/run-code/middleware.ts" fold height=520
+```
+
+<RunCode code={middlewareCode} />
+
+The counter goes from `0` to `1`, then back to `0` after Again. Rollback restores `1`. Preview produces `0, 2, 2, 2` for Again, Hard, Good, and Easy while leaving the input counter at `1`.
+
+`base.use(streakMiddleware)` returns a new scheduler definition; `base` stays unchanged. Keep the return value or chain `.create()` as above. Because middleware composes through `use`, the handlers run in a fixed order around the scheduler core — see [Lifecycle](./lifecycle).
+
+Ready-made policies cover the common cases, and `DefaultScheduler` already composes them. See [Built-in policies](./built-in) or use [Quick start](../quick-start) for the ready-made scheduler directly.

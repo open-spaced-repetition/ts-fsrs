@@ -1,0 +1,64 @@
+---
+title: 中介軟體概覽
+description: 理解中介軟體如何為排程器加入排程策略與應用程式欄位，並了解如何使用 defineMiddleware 定義欄位與處理函式
+---
+
+import { PackageManagerTabs, Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
+
+# 中介軟體概覽
+
+中介軟體為排程器加入排程策略與應用程式所需的欄位。模型計算記憶狀態與間隔，chrono 預設把這些間隔轉換為到期時間；中介軟體位於兩者之間，可以調整目標保留率或間隔、管理學習步驟，以及維護模型未曾見過的額外卡片資料。各部分的職責見[整體架構](../architecture)。
+
+:::note 中介軟體邊界
+排程器由模型、chrono 與中介軟體組合而成。讓模型只負責記憶狀態更新與間隔計算，讓 chrono 負責時間值與天數運算；中介軟體在核心操作之前提供輸入、在其後調整結果，並承載這兩者未定義的欄位。
+:::
+
+<Prompt
+  title="實作或說明一個中介軟體策略"
+  description="複製這段提示詞，讓 AI Agent 遵守 Middleware 契約，避免混入排程器內部實作或持久化邏輯。"
+  prompt={`使用目前 ts-fsrs Middleware 契約完成以下任務：[描述任務]。
+
+1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/middleware/index.md'))}、${withSiteOrigin(withBase('/zh-TW/guide/middleware/lifecycle.md'))} 和 ${withSiteOrigin(withBase('/zh-TW/guide/middleware/built-in.md'))}，了解中介軟體如何擴充排程器。
+2. 在定義行為前，先宣告 config、card、revlog 和 cardInitInput 的 schema。
+3. 將中介軟體限制為 schema、defaultValue 以及 review/rollback 處理函式；讓模型負責記憶狀態更新與間隔計算，讓 chrono 負責時間值與天數運算。
+4. 恰好呼叫一次 next()。在它之前設定 desiredRetention 等輸入；在它之後讀取或調整計算結果。
+5. 復原時只讀取 ctx.input.card 和 ctx.input.revlog，只寫入 ctx.result.card，並還原複習處理函式儲存的舊值。
+6. 不要在處理函式中寫入資料庫、傳送通知或執行其他外部操作；由應用程式儲存最後選定的複習結果。
+7. 當內建策略已能涵蓋該行為時，優先重用。
+8. 使用目前 public API，並為所寫的處理函式加入聚焦測試。`}
+/>
+
+## 定義欄位與行為
+
+`Middleware` 定義包含必填的 `name`，以及選填的 schema、預設值和處理函式。`defineMiddleware()` 根據 schema 推導處理函式中的型別。可以從 `ts-fsrs` 匯入；內建策略也可從 `ts-fsrs/middlewares` 匯入。
+
+| 定義 | 用途 |
+| --- | --- |
+| `schema.config` | 驗證傳給 `create({ config })` 的設定。中介軟體共用排程器的設定物件。 |
+| `schema.card` | 宣告並驗證輸入、輸出卡片上的欄位。 |
+| `schema.revlog` | 宣告並驗證複習紀錄欄位，包括復原所需的舊值。 |
+| `schema.cardInitInput` | 宣告 `newCard()` 接受的額外輸入，例如卡片 ID。 |
+| `defaultValue.card` | 在建立或重設卡片時提供欄位值，透過 `ctx.operation` 區分這兩種操作。 |
+| `handlers.review` / `handlers.rollback` | 在呼叫下一個處理函式前後，更新 `ctx.result`。執行方式見[生命週期](./lifecycle)。 |
+
+Schema 同時提供執行時驗證與 TypeScript 型別推導。以下使用實作了 Standard Schema 的 Zod。在自己的應用程式中執行範例時，除了 ts-fsrs 之外還需要安裝它：
+
+<PackageManagerTabs command="install zod" />
+
+## 加入支援復原的連續答對計數
+
+範例中，除了 Again 以外的評分都會讓 `streak` 加一，最多累積到 `streakLimit`；Again 會將它歸零。複習處理函式把原計數存入 revlog，因此即使歸零後復原，也能還原先前的值：
+
+```ts twoslash file="../../../snippets/run-code/middleware.ts" fold height=520
+```
+
+<RunCode code={middlewareCode} />
+
+計數從 `0` 增加到 `1`，評為 Again 後回到 `0`，復原後還原為 `1`。預覽中，Again、Hard、Good、Easy 對應的計數分別是 `0、2、2、2`，輸入卡片的計數仍為 `1`。
+
+`base.use(streakMiddleware)` 回傳新的排程器定義，原本的 `base` 不變。需要保留回傳值，或像範例一樣接著呼叫 `.create()`。由於中介軟體透過 `use` 組合，處理函式會以固定順序環繞排程器核心——詳見[生命週期](./lifecycle)。
+
+現成的策略涵蓋了常見情境，`DefaultScheduler` 已組合了它們。見[內建策略](./built-in)；直接使用現成排程器見[快速開始](../quick-start)。
