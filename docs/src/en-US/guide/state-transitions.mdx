@@ -62,4 +62,4 @@ The example follows both the learning and relearning paths with fixed options, s
 - `result.revlog` records the previous state and memory state together with the selected rating and review timing. That snapshot is also what rollback uses to restore the card.
 - `scheduleStatus` controls queue membership. By default it maps `New` to `new`, both learning states to `learning`, and `Review` to `review`; middleware may add statuses such as `suspended` without changing the four FSRS states.
 
-Use `card.state` to explain the learning phase, and `card.scheduleStatus` to filter scheduling queues.
+Use `card.state` to find the learning phase, and `card.scheduleStatus` to filter scheduling queues.
