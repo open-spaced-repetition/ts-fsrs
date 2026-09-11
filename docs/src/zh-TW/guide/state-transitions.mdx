@@ -12,15 +12,17 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler 狀態轉換流程圖](../../assets/state-transitions.zh-TW.svg)
 
-箭頭文字表示評分；星號表示該轉換取決於是否仍有適用的正數短期步驟。
+圖表展示預設步驟下的轉換。箭頭文字表示評分；星號表示轉換受適用步驟及其時長影響。
+
+零時長步驟（如 `0m`）目前會回退到模型間隔，不支援負數時長。下文的步驟描述均假定時長非零。
 
 ## 四種狀態
 
 | 狀態 | 含義 | 預設佇列 |
 | --- | --- | --- |
-| `New` | 卡片尚未進行過複習。 | `new` |
+| `New` | 卡片是新卡，或已透過 `scheduler.forget()` 重設。 | `new` |
 | `Learning` | 卡片正在進行初始的短期學習步驟。 | `learning` |
-| `Review` | 卡片由模型按長期間隔排程。 | `review` |
+| `Review` | 卡片不處於短期學習階段；間隔可能來自模型，也可能來自一天或更長的步驟。 | `review` |
 | `Relearning` | 處於 `Review` 的卡片被評為 `Again` 後，正在進行短期重新學習步驟。 | `learning` |
 
 ## 評分如何改變狀態
@@ -32,12 +34,12 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 | `New` | `Learning` | `Learning` | `Learning` | `Review` |
 | `Learning` | 回到第一個步驟 | 重複目前步驟 | 下一步驟或 `Review` | `Review` |
 | `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | 回到第一個步驟 | 重複目前步驟 | 下一步驟或 `Review` | `Review` |
+| `Relearning` | 回到第一個步驟 | 重複目前步驟 | `Review` | `Review` |
 
-小於一天的正數步驟會讓卡片停留在 `Learning` 或 `Relearning`。一天或更長的步驟仍保留精確到期時間，但會把卡片轉為 `Review`。停用短期排程時，排程器會使用模型間隔。目前，沒有適用的正數步驟時也會回退到模型間隔；這是已知問題，並非學習步驟的預期行為。
+小於一天的步驟會讓卡片停留在 `Learning` 或 `Relearning`。一天或更長的步驟仍保留精確到期時間，但會把卡片轉為 `Review`。停用短期排程時，排程器會使用模型間隔。目前，沒有適用的步驟時也會回退到模型間隔；這是已知問題，並非學習步驟的預期行為。
 
 :::warning Learning 狀態依賴學習步驟策略
-`DefaultScheduler` 已自動註冊 `schedulerLearningStepsMiddleware`，但只有 `enableShortTerm` 為 `true` 時才會產生短期狀態轉換。使用 `defineScheduler` 組合排程器時，需要加入 `.use(schedulerLearningStepsMiddleware)` 並設定正數步驟。未啟用短期排程或未註冊此 middleware 時，複習會使用模型的長期間隔，不會進入 `Learning` 或 `Relearning`。
+`DefaultScheduler` 已自動註冊 `schedulerLearningStepsMiddleware`，但只有 `enableShortTerm` 為 `true` 時才會產生短期狀態轉換。使用 `defineScheduler` 組合排程器時，需要加入 `.use(schedulerLearningStepsMiddleware)` 並設定學習或重新學習步驟。未啟用短期排程或未註冊此 middleware 時，複習會使用模型的長期間隔，不會進入 `Learning` 或 `Relearning`。
 :::
 
 `Rating.Manual` 不是複習評分。呼叫 `review()` 時應傳入 `Again`、`Hard`、`Good` 或 `Easy`。

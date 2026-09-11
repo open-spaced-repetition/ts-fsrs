@@ -12,15 +12,17 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler 状态转换流程图](../../assets/state-transitions.zh-CN.svg)
 
-箭头文字表示评分；星号表示该转换取决于是否还有适用的正数短期步骤。
+图表展示默认步骤下的转换。箭头文字表示评分；星号表示转换受适用步骤及其时长影响。
+
+零时长步骤（如 `0m`）目前会回退到模型间隔，不支持负数时长。下文的步骤描述均假定时长非零。
 
 ## 四种状态
 
 | 状态 | 含义 | 默认队列 |
 | --- | --- | --- |
-| `New` | 卡片尚未进行过复习。 | `new` |
+| `New` | 卡片是新卡，或已通过 `scheduler.forget()` 重置。 | `new` |
 | `Learning` | 卡片正在进行初始的短期学习步骤。 | `learning` |
-| `Review` | 卡片由模型按长期间隔调度。 | `review` |
+| `Review` | 卡片不处于短期学习阶段；间隔可能来自模型，也可能来自一天或更长的步骤。 | `review` |
 | `Relearning` | 处于 `Review` 的卡片被评为 `Again` 后，正在进行短期重新学习步骤。 | `learning` |
 
 ## 评分如何改变状态
@@ -32,12 +34,12 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 | `New` | `Learning` | `Learning` | `Learning` | `Review` |
 | `Learning` | 回到第一个步骤 | 重复当前步骤 | 下一步骤或 `Review` | `Review` |
 | `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | 回到第一个步骤 | 重复当前步骤 | 下一步骤或 `Review` | `Review` |
+| `Relearning` | 回到第一个步骤 | 重复当前步骤 | `Review` | `Review` |
 
-小于一天的正数步骤会让卡片停留在 `Learning` 或 `Relearning`。一天或更长的步骤仍保留精确到期时间，但会把卡片转为 `Review`。关闭短期调度时，调度器会使用模型间隔。目前，没有适用的正数步骤时也会回退到模型间隔；这是已知问题，并非学习步骤的预期行为。
+小于一天的步骤会让卡片停留在 `Learning` 或 `Relearning`。一天或更长的步骤仍保留精确到期时间，但会把卡片转为 `Review`。关闭短期调度时，调度器会使用模型间隔。目前，没有适用的步骤时也会回退到模型间隔；这是已知问题，并非学习步骤的预期行为。
 
 :::warning Learning 状态依赖学习步骤策略
-`DefaultScheduler` 已自动注册 `schedulerLearningStepsMiddleware`，但只有 `enableShortTerm` 为 `true` 时才会产生短期状态转换。使用 `defineScheduler` 组合调度器时，需要添加 `.use(schedulerLearningStepsMiddleware)` 并配置正数步骤。未启用短期调度或未注册该 middleware 时，复习会使用模型的长期间隔，不会进入 `Learning` 或 `Relearning`。
+`DefaultScheduler` 已自动注册 `schedulerLearningStepsMiddleware`，但只有 `enableShortTerm` 为 `true` 时才会产生短期状态转换。使用 `defineScheduler` 组合调度器时，需要添加 `.use(schedulerLearningStepsMiddleware)` 并配置学习或重新学习步骤。未启用短期调度或未注册该 middleware 时，复习会使用模型的长期间隔，不会进入 `Learning` 或 `Relearning`。
 :::
 
 `Rating.Manual` 不是复习评分。调用 `review()` 时应传入 `Again`、`Hard`、`Good` 或 `Easy`。

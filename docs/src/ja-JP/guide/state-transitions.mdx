@@ -12,15 +12,17 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler の状態遷移図](../../assets/state-transitions.ja-JP.svg)
 
-矢印のラベルは評価を表します。アスタリスクは、適用できる正の短期ステップが残っているかどうかで遷移が変わることを示します。
+図と表は既定のステップでの遷移を示します。矢印のラベルは評価を表し、アスタリスクは適用されるステップとその長さによって遷移が変わることを示します。
+
+長さがゼロのステップ（`0m` など）は、現在モデルの間隔にフォールバックします。負の長さは指定できません。以下のステップの説明では、長さがゼロでないことを前提とします。
 
 ## 4 つの状態
 
 | 状態 | 意味 | 既定のキュー |
 | --- | --- | --- |
-| `New` | まだ一度も復習されていないカードです。 | `new` |
+| `New` | 新規カード、または `scheduler.forget()` でリセットされたカードです。 | `new` |
 | `Learning` | 初回の短期学習ステップを進めているカードです。 | `learning` |
-| `Review` | モデルが算出した長期の間隔でスケジュールされるカードです。 | `review` |
+| `Review` | 短期学習段階ではないカードです。間隔はモデル、または 1 日以上のステップによって決まります。 | `review` |
 | `Relearning` | `Review` で `Again` と評価され、短期の再学習ステップを進めているカードです。 | `learning` |
 
 ## 評価による状態遷移
@@ -32,12 +34,12 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 | `New` | `Learning` | `Learning` | `Learning` | `Review` |
 | `Learning` | 最初のステップに戻る | 現在のステップを繰り返す | 次のステップまたは `Review` | `Review` |
 | `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | 最初のステップに戻る | 現在のステップを繰り返す | 次のステップまたは `Review` | `Review` |
+| `Relearning` | 最初のステップに戻る | 現在のステップを繰り返す | `Review` | `Review` |
 
-1 日未満の正のステップでは、カードは `Learning` または `Relearning` に留まります。1 日以上のステップでは正確な次回予定時刻を保ったまま、カードを `Review` に移します。短期スケジューリングが無効な場合は、モデルの間隔が使われます。適用できる正のステップがない場合にも、現在はモデルの間隔へフォールバックしますが、これは本来の学習ステップ動作ではなく既知の問題です。
+1 日未満のステップでは、カードは `Learning` または `Relearning` に留まります。1 日以上のステップでは正確な次回予定時刻を保ったまま、カードを `Review` に移します。短期スケジューリングが無効な場合は、モデルの間隔が使われます。適用できるステップがない場合にも、現在はモデルの間隔へフォールバックしますが、これは本来の学習ステップ動作ではなく既知の問題です。
 
 :::warning Learning 状態には学習ステップのポリシーが必要です
-`DefaultScheduler` は `schedulerLearningStepsMiddleware` を自動で登録しますが、短期の状態遷移が作られるのは `enableShortTerm` が `true` の場合だけです。`defineScheduler` でスケジューラーを組み立てる場合は、`.use(schedulerLearningStepsMiddleware)` を追加して正のステップを設定してください。短期スケジューリングが有効でない場合、または middleware が登録されていない場合、復習にはモデルの長期の間隔が使われ、`Learning` や `Relearning` には入りません。
+`DefaultScheduler` は `schedulerLearningStepsMiddleware` を自動で登録しますが、短期の状態遷移が作られるのは `enableShortTerm` が `true` の場合だけです。`defineScheduler` でスケジューラーを組み立てる場合は、`.use(schedulerLearningStepsMiddleware)` を追加して学習または再学習ステップを設定してください。短期スケジューリングが有効でない場合、または middleware が登録されていない場合、復習にはモデルの長期の間隔が使われ、`Learning` や `Relearning` には入りません。
 :::
 
 `Rating.Manual` は復習の評価ではありません。`review()` には `Again`、`Hard`、`Good`、`Easy` のいずれかを渡します。
