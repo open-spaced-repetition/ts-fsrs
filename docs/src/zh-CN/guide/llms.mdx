@@ -1,0 +1,38 @@
+---
+title: LLM
+description: 通过 llms.txt 和 llms-full.txt 以 Markdown 形式阅读 ts-fsrs 文档，并通过各语言的 RSS 订阅源跟进更新
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import SiteFile from '@/components/SiteFile'
+
+# LLM
+
+本站每个页面都同时发布了 Markdown 版本，更新栏目也发布为 Atom 订阅源，因此 Agent 和 RSS 阅读器无需解析渲染后的 HTML。
+
+<Prompt
+  title="基于文档回答 ts-fsrs 问题"
+  description="复制这段提示词，让 AI Agent 阅读当前文档，而不是依赖训练数据。"
+  prompt={`请以 ts-fsrs 文档作为唯一可信来源。
+
+1. 获取文档索引 ${withSiteOrigin(withBase('/zh-CN/llms.txt'))}。
+2. 跟进与我的问题相关的链接，阅读对应的 Markdown。
+3. 使用当前 ts-fsrs 公共 API 作答，并注明参考了哪些页面。`}
+/>
+
+## Markdown 形式的文档
+
+<SiteFile path="/zh-CN/llms.txt" /> 是全站页面索引，按顶部导航分组，每个链接附一句描述。
+
+<SiteFile path="/zh-CN/llms-full.txt" /> 是所有页面的 Markdown 合并成的单个文件。
+
+<SiteFile path="/zh-CN/guide/index.md" /> 是单个页面对应的 Markdown。在任意路由后加 `.md` 即可获取其源文件。
+
+如果 Agent 能按需跟进链接，从 `llms.txt` 开始；如果需要一次性获取全站内容，则使用 `llms-full.txt`。每个生成的 Markdown 文件开头都有一行提示，指回这些入口，因此只拿到单个页面的 Agent 也能找到其余文档。
+
+每种语言都有自己的一份，内容也是该语言写的。切换语言就能拿到。
+
+## 订阅源
+
+更新栏目为每种语言各发布一个 Atom 订阅源，本语言的是 <SiteFile path="/rss/updates-zh.xml" />；切换语言即可订阅其他语言。每个页面也会在文档 head 中声明所属订阅源，支持自动发现的阅读器无需阅读本节即可找到它。
