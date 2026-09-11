@@ -73,6 +73,8 @@ S_r,&G\in\{2,3,4\}
 
 ## Same-day update
 
+Here, “same-day” means the model receives `elapsedDays = 0`; the model does not inspect calendar dates. Direct callers and the scheduler’s `chrono` determine the elapsed value.
+
 When `enableShortTerm` is enabled and `math:t = 0`:
 
 ```math

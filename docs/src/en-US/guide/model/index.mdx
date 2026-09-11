@@ -11,9 +11,9 @@ import modelCode from '@/snippets/run-code/model.ts?raw'
 
 # Model overview
 
-An FSRS model turns a rating and elapsed time into a new memory state, estimates recall probability with a forgetting curve, and converts stability plus desired retention into a base interval.
+An FSRS model turns a rating and elapsed time into a new memory state, estimates recall probability with a forgetting curve, and converts memory state plus desired retention into a base interval.
 
-The FSRS terminology and equations in this section are reviewed against the [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki), especially [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm). The TypeScript APIs and framework boundaries describe ts-fsrs itself.
+The FSRS-3 through FSRS-6 terminology and equations in this section are reviewed against the [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki), especially [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm). The TypeScript APIs and framework boundaries describe ts-fsrs itself.
 
 :::note Model boundary
 A model owns memory-state updates, forgetting-curve evaluation, and base-interval calculation. The scheduler orchestrates reviews, `chrono` handles dates and elapsed time, and middleware applies learning steps, fuzzing, maximum-interval limits, and queue-status policies.
@@ -25,7 +25,7 @@ A model owns memory-state updates, forgetting-curve evaluation, and base-interva
   prompt={`Use the current ts-fsrs Model contract for this task: [describe the task].
 
 1. Read ${withSiteOrigin(withBase('/guide/model/index.md'))} and the page for the selected model version.
-2. When useful, compare the formulas and descriptions for FSRS-6 (${withSiteOrigin(withBase('/guide/model/fsrs-6.md'))}), FSRS-5 (${withSiteOrigin(withBase('/guide/model/fsrs-5.md'))}), FSRS-4.5 (${withSiteOrigin(withBase('/guide/model/fsrs-4dot5.md'))}), FSRS-4 (${withSiteOrigin(withBase('/guide/model/fsrs-4.md'))}), and FSRS-3 (${withSiteOrigin(withBase('/guide/model/fsrs-3.md'))}).
+2. When useful, compare the formulas and descriptions for FSRS-6 (${withSiteOrigin(withBase('/guide/model/fsrs-6.md'))}), FSRS-5 (${withSiteOrigin(withBase('/guide/model/fsrs-5.md'))}), FSRS-4.5 (${withSiteOrigin(withBase('/guide/model/fsrs-4dot5.md'))}), FSRS-4 (${withSiteOrigin(withBase('/guide/model/fsrs-4.md'))}), and FSRS-3 (${withSiteOrigin(withBase('/guide/model/fsrs-3.md'))}). FSRS-7: ${withSiteOrigin(withBase('/guide/model/fsrs-7.md'))}.
 3. Define the config and memory-state schemas before implementing the model.
 4. Keep the model limited to step, nextInterval, forgettingCurve, and forward behavior.
 5. Pass desired retention explicitly to nextInterval.
@@ -39,7 +39,7 @@ A model owns memory-state updates, forgetting-curve evaluation, and base-interva
 | Symbol | Meaning |
 | --- | --- |
 | `math:D` | Difficulty from 1 (easiest) to 10 (hardest). |
-| `math:S` | Stability in days; recall probability is 90% when `math:t = S`. |
+| `math:S` | FSRS-3–6 stability in days; recall probability is 90% when `math:t = S`. |
 | `math:R` | Estimated probability of recall after `math:t` days. |
 | `math:G` | Grade: 1 Again, 2 Hard, 3 Good, or 4 Easy. |
 | `math:t` | Elapsed days since the previous review. |
@@ -48,6 +48,8 @@ A model owns memory-state updates, forgetting-curve evaluation, and base-interva
 | `math:S_{\min}`, `math:S_{\max}` | Lower and upper stability bounds of the model. |
 | `math:D_{\min}`, `math:D_{\max}` | Lower and upper difficulty bounds of the model. |
 | `math:w_i` | A trained model weight. |
+
+[FSRS-7](./fsrs-7) is documented separately from its implementation snapshot: it adds a fast stability, uses a mixed curve, and returns fractional-day intervals. The 90% definition of stability and `I(r, S)` notation above apply to FSRS-3–6.
 
 ## Use a versioned model
 
@@ -58,7 +60,7 @@ A model owns memory-state updates, forgetting-curve evaluation, and base-interva
 
 <RunCode code={modelCode} />
 
-The example first calculates an interval for 90% desired retention, then uses `forgettingCurve` to estimate the recall probability at that interval. The result may differ slightly from 90% because `nextInterval` returns whole days.
+The example first calculates an interval for 90% desired retention, then uses `forgettingCurve` to estimate the recall probability at that interval. The result may differ slightly from 90% because the FSRS-6 `nextInterval` returns whole days.
 
 In the FSRS-6 config, `enableShortTerm` controls the model's same-day stability update. `numRelearningSteps` only informs weight clipping and checking; relearning-step scheduling remains middleware behavior.
 
@@ -79,6 +81,7 @@ Only use `FSRS6Model.create({ config, bypass: true })` when the caller has expli
 
 ## Model versions
 
+- [FSRS-7](./fsrs-7) — dual-trace implementation reference; 34 weights and numerical intervals.
 - [FSRS-6](./fsrs-6) — current default, trainable decay, and same-day updates.
 - [FSRS-5](./fsrs-5) — fixed power forgetting curve with same-day updates.
 - [FSRS-4.5](./fsrs-4dot5) — fixed power curve without a same-day formula.

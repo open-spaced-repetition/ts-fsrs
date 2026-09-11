@@ -73,6 +73,8 @@ S_r,&G\in\{2,3,4\}
 
 ## 同日更新
 
+ここでの「同日」はモデルが `elapsedDays = 0` を受け取ることを意味し、モデル自体は暦日を判定しません。経過時間は直接の呼び出し側、または scheduler の `chrono` が決めます。
+
 `enableShortTerm` が有効で `math:t = 0` の場合：
 
 ```math

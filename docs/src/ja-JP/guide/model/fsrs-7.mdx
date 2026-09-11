@@ -1,0 +1,136 @@
+---
+title: FSRS-7
+description: FSRS-7 の二成分忘却曲線、混合重み、安定度と難易度の更新、数値的な間隔計算、パラメーターと記憶状態の移行制約
+---
+
+# FSRS-7
+
+FSRS-7 は 34 個の重みと二つの記憶成分を使います。記憶状態は `stability`（遅い成分）、`stabilityFast`（速い成分）、`difficulty` で構成されます。
+
+:::info 実装の参照元
+このページは `feat/fsrs7` ブランチのコミット `9ed49104` にある ts-fsrs 実装を説明します。このドキュメントブランチには、その実装はまだ含まれていません。2026 年 9 月 11 日時点で、上流の [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) に FSRS-7 の章はありません。以下の数式はリンク先の実装から整理したもので、上流の仕様ではありません。
+
+[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
+:::
+
+## 記憶状態と記号
+
+[共通の記号](./#共通の記号)に加え、`math:S_s` を `stability`、`math:S_f` を `stabilityFast` とします。どちらも単位は日ですが、混合した想起確率が 90% に達する間隔とは一致しません。難易度は遅い成分の曲線と混合重みの両方に影響します。
+
+数式には範囲内に制限した復習前の状態を使います。両方の安定度は `[0.0001, 36500]`、難易度は `[1, 10]` です。経過時間 `math:t` は小数の日数で、曲線では `math:\max(t,0)` を使います。「速い」「遅い」は成分の名前であり、二つの安定度の大小関係を保証しません。
+
+## 初期記憶
+
+新しい記憶状態について、`math:C_s` と `math:C_f` を遅い成分と速い成分の安定度の範囲へのクリップ、`math:C_D` を `[1, 10]` へのクリップとします。
+
+```math
+S_{s,0}=C_s(w_{G-1}),\qquad S_{f,0}=C_f(0.8S_{s,0})
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad D_{initial}=C_D(D_0(G))
+```
+
+## 二成分の忘却曲線
+
+速い成分：
+
+```math
+d_f=-\operatorname{clamp}(w_{23}S_f^{w_{33}-0.3},0.01,0.95)
+```
+
+```math
+F_f=\exp\left(\min\left(\frac{\ln w_{25}}{d_f},60\right)\right)-1
+```
+
+```math
+R_f(t)=\left(1+F_f\frac{t}{S_f}\right)^{d_f}
+```
+
+遅い成分：
+
+```math
+d_s=-\operatorname{clamp}(w_{24},0.01,0.95)
+```
+
+```math
+F_s=(w_{26}^{1/d_s}-1)e^{(D-5)(w_{32}-0.3)}
+```
+
+```math
+R_s(t)=\left(1+F_s\frac{t}{S_s}\right)^{d_s}
+```
+
+## 混合重みと想起確率
+
+二つの重みは正の非正規化係数です。経過時間ではなく記憶状態で決まります。成分そのものの想起確率は、混合結果への寄与とは異なります。
+
+```math
+a_f=w_{27}S_f^{-w_{29}},\qquad  a_s=w_{28}S_s^{w_{30}}e^{(D-5)(w_{31}-0.5)}
+```
+
+```math
+R(t)=\frac{a_fR_f(t)+a_sR_s(t)}{a_f+a_s}(1-2\varepsilon)+\varepsilon,\qquad\varepsilon=10^{-5}
+```
+
+`algorithm.curve(t, state)` は `fast`、`slow`、`fastWeight`、`slowWeight`、`retrievability`、`derivative` を返します。最初の二つは成分そのものの想起確率であり、混合時には重みを正規化します。最後の微小な調整により確率は 0 と 1 を避けるため、`math:R(0)=0.99999` です。
+
+## 復習後の安定度
+
+成分の安定度 `math:x`、想起確率の入力 `math:q`、パラメーターのオフセット `math:k` に対し、忘却後の値と想起成功時の更新を次のように定義します。
+
+```math
+L_k(x,q)=\min\left(x,w_{k+3}((x+1)^{w_{k+4}}-1)e^{(1-q)w_{k+5}}\right)
+```
+
+```math
+H_{k,G}=\begin{cases}w_{k+6},&G=2\\1,&G\ne2\end{cases},\qquad E_{k,G}=\begin{cases}w_{k+7},&G=4\\1,&G\ne4\end{cases}
+```
+
+```math
+U_k(x,q,G)=x\left[1+e^{w_k-1.5}(11-D)x^{-w_{k+1}}(e^{(1-q)w_{k+2}}-1)H_{k,G}E_{k,G}\right]
+```
+
+```math
+T_k(x,q,G)=\begin{cases}L_k(x,q),&G=1\\\max(L_k(x,q),U_k(x,q,G)),&G\in\{2,3,4\}\end{cases}
+```
+
+遅い成分には `math:k=7` と混合確率 `math:R`、速い成分には `math:k=15` と速い成分そのものの確率 `math:R_f` を使います。すべて復習前の難易度を使います。`retrievability` を明示すると、遅い成分と難易度の更新に使う `math:R` を置き換えますが、速い成分の `math:R_f` は置き換えません。
+
+Again では、新しい速い安定度を新しい遅い安定度の 80% 以下に制限してから、状態の範囲を適用します。
+
+```math
+\widetilde S_s=T_7(S_s,R,G),\qquad \widetilde S_f=T_{15}(S_f,R_f,G)
+```
+
+```math
+S'_s=C_s(\widetilde S_s),\qquad S'_f=C_f\left(\begin{cases}\min(\widetilde S_f,0.8\widetilde S_s),&G=1\\\widetilde S_f,&G\ge2\end{cases}\right)
+```
+
+## 復習後の難易度
+
+Again は混合想起確率で難易度の変化を調整します。平均回帰係数は `0.01` 固定です。
+
+```math
+\Delta D=-w_6(G-3)\begin{cases}R+0.1,&G=1\\1,&G\ge2\end{cases}
+```
+
+```math
+D'=C_D\left(0.01D_0(4)+0.99\left(D+\frac{10-D}{9}\Delta D\right)\right)
+```
+
+実装は三つの新しい状態値を小数点以下 8 桁に丸め、各範囲にクリップします。FSRS-7 はゼロを含む小数の経過日数に同じ更新式を使い、`enableShortTerm` で制御する別の同日更新式はありません。学習ステップのスケジューリングは引き続き middleware のポリシーです。
+
+## 間隔の計算
+
+`nextInterval(state, r)` は混合曲線が目標確率に達する経過時間を数値的に求めます。三つの状態フィールドすべてに依存し、小数の日数を返します。
+
+```math
+R(I;S_s,S_f,D)=r
+```
+
+実装は `math:0<r<1` を検証し、目標を `[0.0001, 0.9999]` に制限します。上限の目標ではゼロを返します。それ以外は対数時間で最大 7 回の有界 Newton 更新を行い、想起確率の誤差が `0.001` を超える場合は二分探索に切り替えます。結果は `sMax` で制限されるため、極端な目標には到達できない場合があります。
+
+## 設定と移行
+
+FSRS-7 には専用の 34 個の重みが必要です。パラメーター移行関数は空の入力に既定値を補いますが、空でない入力には 34 個の重みが必要です。FSRS-3〜6 の重みと記憶状態を FSRS-7 に直接変換することはできません。カードデータを移行するには、FSRS-7 を使うスケジューラーで `reschedule` により復習履歴を再生し、小数の経過日数を保持して記憶状態を再構築してください。上記の `0.8` 係数は初期化と Again の更新に使います。
