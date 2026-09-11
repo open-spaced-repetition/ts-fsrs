@@ -42,7 +42,7 @@ A step shorter than one day keeps the card in `Learning` or `Relearning`. A step
 `DefaultScheduler` registers `schedulerLearningStepsMiddleware` for you, but it only creates short-term transitions when `enableShortTerm` is `true`. When composing a scheduler with `defineScheduler`, add `.use(schedulerLearningStepsMiddleware)` and configure learning or relearning steps. If short-term scheduling is not enabled, or the middleware is not registered, reviews use the model's long-term interval and do not enter `Learning` or `Relearning`.
 :::
 
-`Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
+Since `Rating.Manual` is not a review grade, you should only pass of `Again`, `Hard`, `Good`, or `Easy` ratings to `review().
 
 ## Run the transitions
 
