@@ -16,6 +16,8 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 長さがゼロのステップ（`0m` など）は、現在モデルの間隔にフォールバックします。負の長さは指定できません。以下のステップの説明では、長さがゼロでないことを前提とします。
 
+アスタリスク付きの遷移では、その評価に対して計算されたステップの長さがゼロまたは 1 日以上の場合、あるいは適用できるステップがない場合、`Again`、`Hard`、`Good` の遷移先が `Learning` や `Relearning` ではなく `Review` になることがあります。
+
 ## 4 つの状態
 
 | 状態 | 意味 | 既定のキュー |
