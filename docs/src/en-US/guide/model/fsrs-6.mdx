@@ -1,0 +1,98 @@
+---
+title: FSRS-6
+description: FSRS-6 formulas for trainable decay, initial memory, difficulty, recall, forgetting, same-day updates, and intervals
+---
+
+# FSRS-6
+
+FSRS-6 is the default model used by `DefaultScheduler`. It has 21 trainable weights, including a trainable forgetting-curve decay and a same-day stability term.
+
+See the [Model overview](./) for the shared symbols and Model contract.
+
+:::info Formula source
+Reviewed against [awesome-fsrs Wiki — FSRS-6](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-6).
+:::
+
+## Forgetting curve and interval
+
+With the positive decay magnitude `math:d = w_{20}`, choose `math:F` so that `math:R(S, S) = 0.9`:
+
+```math
+F=0.9^{-1/d}-1,\qquad
+R(t,S)=\left(1+F\frac{t}{S}\right)^{-d}
+```
+
+```math
+I(r,S)=\frac{S}{F}\left(r^{-1/d}-1\right)
+```
+
+`nextInterval` rounds the result to whole days and returns at least one day.
+
+## Initial memory
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## Difficulty
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## Stability after review
+
+For `math:t > 0`, or when `enableShortTerm` is disabled, the rating selects the following branch.
+
+The update uses the pre-review `math:D` and `math:S`. `math:H_G = w_{15}` for Hard and `math:1` otherwise; `math:E_G = w_{16}` for Easy and `math:1` otherwise.
+
+When `enableShortTerm` is enabled, `math:C` is the previous stability multiplied by `math:\exp(-w_{17}w_{18})`; otherwise, `math:C = S`:
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` is an implementation cap for post-lapse stability, not a separately configured stability floor. The model then clamps `math:S'_{\mathrm{raw}}` to the range from `math:S_{\min}` to `math:S_{\max}`.
+
+## Same-day update
+
+Here, “same-day” means the model receives `elapsedDays = 0`; the model does not inspect calendar dates. Direct callers and the scheduler’s `chrono` determine the elapsed value.
+
+When `enableShortTerm` is enabled and `math:t = 0`:
+
+```math
+s_{inc}=S^{-w_{19}}e^{w_{17}(G-3+w_{18})}
+```
+
+```math
+S'=\operatorname{clamp}\left(Sm,S_{min},S_{max}\right),
+\qquad
+m=\begin{cases}
+s_{inc},&G=1\\
+\max(s_{inc},1),&G\ge2
+\end{cases}
+```
+
+Hard, Good, and Easy cannot reduce stability below its current value; Again may reduce it.

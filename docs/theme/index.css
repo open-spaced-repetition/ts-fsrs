@@ -220,6 +220,22 @@
   line-height: 1.55;
 }
 
+.rp-codeblock:has(math[display="block"])
+  .rp-codeblock__content__scroll-container {
+  padding-block: 0.5rem;
+  scrollbar-gutter: auto;
+  scrollbar-width: none;
+}
+
+.rp-codeblock:has(math[display="block"])
+  .rp-codeblock__content__scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.rp-codeblock:has(math[display="block"]) .rp-code-button-group {
+  display: none;
+}
+
 /* Landing page
    ------------------------------------------------------------------------ */
 @media (prefers-reduced-motion: no-preference) {

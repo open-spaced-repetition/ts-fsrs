@@ -1,0 +1,98 @@
+---
+title: FSRS-6
+description: FSRS-6 的可訓練衰減、間隔計算、初始記憶、難度、穩定性和同日更新公式，以及與上一版本的核心差異
+---
+
+# FSRS-6
+
+FSRS-6 是 `DefaultScheduler` 預設使用的模型。它有 21 個可訓練權重，包括可訓練的遺忘曲線衰減和同日穩定性參數。
+
+共用符號和 Model 契約請參閱[模型概覽](./)。
+
+:::info 公式來源
+已依據 [awesome-fsrs Wiki — FSRS-6](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-6) 核對。
+:::
+
+## 遺忘曲線與間隔
+
+令正衰減值 `math:d = w_{20}`，並選取 `math:F`，使 `math:R(S, S) = 0.9`：
+
+```math
+F=0.9^{-1/d}-1,\qquad
+R(t,S)=\left(1+F\frac{t}{S}\right)^{-d}
+```
+
+```math
+I(r,S)=\frac{S}{F}\left(r^{-1/d}-1\right)
+```
+
+`nextInterval` 會將結果四捨五入為整數天，並確保至少為一天。
+
+## 初始記憶
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## 難度
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## 複習後的穩定性
+
+當 `math:t > 0` 或 `enableShortTerm` 未啟用時，評分決定使用以下哪個分支。
+
+公式使用複習前的 `math:D` 和 `math:S`。Hard 時 `math:H_G = w_{15}`，否則為 `math:1`；Easy 時 `math:E_G = w_{16}`，否則為 `math:1`。
+
+啟用 `enableShortTerm` 時，`math:C` 等於複習前的穩定性乘以 `math:\exp(-w_{17}w_{18})`；否則 `math:C = S`：
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` 是目前實作對遺忘後穩定性的上限，並不是單獨設定的穩定性下限。最後，模型透過 `clamp` 將 `math:S'_{\mathrm{raw}}` 限制在 `math:S_{\min}` 到 `math:S_{\max}` 之間。
+
+## 同日更新
+
+這裡的「同日」指模型收到 `elapsedDays = 0`，模型本身不檢查日曆日期。經過時間由直接呼叫方或 scheduler 的 `chrono` 決定。
+
+當 `enableShortTerm` 已啟用且 `math:t = 0` 時：
+
+```math
+s_{inc}=S^{-w_{19}}e^{w_{17}(G-3+w_{18})}
+```
+
+```math
+S'=\operatorname{clamp}\left(Sm,S_{min},S_{max}\right),
+\qquad
+m=\begin{cases}
+s_{inc},&G=1\\
+\max(s_{inc},1),&G\ge2
+\end{cases}
+```
+
+Hard、Good 和 Easy 不會讓穩定性低於目前值；Again 可以降低穩定性。

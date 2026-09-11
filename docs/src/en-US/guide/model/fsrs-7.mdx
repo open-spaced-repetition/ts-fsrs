@@ -1,0 +1,136 @@
+---
+title: FSRS-7
+description: FSRS-7 dual-trace formulas for recall, mixture weights, stability, difficulty, numerical intervals, and migration constraints
+---
+
+# FSRS-7
+
+FSRS-7 uses 34 weights and two memory traces. Its state contains `stability` (slow trace), `stabilityFast` (fast trace), and `difficulty`.
+
+:::info Implementation reference
+This page describes the ts-fsrs implementation at `9ed49104` on `feat/fsrs7`. That implementation is not included in this documentation branch. As of September 11, 2026, the upstream [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) page has no FSRS-7 section; the equations below are derived from the linked implementation, not an upstream specification.
+
+[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
+:::
+
+## Memory state and notation
+
+Use the [shared symbols](./#shared-symbols), with `math:S_s` for `stability` and `math:S_f` for `stabilityFast`. Both are measured in days, but neither is the interval at which the mixed recall probability reaches 90%. Difficulty affects both the slow curve and its mixture weight.
+
+The formulas use bounded pre-review state values: both stabilities are in `[0.0001, 36500]` and difficulty is in `[1, 10]`. Elapsed time `math:t` is in fractional days; curve evaluation uses `math:\max(t,0)`. The fast and slow names identify model components, not a guaranteed ordering of their stability values.
+
+## Initial memory
+
+For a new memory state, let `math:C_s` and `math:C_f` clamp to the slow and fast stability bounds respectively, and let `math:C_D` clamp to `[1, 10]`.
+
+```math
+S_{s,0}=C_s(w_{G-1}),\qquad S_{f,0}=C_f(0.8S_{s,0})
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad D_{initial}=C_D(D_0(G))
+```
+
+## Dual-trace forgetting curve
+
+Fast trace:
+
+```math
+d_f=-\operatorname{clamp}(w_{23}S_f^{w_{33}-0.3},0.01,0.95)
+```
+
+```math
+F_f=\exp\left(\min\left(\frac{\ln w_{25}}{d_f},60\right)\right)-1
+```
+
+```math
+R_f(t)=\left(1+F_f\frac{t}{S_f}\right)^{d_f}
+```
+
+Slow trace:
+
+```math
+d_s=-\operatorname{clamp}(w_{24},0.01,0.95)
+```
+
+```math
+F_s=(w_{26}^{1/d_s}-1)e^{(D-5)(w_{32}-0.3)}
+```
+
+```math
+R_s(t)=\left(1+F_s\frac{t}{S_s}\right)^{d_s}
+```
+
+## Mixture weights and recall
+
+The weights are positive, unnormalised coefficients. They depend on the memory state, not elapsed time. A raw component recall is not its contribution to the mixture.
+
+```math
+a_f=w_{27}S_f^{-w_{29}},\qquad  a_s=w_{28}S_s^{w_{30}}e^{(D-5)(w_{31}-0.5)}
+```
+
+```math
+R(t)=\frac{a_fR_f(t)+a_sR_s(t)}{a_f+a_s}(1-2\varepsilon)+\varepsilon,\qquad\varepsilon=10^{-5}
+```
+
+`algorithm.curve(t, state)` returns `fast`, `slow`, `fastWeight`, `slowWeight`, `retrievability`, and `derivative`. The first two are raw recalls; normalise the weights before combining them. The small final adjustment keeps recall away from 0 and 1, so `math:R(0)=0.99999`.
+
+## Stability after review
+
+For a trace stability `math:x`, recall input `math:q`, and parameter offset `math:k`, define the lapse value and successful-recall update:
+
+```math
+L_k(x,q)=\min\left(x,w_{k+3}((x+1)^{w_{k+4}}-1)e^{(1-q)w_{k+5}}\right)
+```
+
+```math
+H_{k,G}=\begin{cases}w_{k+6},&G=2\\1,&G\ne2\end{cases},\qquad E_{k,G}=\begin{cases}w_{k+7},&G=4\\1,&G\ne4\end{cases}
+```
+
+```math
+U_k(x,q,G)=x\left[1+e^{w_k-1.5}(11-D)x^{-w_{k+1}}(e^{(1-q)w_{k+2}}-1)H_{k,G}E_{k,G}\right]
+```
+
+```math
+T_k(x,q,G)=\begin{cases}L_k(x,q),&G=1\\\max(L_k(x,q),U_k(x,q,G)),&G\in\{2,3,4\}\end{cases}
+```
+
+Use `math:k=7` and the mixed recall `math:R` for the slow trace; use `math:k=15` and the raw fast recall `math:R_f` for the fast trace. All updates use pre-review difficulty. An explicit `retrievability` input replaces `math:R` for the slow update and difficulty, but does not replace `math:R_f` for the fast update.
+
+On Again, cap the new fast stability at 80% of the new slow stability before applying state bounds:
+
+```math
+\widetilde S_s=T_7(S_s,R,G),\qquad \widetilde S_f=T_{15}(S_f,R_f,G)
+```
+
+```math
+S'_s=C_s(\widetilde S_s),\qquad S'_f=C_f\left(\begin{cases}\min(\widetilde S_f,0.8\widetilde S_s),&G=1\\\widetilde S_f,&G\ge2\end{cases}\right)
+```
+
+## Difficulty after review
+
+Again scales the difficulty change by the mixed recall. Mean reversion uses a fixed coefficient of `0.01`:
+
+```math
+\Delta D=-w_6(G-3)\begin{cases}R+0.1,&G=1\\1,&G\ge2\end{cases}
+```
+
+```math
+D'=C_D\left(0.01D_0(4)+0.99\left(D+\frac{10-D}{9}\Delta D\right)\right)
+```
+
+The implementation rounds the three new state values to eight decimal places and clamps them to their bounds. FSRS-7 uses these updates at fractional elapsed times, including zero; it has no separate `enableShortTerm` same-day formula. Learning-step scheduling is still a middleware policy.
+
+## Interval calculation
+
+`nextInterval(state, r)` numerically solves the mixed curve for elapsed time. It depends on all three state fields and returns fractional days.
+
+```math
+R(I;S_s,S_f,D)=r
+```
+
+The implementation validates `math:0<r<1`, clamps the target to `[0.0001, 0.9999]`, and returns zero for a target at the upper bound. Otherwise it uses up to seven bounded Newton updates in log-time, with a bisection fallback when the recall error exceeds `0.001`. The result is limited by `sMax`; extreme targets may therefore be unreachable.
+
+## Configuration and migration
+
+FSRS-7 requires its own 34 weights. The parameter migration helper supplies defaults for empty input but requires exactly 34 weights for non-empty input. FSRS-3–6 weights and memory states cannot be directly converted to FSRS-7. To migrate card data, use `reschedule` with an FSRS-7 scheduler to replay review history and reconstruct the memory state, preserving fractional elapsed days. The `0.8` factor above applies to initialisation and Again updates.

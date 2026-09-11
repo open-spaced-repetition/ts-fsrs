@@ -1,0 +1,136 @@
+---
+title: FSRS-7
+description: FSRS-7 双分量遗忘曲线、混合权重、稳定性与难度更新、数值求间隔以及参数和记忆状态迁移限制的实现说明
+---
+
+# FSRS-7
+
+FSRS-7 使用 34 个权重和两个记忆分量。记忆状态包含 `stability`（慢分量）、`stabilityFast`（快分量）和 `difficulty`。
+
+:::info 实现依据
+本页描述 `feat/fsrs7` 分支在 `9ed49104` 提交中的 ts-fsrs 实现。当前文档分支尚未包含该实现。截至 2026 年 9 月 11 日，上游 [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) 页面没有 FSRS-7 章节；下列公式依据链接中的实现整理，并非上游规范。
+
+[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
+:::
+
+## 记忆状态与符号
+
+沿用[公共符号](./#公共符号)，以 `math:S_s` 表示 `stability`，`math:S_f` 表示 `stabilityFast`。两者单位均为天，但都不等于混合回忆概率降至 90% 时的间隔。难度同时影响慢分量曲线及其混合权重。
+
+公式使用经过边界限制的复习前状态：两种稳定性均在 `[0.0001, 36500]` 内，难度在 `[1, 10]` 内。经过时间 `math:t` 使用小数天，曲线计算采用 `math:\max(t,0)`。“快”和“慢”是分量名称，并不保证两种稳定性的大小顺序。
+
+## 初始记忆
+
+对于新记忆状态，令 `math:C_s` 和 `math:C_f` 分别表示慢、快稳定性的边界裁剪，`math:C_D` 表示裁剪到 `[1, 10]`。
+
+```math
+S_{s,0}=C_s(w_{G-1}),\qquad S_{f,0}=C_f(0.8S_{s,0})
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad D_{initial}=C_D(D_0(G))
+```
+
+## 双分量遗忘曲线
+
+快分量：
+
+```math
+d_f=-\operatorname{clamp}(w_{23}S_f^{w_{33}-0.3},0.01,0.95)
+```
+
+```math
+F_f=\exp\left(\min\left(\frac{\ln w_{25}}{d_f},60\right)\right)-1
+```
+
+```math
+R_f(t)=\left(1+F_f\frac{t}{S_f}\right)^{d_f}
+```
+
+慢分量：
+
+```math
+d_s=-\operatorname{clamp}(w_{24},0.01,0.95)
+```
+
+```math
+F_s=(w_{26}^{1/d_s}-1)e^{(D-5)(w_{32}-0.3)}
+```
+
+```math
+R_s(t)=\left(1+F_s\frac{t}{S_s}\right)^{d_s}
+```
+
+## 混合权重与回忆概率
+
+两个权重均为正的未归一化系数，取决于记忆状态，而非经过时间。分量的原始回忆概率不等于它对混合结果的贡献。
+
+```math
+a_f=w_{27}S_f^{-w_{29}},\qquad  a_s=w_{28}S_s^{w_{30}}e^{(D-5)(w_{31}-0.5)}
+```
+
+```math
+R(t)=\frac{a_fR_f(t)+a_sR_s(t)}{a_f+a_s}(1-2\varepsilon)+\varepsilon,\qquad\varepsilon=10^{-5}
+```
+
+`algorithm.curve(t, state)` 返回 `fast`、`slow`、`fastWeight`、`slowWeight`、`retrievability` 和 `derivative`。前两项是原始回忆概率；组合时应先归一化权重。最后的微小调整使概率避开 0 和 1，因此 `math:R(0)=0.99999`。
+
+## 复习后的稳定性
+
+对于某一分量的稳定性 `math:x`、回忆概率输入 `math:q` 和参数偏移 `math:k`，定义遗忘后的值和成功回忆后的更新：
+
+```math
+L_k(x,q)=\min\left(x,w_{k+3}((x+1)^{w_{k+4}}-1)e^{(1-q)w_{k+5}}\right)
+```
+
+```math
+H_{k,G}=\begin{cases}w_{k+6},&G=2\\1,&G\ne2\end{cases},\qquad E_{k,G}=\begin{cases}w_{k+7},&G=4\\1,&G\ne4\end{cases}
+```
+
+```math
+U_k(x,q,G)=x\left[1+e^{w_k-1.5}(11-D)x^{-w_{k+1}}(e^{(1-q)w_{k+2}}-1)H_{k,G}E_{k,G}\right]
+```
+
+```math
+T_k(x,q,G)=\begin{cases}L_k(x,q),&G=1\\\max(L_k(x,q),U_k(x,q,G)),&G\in\{2,3,4\}\end{cases}
+```
+
+慢分量使用 `math:k=7` 和混合概率 `math:R`；快分量使用 `math:k=15` 和原始快分量概率 `math:R_f`。所有更新均使用复习前的难度。显式传入 `retrievability` 会替代慢分量更新和难度更新使用的 `math:R`，但不会替代快分量的 `math:R_f`。
+
+评分为 Again 时，先将新的快稳定性限制为新的慢稳定性的 80%，再应用状态边界：
+
+```math
+\widetilde S_s=T_7(S_s,R,G),\qquad \widetilde S_f=T_{15}(S_f,R_f,G)
+```
+
+```math
+S'_s=C_s(\widetilde S_s),\qquad S'_f=C_f\left(\begin{cases}\min(\widetilde S_f,0.8\widetilde S_s),&G=1\\\widetilde S_f,&G\ge2\end{cases}\right)
+```
+
+## 复习后的难度
+
+Again 按混合回忆概率缩放难度变化。均值回归系数固定为 `0.01`：
+
+```math
+\Delta D=-w_6(G-3)\begin{cases}R+0.1,&G=1\\1,&G\ge2\end{cases}
+```
+
+```math
+D'=C_D\left(0.01D_0(4)+0.99\left(D+\frac{10-D}{9}\Delta D\right)\right)
+```
+
+实现将三个新状态值四舍五入至小数点后八位，再裁剪到各自边界。FSRS-7 对小数经过时间（包括零）使用同一套更新，没有单独受 `enableShortTerm` 控制的同日公式。学习步骤调度仍属于 middleware 策略。
+
+## 间隔计算
+
+`nextInterval(state, r)` 通过数值方法求出混合曲线达到目标概率的经过时间。它依赖全部三个状态字段，返回小数天。
+
+```math
+R(I;S_s,S_f,D)=r
+```
+
+实现先校验 `math:0<r<1`，将目标限制到 `[0.0001, 0.9999]`，达到上界时返回零。其余情况在对数时间上执行最多七次有界 Newton 更新；回忆概率误差超过 `0.001` 时回退到二分查找。结果受 `sMax` 限制，因此极端目标可能无法达到。
+
+## 配置与迁移
+
+FSRS-7 需要独立的 34 个权重。参数迁移函数会为空输入提供默认值，非空输入则必须包含 34 个权重。FSRS-3 至 FSRS-6 的权重和记忆状态无法直接转换为 FSRS-7。迁移卡片数据时，请使用基于 FSRS-7 的调度器，通过 `reschedule` 重放复习历史、重建记忆状态，并保留小数经过天数。上面的 `0.8` 系数用于初始化及 Again 更新。
