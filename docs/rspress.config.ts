@@ -22,6 +22,7 @@ import {
   collectHighlightedExportNames,
   keepTsFsrsTypeHover,
 } from './src/playground/highlight/twoslash'
+import { pluginReleaseUpdates, releaseFeedOutput } from './src/releases'
 import { pluginRobotsTxt } from './src/seo/robots'
 
 const siteOrigin = process.env.DOCS_SITE_ORIGIN
@@ -197,6 +198,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    pluginReleaseUpdates(workspaceRoot),
     pluginTwoslash({ twoslashOptions }),
     // `siteUrl` is left out so the plugin composes `siteOrigin` and `base`
     // itself, which makes a preview deployment map its own host. A sitemap of
@@ -213,30 +215,13 @@ export default defineConfig({
         ]
       : []),
     pluginRss({
+      output: { transform: releaseFeedOutput },
       feed: [
         {
           id: 'updates',
           test: /^\/updates\//,
           title: 'ts-fsrs updates',
           language: 'en-US',
-        },
-        {
-          id: 'updates-zh',
-          test: /^\/zh-CN\/updates\//,
-          title: 'ts-fsrs 更新',
-          language: 'zh-CN',
-        },
-        {
-          id: 'updates-zh-tw',
-          test: /^\/zh-TW\/updates\//,
-          title: 'ts-fsrs 更新',
-          language: 'zh-TW',
-        },
-        {
-          id: 'updates-ja',
-          test: /^\/ja-JP\/updates\//,
-          title: 'ts-fsrs 更新情報',
-          language: 'ja-JP',
         },
       ],
     }),
