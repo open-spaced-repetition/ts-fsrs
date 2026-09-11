@@ -71,7 +71,13 @@
       ],
       "outputs": ["doc_build/**"],
       "inputs": ["$TURBO_DEFAULT$", ".sponsors.json", ".contributors.json"],
-      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+      "env": [
+        "DOCS_SITE_ORIGIN",
+        "DOCS_BASE",
+        "DOCS_INDEXABLE",
+        "DOCS_REPO_SLUG",
+        "DOCS_REPO_REF"
+      ]
     },
     "@ts-fsrs/website#rspress:dev": {
       "dependsOn": [
@@ -82,7 +88,13 @@
       ],
       "cache": false,
       "persistent": true,
-      "env": ["DOCS_SITE_ORIGIN", "DOCS_REPO_SLUG", "DOCS_REPO_REF"]
+      "env": [
+        "DOCS_SITE_ORIGIN",
+        "DOCS_BASE",
+        "DOCS_INDEXABLE",
+        "DOCS_REPO_SLUG",
+        "DOCS_REPO_REF"
+      ]
     },
     "@ts-fsrs/website#preview": {
       "dependsOn": ["@ts-fsrs/website#rspress:build"],

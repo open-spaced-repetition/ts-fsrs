@@ -33,6 +33,7 @@
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
     "@rspress/core": "2.0.19",
     "@rspress/plugin-rss": "2.0.19",
+    "@rspress/plugin-sitemap": "2.0.19",
     "@rspress/plugin-twoslash": "2.0.19",
     "@types/react": "19.2.18",
     "shiki": "^4.4.3",
