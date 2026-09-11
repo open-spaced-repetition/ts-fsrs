@@ -9,7 +9,7 @@ description: dateChrono、numericChrono、temporalInstantChrono のリファレ�
 
 | プリセット | 時刻値 | 日数の計算 |
 | --- | --- | --- |
-| `dateChrono` | `Date` | `difference` は UTC の日付境界を数えます。`add` は固定の 24 時間日を加算します。 |
+| `dateChrono` | `Date` | `difference` はデフォルトで UTC の日付差を計算し、`fractionalDays: true` では24時間単位の小数日数を返します。`add` は常に24時間単位で加算します。 |
 | `numericChrono` | 日単位の数値 | `difference` は `to - from`、`add` は `from + days` です。 |
 | `temporalInstantChrono` | `Temporal.Instant` | 設定したタイムゾーン。任意で小数の日数差をサポートします。 |
 

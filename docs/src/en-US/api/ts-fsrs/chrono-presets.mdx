@@ -9,7 +9,7 @@ description: Reference for dateChrono, numericChrono, and temporalInstantChrono
 
 | Preset | Time value | Day arithmetic |
 | --- | --- | --- |
-| `dateChrono` | `Date` | `difference` counts UTC date boundaries; `add` adds fixed 24-hour days. |
+| `dateChrono` | `Date` | `difference` counts UTC date boundaries by default, or elapsed fixed 24-hour days with `fractionalDays: true`; `add` always adds fixed 24-hour days. |
 | `numericChrono` | numbers (days) | `difference` = `to - from`; `add` = `from + days`. |
 | `temporalInstantChrono` | `Temporal.Instant` | Configured timezone; optional fractional day differences. |
 
