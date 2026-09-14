@@ -10,6 +10,10 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 FSRS は既定のモデル重みを同梱していますが、自分たちの製品の復習ログから再学習して、間隔をサービス対象のユーザーに合わせることができます。Optimizer は `@open-spaced-repetition/binding` の上で動きます。復習ログ CSV を訓練用アイテムに変換し、パラメータを推定し、その結果が保留した復習をどれだけ予測できるかを報告します。訓練した重みは `weights` 経由でそのまま `DefaultScheduler` やカスタムの `defineScheduler` に渡せます。重みの意味は[モデル](../model)、適用される場所は[スケジューラ](../scheduler)を参照してください。
 
+:::warning 注意
+Optimizer は現在ベータ版であり、API メソッドは随時変更される可能性があります。
+:::
+
 <Prompt
   title="FSRS の重み学習を実装または説明する"
   description="このプロンプトをコピーすると、AI Agent が Optimizer 契約（復習ログ CSV を入れて訓練済み重みを出す）に従い、共有の binding を介します。"

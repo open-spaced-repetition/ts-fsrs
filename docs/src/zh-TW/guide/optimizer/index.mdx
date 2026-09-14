@@ -10,6 +10,10 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 FSRS 內建預設模型權重，但你可以用自己產品的複習記錄重新訓練它們，讓間隔更貼合所服務的使用者。訓練器（Optimizer）運行於 `@open-spaced-repetition/binding` 之上：把複習記錄 CSV 轉成訓練項、估算參數，並回報結果對留出複習的預測品質。訓練出的權重透過 `weights` 直接餵回 `DefaultScheduler` 或自訂 `defineScheduler`。權重的含義見[模型](../model)，權重的使用位置見[排程器](../scheduler)。
 
+:::warning 注意
+Optimizer 目前仍處於 beta 階段，API 方法可能隨時調整。
+:::
+
 <Prompt
   title="實作或說明 FSRS 權重訓練"
   description="複製這段提示詞，讓 AI Agent 遵守訓練器契約：複習記錄 CSV 進、訓練權重出，經由共享的 binding。"
