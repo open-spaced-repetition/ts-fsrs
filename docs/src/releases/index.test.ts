@@ -1,8 +1,22 @@
-import { describe, expect, it } from 'vitest'
 import {
-  fetchReleases,
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  statSync,
+  writeFileSync,
+} from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+import { describe, expect, it } from 'vitest'
+import { fetchReleases } from '../../scripts/fetch-releases'
+import {
+  pluginReleaseUpdates,
+  prepareReleases,
   publishedUpdates,
   type Release,
+  releaseBodyAnchors,
   releaseFeedOutput,
   updatePages,
 } from './index'
@@ -22,6 +36,81 @@ const changelogs = {
 }
 
 describe('published release updates', () => {
+  it('namespaces imported body anchors without changing ordinary document anchors', () => {
+    const tree = {
+      type: 'root',
+      children: [
+        { type: 'element', properties: { id: 'patch-changes' } },
+        { type: 'element', properties: { href: '#patch-changes' } },
+      ],
+    }
+    releaseBodyAnchors()(tree, { path: '/docs/src/guide/index.md' })
+    expect(tree.children[0].properties.id).toBe('patch-changes')
+    releaseBodyAnchors()(tree, {
+      path: '/docs/.generated/releases/body_fsrs_5.4.2.md',
+    })
+    expect(tree.children[0].properties.id).toBe('fsrs_5.4.2-patch-changes')
+    expect(tree.children[1].properties.href).toBe('#fsrs_5.4.2-patch-changes')
+  })
+
+  it('prepares pages once, preserves Markdown, and registers them without rewriting files', async () => {
+    const root = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-releases-'))
+    const generated = path.join(root, 'docs/.generated/releases')
+    const body =
+      '### Patch Changes\n\ns<0.5 and {literal} and {{heading}}\n\n```ts\nconst x = { value: 1 }\n```'
+    try {
+      for (const directory of Object.keys(changelogs)) {
+        const folder = path.join(root, 'packages', directory)
+        mkdirSync(folder, { recursive: true })
+        writeFileSync(
+          path.join(folder, 'CHANGELOG.md'),
+          directory === 'fsrs' ? `## 5.4.2\n\n${body}\n` : ''
+        )
+      }
+      const plugin = pluginReleaseUpdates(root)
+      const config = { base: '/ts-fsrs/' }
+      expect(() => plugin.addPages?.(config, false)).toThrow('prepare:releases')
+      expect(() => prepareReleases(root, config.base)).toThrow(
+        'prepare:releases'
+      )
+      const snapshot = path.join(root, 'docs/.generated/releases.json')
+      mkdirSync(path.dirname(snapshot), { recursive: true })
+      writeFileSync(snapshot, JSON.stringify([release('v5.4.2')]))
+      const progress: [number, number][] = []
+      expect(
+        prepareReleases(root, config.base, (done, total) =>
+          progress.push([done, total])
+        )
+      ).toBe(4)
+      expect(progress).toEqual(
+        Array.from({ length: 7 }, (_, done) => [done, 6])
+      )
+      const manifest = path.join(generated, 'pages.json')
+      const timestamp = statSync(manifest).mtimeMs
+      const pages = await plugin.addPages?.(config, false)
+      expect(pages).toHaveLength(4)
+      expect(statSync(manifest).mtimeMs).toBe(timestamp)
+      expect(
+        readFileSync(path.join(generated, 'body_fsrs_5.4.2.md'), 'utf8')
+      ).toBe(body)
+      expect(
+        readFileSync(path.join(generated, '_updates_.mdx'), 'utf8')
+      ).not.toContain(body)
+      expect(() => plugin.addPages?.({ base: '/' }, false)).toThrow('DOCS_BASE')
+
+      writeFileSync(snapshot, '{ invalid JSON')
+      expect(() => prepareReleases(root, config.base)).toThrow()
+      expect(statSync(manifest).mtimeMs).toBe(timestamp)
+
+      writeFileSync(snapshot, '[]')
+      prepareReleases(root, config.base)
+      expect(existsSync(path.join(generated, 'body_fsrs_5.4.2.md'))).toBe(false)
+      expect(await plugin.addPages?.(config, true)).toHaveLength(3)
+    } finally {
+      rmSync(root, { recursive: true, force: true })
+    }
+  })
+
   it('joins exact tags to changelog sections, skips unpublished versions and platform packages', () => {
     const updates = publishedUpdates(
       [
@@ -44,7 +133,7 @@ describe('published release updates', () => {
     expect(updates[1].publishedAt).toBe('2026-09-01T02:23:29Z')
   })
 
-  it('excludes prereleases and generates English paginated tables with inline changelogs', () => {
+  it('excludes prereleases and generates English paginated release lists with inline changelogs', () => {
     expect(
       publishedUpdates(
         [
@@ -65,6 +154,7 @@ describe('published release updates', () => {
     const updates = Array.from({ length: 11 }, (_, i) => ({
       ...stable,
       slug: `fsrs/5.4.${i}`,
+      version: `5.4.${i}`,
     }))
     const pages = updatePages(updates, '/ts-fsrs/')
     expect(pages).toHaveLength(15)
@@ -74,14 +164,16 @@ describe('published release updates', () => {
     expect(pages[0].content).toContain('[Older →](/updates/page/2)')
     expect(pages[1].content).toContain('[← Newer](/updates/)')
     expect(pages[1].content).not.toContain('[Older →]')
-    expect(pages[0].content.match(/Fixed a bug\./g)).toHaveLength(10)
-    expect(pages[1].content.match(/Fixed a bug\./g)).toHaveLength(1)
-    expect(pages[0].content).toContain('/ts-fsrs/rss/updates.xml')
+    expect(pages[0].content.match(/<ReleaseEntry /g)).toHaveLength(10)
+    expect(pages[1].content.match(/<ReleaseEntry /g)).toHaveLength(1)
+    expect(pages.every((p) => !p.content.includes('Subscribe via Atom'))).toBe(
+      true
+    )
     expect(pages.every((p) => p.routePath.startsWith('/updates/'))).toBe(true)
     expect(pages[4].content).toContain('published_at: "2026-09-11T07:30:00Z"')
   })
 
-  it('separates package tables and keeps pagination within the selected package', () => {
+  it('separates package lists and keeps pagination within the selected package', () => {
     const releases = [
       release('v5.4.2'),
       release('@open-spaced-repetition/binding@0.5.0'),
@@ -92,14 +184,33 @@ describe('published release updates', () => {
     )
     const fsrs = pages.find((p) => p.routePath === '/updates/')!
     const binding = pages.find((p) => p.routePath === '/updates/binding/')!
-    expect(fsrs.content).toContain('Fixed a bug.')
+    expect(fsrs.extension).toBe('mdx')
+    expect(fsrs.content).toContain(
+      "import ReleaseEntry from '@/releases/ReleaseEntry'"
+    )
+    expect(fsrs.content).toContain(
+      "import ReleaseBody0 from './body_fsrs_5.4.2.md'"
+    )
+    expect(fsrs.content).toContain('<ReleaseEntry update={')
+    expect(fsrs.content).not.toContain('<table')
+    expect(pages.every((p) => !p.content.includes('Download .tgz'))).toBe(true)
+    expect(fsrs.content).toContain('https://npmx.dev/package/ts-fsrs/v/5.4.2')
+    const detail = pages.find((p) => p.routePath === '/updates/binding/0.5.0')!
+    expect(detail.content).toContain('[All updates](/updates/binding/)')
+    expect(detail.content).toContain(
+      'https://npmx.dev/package/@open-spaced-repetition/binding/v/0.5.0'
+    )
     expect(fsrs.content).not.toContain('WASM update.')
-    expect(binding.content).toContain('WASM update.')
+    expect(binding.content).toContain(
+      "import ReleaseBody0 from './body_binding_0.5.0.md'"
+    )
+    expect(detail.extension).toBe('md')
+    expect(detail.content).toContain('WASM update.')
     expect(binding.content).not.toContain('Fixed a bug.')
     expect(binding.content).toContain(
       'href="/ts-fsrs/updates/binding/" aria-current="page"'
     )
-    expect(binding.content).toContain('pageType: doc-wide')
+    expect(binding.content).toContain('pageType: "doc-wide"')
   })
 
   it('has empty-state indexes but removes them from serialized feeds', async () => {
