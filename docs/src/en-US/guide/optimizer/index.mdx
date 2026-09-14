@@ -10,6 +10,10 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 FSRS ships default model weights, but you can retrain them from your own review logs so the intervals match the people you serve. The Optimizer runs on `@open-spaced-repetition/binding`, which converts review-log CSV into training items, estimates parameters, and reports how well the result predicts held-out reviews. The trained weights plug straight back into `DefaultScheduler` or a custom `defineScheduler` through `weights`. See [Model](../model) for what weights mean and [Scheduler](../scheduler) for where they are applied.
 
+:::warning Beta
+The Optimizer is currently in beta, and its API methods may change at any time.
+:::
+
 <Prompt
   title="Implement or explain FSRS weight training"
   description="Copy this prompt to keep an AI agent inside the Optimizer contract: review-log CSV in, trained weights out, through the shared binding."
