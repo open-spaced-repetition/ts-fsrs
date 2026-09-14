@@ -390,7 +390,7 @@ describe('defineScheduler', () => {
         config: offsetSchema,
         time: numberSchema,
       },
-      projection(value) {
+      normalize(value) {
         if (
           value &&
           typeof value === 'object' &&

@@ -1,7 +1,7 @@
-import { defineChronoProjection } from '@/chrono/define-chrono.js'
+import { defineChronoTimeNormalizer } from '@/chrono/define-chrono.js'
 import { numberSchema } from '@/schema/index.js'
 
-export const numericProjectionSchema = defineChronoProjection<{
+export const numericTimeNormalizer = defineChronoTimeNormalizer<{
   readonly time: number
 }>((value) => {
   const time = numberSchema['~standard'].validate(value.time)
