@@ -1,43 +1,24 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs'
 import path from 'node:path'
 import type { RspressPlugin } from '@rspress/core'
 import type { FeedOutputTransformer } from '@rspress/plugin-rss'
+import { visit } from 'unist-util-visit'
 import { z } from 'zod'
 
-const repository = 'open-spaced-repetition/ts-fsrs'
-const releaseSchema = z.object({
+export const repository = 'open-spaced-repetition/ts-fsrs'
+export const releaseSchema = z.object({
   tag_name: z.string(),
   draft: z.boolean(),
   prerelease: z.boolean(),
   published_at: z.iso.datetime({ offset: true }).nullable(),
 })
 export type Release = z.infer<typeof releaseSchema>
-
-export async function fetchReleases(
-  token: string | undefined,
-  request: typeof fetch = fetch
-): Promise<Release[]> {
-  const releases: Release[] = []
-  for (let page = 1; ; page++) {
-    const response = await request(
-      `https://api.github.com/repos/${repository}/releases?per_page=100&page=${page}`,
-      {
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        signal: AbortSignal.timeout(30_000),
-      }
-    )
-    if (!response.ok) {
-      throw new Error(`Release lookup failed: GitHub HTTP ${response.status}`)
-    }
-    const batch = z.array(releaseSchema).parse(await response.json())
-    releases.push(...batch)
-    if (batch.length < 100) return releases
-  }
-}
 
 const packages = [
   { directory: 'fsrs', name: 'ts-fsrs', tag: 'v' },
@@ -89,6 +70,8 @@ export function publishedUpdates(
           {
             title: `${pkg.name} ${version}`,
             slug: `${pkg.directory}/${version}`,
+            version,
+            npmUrl: `https://npmx.dev/package/${pkg.name}/v/${version}`,
             publishedAt: release.published_at,
             url: `https://github.com/${repository}/releases/tag/${encodeURIComponent(release.tag_name)}`,
             body,
@@ -103,33 +86,56 @@ export function publishedUpdates(
     )
 }
 
+const releaseBodyFilename = (slug: string) =>
+  `body_${slug.replaceAll('/', '_')}.md`
+
+const generatedDirectory = (workspaceRoot: string) =>
+  path.join(workspaceRoot, 'docs/.generated/releases')
+
 export function updatePages(
   updates: ReturnType<typeof publishedUpdates>,
   base: string
 ) {
   const description =
-    'Published package releases, changes, and links to GitHub release notes.'
-  const frontmatter = (title: string, extra = '') => `---
-title: ${JSON.stringify(title)}
-description: ${JSON.stringify(description)}
-sidebar: false
-prev: false
-next: false
-${extra}---\n\n# ${title}\n\n`
-  const subscribe = `<a href="${base.replace(/\/$/, '')}/rss/updates.xml">Subscribe via Atom</a>`
-  const pages = updates.map((update) => ({
-    routePath: `/updates/${update.slug}`,
-    content:
-      frontmatter(
-        update.title,
-        `published_at: ${JSON.stringify(update.publishedAt)}\n`
-      ) +
-      `Published: ${update.publishedAt.replace('T', ' ').replace('Z', ' UTC')}\n\n` +
-      `[GitHub Release](${update.url}) · [All updates](/updates/) · ${subscribe}\n\n${update.body}\n`,
-  }))
-  const pageSize = 10
+    'Published package releases, changelogs, and npm downloads.'
+  const template = readFileSync(
+    new URL('./template.mdx', import.meta.url),
+    'utf8'
+  )
+  const renderPage = (
+    title: string,
+    metadata: Record<string, string | boolean>,
+    content: string
+  ) => {
+    const values = {
+      title: JSON.stringify(title),
+      description: JSON.stringify(description),
+      heading: title,
+      metadata: Object.entries(metadata)
+        .map(([key, value]) => `${key}: ${JSON.stringify(value)}`)
+        .join('\n'),
+      content,
+    }
+    return template.replace(
+      /\{\{(title|description|heading|metadata|content)\}\}/g,
+      (_, key: keyof typeof values) => values[key]
+    )
+  }
   const packageRoute = (directory: string) =>
     directory === 'fsrs' ? '/updates/' : `/updates/${directory}/`
+  const releaseLinks = (update: (typeof updates)[number]) =>
+    `[npmx](${update.npmUrl}) · [GitHub Release](${update.url})`
+  const pages = updates.map((update) => ({
+    routePath: `/updates/${update.slug}`,
+    extension: 'md' as const,
+    content: renderPage(
+      update.title,
+      { published_at: update.publishedAt },
+      `Published: ${update.publishedAt.replace('T', ' ').replace('Z', ' UTC')}\n\n` +
+        `<div class="release-update-links">\n\n${releaseLinks(update)}\n\n</div>\n\n[All updates](${packageRoute(update.slug.split('/')[0])})\n\n${update.body}\n`
+    ),
+  }))
+  const pageSize = 10
   const indexes = packages.flatMap((pkg) => {
     const packageUpdates = updates.filter((update) =>
       update.slug.startsWith(`${pkg.directory}/`)
@@ -139,28 +145,24 @@ ${extra}---\n\n# ${title}\n\n`
       page === 1
         ? packageRoute(pkg.directory)
         : `${packageRoute(pkg.directory)}page/${page}`
-    const tabs = `<nav class="release-updates-tabs" aria-label="Packages">${packages.map((item) => `<a href="${base.replace(/\/$/, '')}${packageRoute(item.directory)}"${item.directory === pkg.directory ? ' aria-current="page"' : ''}>${item.directory === 'binding' ? item.name : item.directory === 'fsrs' ? 'ts-fsrs' : 'srs-kit'}</a>`).join('')}</nav>`
+    const tabs = `<nav className="release-updates-tabs" aria-label="Packages">${packages.map((item) => `<a href="${base.replace(/\/$/, '')}${packageRoute(item.directory)}"${item.directory === pkg.directory ? ' aria-current="page"' : ''}>${item.directory === 'fsrs' ? 'ts-fsrs' : item.directory}</a>`).join('')}</nav>`
     return Array.from({ length: pageCount }, (_, index) => {
       const page = index + 1
       const entries = packageUpdates.slice(index * pageSize, page * pageSize)
-      const table = entries.length
-        ? `<table class="release-updates-table">
-<thead><tr><th scope="col">Version</th><th scope="col">Published (UTC)</th><th scope="col">Changes</th></tr></thead>
-<tbody>
-${entries
-  .map(
-    (update) => `<tr><td>
-
-[${update.slug.split('/')[1]}](/updates/${update.slug})
-
-</td><td>${update.publishedAt.slice(0, 10)}</td><td>
-
-${update.body}
-
-</td></tr>`
-  )
-  .join('\n')}
-</tbody></table>`
+      const imports = [
+        "import ReleaseEntry from '@/releases/ReleaseEntry'",
+        ...entries.map(
+          (update, index) =>
+            `import ReleaseBody${index} from './${releaseBodyFilename(update.slug)}'`
+        ),
+      ].join('\n')
+      const releases = entries.length
+        ? entries
+            .map((update, index) => {
+              const { body: _body, ...metadata } = update
+              return `<ReleaseEntry update={${JSON.stringify(metadata)}}><ReleaseBody${index} /></ReleaseEntry>`
+            })
+            .join('\n\n')
         : 'No published releases match this checkout yet.'
       const navigation = [
         page > 1 ? `[← Newer](${routeFor(page - 1)})` : '',
@@ -171,7 +173,17 @@ ${update.body}
         .join(' · ')
       return {
         routePath: routeFor(page),
-        content: `${frontmatter('Updates', `id: updates-index-${pkg.directory}-${page}\npublished_at: "1970-01-01T00:00:00Z"\noutline: false\npageType: doc-wide\n`)}${description}\n\n${subscribe}\n\n${tabs}\n\n${navigation}\n\n${table}\n\n${navigation}\n`,
+        extension: 'mdx' as const,
+        content: renderPage(
+          'Updates',
+          {
+            id: `updates-index-${pkg.directory}-${page}`,
+            published_at: '1970-01-01T00:00:00Z',
+            outline: false,
+            pageType: 'doc-wide',
+          },
+          `${imports}\n\n${description}\n\n${tabs}\n\n${releases}\n\n${pageCount > 1 ? navigation : ''}\n`
+        ),
       }
     })
   })
@@ -190,9 +202,89 @@ export const releaseFeedOutput: FeedOutputTransformer = (
   return feed.atom1()
 }
 
+export function prepareReleases(
+  workspaceRoot: string,
+  base = '/',
+  onProgress?: (completed: number, total: number) => void
+) {
+  const snapshot = path.join(workspaceRoot, 'docs/.generated/releases.json')
+  if (!existsSync(snapshot)) {
+    throw new Error(
+      'Release data is missing. Run pnpm --dir docs prepare:releases first.'
+    )
+  }
+  const releases: Release[] = JSON.parse(readFileSync(snapshot, 'utf8'))
+  const changelogs = Object.fromEntries(
+    packages.map((pkg) => [
+      pkg.directory,
+      readFileSync(
+        path.join(workspaceRoot, 'packages', pkg.directory, 'CHANGELOG.md'),
+        'utf8'
+      ),
+    ])
+  )
+  const updates = publishedUpdates(releases, changelogs)
+  const pages = updatePages(updates, base)
+  const generated = generatedDirectory(workspaceRoot)
+  const total = updates.length + pages.length + 1
+  let completed = 0
+  onProgress?.(completed, total)
+
+  // Only replace the previous output after the snapshot, changelogs, and template are read successfully.
+  rmSync(generated, { recursive: true, force: true })
+  mkdirSync(generated, { recursive: true })
+  // Changelog bodies stay Markdown: literal braces and s<0.5 are not JSX.
+  for (const update of updates) {
+    writeFileSync(
+      path.join(generated, releaseBodyFilename(update.slug)),
+      update.body
+    )
+    onProgress?.(++completed, total)
+  }
+  const routes = pages.map((page) => {
+    const filename = `${page.routePath.replaceAll('/', '_')}.${page.extension}`
+    writeFileSync(path.join(generated, filename), page.content)
+    onProgress?.(++completed, total)
+    return { routePath: page.routePath, filename }
+  })
+  writeFileSync(
+    path.join(generated, 'pages.json'),
+    JSON.stringify({ base, routes }, null, 2)
+  )
+  onProgress?.(++completed, total)
+  return routes.length
+}
+
+// Each imported body is compiled separately, so repeated headings need a
+// release-specific prefix when several bodies appear on the same index page.
+export function releaseBodyAnchors() {
+  return (tree: Parameters<typeof visit>[0], file: { path?: string }) => {
+    if (!file.path || path.basename(path.dirname(file.path)) !== 'releases') {
+      return
+    }
+    const filename = path.basename(file.path, '.md')
+    if (!filename.startsWith('body_')) return
+    const prefix = `${filename.slice(5)}-`
+    visit(tree, (node) => {
+      if (node.type !== 'element' || !('properties' in node)) return
+      const properties = node.properties as Record<string, unknown>
+      if (typeof properties.id === 'string') {
+        properties.id = prefix + properties.id
+      }
+      if (
+        typeof properties.href === 'string' &&
+        properties.href.startsWith('#')
+      ) {
+        properties.href = `#${prefix}${properties.href.slice(1)}`
+      }
+    })
+  }
+}
+
 export function pluginReleaseUpdates(workspaceRoot: string): RspressPlugin {
   return {
     name: 'release-updates',
+    markdown: { rehypePlugins: [releaseBodyAnchors] },
     extendPageData(page) {
       if (!page.routePath.startsWith('/updates/')) return
       const directory = page.routePath.match(
@@ -202,36 +294,30 @@ export function pluginReleaseUpdates(workspaceRoot: string): RspressPlugin {
         ? `../../packages/${directory}/CHANGELOG.md`
         : 'releases/index.ts'
     },
-    async addPages(config, isProd) {
-      const releases = await fetchReleases(process.env.GITHUB_TOKEN)
-      const changelogs = Object.fromEntries(
-        packages.map((pkg) => [
-          pkg.directory,
-          readFileSync(
-            path.join(workspaceRoot, 'packages', pkg.directory, 'CHANGELOG.md'),
-            'utf8'
-          ),
-        ])
-      )
-      const generated = path.join(
-        workspaceRoot,
-        'docs/node_modules/.cache/release-updates',
-        isProd ? 'build' : 'dev'
-      )
-      mkdirSync(generated, { recursive: true })
-      // AdditionalPage.content becomes MDX. Changelogs are plain Markdown and
-      // can contain text such as `s<0.5` or braces that must not execute as JSX.
-      return updatePages(
-        publishedUpdates(releases, changelogs),
-        config.base ?? '/'
-      ).map((page) => {
-        const filepath = path.join(
-          generated,
-          `${page.routePath.replaceAll('/', '_')}.md`
+    addPages(config) {
+      const generated = generatedDirectory(workspaceRoot)
+      const manifest = path.join(generated, 'pages.json')
+      if (!existsSync(manifest)) {
+        throw new Error(
+          'Release pages are missing. Run pnpm --dir docs prepare:releases first.'
         )
-        writeFileSync(filepath, page.content)
-        return { routePath: page.routePath, filepath }
-      })
+      }
+      const {
+        base,
+        routes,
+      }: {
+        base: string
+        routes: { routePath: string; filename: string }[]
+      } = JSON.parse(readFileSync(manifest, 'utf8'))
+      if (base !== (config.base ?? '/')) {
+        throw new Error(
+          'Release pages use a different DOCS_BASE. Rerun pnpm --dir docs prepare:releases with the current DOCS_BASE.'
+        )
+      }
+      return routes.map(({ routePath, filename }) => ({
+        routePath,
+        filepath: path.join(generated, filename),
+      }))
     },
   }
 }

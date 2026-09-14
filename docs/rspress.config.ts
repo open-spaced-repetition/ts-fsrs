@@ -96,6 +96,7 @@ export default defineConfig({
   base,
   route: {
     extensions: ['.md', '.mdx'],
+    exclude: ['releases/template.mdx'],
     localeRedirect: 'never',
     // Without this every page answers to both `/guide/` and `/guide/index.html`,
     // and internal links, hreflang, and the sitemap all pick the `.html` form.
