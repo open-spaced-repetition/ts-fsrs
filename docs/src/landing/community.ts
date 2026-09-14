@@ -29,7 +29,7 @@ function readList<T>(
 ): T[] {
   let raw: string
   try {
-    raw = readFileSync(path.join(docsRoot, file), 'utf8')
+    raw = readFileSync(path.join(docsRoot, '.generated', file), 'utf8')
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === 'ENOENT') return []
     throw error
@@ -54,11 +54,11 @@ function readList<T>(
 }
 
 export function readLandingSponsors(docsRoot: string): LandingSponsor[] {
-  return readList(docsRoot, '.sponsors.json', sponsorSchema)
+  return readList(docsRoot, 'sponsors.json', sponsorSchema)
 }
 
 export function readLandingContributors(
   docsRoot: string
 ): LandingContributor[] {
-  return readList(docsRoot, '.contributors.json', contributorSchema)
+  return readList(docsRoot, 'contributors.json', contributorSchema)
 }
