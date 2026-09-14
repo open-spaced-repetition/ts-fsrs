@@ -36,6 +36,33 @@ const changelogs = {
 }
 
 describe('published release updates', () => {
+  it('shortens raw repository PR URLs in lists and details while preserving link targets and custom labels', () => {
+    const url = 'https://github.com/open-spaced-repetition/ts-fsrs/pull/211'
+    for (const filename of ['body_fsrs_5.4.2.md', '_updates_fsrs_5.4.2.md']) {
+      const tree = {
+        type: 'root',
+        children: [
+          {
+            type: 'element',
+            properties: { href: url },
+            children: [{ type: 'text', value: url }],
+          },
+          {
+            type: 'element',
+            properties: { href: url },
+            children: [{ type: 'text', value: 'Custom label' }],
+          },
+        ],
+      }
+      releaseBodyAnchors()(tree, {
+        path: `/docs/.generated/releases/${filename}`,
+      })
+      expect(tree.children[0].children[0].value).toBe('#PR211')
+      expect(tree.children[0].properties.href).toBe(url)
+      expect(tree.children[1].children[0].value).toBe('Custom label')
+    }
+  })
+
   it('namespaces imported body anchors without changing ordinary document anchors', () => {
     const tree = {
       type: 'root',

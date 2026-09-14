@@ -263,19 +263,36 @@ export function releaseBodyAnchors() {
       return
     }
     const filename = path.basename(file.path, '.md')
-    if (!filename.startsWith('body_')) return
-    const prefix = `${filename.slice(5)}-`
+    const prefix = filename.startsWith('body_') ? `${filename.slice(5)}-` : ''
     visit(tree, (node) => {
       if (node.type !== 'element' || !('properties' in node)) return
       const properties = node.properties as Record<string, unknown>
-      if (typeof properties.id === 'string') {
+      if (prefix && typeof properties.id === 'string') {
         properties.id = prefix + properties.id
       }
       if (
+        prefix &&
         typeof properties.href === 'string' &&
         properties.href.startsWith('#')
       ) {
         properties.href = `#${prefix}${properties.href.slice(1)}`
+      }
+      if (
+        typeof properties.href === 'string' &&
+        properties.href.startsWith(`https://github.com/${repository}/pull/`) &&
+        'children' in node &&
+        Array.isArray(node.children)
+      ) {
+        const number = properties.href.match(/\/pull\/(\d+)\/?$/)?.[1]
+        const [label] = node.children
+        if (
+          number &&
+          node.children.length === 1 &&
+          label.type === 'text' &&
+          label.value === properties.href
+        ) {
+          label.value = `#PR${number}`
+        }
       }
     })
   }
