@@ -35,7 +35,13 @@ Date と Temporal の `create({ config })` には完全な設定を渡してく�
 | `add(from, days)` | 最終的な日数間隔を次の復習日時に変換します。 |
 | `compare(left, right)` | 正確な前後関係を負数・ゼロ・正数で返す任意の操作です。Date と Temporal のプリセットで利用できます。 |
 
-Date と Temporal のプリセットは card と revlog に復習日時を保持しますが、Numeric はこれらのフィールドを追加しません。projection がフィールドを `{ previous, current }` に変換し、スケジューラーが経過日数を計算します。復習とロールバック時の対応は [Date](./date) を参照してください。
+## projection の役割
+
+`projection` は Chrono 固有の時刻フィールドを `{ previous, current }` に変換します。これにより、スケジューラーは card や revlog のフィールド名を知らなくても、経過日数の計算やロールバック時の時刻フィールドの復元ができます。復習時には `{ card, time: now }`（card フィールドを持たない Chrono では `{ time }` のみ）、ロールバック時には `{ revlog }` を受け取ります。
+
+Date と Temporal では、`previous` は `lastReviewAt`、`current` は `dueAt` であり、今回の復習時刻 `now` ではありません。Numeric は時刻フィールドを保存せず、`{ previous: 0, current: time }` を返します。具体的な対応は Chrono の実装が決めます。復習とロールバックの流れは [Date](./date) を参照してください。
+
+`projection` は時刻表現を読み取り、`defaultValue` はスケジューラーが渡す時刻値を具体的な card と revlog のフィールドに書き戻します。この組み合わせにより、スケジューラーを保存先のフィールド名から切り離せます。
 
 ## defineChrono で経過日数をカスタマイズする
 

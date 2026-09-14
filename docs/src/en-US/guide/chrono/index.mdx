@@ -35,7 +35,13 @@ For Date and Temporal, pass the complete configuration to `create({ config })`; 
 | `add(from, days)` | Converts the final interval in days into a due time. |
 | `compare(left, right)` | Optional precise ordering: negative, zero, or positive. Date and Temporal presets provide it. |
 
-Date and Temporal presets keep review times in card and revlog fields; Numeric does not. Projection maps those fields to `{ previous, current }` before the scheduler calculates elapsed days. See [Date](./date) for the review and rollback mapping.
+## What projection does
+
+`projection` translates a Chrono's concrete time fields into `{ previous, current }`, so the scheduler can calculate elapsed days and restore time fields during rollback without knowing the card or revlog field names. During review it receives `{ card, time: now }` (or only `{ time }` for a Chrono without card fields); during rollback it receives `{ revlog }`.
+
+For Date and Temporal, `previous` is `lastReviewAt` and `current` is `dueAt`, not the current review time `now`. Numeric has no stored time fields and returns `{ previous: 0, current: time }`. The mapping belongs to the Chrono implementation; see [Date](./date) for the review and rollback flow.
+
+`projection` reads the time representation; `defaultValue` writes the scheduler's time values back into concrete card and revlog fields. Together they keep the scheduler independent of the stored field names.
 
 ## Customize elapsed days with defineChrono
 
