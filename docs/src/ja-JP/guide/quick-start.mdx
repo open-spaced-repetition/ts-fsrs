@@ -33,6 +33,8 @@ FSRS パラメーターの学習や復習ログ CSV の変換が必要な場合�
 
 モデルや時刻体系を選ぶ場合、または middleware を自分で組み合わせる場合は `defineScheduler` を使います。再利用可能な definition を作成し、`.create()` が設定を検証して独立したスケジューラーを返します。
 
+`chrono` は、時間の表現方法、カードや復習ログへの保存方法、スケジューリング計算での扱い方を定義し、JavaScript の `Date`、Temporal、数値による時間表現を利用できるようにします。
+
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
 
