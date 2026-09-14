@@ -146,7 +146,7 @@ export interface ChronoDefaultCtx<
   readonly config: Readonly<Config>
   /** Due time being written: the next one for cards, the pre-review one for revlogs. */
   readonly time: Value
-  /** Cards receive one event time, null when none precedes; revlogs receive normalized times whose `current` is that event time. */
+  /** Cards store the time of the previous event, or null if there is no previous event; revlogs receive normalized times where `current` is the time at that event. */
   readonly previous?: Key extends 'card'
     ? Value | null
     : Readonly<ChronoNormalizedTime<Value>>
