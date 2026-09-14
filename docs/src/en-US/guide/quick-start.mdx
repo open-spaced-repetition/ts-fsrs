@@ -33,6 +33,8 @@ The example makes the common defaults explicit. Change `desiredRetention`, learn
 
 Use `defineScheduler` when you need to choose the model or chronology, or compose middleware yourself. It creates a reusable definition; calling `.create()` validates the configuration and returns an independent scheduler.
 
+`chrono` defines how time is represented, stored on cards and review logs, and used in scheduling calculations, allowing you to use JavaScript `Date`, Temporal, or numeric time values.
+
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
 
