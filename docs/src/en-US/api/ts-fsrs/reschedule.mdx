@@ -1,0 +1,50 @@
+---
+title: Reschedule
+description: The ts-fsrs/reschedule entry point — replay review history and reschedule a card outside the normal review flow
+---
+
+import RunCode from '../../../components/RunCode'
+import rescheduleCode from '@/snippets/run-code/api/ts-fsrs/reschedule.ts?raw'
+
+# Reschedule
+
+The `ts-fsrs/reschedule` subpath exposes helpers for replaying or rescheduling reviews against a scheduler while keeping its concrete types:
+
+```ts
+import { Reschedule } from 'ts-fsrs/reschedule'
+```
+
+`Reschedule<Scheduler>` wraps a scheduler instance and infers the scheduler's card, memory-state, review, and result types from it.
+
+## Replay
+
+`reschedule.replay({ history })` rebuilds the model's memory state from a review history, without touching any card:
+
+```ts
+const replay = reschedule.replay({ history })
+// replay.memoryState      — memory after the last review
+// replay.memoryStates     — memory after each review
+```
+
+Each history item is a `{ rating, reviewTime }` pair. Pass `initialState` when the history does not begin at the model's starting point; `sortHistory` (default `true`) orders the history by time through the chronology's `compare`.
+
+## Reschedule
+
+`reschedule.reschedule({ history, initialCard })` replays the reviews through the scheduler and returns the card and revlog each review produced:
+
+```ts
+const result = reschedule.reschedule({ history, initialCard: card })
+// result.results  — the card and revlog after each review
+// result.card     — the card after the last review
+```
+
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/reschedule.ts"
+```
+
+<RunCode code={rescheduleCode} />
+
+`replay` reconstructs stability (`2.3065`) from the history alone; `reschedule` recomputes the card and its due time through the scheduler.
+
+**Related types** — `RescheduleReview`, `NonManualReview`, `ReplayResult`, `RescheduleResult`, and the inference types `CardOf`, `MemoryStateOf`, `TimeOf`, `ScheduleResultOf`.
+
+**See** — [defineScheduler](./define/define-scheduler), [DefaultScheduler](./default-scheduler).

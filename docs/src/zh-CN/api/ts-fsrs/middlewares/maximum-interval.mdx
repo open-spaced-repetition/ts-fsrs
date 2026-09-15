@@ -1,0 +1,26 @@
+---
+title: MaximumInterval
+description: 内置中间件 schedulerMaximumIntervalMiddleware —— 将天级间隔限制在 maximumInterval
+---
+
+import RunCode from '../../../../components/RunCode'
+import maximumIntervalCode from '@/snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts?raw'
+
+# MaximumInterval
+
+`ts-fsrs/middlewares` 导出 `schedulerMaximumIntervalMiddleware`：
+
+```ts
+import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
+```
+
+在中间件调用链返回时，它将最终天级间隔限制在 `maximumInterval` 以内。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts"
+```
+
+<RunCode code={maximumIntervalCode} />
+
+限制为一天会把 Good 复习的到期时间钳制到次日，即便模型仍将稳定性保持在 `2.3065`。
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。

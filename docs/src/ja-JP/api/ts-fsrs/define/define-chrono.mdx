@@ -1,0 +1,29 @@
+---
+title: defineChrono
+description: defineChrono のリファレンス——スケジューラ向けの独自の時間抽象を定義する
+---
+
+# defineChrono
+
+**インポート：** `import { defineChrono } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+defineChrono(definition): Chrono
+```
+
+定義には `schema`、`projection`、`defaultValue`、`create` ファクトリが含まれます。
+
+**実行時操作** — Chrono は、スケジューラが呼び出す時間関数を提供します：
+
+| 操作 | 意味 |
+| --- | --- |
+| `now()` | 呼び出し側が `now` を省略したときに時刻を提供します。 |
+| `difference(from, to)` | モデルが使う経過日数を返します。 |
+| `add(from, days)` | 最終間隔を復習日時に変換します。 |
+| `compare(left, right)` | 省略可能な、正確な順序比較。 |
+
+**プリセット** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets)。
+
+**参照** — [Chrono の概要](../../../guide/chrono)（projection と `defineChrono` の例）。

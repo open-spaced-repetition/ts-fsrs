@@ -1,0 +1,29 @@
+---
+title: defineChrono
+description: defineChrono 的參考——為排程器定義自訂時間抽象
+---
+
+# defineChrono
+
+**匯入：** `import { defineChrono } from 'ts-fsrs'`
+
+**簽章**
+
+```ts
+defineChrono(definition): Chrono
+```
+
+該定義攜帶 `schema`、`projection`、`defaultValue` 與 `create` 工廠。
+
+**執行時期運算** — Chrono 提供排程器呼叫的時間函式：
+
+| 運算 | 意義 |
+| --- | --- |
+| `now()` | 當呼叫端省略 `now` 時提供一個時間。 |
+| `difference(from, to)` | 回傳模型所用的經過天數。 |
+| `add(from, days)` | 把最終間隔轉成到期時間。 |
+| `compare(left, right)` | 選用的精確排序。 |
+
+**預設** — [`dateChrono`、`numericChrono`、`temporalInstantChrono`](../chrono-presets)。
+
+**另見** — [Chrono 指南](../../../guide/chrono)（projection 與 `defineChrono` 範例）。

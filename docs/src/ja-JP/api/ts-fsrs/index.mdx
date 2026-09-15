@@ -1,0 +1,54 @@
+---
+title: ts-fsrs API 概要
+description: サポート対象の ts-fsrs API の索引——アプリケーションコード向けの定義、プリセット、ポリシー、モデル、型
+---
+
+# ts-fsrs API 概要
+
+`ts-fsrs` は、スケジューリング機構を `ts-fsrs` ルートといくつかのサブパスのエントリポイントとして公開しています。以下の各ページには、インポートパス、挙動、対応する[ガイド](../../guide/)のトピックへのリンクがあります。
+
+このリファレンスはサポート対象の API を扱います。パッケージのエントリポイントは、ここに記載されているより多くをエクスポートすることがあります——内部実装、互換用のシム、旧 API のために残された補助関数などです。これらのページに載っていないものはアプリケーションコードでの使用を推奨せず、メジャーリリースを経ずに変更・削除される可能性があります。
+
+## ルートの定義
+
+| ページ | 内容 |
+| --- | --- |
+| [DefaultScheduler](./default-scheduler) | 既製のスケジューラプリセット（既定は FSRS-6）。 |
+| [defineScheduler](./define/define-scheduler) | モデルと chrono から再利用可能なスケジューラを組み立てます。 |
+| [Scheduler](./scheduler) | `.create()` と `DefaultScheduler` が返すインスタンス（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
+| [defineModel](./define/define-model) | バージョン付きの FSRS モデルを定義にまとめます。 |
+| [defineChrono](./define/define-chrono) | 独自の時間抽象を定義します。 |
+| [defineMiddleware](./define/define-middleware) | スキーマを拡張し、スケジューラのコア処理の前後でロジックを実行します。 |
+
+## 組み込みポリシー
+
+`ts-fsrs/middlewares` の各ポリシーには、実行可能な例を備えた専用ページがあります：
+
+| ページ | ミドルウェア |
+| --- | --- |
+| [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./middlewares/stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./middlewares/monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./middlewares/scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./middlewares/leech) | `schedulerLeechMiddleware` |
+
+## 値と型
+
+| ページ | 内容 |
+| --- | --- |
+| [Chrono プリセット](./chrono-presets) | `dateChrono`、`numericChrono`、`temporalInstantChrono`。 |
+| [Rating、Grade、State](./rating-grade-state) | 評価・グレード・カード状態とそのスキーマ。 |
+| [Utils](./utils) | `clamp`、`roundTo` の数値ヘルパー。 |
+| [型](./types) | エクスポートされるスケジューラ・モデル・ミドルウェアの型。 |
+
+## エントリポイント
+
+| ページ | 内容 |
+| --- | --- |
+| [モデル](./models/) | `ts-fsrs/models/fsrs-3` から `fsrs-6` まで、バージョンごとに 1 ページ。 |
+| [リスケジュール](./reschedule) | `ts-fsrs/reschedule` のリスケジュールヘルパー。 |
+
+[DefaultScheduler](./default-scheduler) か [defineScheduler](./define/define-scheduler) から始めてください。部品の組み合わせ方は[ガイド](../../guide/)で説明しています。

@@ -1,0 +1,22 @@
+---
+title: defineModel
+description: defineModel 的參考——把模型定義連同其 schema 與模型核心包裝起來
+---
+
+# defineModel
+
+**匯入：** `import { defineModel } from 'ts-fsrs'`
+
+**簽章**
+
+```ts
+defineModel(definition): Model
+```
+
+該定義包裝設定與記憶狀態 schema、預設值，以及模型核心工廠（`step`、`nextInterval`、`forgettingCurve`、`forward`），同時保持它們的具體型別。
+
+**回傳** — 一個 `Model`，可作為 `model` 傳給 `defineScheduler({ model, chrono })`。
+
+**有版本的模型** — 依版本匯出於 `ts-fsrs/models/fsrs-*`。
+
+**另見** — [模型](../models)（有版本的進入點）、[模型指南](../../../guide/model)（契約與公式）。

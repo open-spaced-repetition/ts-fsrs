@@ -1,0 +1,26 @@
+---
+title: MonotonicInterval
+description: 組み込みミドルウェア schedulerMonotonicIntervalMiddleware——評価間で日単位の間隔を順序付ける
+---
+
+import RunCode from '../../../../components/RunCode'
+import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts?raw'
+
+# MonotonicInterval
+
+`ts-fsrs/middlewares` は `schedulerMonotonicIntervalMiddleware` をエクスポートします：
+
+```ts
+import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
+```
+
+これは 4 つの評価にわたってスケジュールされる日単位の間隔を順序付け、難しい評価が易しい評価より後の日時に予定されないようにします（`maximumInterval` の範囲内で）。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
+```
+
+<RunCode code={monotonicCode} />
+
+1 枚の Review カードで候補の評価をプレビューすると、`scheduledDays` は昇順になります。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。
