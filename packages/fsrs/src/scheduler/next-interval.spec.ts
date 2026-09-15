@@ -257,10 +257,8 @@ describe('scheduler.nextInterval', () => {
     const applyRetention: NextIntervalMiddlewareHandler = (ctx, next) => {
       const state = ctx.candidate.step(ctx.input.grade)
       policy(state)
-      ctx.candidate.desiredRetention = {
-        ...ctx.candidate.desiredRetention,
-        [ctx.input.grade]: Number(state.stabilityFast) > 0 ? 0.7 : 0.8,
-      }
+      ctx.candidate.desiredRetention[ctx.input.grade] =
+        Number(state.stabilityFast) > 0 ? 0.7 : 0.8
       next()
     }
     const adr = defineMiddleware({
