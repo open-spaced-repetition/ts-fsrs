@@ -73,6 +73,7 @@
     "remove-date-prototype",
     "remove-deprecated-elapsed-days",
     "remove-i686-support",
+    "rename-chrono-time-normalizer",
     "rescheduler",
     "scheduled-days-middleware-fields",
     "scheduler-ts2590",

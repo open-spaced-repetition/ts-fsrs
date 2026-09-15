@@ -1,5 +1,16 @@
 # ts-fsrs
 
+## 6.0.0-beta.10
+
+### Major Changes
+
+- [#525](https://github.com/open-spaced-repetition/ts-fsrs/pull/525) [`b553cf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b553cf94cb4594b928cd6dec12cd467a30b1bb22) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): rename `projection` to `normalize` and `ChronoProjection` to `ChronoTimeNormalizer`.
+
+### Patch Changes
+
+- Updated dependencies [[`b553cf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b553cf94cb4594b928cd6dec12cd467a30b1bb22)]:
+  - @open-spaced-repetition/srs-kit@1.0.0-beta.8
+
 ## 6.0.0-beta.9
 
 ### Minor Changes
