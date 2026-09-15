@@ -1,0 +1,23 @@
+---
+title: Built-in policies
+description: Review the middleware policies shipped with ts-fsrs and how DefaultScheduler composes them in order
+---
+
+# Built-in policies
+
+The following policies are available from `ts-fsrs/middlewares` and the `ts-fsrs` root entry:
+
+| Middleware | Behavior |
+| --- | --- |
+| `schedulerDesiredRetentionMiddleware` | Applies configured `desiredRetention` in `(0, 1]` before interval calculation. |
+| `schedulerLearningStepsMiddleware` | Applies `learningSteps` and `relearningSteps` when `enableShortTerm` is enabled; maintains `learningStep` and learning state. |
+| `schedulerFuzzingMiddleware` | Spreads intervals when `enableFuzz` is enabled, using `cardId` and the review count for reproducible results. `createSchedulerFuzzingMiddleware()` accepts custom ranges and RNG. |
+| `schedulerMaximumIntervalMiddleware` | Caps the day interval at `maximumInterval`. Explicit learning steps can override this cap as the chain unwinds. |
+| `schedulerStatsMiddleware` | Maintains `reps` and `lapses`; `clearStatsOnForget` controls whether forgetting clears them. A lapse is an Again rating on a Review card. |
+| `schedulerMonotonicIntervalMiddleware` | Orders day intervals across ratings, subject to `maximumInterval`; intervals can coincide at the cap. |
+| `schedulerScheduledDaysMiddleware` | Stores the final interval as nonnegative whole `scheduledDays` on the card and saves its previous value in the revlog. Sub-day steps are stored as `0`. |
+| `schedulerLeechMiddleware` | Sets `scheduleStatus` to `suspended` on each positive `leechThreshold` multiple of lapses. The default threshold `0` disables suspension. Your application must respect this status when selecting cards. |
+
+`DefaultScheduler` already includes the first seven policies. Its order is desired retention → fuzzing → stats → scheduled days → learning steps → maximum interval → monotonic interval. Leech is opt-in when composing your own definition. See [Lifecycle](./lifecycle) for why the order matters and the [Overview](./index) for how middleware runs.
+
+Use [Quick start](../quick-start) for the ready-made scheduler or [Architecture](../architecture) to compose only the policies your application needs.

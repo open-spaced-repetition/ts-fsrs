@@ -6,5 +6,10 @@
   "state-transitions",
   "llms",
   { "type": "dir-section-header", "name": "model", "label": "モデル" },
-  { "type": "dir-section-header", "name": "chrono", "label": "Chrono" }
+  { "type": "dir-section-header", "name": "chrono", "label": "Chrono" },
+  {
+    "type": "dir-section-header",
+    "name": "middleware",
+    "label": "ミドルウェア"
+  }
 ]
