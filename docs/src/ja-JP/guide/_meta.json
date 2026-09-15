@@ -11,5 +11,6 @@
     "type": "dir-section-header",
     "name": "middleware",
     "label": "ミドルウェア"
-  }
+  },
+  { "type": "dir-section-header", "name": "scheduler", "label": "スケジューラ" }
 ]
