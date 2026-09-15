@@ -1,24 +1,15 @@
 import { parse } from '@open-spaced-repetition/srs-kit'
 import { describe, expect, it } from 'vitest'
 import {
-  type CostAdrPolicy,
-  costAdrConfigSchema,
-  costAdrPolicySchema,
-} from './schema.js'
+  COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
+  COST_ADR_DEFAULT_POLICY as policy,
+} from './constants.js'
+import { costAdrConfigSchema, costAdrPolicySchema } from './schema.js'
 
-// fsrs-rs 710391ed7466ee279dbdcff5f9cef3713caf42d3, cost_adr.rs default_initial().
-const policy: CostAdrPolicy = {
-  coefficients: [
-    -0.202, 9.14, -0.0978, 0.226, -5.31, -7.44, 24.1, -0.375, 1.81, -22.9,
-    -5.82, 22.3, 1.72, -1.99, -19.4,
-  ],
-  costWeightMin: 0,
-  costWeightMax: 1024,
-  retentionMin: 0.3,
-  retentionMax: 0.995,
-  bounds: { sMin: 0.0001, sMax: 36500, dMin: 1, dMax: 10 },
+const config = {
+  costAdrPolicy: policy,
+  goalCostWeight: COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
 }
-const config = { costAdrPolicy: policy, goalCostWeight: 64 }
 
 describe('Cost ADR schemas', () => {
   it.each([-64, 64])('accepts coefficient boundary %s', (coefficient) => {
