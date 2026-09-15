@@ -1,7 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { dateSchema, emptyObjectSchema, numberSchema, parse } from './index.js'
+import {
+  dateSchema,
+  emptyObjectSchema,
+  numberSchema,
+  parse,
+  SRSSchemaError,
+  scheduledDaysSchema,
+} from './index.js'
 
 describe('field schemas', () => {
+  it('validates scheduled intervals while preserving zero and fractions', () => {
+    for (const value of [0, 1 / 1440, 2]) {
+      expect(scheduledDaysSchema.parse(value)).toBe(value)
+    }
+    for (const value of [undefined, null, '1', NaN, Infinity, -1]) {
+      expect(() => scheduledDaysSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
   it('validates empty objects', () => {
     expect(parse(emptyObjectSchema, {})).toEqual({})
     expect(() => parse(emptyObjectSchema, null)).toThrow(

@@ -35,3 +35,21 @@ export const dateSchema = defineSchema<Date>((value) =>
     ? { value }
     : { issues: [{ message: 'Expected valid Date' }] }
 )
+
+export const desiredRetentionSchema = defineSchema<number>((value) =>
+  isFiniteNumber(value) && value > 0 && value < 1
+    ? { value }
+    : { issues: [{ message: 'desiredRetention must be finite and in (0, 1)' }] }
+)
+
+export const elapsedDaysSchema = defineSchema<number>((value) =>
+  isFiniteNumber(value) && value >= 0
+    ? { value }
+    : { issues: [{ message: 'elapsedDays must be finite and non-negative' }] }
+)
+
+export const scheduledDaysSchema = defineSchema<unknown, number>((value) =>
+  isFiniteNumber(value) && value >= 0
+    ? { value }
+    : { issues: [{ message: 'scheduledDays must be finite and non-negative' }] }
+)

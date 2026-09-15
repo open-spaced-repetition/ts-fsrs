@@ -61,18 +61,25 @@ export interface ReviewCandidateContext {
   ) => number
 }
 
-export interface ReviewMiddlewareContext<
+export interface NextIntervalMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends MiddlewareContextBase<Env> {
   readonly input: {
     readonly card: MiddlewareContextObjectOf<Env, 'card'>
     readonly grade: Grade
-    readonly now: unknown
   }
   desiredRetention: number
   readonly elapsedDays: number
   scheduledDays: number | undefined
   readonly candidate: ReviewCandidateContext
+}
+
+export interface ReviewMiddlewareContext<
+  Env extends MiddlewareEnv = MiddlewareEnv,
+> extends NextIntervalMiddlewareContext<Env> {
+  readonly input: NextIntervalMiddlewareContext<Env>['input'] & {
+    readonly now: unknown
+  }
   readonly result: ReviewMiddlewareResult<Env>
 }
 
@@ -90,6 +97,10 @@ export type MiddlewareHandler<Context> = (
   ctx: Context,
   next: () => void
 ) => void
+
+export type NextIntervalMiddlewareHandler<
+  Env extends MiddlewareEnv = MiddlewareEnv,
+> = MiddlewareHandler<NextIntervalMiddlewareContext<Env>>
 
 export type ReviewMiddlewareHandler<Env extends MiddlewareEnv = MiddlewareEnv> =
   MiddlewareHandler<ReviewMiddlewareContext<Env>>
@@ -131,6 +142,12 @@ export interface Middleware<
   }
 
   readonly handlers?: {
+    /**
+     * Shared interval policy for queries and reviews. During review, runs
+     * inside this middleware's review handler at the same onion position.
+     * Call next() to complete scheduling; apply interval overrides on unwind.
+     */
+    readonly nextInterval?: NextIntervalMiddlewareHandler<Env>
     readonly review?: ReviewMiddlewareHandler<Env>
     readonly rollback?: RollbackMiddlewareHandler<Env>
   }
@@ -186,6 +203,9 @@ type MiddlewareDefinition<
     MiddlewareDefinitionEnv<Schema, Status>
   >['defaultValue']
   readonly handlers?: {
+    readonly nextInterval?: NextIntervalMiddlewareHandler<
+      MiddlewareDefinitionEnv<Schema, Status>
+    >
     readonly review?: MiddlewareHandler<
       ReviewMiddlewareContext<MiddlewareDefinitionEnv<Schema, Status>> &
         MiddlewareStatusContext<Status, 'card', 'card' | 'revlog'>

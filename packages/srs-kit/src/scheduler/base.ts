@@ -15,7 +15,14 @@ import {
 } from '@/scheduler/compose-schema.js'
 import { getAttachedValue } from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
-import { composeMiddleware, createLazyIterable, parse } from '@/schema/index.js'
+import {
+  composeMiddleware,
+  createLazyIterable,
+  desiredRetentionSchema,
+  elapsedDaysSchema,
+  parse,
+  scheduledDaysSchema,
+} from '@/schema/index.js'
 import type {
   BlankSchedulerEnv,
   PreviewResult,
@@ -28,6 +35,7 @@ import type {
   SchedulerForwardInput,
   SchedulerNewCardFn,
   SchedulerNewCardOptions,
+  SchedulerNextIntervalContext,
   SchedulerSchema,
 } from './scheduler.js'
 
@@ -53,16 +61,7 @@ interface PreparedReview<Env extends BlankSchedulerEnv> {
   readonly elapsedDays: number
   readonly memoryState: Record<string, unknown>
   readonly retrievability?: number
-  readonly candidate: {
-    readonly step: (grade: Grade) => Record<string, unknown>
-    readonly findGrade: (
-      memoryState: Readonly<Record<string, unknown>>
-    ) => Grade | undefined
-    readonly nextInterval: (
-      memoryState: Readonly<Record<string, unknown>>,
-      desiredRetention: number
-    ) => number
-  }
+  readonly candidate: ReviewCandidateContext
 }
 
 type ReviewResultDraft<Env extends BlankSchedulerEnv> = {
@@ -77,19 +76,25 @@ type RollbackResultDraft<Env extends BlankSchedulerEnv> = {
     Record<string, unknown>
 }
 
-type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
+type NextIntervalMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
   readonly input: {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
     readonly grade: Grade
-    readonly now: SchedulerCoreEnv<Env>['chrono']
   }
   desiredRetention: number
   readonly elapsedDays: number
   scheduledDays: number | undefined
   readonly candidate: ReviewCandidateContext
-  readonly result: ReviewResultDraft<Env>
 }
+
+type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> =
+  NextIntervalMiddlewareOperationContext<Env> & {
+    readonly input: NextIntervalMiddlewareOperationContext<Env>['input'] & {
+      readonly now: SchedulerCoreEnv<Env>['chrono']
+    }
+    readonly result: ReviewResultDraft<Env>
+  }
 
 type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
@@ -99,6 +104,11 @@ type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   }
   readonly result: RollbackResultDraft<Env>
 }
+
+type NextIntervalRuntimeHandler<Env extends BlankSchedulerEnv> = (
+  operation: NextIntervalMiddlewareOperationContext<Env>,
+  next: () => void
+) => void
 
 type ReviewRuntimeHandler<Env extends BlankSchedulerEnv> = (
   operation: ReviewMiddlewareOperationContext<Env>,
@@ -164,7 +174,15 @@ export class BaseScheduler<
   private readonly schedulerDefinition: SchedulerDefinition<M, C>
   private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
+  private readonly nextIntervalHandlers: readonly (
+    | NextIntervalRuntimeHandler<Env>
+    | undefined
+  )[]
   private readonly reviewHandlers: readonly (
+    | ReviewRuntimeHandler<Env>
+    | undefined
+  )[]
+  private readonly reviewIntervalHandlers: readonly (
     | ReviewRuntimeHandler<Env>
     | undefined
   )[]
@@ -192,9 +210,16 @@ export class BaseScheduler<
     this.chrono = Reflect.apply(chrono.create, chrono, [
       { config },
     ]) as ReturnType<C['create']>
+    this.nextIntervalHandlers = middlewares.map(
+      (middleware) => middleware.handlers?.nextInterval
+    ) as readonly (NextIntervalRuntimeHandler<Env> | undefined)[]
     this.reviewHandlers = middlewares.map(
       (middleware) => middleware.handlers?.review
     ) as readonly (ReviewRuntimeHandler<Env> | undefined)[]
+    // Keep interval policies at their middleware's original onion position.
+    this.reviewIntervalHandlers = this.reviewHandlers.flatMap<
+      ReviewRuntimeHandler<Env> | undefined
+    >((handler, index) => [handler, this.nextIntervalHandlers[index]])
     this.rollbackHandlers = middlewares.map(
       (middleware) => middleware.handlers?.rollback
     ) as readonly (RollbackRuntimeHandler<Env> | undefined)[]
@@ -304,6 +329,54 @@ export class BaseScheduler<
       },
       now
     ) as SchedulerCoreEnv<Env>['card']['output']
+  }
+
+  nextInterval = (
+    memoryState: Parameters<ReturnType<M['create']>['nextInterval']>[0],
+    desiredRetention: number,
+    context: SchedulerNextIntervalContext<
+      SchedulerCoreEnv<Env>['card']['input']
+    >
+  ): number => {
+    const grade = parse(gradeSchema, context.grade)
+    const elapsedDays = parse(elapsedDaysSchema, context.elapsedDays)
+    const retention = parse(desiredRetentionSchema, desiredRetention)
+    const card = Object.freeze(
+      parse(this.schema.card, context.card)
+    ) as Readonly<SchedulerCoreEnv<Env>['card']['output']>
+    const _memoryState = getAttachedValue<
+      typeof parsedCardMemoryStateSymbol,
+      Record<string, unknown>
+    >(card, parsedCardMemoryStateSymbol)
+    if (!_memoryState) {
+      throw new Error('Parsed scheduler card is missing model memory state')
+    }
+    const nextMemoryState = parse(
+      this.schedulerDefinition.model.schema.memoryState,
+      memoryState
+    ) as Record<string, unknown>
+    const candidate = this.createCandidate(
+      _memoryState,
+      elapsedDays,
+      undefined,
+      [grade, nextMemoryState]
+    )
+    const ctx: NextIntervalMiddlewareOperationContext<Env> = {
+      config: this.config,
+      input: Object.freeze({ card, grade }),
+      desiredRetention: retention,
+      elapsedDays,
+      scheduledDays: undefined,
+      candidate,
+    }
+    composeMiddleware(this.nextIntervalHandlers, ctx, (ctx) => {
+      const memoryState = ctx.candidate.step(ctx.input.grade)
+      ctx.scheduledDays ??= ctx.candidate.nextInterval(
+        memoryState,
+        parse(desiredRetentionSchema, ctx.desiredRetention)
+      )
+    })
+    return parse(scheduledDaysSchema, ctx.scheduledDays)
   }
 
   review = (input: {
@@ -419,7 +492,25 @@ export class BaseScheduler<
         : this.chrono.difference(time.previous ?? time.current, now)
 
     const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
-    const memoryStateByGrade = new Map<Grade, Record<string, unknown>>()
+    return {
+      card,
+      time,
+      elapsedDays,
+      memoryState,
+      retrievability,
+      candidate: this.createCandidate(memoryState, elapsedDays, retrievability),
+    }
+  }
+
+  private createCandidate(
+    memoryState: Record<string, unknown>,
+    elapsedDays: number,
+    retrievability?: number,
+    initial?: readonly [Grade, Record<string, unknown>]
+  ): ReviewCandidateContext {
+    const memoryStateByGrade = new Map<Grade, Record<string, unknown>>(
+      initial ? [initial] : undefined
+    )
     const gradeByMemoryState = new Map<
       Readonly<Record<string, unknown>>,
       Grade
@@ -427,6 +518,7 @@ export class BaseScheduler<
     const step = (grade: Grade): Record<string, unknown> => {
       let nextMemoryState = memoryStateByGrade.get(grade)
       if (nextMemoryState === undefined) {
+        retrievability ??= this.model.forgettingCurve(memoryState, elapsedDays)
         nextMemoryState = this.model.step({
           memoryState,
           rating: grade,
@@ -461,18 +553,7 @@ export class BaseScheduler<
       return value
     }
 
-    return {
-      card,
-      time,
-      elapsedDays,
-      memoryState,
-      retrievability,
-      candidate: {
-        step,
-        findGrade,
-        nextInterval,
-      },
-    }
+    return { step, findGrade, nextInterval }
   }
 
   private runReview(
@@ -490,9 +571,14 @@ export class BaseScheduler<
       result: { card: {}, revlog: {} },
     }
 
-    composeMiddleware(this.reviewHandlers, ctx, (ctx) =>
-      this.finalizeReview(prepared, ctx)
-    )
+    composeMiddleware(this.reviewIntervalHandlers, ctx, (ctx) => {
+      const memoryState = ctx.candidate.step(ctx.input.grade)
+      ctx.scheduledDays ??= ctx.candidate.nextInterval(
+        memoryState,
+        parse(desiredRetentionSchema, ctx.desiredRetention)
+      )
+      this.finalizeReview(prepared, ctx, memoryState)
+    })
     this.applyReviewChronoDefaults(prepared, ctx)
     return ctx.result
   }
@@ -517,16 +603,12 @@ export class BaseScheduler<
 
   private finalizeReview(
     prepared: PreparedReview<Env>,
-    ctx: ReviewMiddlewareOperationContext<Env>
+    ctx: ReviewMiddlewareOperationContext<Env>,
+    newMemoryState: Readonly<Record<string, unknown>>
   ): ReviewResultDraft<Env> {
     const { memoryState } = prepared
     const { grade } = ctx.input
     const result = ctx.result
-    const newMemoryState = ctx.candidate.step(grade)
-    ctx.scheduledDays ??= ctx.candidate.nextInterval(
-      newMemoryState,
-      ctx.desiredRetention
-    )
 
     Object.assign(result.card, newMemoryState, {
       state: State.Review,
