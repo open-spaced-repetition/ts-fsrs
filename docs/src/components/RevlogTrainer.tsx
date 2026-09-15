@@ -60,12 +60,16 @@ const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
 export default function RevlogTrainer() {
   const t = useI18n<typeof import('i18n')>()
   const enableShortTermId = useId()
+  const modelVersionId = useId()
   const inputId = useId()
   const nextDayStartsAtId = useId()
   const timezoneId = useId()
   const timezoneOptionsId = useId()
   const runGenerationRef = useRef(0)
   const [enableShortTerm, setEnableShortTerm] = useState(true)
+  const [modelVersion, setModelVersion] = useState<'FSRS-6' | 'FSRS-7'>(
+    'FSRS-7'
+  )
   const [error, setError] = useState('')
   const [file, setFile] = useState<File>()
   const [nextDayStartsAt, setNextDayStartsAt] = useState(4)
@@ -155,6 +159,7 @@ export default function RevlogTrainer() {
       const response = await trainRevlogCsvInPlaygroundWorker({
         csvText,
         enableShortTerm,
+        modelVersion,
         nextDayStartsAt: config.nextDayStartsAt,
         onProgress({ current, total }) {
           if (isCurrentRun()) setProgress({ current, total })
@@ -186,6 +191,25 @@ export default function RevlogTrainer() {
       {/* One control per row: in a two-column grid the checkbox ended up
           floating far from the label it belongs to. */}
       <div className="grid gap-3">
+        <label className={styles.field} htmlFor={modelVersionId}>
+          <span>{t('revlogTrainer.modelVersion')}</span>
+          <select
+            className={styles.control}
+            data-testid="revlog-model-version"
+            disabled={busy}
+            id={modelVersionId}
+            onChange={(event) => {
+              setModelVersion(
+                event.currentTarget.value === 'FSRS-7' ? 'FSRS-7' : 'FSRS-6'
+              )
+              clearOutput()
+            }}
+            value={modelVersion}
+          >
+            <option value="FSRS-6">FSRS6</option>
+            <option value="FSRS-7">FSRS7</option>
+          </select>
+        </label>
         <fieldset
           className={cn(styles.field, 'm-0 min-w-0 border-0 p-0')}
           onBlur={(event) => {
@@ -367,10 +391,12 @@ export default function RevlogTrainer() {
       </div>
 
       <p className="mt-2.5 mb-0 text-xs text-muted">
-        {t('revlogTrainer.config', {
-          timezone: timezone || '—',
-          nextDayStartsAt: String(nextDayStartsAt).padStart(2, '0'),
-        })}{' '}
+        {modelVersion === 'FSRS-7'
+          ? t('revlogTrainer.configFsrs7')
+          : t('revlogTrainer.config', {
+              timezone: timezone || '—',
+              nextDayStartsAt: String(nextDayStartsAt).padStart(2, '0'),
+            })}{' '}
         {t('revlogTrainer.enableShortTermHint')}
       </p>
 
