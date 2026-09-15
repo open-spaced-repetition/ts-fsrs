@@ -50,7 +50,8 @@ export type MiddlewareDefaultValueContext<
   )
 
 export interface ReviewCandidateContext {
-  desiredRetention: DesiredRetentionByGrade
+  /** Shared record identity is stable; interval policies update its entries. */
+  readonly desiredRetention: DesiredRetentionByGrade
   readonly step: (grade: Grade) => Readonly<Record<string, unknown>>
   /** Finds the most recently cached grade for a memory state. */
   readonly findGrade: (

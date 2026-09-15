@@ -412,10 +412,7 @@ describe('SchedulerCore.newCard', () => {
       handlers: {
         review(ctx, next) {
           seen.push(ctx.candidate.desiredRetention[ctx.input.grade])
-          ctx.candidate.desiredRetention = {
-            ...ctx.candidate.desiredRetention,
-            [ctx.input.grade]: 0.5,
-          }
+          ctx.candidate.desiredRetention[ctx.input.grade] = 0.5
           next()
           if (ctx.scheduledDays === undefined) {
             throw new Error('Expected scheduledDays')
@@ -450,11 +447,8 @@ describe('SchedulerCore.newCard', () => {
         review(ctx, next) {
           const memoryState = ctx.candidate.step(ctx.input.grade)
           seen.push(memoryState)
-          ctx.candidate.desiredRetention = {
-            ...ctx.candidate.desiredRetention,
-            [ctx.input.grade]:
-              (memoryState.interval as number | undefined) === 1 ? 0.5 : 0.9,
-          }
+          ctx.candidate.desiredRetention[ctx.input.grade] =
+            (memoryState.interval as number | undefined) === 1 ? 0.5 : 0.9
           seen.push(
             ctx.candidate.nextInterval(
               memoryState,
@@ -1406,10 +1400,7 @@ describe('SchedulerCore.nextInterval', () => {
           name: 'query-retention',
           handlers: {
             nextInterval(ctx, next) {
-              ctx.candidate.desiredRetention = {
-                ...ctx.candidate.desiredRetention,
-                [ctx.input.grade]: 0.8,
-              }
+              ctx.candidate.desiredRetention[ctx.input.grade] = 0.8
               next()
             },
           },
