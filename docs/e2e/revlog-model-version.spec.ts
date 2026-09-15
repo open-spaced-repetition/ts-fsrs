@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test'
 
+test.use({ timezoneId: 'UTC' })
+
 for (const modelVersion of ['FSRS-6', 'FSRS-7'] as const) {
   test(`RevlogTrainer trains ${modelVersion} in its WASI Worker`, async ({
     page,
@@ -10,7 +12,11 @@ for (const modelVersion of ['FSRS-6', 'FSRS-7'] as const) {
     const model = page.getByTestId('revlog-model-version')
     await expect(model).toHaveValue('FSRS-7')
     await model.selectOption(String(modelVersion))
-    await page.getByTestId('revlog-timezone').fill('UTC')
+    const timezone = page.getByTestId('revlog-timezone')
+    await timezone.fill('UTC')
+    await page.getByRole('option', { name: 'UTC', exact: true }).click()
+    await expect(timezone).toHaveValue('UTC')
+    await expect(timezone).toHaveAttribute('aria-expanded', 'false')
     await page.getByTestId('revlog-next-day-start').selectOption('0')
     const rows = [
       'review_time,card_id,review_rating,review_duration,review_state',
