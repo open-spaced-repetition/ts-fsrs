@@ -50,6 +50,7 @@ export type MiddlewareDefaultValueContext<
   )
 
 export interface ReviewCandidateContext {
+  desiredRetention: DesiredRetentionByGrade
   readonly step: (grade: Grade) => Readonly<Record<string, unknown>>
   /** Finds the most recently cached grade for a memory state. */
   readonly findGrade: (
@@ -61,14 +62,18 @@ export interface ReviewCandidateContext {
   ) => number
 }
 
+/** Desired retention keyed by review grade. */
+export type DesiredRetentionByGrade = Record<Grade, number>
+
 export interface NextIntervalMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends MiddlewareContextBase<Env> {
   readonly input: {
     readonly card: MiddlewareContextObjectOf<Env, 'card'>
     readonly grade: Grade
+    /** Explicit retention supplied to a standalone interval query. */
+    readonly desiredRetention?: number
   }
-  desiredRetention: number
   readonly elapsedDays: number
   scheduledDays: number | undefined
   readonly candidate: ReviewCandidateContext
