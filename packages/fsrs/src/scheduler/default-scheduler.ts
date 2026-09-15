@@ -13,8 +13,9 @@ import type {
 } from './preset.js'
 import { getSchedulerPreset } from './preset.js'
 
-type DefaultSchedulerConfigInput =
-  Parameters<DefaultSchedulerCreate>[0]['config']
+type DefaultSchedulerConfigInput = Parameters<
+  DefaultSchedulerCreate<'FSRS-6'>
+>[0]['config']
 
 export interface DefaultSchedulerOptions<
   Version extends DefaultSchedulerVersion = DefaultSchedulerVersion,
@@ -29,11 +30,11 @@ export interface DefaultSchedulerOptions<
   readonly maximumInterval?: number
   /** Whether forget clears reps and lapses; defaults to true. */
   readonly clearStatsOnForget?: boolean
-  /** FSRS model and parameter migration version; defaults to FSRS-6. */
+  /** FSRS model and parameter migration version; defaults to FSRS-7. */
   readonly version?: Version
 }
 
-type DefaultSchedulerCore = ReturnType<DefaultSchedulerCreate>
+type DefaultSchedulerCore = ReturnType<DefaultSchedulerCreate<'FSRS-6'>>
 type DefaultSchedulerModelCore = Omit<
   DefaultSchedulerCore['model'],
   'config' | 'algorithm'
@@ -44,7 +45,7 @@ type DefaultSchedulerModelCore = Omit<
 }
 
 export type DefaultScheduler<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 > = (Version extends 'FSRS-7'
   ? Omit<ReturnType<DefaultSchedulerCreate<'FSRS-7'>>, 'definition'>
   : Omit<DefaultSchedulerCore, 'model' | 'definition'> & {
@@ -53,21 +54,22 @@ export type DefaultScheduler<
   readonly definition: SchedulerDefinition<AnyModel, typeof dateChrono>
 }
 export type DefaultSchedulerCard<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 > = ReturnType<DefaultScheduler<Version>['newCard']>
 export type DefaultSchedulerCardInput<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 > = Parameters<DefaultScheduler<Version>['review']>[0]['card']
 export type DefaultSchedulerRevlog<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 > = ReturnType<DefaultScheduler<Version>['review']>['revlog']
 
 export async function DefaultScheduler<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 >(
   options: DefaultSchedulerOptions<Version> = {}
 ): Promise<DefaultScheduler<Version>> {
-  const preset = await getSchedulerPreset(options.version)
+  const version = options.version ?? 'FSRS-7'
+  const preset = await getSchedulerPreset(version)
   const {
     weights,
     enableShortTerm = true,
@@ -85,7 +87,7 @@ export async function DefaultScheduler<
 
   return preset.definition.create({
     config: {
-      fractionalDays: options.version === 'FSRS-7',
+      fractionalDays: version === 'FSRS-7',
       weights: migratedWeights,
       enableShortTerm,
       numRelearningSteps: relearningSteps.length,

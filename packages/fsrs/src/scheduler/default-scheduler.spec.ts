@@ -11,6 +11,7 @@ import { FSRS4_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-4'
 import { FSRS4Dot5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-4dot5'
 import { FSRS5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-5'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 import {
   expectFullParity,
   legacyReview,
@@ -121,6 +122,7 @@ describe('DefaultScheduler', () => {
     const weights = Array.from(FSRS6_DEFAULT_WEIGHTS)
     weights[0] = weights[1] = weights[4] = weights[5] = 1
     const scheduler = await DefaultScheduler({
+      version: 'FSRS-6',
       weights,
       enableShortTerm: true,
       enableFuzz: false,
@@ -162,7 +164,7 @@ describe('DefaultScheduler', () => {
   describe('validation', () => {
     it('delegates review input validation to the scheduler core', async () => {
       const scheduler = await DefaultScheduler()
-      const card = createStateCard(State.Review)
+      const card = { ...createStateCard(State.Review), stabilityFast: 12.4 }
 
       expect(() =>
         scheduler.review({
@@ -220,6 +222,7 @@ describe('DefaultScheduler', () => {
       ['FSRS-6', FSRS6_DEFAULT_WEIGHTS],
     ] as const)('migrates %s weights before scheduling', async (_name, weights) => {
       const options = {
+        version: 'FSRS-6',
         weights,
         enableShortTerm: true,
       } satisfies DefaultSchedulerOptions
@@ -255,18 +258,18 @@ describe('DefaultScheduler', () => {
       expect(result.card.stability).toBe(weights[Rating.Again - 1])
     })
 
-    it('defaults to FSRS-6', async () => {
+    it('defaults to FSRS-7', async () => {
       const defaultScheduler = await DefaultScheduler()
-      const card = defaultScheduler.newCard({ now: NOW, cardId: 'fsrs-6' })
+      const card = defaultScheduler.newCard({ now: NOW, cardId: 'fsrs-7' })
       const review = (scheduler: DefaultScheduler) =>
         scheduler.review({ card, grade: Rating.Good, now: NOW })
       const defaultResult = review(defaultScheduler)
 
       expect(defaultResult.card.stability).toBe(
-        FSRS6_DEFAULT_WEIGHTS[Rating.Good - 1]
+        FSRS7_DEFAULT_WEIGHTS[Rating.Good - 1]
       )
       expect(defaultResult).toEqual(
-        review(await DefaultScheduler({ version: 'FSRS-6' }))
+        review(await DefaultScheduler({ version: 'FSRS-7' }))
       )
     })
 
@@ -316,6 +319,7 @@ describe('DefaultScheduler', () => {
         cardId: 'forget-card',
         dueAt: new Date(NOW.getTime() + 2 * DAY),
         stability: 9.5,
+        stabilityFast: 9.5,
         difficulty: 4.5,
         scheduledDays: 9,
         learningStep: 1,
@@ -335,6 +339,7 @@ describe('DefaultScheduler', () => {
         cardId: card.cardId,
         dueAt: NOW,
         stability: 0,
+        stabilityFast: 0,
         difficulty: 0,
         scheduledDays: 0,
         learningStep: 0,
@@ -354,8 +359,11 @@ describe('DefaultScheduler', () => {
         stability: 35,
         cardId: 'retention',
       }
-      const lowRetention = { desiredRetention: 0.8 }
-      const highRetention = { desiredRetention: 0.95 }
+      const lowRetention = { version: 'FSRS-6' as const, desiredRetention: 0.8 }
+      const highRetention = {
+        version: 'FSRS-6' as const,
+        desiredRetention: 0.95,
+      }
       const low = (await DefaultScheduler(lowRetention)).review({
         card,
         grade: Rating.Good,
@@ -378,7 +386,11 @@ describe('DefaultScheduler', () => {
     it('snapshots mutable learning-step parameters before lazy preview iteration', async () => {
       const learningSteps: Array<'1m' | '1d'> = ['1m']
       const relearningSteps: Array<'10m' | '1d'> = ['10m']
-      const options = { learningSteps, relearningSteps }
+      const options = {
+        version: 'FSRS-6' as const,
+        learningSteps,
+        relearningSteps,
+      }
       const scheduler = await DefaultScheduler(options)
       const card = scheduler.newCard({
         now: NOW,
@@ -406,6 +418,7 @@ describe('DefaultScheduler', () => {
         ...createStateCard(State.Review),
         cardId: 'fuzz-card-a',
         stability: 80,
+        stabilityFast: 80,
       }
       const secondCard = { ...firstCard, cardId: 'fuzz-card-b' }
       const scheduledDays = (card: DefaultSchedulerCard) =>
