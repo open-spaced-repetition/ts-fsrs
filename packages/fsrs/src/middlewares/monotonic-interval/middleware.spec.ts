@@ -18,7 +18,8 @@ const DAY = 86_400_000
 const now = new Date('2026-01-01T00:00:00.000Z')
 const later = new Date('2026-01-10T00:00:00.000Z')
 const maximumInterval = 100
-const reviewHandler = schedulerMonotonicIntervalMiddleware.handlers?.review
+const reviewHandler =
+  schedulerMonotonicIntervalMiddleware.handlers?.nextInterval
 
 if (!reviewHandler)
   throw new Error('Expected monotonic interval review handler')
