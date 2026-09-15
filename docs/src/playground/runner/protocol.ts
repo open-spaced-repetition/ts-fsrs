@@ -16,6 +16,7 @@ export type CodeRunRequest = {
 export type CsvTrainingRequest = {
   readonly csvText: string
   readonly enableShortTerm: boolean
+  readonly modelVersion?: 'FSRS-6' | 'FSRS-7'
   readonly id: number
   readonly nextDayStartsAt: number
   readonly timezone: string

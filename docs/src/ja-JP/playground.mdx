@@ -20,6 +20,8 @@ import RevlogTrainer from '../components/RevlogTrainer'
 
 <RevlogTrainer />
 
-このリンクからは `fsrs-rs` の[サンプル `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv) をダウンロードできます。123,730 件の復習レコードを含む 4,626,708 bytes のデータセットです。binding の Rust `csv` パーサーは CRLF、引用符、フィールド内のカンマを正しく処理します。コンバーターは `card_id` ごとにグループ化して `review_time` 順に並べ、最後の New/Learning ブロックから履歴を保持します。選択した IANA タイムゾーンで各タイムスタンプの現地時刻と夏時間を解決し、選択した `nextDayStartsAt` より前の現地時刻を前の学習日に割り当てます。その学習日間の整数日の距離を `deltaT` として計算し、現在の `deltaT > 0` の学習アイテムだけを生成します。
+このリンクからは `fsrs-rs` の[サンプル `revlog.csv`](https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv) をダウンロードできます。123,730 件の復習レコードを含む 4,626,708 bytes のデータセットです。binding の Rust `csv` パーサーは CRLF、引用符、フィールド内のカンマを正しく処理します。コンバーターは `card_id` ごとにグループ化して `review_time` 順に並べ、最後の New/Learning ブロックから履歴を保持します。選択した IANA タイムゾーンで各タイムスタンプの現地時刻と夏時間を解決し、選択した `nextDayStartsAt` より前の現地時刻を前の学習日に割り当てます。FSRS6 はその学習日間の整数日の距離を `deltaT` として計算します。両モデルとも現在の `deltaT > 0` の学習アイテムだけを生成します。
+
+既定の FSRS7 も、選択したタイムゾーンと学習日の境界を使います。各学習日内の経過時間をその学習日の実際の長さで割り、日をまたぐ場合は各部分を足し合わせるため、小数や同日内の間隔も保持します。夏時間で 23 時間または 25 時間になる場合も、学習日全体を 1 日として扱います。CSV 変換と学習には同じモデルを選択してください。
 
 短期パラメーターは任意です。有効にすると当日中の復習をモデル化し、無効にすると長期のみの重みを学習します。いずれの場合も、返された完全な `weights` 配列を丸めず、省略せずに表示します。
