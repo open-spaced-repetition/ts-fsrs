@@ -411,8 +411,11 @@ describe('SchedulerCore.newCard', () => {
       name: retentionMiddlewareName,
       handlers: {
         review(ctx, next) {
-          seen.push(ctx.desiredRetention)
-          ctx.desiredRetention = 0.5
+          seen.push(ctx.candidate.desiredRetention[ctx.input.grade])
+          ctx.candidate.desiredRetention = {
+            ...ctx.candidate.desiredRetention,
+            [ctx.input.grade]: 0.5,
+          }
           next()
           if (ctx.scheduledDays === undefined) {
             throw new Error('Expected scheduledDays')
@@ -447,10 +450,16 @@ describe('SchedulerCore.newCard', () => {
         review(ctx, next) {
           const memoryState = ctx.candidate.step(ctx.input.grade)
           seen.push(memoryState)
-          ctx.desiredRetention =
-            (memoryState.interval as number | undefined) === 1 ? 0.5 : 0.9
+          ctx.candidate.desiredRetention = {
+            ...ctx.candidate.desiredRetention,
+            [ctx.input.grade]:
+              (memoryState.interval as number | undefined) === 1 ? 0.5 : 0.9,
+          }
           seen.push(
-            ctx.candidate.nextInterval(memoryState, ctx.desiredRetention)
+            ctx.candidate.nextInterval(
+              memoryState,
+              ctx.candidate.desiredRetention[ctx.input.grade]
+            )
           )
           next()
         },
@@ -584,7 +593,7 @@ describe('SchedulerCore.newCard', () => {
           for (const g of allGrades) {
             if (g > currentGrade) break
             const ms = ctx.candidate.step(g)
-            ctx.candidate.nextInterval(ms, ctx.desiredRetention)
+            ctx.candidate.nextInterval(ms, ctx.candidate.desiredRetention[g])
           }
           next()
         },
@@ -1397,7 +1406,10 @@ describe('SchedulerCore.nextInterval', () => {
           name: 'query-retention',
           handlers: {
             nextInterval(ctx, next) {
-              ctx.desiredRetention = 0.8
+              ctx.candidate.desiredRetention = {
+                ...ctx.candidate.desiredRetention,
+                [ctx.input.grade]: 0.8,
+              }
               next()
             },
           },

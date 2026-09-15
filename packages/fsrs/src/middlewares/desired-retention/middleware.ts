@@ -5,8 +5,10 @@ export const schedulerDesiredRetentionMiddleware = defineMiddleware({
   name: Symbol('ts-fsrs.desired-retention'),
   schema: { config: desiredRetentionConfigSchema },
   handlers: {
-    review(ctx, next) {
-      ctx.desiredRetention = ctx.config.desiredRetention
+    nextInterval(ctx, next) {
+      if (ctx.input.desiredRetention === undefined) {
+        ctx.candidate.desiredRetention = ctx.config.desiredRetention
+      }
       next()
     },
   },
