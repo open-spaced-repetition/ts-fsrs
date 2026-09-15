@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import {
   dateSchema,
+  desiredRetentionSchema,
+  elapsedDaysSchema,
   emptyObjectSchema,
   numberSchema,
   parse,
@@ -9,6 +11,22 @@ import {
 } from './index.js'
 
 describe('field schemas', () => {
+  it('requires retention strictly between zero and one', () => {
+    expect(desiredRetentionSchema.parse(0.9)).toBe(0.9)
+    for (const value of [NaN, Infinity, -1, 0, 1]) {
+      expect(() => desiredRetentionSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
+
+  it('accepts zero and fractional elapsed days and rejects invalid durations', () => {
+    for (const value of [0, 1 / 1440, 2]) {
+      expect(elapsedDaysSchema.parse(value)).toBe(value)
+    }
+    for (const value of [NaN, Infinity, -1]) {
+      expect(() => elapsedDaysSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
+
   it('validates scheduled intervals while preserving zero and fractions', () => {
     for (const value of [0, 1 / 1440, 2]) {
       expect(scheduledDaysSchema.parse(value)).toBe(value)
