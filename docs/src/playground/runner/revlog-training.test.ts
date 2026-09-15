@@ -9,7 +9,10 @@ const options = {
 } as const
 
 describe('revlog.csv training', () => {
-  it('trains an inline fixture and returns the complete weights array', async () => {
+  it.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('trains %s and returns its complete weights array', async (modelVersion) => {
     const csvText = [
       HEADER,
       '1704067200000,card-one,3,1000,0',
@@ -17,13 +20,17 @@ describe('revlog.csv training', () => {
     ].join('\n')
 
     const onProgress = vi.fn()
-    const result = await trainRevlogCsv(csvText, { ...options, onProgress })
+    const result = await trainRevlogCsv(csvText, {
+      ...options,
+      modelVersion,
+      onProgress,
+    })
 
     expect(result.itemCount).toBe(1)
-    expect(result.weights).toHaveLength(21)
-    expect(result.weights).toEqual(
-      expect.arrayContaining([0.21199999749660492])
-    )
+    expect(result.weights).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
+    expect(result.weights.every(Number.isFinite)).toBe(true)
+    if (modelVersion === 'FSRS-6')
+      expect(result.weights[0]).toBeCloseTo(0.212, 6)
     expect(onProgress.mock.calls.length).toBeLessThanOrEqual(101)
     expect(onProgress.mock.lastCall?.[0]).toBe(onProgress.mock.lastCall?.[1])
   })
@@ -38,7 +45,7 @@ describe('revlog.csv training', () => {
     const result = await trainRevlogCsv(csvText, options)
 
     expect(result.itemCount).toBe(1)
-    expect(result.weights).toHaveLength(21)
+    expect(result.weights).toHaveLength(34)
   })
 
   it('rejects a header that omits a required binding field', async () => {
@@ -53,15 +60,40 @@ describe('revlog.csv training', () => {
     )
   })
 
-  it('rejects CSV data with no review on a later study day', async () => {
+  it('preserves FSRS7 same-day items while FSRS6 keeps its day-based filter', async () => {
+    const csvText = [
+      HEADER,
+      '1704067200000,one,3,1000,0',
+      '1704070800000,one,4,900,2',
+    ].join('\n')
+    const result = await trainRevlogCsv(csvText, options)
+    expect(result.itemCount).toBe(1)
+    expect(result.weights).toHaveLength(34)
+    await expect(
+      trainRevlogCsv(csvText, { ...options, modelVersion: 'FSRS-6' })
+    ).rejects.toThrow('No valid review was found')
+  })
+
+  it('FSRS6 rejects CSV data with no review on a later study day', async () => {
     const csvText = [
       HEADER,
       '1704067200000,one,3,1000,0',
       '1704070800000,one,4,900,2',
     ].join('\n')
 
-    await expect(trainRevlogCsv(csvText, options)).rejects.toThrow(
-      'No valid review was found'
-    )
+    await expect(
+      trainRevlogCsv(csvText, { ...options, modelVersion: 'FSRS-6' })
+    ).rejects.toThrow('No valid review was found')
   })
+})
+
+// Initialization of a non-trivial FSRS7 dataset still needs interday observations.
+it('reports insufficient FSRS7 initialization data when every interval is under a day', async () => {
+  const rows = [HEADER]
+  for (let card = 0; card < 16; card++) {
+    rows.push(`1704067200000,${card},3,1000,0`, `1704070800000,${card},4,900,2`)
+  }
+  await expect(
+    trainRevlogCsv(rows.join('\n'), { ...options, modelVersion: 'FSRS-7' })
+  ).rejects.toThrow('NotEnoughData')
 })
