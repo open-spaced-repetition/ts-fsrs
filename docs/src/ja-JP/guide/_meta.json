@@ -3,5 +3,6 @@
   "index",
   "quick-start",
   "state-transitions",
-  "llms"
+  "llms",
+  { "type": "dir-section-header", "name": "model", "label": "モデル" }
 ]

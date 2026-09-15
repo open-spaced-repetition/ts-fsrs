@@ -1,0 +1,89 @@
+---
+title: 模型概览
+description: 了解 FSRS 模型契约、直接使用各版本模型，以及通过 defineModel 定义自定义模型的方式和职责边界
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../../components/RunCode'
+import customModelCode from '@/snippets/run-code/custom-model.ts?raw'
+import modelCode from '@/snippets/run-code/model.ts?raw'
+
+# 模型概览
+
+FSRS 模型根据评分和经过时间计算新的记忆状态，通过遗忘曲线估算回忆概率，并根据记忆状态与目标保留率计算基础间隔。
+
+本节的 FSRS-3 至 FSRS-6 术语与公式依据 [awesome-fsrs Wiki](https://github.com/open-spaced-repetition/awesome-fsrs/wiki) 校对，主要参考其中的 [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm)。TypeScript API 与框架职责边界以 ts-fsrs 本身为准。
+
+:::note 模型边界
+模型只负责记忆状态更新、遗忘曲线计算和基础间隔计算。scheduler 负责组织复习流程，`chrono` 负责日期与经过时间，middleware 负责学习步骤、模糊处理、最大间隔限制和队列状态策略。
+:::
+
+<Prompt
+  title="实现或解释 SRS 模型"
+  description="复制这段提示词，让 AI Agent 遵守 Model 契约，避免把调度策略混入模型。"
+  prompt={`使用当前 ts-fsrs Model 契约完成以下任务：[描述任务]。
+
+1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/model/index.md'))} 以及所选模型版本的页面。
+2. 可按需对照 FSRS-6（${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-6.md'))}）、FSRS-5（${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-5.md'))}）、FSRS-4.5（${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-4dot5.md'))}）、FSRS-4（${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-4.md'))}）和 FSRS-3（${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-3.md'))}）的公式与说明。 FSRS-7: ${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-7.md'))}.
+3. 实现模型前先定义配置 schema 和记忆状态 schema。
+4. 将模型限制为 step、nextInterval、forgettingCurve 和 forward 行为。
+5. 向 nextInterval 显式传入目标保留率。
+6. 由 scheduler 组织复习流程，由 chrono 处理时间，由 middleware 应用学习步骤、模糊处理、最大间隔限制和队列状态策略。
+7. 仅在配置已经完成 migrate、clip 和 check 后使用 bypass。
+8. 使用当前公共 API，并为每个实现的公式添加聚焦测试。`}
+/>
+
+## 公共符号
+
+| 符号 | 含义 |
+| --- | --- |
+| `math:D` | 难度，范围为 1（最简单）至 10（最困难）。 |
+| `math:S` | FSRS-3 至 FSRS-6 的稳定性，单位为天；当 `math:t = S` 时回忆概率为 90%。 |
+| `math:R` | 经过 `math:t` 天后能够回忆的估计概率。 |
+| `math:G` | 评分：1 为 Again、2 为 Hard、3 为 Good、4 为 Easy。 |
+| `math:t` | 距离上次复习经过的天数。 |
+| `math:r` | `nextInterval` 使用的目标保留率。 |
+| `math:I(r, S)` | 根据稳定性 `math:S` 和目标保留率 `math:r` 计算的基础间隔，单位为天，尚未应用 middleware 策略。 |
+| `math:S_{\min}`、`math:S_{\max}` | 模型允许的稳定性下限和上限。 |
+| `math:D_{\min}`、`math:D_{\max}` | 模型允许的难度下限和上限。 |
+| `math:w_i` | 训练得到的模型权重。 |
+
+[FSRS-7](./fsrs-7) 根据其实现快照单独说明：它增加快稳定性，使用混合曲线并返回小数天间隔。上表中稳定性的 90% 定义和 `I(r, S)` 记法适用于 FSRS-3 至 FSRS-6。
+
+## 使用版本化模型
+
+`DefaultScheduler` 使用 FSRS-6，但也可以直接创建并调用任意版本的模型：
+
+```ts twoslash file="../../../snippets/run-code/model.ts"
+```
+
+<RunCode code={modelCode} />
+
+示例先根据 90% 的目标保留率计算复习间隔，再通过 `forgettingCurve` 估算到达该间隔时的回忆概率。由于 FSRS-6 的 `nextInterval` 返回整数天，结果可能与 90% 略有差异。
+
+在 FSRS-6 配置中，`enableShortTerm` 控制模型的同日稳定性更新。`numRelearningSteps` 只参与权重裁剪与检查；重新学习步骤仍由 middleware 调度。
+
+## 定义模型
+
+`defineModel` 会保留具体的配置、记忆状态和算法类型，并把 schema、默认值与模型核心工厂组织为一个定义。它本身不会解析配置：
+
+```ts twoslash fold height=420 file="../../../snippets/run-code/custom-model.ts"
+```
+
+<RunCode code={customModelCode} />
+
+Schema 描述公共边界，并在 scheduler 组合 schema 时使用。直接调用 `create` 时，具体实现必须先完成所需的解析和规范化，再返回 `config`、`bounds`、`algorithm`、`step`、`nextInterval`、`forgettingCurve` 和 `forward`。该核心应保持确定性，且不包含调度策略。
+
+:::warning bypass 仅用于已处理的配置
+只有调用方已经明确完成该模型的 migrate、clip、schema 校验和范围检查后，才能使用 `FSRS6Model.create({ config, bypass: true })`。它会跳过这些 create 阶段的处理以及冻结。不要对来自用户、存储或网络的原始配置使用 `bypass`。
+:::
+
+## 模型版本
+
+- [FSRS-7](./fsrs-7) — 双分量实现参考，34 个权重与数值求间隔。
+- [FSRS-6](./fsrs-6) — 当前默认版本，支持可训练衰减与同日更新。
+- [FSRS-5](./fsrs-5) — 使用固定幂函数遗忘曲线，并支持同日更新。
+- [FSRS-4.5](./fsrs-4dot5) — 使用固定幂函数曲线，不包含同日公式。
+- [FSRS-4](./fsrs-4) — 本项目中首个使用幂函数曲线的版本。
+- [FSRS-3](./fsrs-3) — 使用较早的指数遗忘曲线。
