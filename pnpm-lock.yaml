@@ -62,6 +62,9 @@ importers:
       react-json-view-lite:
         specifier: ^2.5.0
         version: 2.5.0(react@19.2.8)
+      temporal-polyfill:
+        specifier: ^1.0.1
+        version: 1.0.1
       ts-fsrs:
         specifier: workspace:*
         version: link:../packages/fsrs

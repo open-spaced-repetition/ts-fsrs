@@ -1,0 +1,32 @@
+---
+title: Date
+description: Use dateChrono with UTC date differences, fixed-duration addition, and card and revlog time fields
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
+
+# Date
+
+`dateChrono` is the preset used by `DefaultScheduler`. Its time schema accepts valid `Date` objects, so convert stored strings or timestamps to `Date` before calling the scheduler. The current schema also rejects `new Date(0)` (the exact Unix epoch) and invalid dates.
+
+Configure Date with `fractionalDays` at the top level of the scheduler config (default `false`). Direct calls require `dateChrono.create({ config: { fractionalDays: false } })`. With `false`, two times on the same UTC date have a difference of zero, and 23:00 to 01:00 the next day gives one day. With `true`, that two-hour gap gives `2 / 24` days. `add(from, 0.5)` always adds twelve hours. Use `compare` for precise ordering.
+
+## How projection participates in scheduling
+
+Projection maps card or revlog fields to `{ previous, current }`. For Date and Temporal presets:
+
+- During review, projection returns `previous: card.lastReviewAt` and `current: card.dueAt`.
+- Elapsed days are `difference(previous ?? current, now)`; New cards always use zero.
+- The next card stores `dueAt: add(now, interval)` and `lastReviewAt: now`.
+- The revlog stores the pre-review card’s `dueAt` and `lastReviewAt`, plus this review’s `reviewTime: now`.
+- During rollback, projection returns `previous: revlog.lastReviewAt` and `current: revlog.dueAt`. These restore the pre-review card’s timestamps; a New card restores `lastReviewAt: null`.
+
+## Try the preset
+
+```ts twoslash file="../../../snippets/run-code/chrono-date.ts"
+```
+
+<RunCode code={presetCode} />
+
+Across midnight, the UTC date difference is one day; adding half a day advances the time by twelve hours.

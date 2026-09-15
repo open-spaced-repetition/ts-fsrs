@@ -14,7 +14,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 A **model** is the FSRS algorithm and its parameters. `FSRS6Model` is the current one; FSRS-3 through FSRS-5 stay available for review histories built on them.
 
-A **chronology** decides how time is represented. `dateChrono` works with `Date`, `numericChrono` with timestamps, and `temporalInstantChrono` with `Temporal.Instant`.
+A **chronology** decides how time is represented. `dateChrono` works with `Date`, `numericChrono` with numbers in days, and `temporalInstantChrono` with `Temporal.Instant`.
 
 **Middleware** adds scheduling policy, such as `schedulerLearningStepsMiddleware`, `schedulerFuzzingMiddleware`, `schedulerMaximumIntervalMiddleware`, or `schedulerLeechMiddleware`. Compose them with `.use(...)` before creating the scheduler.
 

@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { createRequire } from 'node:module'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import type { PlaygroundDeclaration } from './declarations'
 
 /**
@@ -125,6 +126,22 @@ export function collectPlaygroundDeclarations(
     )
   }
 
+  const temporalEntry = fileURLToPath(
+    import.meta.resolve('temporal-polyfill/global')
+  )
+  const temporalRequire = createRequire(temporalEntry)
+  const temporalDeclarations = [
+    ['temporal-polyfill/global', temporalEntry],
+    [
+      'temporal-polyfill/types/global',
+      fileURLToPath(import.meta.resolve('temporal-polyfill/types/global')),
+    ],
+    ['temporal-spec/global', temporalRequire.resolve('temporal-spec/global')],
+  ].map(([specifier, entry]) => ({
+    content: readFileSync(entry.replace(/(?:\.esm)?\.js$/, '.d.ts'), 'utf8'),
+    filePath: `file:///node_modules/${specifier}.d.ts`,
+  }))
+
   return [
     ...collectModuleDeclarations(
       path.join(workspaceRoot, 'packages/fsrs/dist'),
@@ -139,5 +156,6 @@ export function collectPlaygroundDeclarations(
         'file:///node_modules/@open-spaced-repetition/binding/index.d.ts',
     },
     ...collectZodDeclarations(),
+    ...temporalDeclarations,
   ]
 }

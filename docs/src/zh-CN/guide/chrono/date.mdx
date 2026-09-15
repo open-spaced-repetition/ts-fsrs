@@ -1,0 +1,32 @@
+---
+title: Date
+description: 使用 dateChrono 计算 UTC 日期差和固定时长，理解 card 与 revlog 的时间字段
+---
+
+import RunCode from '../../../components/RunCode'
+import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
+
+# Date
+
+`DefaultScheduler` 使用 `dateChrono`。它的时间 schema 接受有效的 `Date` 对象，因此调用调度器前，应先将存储的字符串或时间戳转换为 `Date`。当前 schema 也会拒绝 `new Date(0)`（Unix 纪元起点）和无效日期。
+
+在调度器 config 顶层设置 `fractionalDays`（默认 `false`）。直接调用时需传入 `dateChrono.create({ config: { fractionalDays: false } })`。设为 `false` 时，同一 UTC 日期内的时间差为零，23:00 到次日 01:00 的日期差为一天；设为 `true` 时，这两小时得到 `2 / 24` 天。`add(from, 0.5)` 始终增加十二小时。精确比较先后请使用 `compare`。
+
+## projection 如何参与调度
+
+projection 将 card 或 revlog 的字段转换为 `{ previous, current }`。对于 Date 和 Temporal 预设：
+
+- 复习时，projection 返回 `previous: card.lastReviewAt` 和 `current: card.dueAt`。
+- 经过天数为 `difference(previous ?? current, now)`；New 卡片始终为零。
+- 新 card 保存 `dueAt: add(now, interval)` 和 `lastReviewAt: now`。
+- revlog 保存复习前 card 的 `dueAt`、`lastReviewAt`，以及本次复习的 `reviewTime: now`。
+- 撤销时，projection 返回 `previous: revlog.lastReviewAt` 和 `current: revlog.dueAt`，用于还原复习前 card 的时间字段；New 卡片还原为 `lastReviewAt: null`。
+
+## 运行预设
+
+```ts twoslash file="../../../snippets/run-code/chrono-date.ts"
+```
+
+<RunCode code={presetCode} />
+
+跨过午夜时，UTC 日期差为一天；增加半天则让时间向后移动十二小时。
