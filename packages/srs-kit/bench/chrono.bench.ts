@@ -63,8 +63,8 @@ describe('numericChrono preset', () => {
   bench('now', () => {
     core.now()
   })
-  bench('projection', () => {
-    numericChrono.projection['~standard'].validate({ time: 4.5 })
+  bench('normalize', () => {
+    numericChrono.normalize['~standard'].validate({ time: 4.5 })
   })
   bench('difference', () => {
     core.difference(1.25, 4.75)
@@ -88,8 +88,8 @@ describe('dateChrono preset', () => {
   bench('now', () => {
     core.now()
   })
-  bench('projection', () => {
-    dateChrono.projection['~standard'].validate({ card, time: later })
+  bench('normalize', () => {
+    dateChrono.normalize['~standard'].validate({ card, time: later })
   })
   bench('default card', () => {
     dateChrono.defaultValue.card?.({
@@ -153,8 +153,8 @@ function describeTemporalInstant(
     bench('now', () => {
       core.now()
     })
-    bench('projection', () => {
-      temporalInstantChrono.projection['~standard'].validate({
+    bench('normalize', () => {
+      temporalInstantChrono.normalize['~standard'].validate({
         card,
         time: later,
       })

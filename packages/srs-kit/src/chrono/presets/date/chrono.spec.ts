@@ -126,7 +126,7 @@ describe('dateChrono', () => {
       })
     ).toThrow('Expected valid Date fields')
     expect(
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: {
           dueAt: later,
           lastReviewAt: now,
@@ -135,7 +135,7 @@ describe('dateChrono', () => {
       })
     ).toEqual({ previous: now, current: later })
     expect(
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: {
           dueAt: now,
           lastReviewAt: null,
@@ -144,7 +144,7 @@ describe('dateChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: parse(dateChrono.schema.card, {
           dueAt: now,
           lastReviewAt: null,
@@ -153,7 +153,7 @@ describe('dateChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: parse(dateChrono.schema.card, {
           dueAt: now,
         }),
@@ -161,7 +161,7 @@ describe('dateChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         revlog: {
           dueAt: later,
           lastReviewAt: now,
@@ -169,27 +169,27 @@ describe('dateChrono', () => {
         },
       })
     ).toEqual({ previous: now, current: later })
-    expect(dateChrono.projection['~standard'].validate(123)).toEqual({
+    expect(dateChrono.normalize['~standard'].validate(123)).toEqual({
       issues: [{ message: 'Expected valid Date fields' }],
     })
-    expect(() => parse(dateChrono.projection, 123)).toThrow(
+    expect(() => parse(dateChrono.normalize, 123)).toThrow(
       'Expected valid Date fields'
     )
     expect(() =>
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         revlog: {
           dueAt: now,
         },
       })
     ).toThrow('Expected valid Date fields')
     expect(() =>
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: null,
         time: later,
       })
     ).toThrow('Expected valid Date fields')
     expect(() =>
-      parse(dateChrono.projection, {
+      parse(dateChrono.normalize, {
         card: {
           dueAt: now,
           lastReviewAt: now,

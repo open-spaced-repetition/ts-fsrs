@@ -20,7 +20,7 @@ export const dateChrono = defineChrono({
     revlog: dateRevlogFieldsSchema,
     time: dateSchema,
   },
-  projection(value) {
+  normalize(value) {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected valid Date fields' }] }
     }

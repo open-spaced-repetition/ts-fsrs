@@ -8,7 +8,7 @@ import {
   type ChronoSchema,
   type ChronoTimeOf,
   defineChrono,
-  defineChronoProjection,
+  defineChronoTimeNormalizer,
 } from './index.js'
 
 describe('defineChrono', () => {
@@ -23,7 +23,7 @@ describe('defineChrono', () => {
       schema: {
         time: numberSchema,
       },
-      projection(value) {
+      normalize(value) {
         return { value: { previous: value.time, current: value.time } }
       },
       create() {
@@ -59,7 +59,7 @@ describe('defineChrono', () => {
         revlog: revlogSchema,
         time: numberSchema,
       },
-      projection(value) {
+      normalize(value) {
         if ('revlog' in value) {
           expectTypeOf(value.revlog).toEqualTypeOf<
             Readonly<{
@@ -144,13 +144,13 @@ describe('defineChrono', () => {
     expectTypeOf(chrono.schema.revlog).toEqualTypeOf<typeof revlogSchema>()
   })
 
-  it('accepts a projection schema directly', () => {
+  it('accepts a time normalizer schema directly', () => {
     const chrono = defineChrono({
       schema: {
         card: numberCardSchema,
         time: numberSchema,
       },
-      projection: numberProjectionSchema,
+      normalize: numberTimeNormalizer,
       create() {
         return {
           now() {
@@ -166,16 +166,16 @@ describe('defineChrono', () => {
       },
     })
 
-    expect(chrono.projection).toBe(numberProjectionSchema)
+    expect(chrono.normalize).toBe(numberTimeNormalizer)
   })
 
-  it('types projection card as schema input', () => {
+  it('types normalizer card as schema input', () => {
     const chrono = defineChrono({
       schema: {
         card: normalizedCardSchema,
         time: numberSchema,
       },
-      projection(value) {
+      normalize(value) {
         expectTypeOf(value.card).toEqualTypeOf<
           Readonly<{
             readonly previous: number | null
@@ -209,13 +209,13 @@ describe('defineChrono', () => {
     }>()
   })
 
-  it('types projection revlog as schema input', () => {
+  it('types normalizer revlog as schema input', () => {
     defineChrono({
       schema: {
         revlog: revlogSchema,
         time: numberSchema,
       },
-      projection(value) {
+      normalize(value) {
         if ('revlog' in value) {
           expectTypeOf(value.revlog).toEqualTypeOf<
             Readonly<{
@@ -254,8 +254,8 @@ describe('defineChrono', () => {
     })
   })
 
-  it('preserves card presence in projection helpers', () => {
-    defineChronoProjection<{
+  it('preserves card presence in time normalizer helpers', () => {
+    defineChronoTimeNormalizer<{
       readonly card: {
         readonly previous: number | null
         readonly current: number
@@ -277,7 +277,7 @@ describe('defineChrono', () => {
       }
     })
 
-    defineChronoProjection<{
+    defineChronoTimeNormalizer<{
       readonly time: number
       readonly revlog: {
         readonly elapsedDays: number
@@ -301,7 +301,7 @@ describe('defineChrono', () => {
       return { value: { previous: 0, current: value.time } }
     })
 
-    defineChronoProjection<{
+    defineChronoTimeNormalizer<{
       readonly time: number
     }>((value) => {
       expectTypeOf(value).toEqualTypeOf<{ readonly time: number }>()
@@ -327,7 +327,7 @@ const numberCardSchema = defineSchema<{
     !('previous' in value) ||
     !('current' in value)
   ) {
-    return { issues: [{ message: 'Expected number projection fields' }] }
+    return { issues: [{ message: 'Expected number normalization fields' }] }
   }
 
   const { previous, current } = value
@@ -363,7 +363,7 @@ const normalizedCardSchema = defineSchema<
   return { value: { previous: previous ?? 0 } }
 })
 
-const numberProjectionSchema = defineSchema<
+const numberTimeNormalizer = defineSchema<
   {
     readonly card: Readonly<{
       readonly previous: number | null
@@ -377,7 +377,7 @@ const numberProjectionSchema = defineSchema<
   }
 >((value) => {
   if (typeof value !== 'object' || value === null || !('card' in value)) {
-    return { issues: [{ message: 'Expected number projection input' }] }
+    return { issues: [{ message: 'Expected number normalization input' }] }
   }
 
   const card = numberCardSchema['~standard'].validate(value.card)
