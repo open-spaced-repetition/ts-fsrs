@@ -1,18 +1,17 @@
 import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'
-import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from 'ts-fsrs/models/fsrs-7'
 
 // Reuse this definition as the program's scheduling preset.
 const schedulerDefinition = defineScheduler({
-  model: FSRS6Model,
+  model: FSRS7Model,
   chrono: dateChrono,
 })
 
 // Create an independent scheduler when a user's config is available.
 const scheduler = schedulerDefinition.create({
   config: {
-    weights: FSRS6_DEFAULT_WEIGHTS,
-    enableShortTerm: true,
-    numRelearningSteps: 1,
+    weights: FSRS7_DEFAULT_WEIGHTS,
+    fractionalDays: true,
   },
 })
 
@@ -26,6 +25,8 @@ console.log(
       state: result.card.state,
       dueAt: result.card.dueAt,
       stability: result.card.stability,
+      difficulty: result.card.difficulty,
+      stabilityFast: result.card.stabilityFast,
       rating: result.revlog.rating,
     },
     null,

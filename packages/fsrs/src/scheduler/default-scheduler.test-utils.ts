@@ -1,8 +1,14 @@
-import { DefaultScheduler, type DefaultSchedulerCard, State } from 'ts-fsrs'
+import {
+  type DefaultSchedulerCard as CardFor,
+  DefaultScheduler,
+  State,
+} from 'ts-fsrs'
+
+type DefaultSchedulerCard = CardFor<'FSRS-6'>
 
 export const DAY = 86_400_000
 export const NOW = new Date('2025-02-20T12:00:00.000Z')
-const cardFactory = await DefaultScheduler()
+const cardFactory = await DefaultScheduler({ version: 'FSRS-6' })
 export const scheduleStatusByState = {
   [State.New]: 'new',
   [State.Learning]: 'learning',
