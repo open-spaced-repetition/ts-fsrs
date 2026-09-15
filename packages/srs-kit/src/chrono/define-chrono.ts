@@ -12,75 +12,76 @@ import type {
   Chrono,
   ChronoCreate,
   ChronoDefaultValue,
-  ChronoProjectionInput,
-  ChronoTimeProjection,
+  ChronoNormalizedTime,
+  ChronoTimeNormalizerInput,
 } from './chrono.js'
 
-type ChronoProjectionDefinitionInput = {
+type ChronoTimeNormalizerDefinitionInput = {
   readonly card?: unknown
   readonly revlog?: unknown
   readonly time: unknown
 }
 
-type ChronoProjectionInputOf<Input extends ChronoProjectionDefinitionInput> =
-  ChronoProjectionInput<
-    Input['time'],
-    Input extends { readonly card: infer Card } ? Card : never,
-    Input extends { readonly revlog: infer Revlog } ? Revlog : never
-  >
+type ChronoTimeNormalizerInputOf<
+  Input extends ChronoTimeNormalizerDefinitionInput,
+> = ChronoTimeNormalizerInput<
+  Input['time'],
+  Input extends { readonly card: infer Card } ? Card : never,
+  Input extends { readonly revlog: infer Revlog } ? Revlog : never
+>
 
-export function defineChronoProjection<
-  Input extends ChronoProjectionDefinitionInput,
+export function defineChronoTimeNormalizer<
+  Input extends ChronoTimeNormalizerDefinitionInput,
 >(
   validate: (
-    value: ChronoProjectionInputOf<Input>
-  ) => StandardSchemaV1.Result<ChronoTimeProjection<Input['time']>>
+    value: ChronoTimeNormalizerInputOf<Input>
+  ) => StandardSchemaV1.Result<ChronoNormalizedTime<Input['time']>>
 ) {
   return defineSchema<
-    ChronoProjectionInputOf<Input>,
-    ChronoTimeProjection<Input['time']>
+    ChronoTimeNormalizerInputOf<Input>,
+    ChronoNormalizedTime<Input['time']>
   >(
     validate as (
       value: unknown
-    ) => StandardSchemaV1.Result<ChronoTimeProjection<Input['time']>>
+    ) => StandardSchemaV1.Result<ChronoNormalizedTime<Input['time']>>
   )
 }
 
-type ChronoProjectionInputFor<
+type ChronoTimeNormalizerInputFor<
   TimeSchema extends AnySchema,
   CardSchema extends AnyObjectSchema | undefined,
   RevlogSchema extends AnyObjectSchema | undefined,
-> = ChronoProjectionInput<
+> = ChronoTimeNormalizerInput<
   SchemaOutput<TimeSchema>,
   CardSchema extends AnyObjectSchema ? SchemaInput<CardSchema> : never,
   RevlogSchema extends AnyObjectSchema ? SchemaInput<RevlogSchema> : never
 >
 
-type ChronoProjectionDefinition<
+type ChronoTimeNormalizerDefinition<
   TimeSchema extends AnySchema,
   CardSchema extends AnyObjectSchema | undefined,
   RevlogSchema extends AnyObjectSchema | undefined,
 > =
   | StandardSchemaV1<
-      ChronoProjectionInputFor<TimeSchema, CardSchema, RevlogSchema>,
-      ChronoTimeProjection<SchemaOutput<TimeSchema>>
+      ChronoTimeNormalizerInputFor<TimeSchema, CardSchema, RevlogSchema>,
+      ChronoNormalizedTime<SchemaOutput<TimeSchema>>
     >
   | ((
-      value: ChronoProjectionInputFor<TimeSchema, CardSchema, RevlogSchema>
+      value: ChronoTimeNormalizerInputFor<TimeSchema, CardSchema, RevlogSchema>
     ) => StandardSchemaV1.Result<
-      ChronoTimeProjection<SchemaOutput<TimeSchema>>
+      ChronoNormalizedTime<SchemaOutput<TimeSchema>>
     >)
 
-function resolveChronoProjection(projection: unknown) {
-  if (typeof projection === 'function') {
-    return defineChronoProjection(
-      projection as (
-        value: ChronoProjectionInput<unknown>
-      ) => StandardSchemaV1.Result<ChronoTimeProjection<unknown>>
+function resolveChronoTimeNormalizer(normalize: unknown) {
+  if (typeof normalize === 'function') {
+    return defineChronoTimeNormalizer(
+      normalize as (
+        value: ChronoTimeNormalizerInput<unknown>
+      ) => StandardSchemaV1.Result<ChronoNormalizedTime<unknown>>
     )
   }
 
-  return projection
+  return normalize
 }
 
 type ChronoDefinitionSchema = AnyChronoSchema
@@ -124,7 +125,7 @@ type ChronoDefinitionField<
 type ChronoDefinition<Schema extends ChronoDefinitionSchema> = {
   readonly schema: Schema
   readonly defaultValue?: ChronoDefaultValue<ChronoDefinitionEnv<Schema>>
-  readonly projection: ChronoProjectionDefinition<
+  readonly normalize: ChronoTimeNormalizerDefinition<
     Schema['time'],
     ChronoDefinitionField<Schema, 'card'>,
     ChronoDefinitionField<Schema, 'revlog'>
@@ -142,7 +143,7 @@ export function defineChrono<const Schema extends ChronoDefinitionSchema>(
       ...(definition.schema.card ? { card: definition.schema.card } : {}),
       ...(definition.schema.revlog ? { revlog: definition.schema.revlog } : {}),
     },
-    projection: resolveChronoProjection(definition.projection),
+    normalize: resolveChronoTimeNormalizer(definition.normalize),
     defaultValue: definition.defaultValue ?? {},
     create: definition.create,
   } as unknown as Chrono<ChronoDefinitionEnv<Schema>>

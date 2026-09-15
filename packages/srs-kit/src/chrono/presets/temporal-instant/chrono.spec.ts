@@ -162,14 +162,14 @@ describe('temporalInstantChrono', () => {
         reviewTime: {},
       })
     ).toThrow('Expected Temporal.Instant fields')
-    const projection = parse(temporalInstantChrono.projection, {
+    const normalizedTime = parse(temporalInstantChrono.normalize, {
       card: { dueAt: later, lastReviewAt: now },
       time: createInstant(NS_PER_DAY * 2n),
     })
-    expect(projection.previous).toBe(now)
-    expect(projection.current).toBe(later)
+    expect(normalizedTime.previous).toBe(now)
+    expect(normalizedTime.current).toBe(later)
     expect(
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         card: {
           dueAt: now,
           lastReviewAt: null,
@@ -178,7 +178,7 @@ describe('temporalInstantChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         card: parse(temporalInstantChrono.schema.card, {
           dueAt: now,
           lastReviewAt: null,
@@ -187,7 +187,7 @@ describe('temporalInstantChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         card: parse(temporalInstantChrono.schema.card, {
           dueAt: now,
         }),
@@ -195,7 +195,7 @@ describe('temporalInstantChrono', () => {
       })
     ).toEqual({ previous: null, current: now })
     expect(
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         revlog: {
           dueAt: later,
           lastReviewAt: now,
@@ -203,29 +203,27 @@ describe('temporalInstantChrono', () => {
         },
       })
     ).toEqual({ previous: now, current: later })
-    expect(temporalInstantChrono.projection['~standard'].validate(123)).toEqual(
-      {
-        issues: [{ message: 'Expected Temporal.Instant fields' }],
-      }
-    )
-    expect(() => parse(temporalInstantChrono.projection, 123)).toThrow(
+    expect(temporalInstantChrono.normalize['~standard'].validate(123)).toEqual({
+      issues: [{ message: 'Expected Temporal.Instant fields' }],
+    })
+    expect(() => parse(temporalInstantChrono.normalize, 123)).toThrow(
       'Expected Temporal.Instant fields'
     )
     expect(() =>
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         revlog: {
           dueAt: now,
         },
       })
     ).toThrow('Expected Temporal.Instant fields')
     expect(() =>
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         card: null,
         time: later,
       })
     ).toThrow('Expected Temporal.Instant fields')
     expect(() =>
-      parse(temporalInstantChrono.projection, {
+      parse(temporalInstantChrono.normalize, {
         card: {
           dueAt: now,
           lastReviewAt: now,

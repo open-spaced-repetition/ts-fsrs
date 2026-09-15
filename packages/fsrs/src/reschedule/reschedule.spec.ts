@@ -146,7 +146,7 @@ describe('Reschedule', () => {
             : { issues: [{ message: 'Expected numeric review time' }] }
         ),
       },
-      projection(value) {
+      normalize(value) {
         return { value: { previous: value.time, current: value.time } }
       },
       create() {

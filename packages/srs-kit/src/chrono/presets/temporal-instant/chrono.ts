@@ -48,7 +48,7 @@ export const temporalInstantChrono = defineChrono({
     revlog: temporalInstantRevlogFieldsSchema,
     time: temporalInstantSchema,
   },
-  projection(value) {
+  normalize(value) {
     if (!isObject(value)) {
       return { issues: [{ message: 'Expected Temporal.Instant fields' }] }
     }

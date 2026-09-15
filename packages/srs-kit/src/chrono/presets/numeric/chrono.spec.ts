@@ -19,22 +19,22 @@ describe('numericChrono', () => {
     expect('config' in numericChrono.schema).toBe(false)
     expect('card' in numericChrono.schema).toBe(false)
     expect('revlog' in numericChrono.schema).toBe(false)
-    expect(parse(numericChrono.projection, { card: {}, time: 4.5 })).toEqual({
+    expect(parse(numericChrono.normalize, { card: {}, time: 4.5 })).toEqual({
       previous: 0,
       current: 4.5,
     })
-    expect(parse(numericChrono.projection, { time: 4.5 })).toEqual({
+    expect(parse(numericChrono.normalize, { time: 4.5 })).toEqual({
       previous: 0,
       current: 4.5,
     })
     expect(() =>
-      parse(numericChrono.projection, {
+      parse(numericChrono.normalize, {
         card: {},
         time: Number.NaN,
       })
     ).toThrow('Expected finite number')
     expect(
-      parse(numericChrono.projection, {
+      parse(numericChrono.normalize, {
         card: { current: 4.5 },
         time: 4.5,
       })
@@ -49,15 +49,15 @@ describe('numericChrono', () => {
     expect('card' in numericChrono.defaultValue).toBe(false)
     expect('revlog' in numericChrono.defaultValue).toBe(false)
 
-    // Test the projection
-    const projectionValue = parse(numericChrono.projection, {
+    // Test time normalization
+    const normalizedTime = parse(numericChrono.normalize, {
       card: {},
       time: 4.5,
     })
-    expect(projectionValue).toEqual({ previous: 0, current: 4.5 })
+    expect(normalizedTime).toEqual({ previous: 0, current: 4.5 })
     const elapsed = difference(
-      projectionValue.previous ?? 0,
-      projectionValue.current
+      normalizedTime.previous ?? 0,
+      normalizedTime.current
     )
     expect(elapsed).toBe(4.5)
   })

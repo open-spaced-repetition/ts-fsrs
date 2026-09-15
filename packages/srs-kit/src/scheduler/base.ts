@@ -1,6 +1,6 @@
 import type {
   AnyChrono,
-  ChronoProjectionRuntimeSchema,
+  ChronoTimeNormalizerRuntimeSchema,
 } from '@/chrono/chrono.js'
 import type {
   AnyMiddleware,
@@ -405,8 +405,8 @@ export class BaseScheduler<
     }
 
     const card = freezeCard ? Object.freeze(parsedCard) : parsedCard
-    const time = parse<ChronoProjectionRuntimeSchema>(
-      this.schedulerDefinition.chrono.projection,
+    const time = parse<ChronoTimeNormalizerRuntimeSchema>(
+      this.schedulerDefinition.chrono.normalize,
       {
         card,
         time: now,
@@ -602,8 +602,8 @@ export class BaseScheduler<
     if (!chronoCardSchema) {
       return
     }
-    const projection = parse<ChronoProjectionRuntimeSchema>(
-      this.schedulerDefinition.chrono.projection,
+    const normalizedTime = parse<ChronoTimeNormalizerRuntimeSchema>(
+      this.schedulerDefinition.chrono.normalize,
       {
         revlog,
       }
@@ -611,8 +611,8 @@ export class BaseScheduler<
     const isNew = revlog.state === State.New
     const cardFields = this.schedulerDefinition.chrono.defaultValue?.card?.({
       config: this.config,
-      previous: isNew ? null : projection.previous,
-      time: projection.current,
+      previous: isNew ? null : normalizedTime.previous,
+      time: normalizedTime.current,
     })
     if (cardFields) {
       Object.assign(result.card, cardFields)

@@ -73,58 +73,61 @@ type ChronoSchemaFields<Env extends BlankChronoEnv> = ChronoPart<
   ChronoPart<'revlog', ChronoFieldSchema<Env, 'revlog'>>
 
 // ==========
-// Chrono Projection
+// Chrono Time Normalization
 // ==========
-export interface ChronoTimeProjection<Time> {
+export interface ChronoNormalizedTime<Time> {
   /** Previous event time, or null when no previous event exists. */
   readonly previous: Time | null
-  /** Current entity time; Date/Temporal cards and revlogs project their due date. */
+  /**
+   * Normalized time value; Date/Temporal presets use the dueAt value
+   * stored on the card or revlog.
+   */
   readonly current: Time
 }
 
-type ChronoReviewProjectionInput<Time, CardFields> = [CardFields] extends [
+type ChronoReviewNormalizationInput<Time, CardFields> = [CardFields] extends [
   never,
 ]
   ? { readonly time: Time }
   : { readonly card: Readonly<CardFields>; readonly time: Time }
 
-type ChronoRollbackProjectionInput<RevlogFields> = [RevlogFields] extends [
+type ChronoRollbackNormalizationInput<RevlogFields> = [RevlogFields] extends [
   never,
 ]
   ? never
   : { readonly revlog: Readonly<RevlogFields> }
 
-export type ChronoProjectionInput<
+export type ChronoTimeNormalizerInput<
   Time,
   CardFields = never,
   RevlogFields = never,
 > =
-  | ChronoReviewProjectionInput<Time, CardFields>
-  | ChronoRollbackProjectionInput<RevlogFields>
+  | ChronoReviewNormalizationInput<Time, CardFields>
+  | ChronoRollbackNormalizationInput<RevlogFields>
 
-type ChronoProjectedCard<Env extends BlankChronoEnv> = [
+type ChronoNormalizerCardInput<Env extends BlankChronoEnv> = [
   ChronoFieldSchema<Env, 'card'>,
 ] extends [never]
   ? never
   : SchemaInput<ChronoFieldSchema<Env, 'card'>>
 
-type ChronoProjectedRevlog<Env extends BlankChronoEnv> = [
+type ChronoNormalizerRevlogInput<Env extends BlankChronoEnv> = [
   ChronoFieldSchema<Env, 'revlog'>,
 ] extends [never]
   ? never
   : SchemaInput<ChronoFieldSchema<Env, 'revlog'>>
 
-export type ChronoProjection<Env extends BlankChronoEnv = BlankChronoEnv> =
+export type ChronoTimeNormalizer<Env extends BlankChronoEnv = BlankChronoEnv> =
   StandardSchemaV1<
-    ChronoProjectionInput<
+    ChronoTimeNormalizerInput<
       SchemaOutput<Env['time']>,
-      ChronoProjectedCard<Env>,
-      ChronoProjectedRevlog<Env>
+      ChronoNormalizerCardInput<Env>,
+      ChronoNormalizerRevlogInput<Env>
     >,
-    ChronoTimeProjection<SchemaOutput<Env['time']>>
+    ChronoNormalizedTime<SchemaOutput<Env['time']>>
   >
 
-type ChronoProjectionRuntimeEnv = {
+type ChronoTimeNormalizerRuntimeEnv = {
   readonly time: StandardSchemaV1<unknown, unknown>
   readonly fields: {
     readonly card: StandardSchemaV1<unknown, object>
@@ -132,8 +135,8 @@ type ChronoProjectionRuntimeEnv = {
   }
 }
 
-export type ChronoProjectionRuntimeSchema =
-  ChronoProjection<ChronoProjectionRuntimeEnv>
+export type ChronoTimeNormalizerRuntimeSchema =
+  ChronoTimeNormalizer<ChronoTimeNormalizerRuntimeEnv>
 
 // ==========
 // Chrono
@@ -146,10 +149,10 @@ export interface ChronoDefaultCtx<
   readonly config: Readonly<Config>
   /** Due time being written: the next one for cards, the pre-review one for revlogs. */
   readonly time: Value
-  /** Cards receive one event time, null when none precedes; revlogs receive a projection whose `current` is that event time. */
+  /** Cards store the time of the previous event, or null if there is no previous event; revlogs receive normalized times where `current` is the time at that event. */
   readonly previous?: Key extends 'card'
     ? Value | null
-    : Readonly<ChronoTimeProjection<Value>>
+    : Readonly<ChronoNormalizedTime<Value>>
 }
 
 export type ChronoDefaultRuntimeFn = (
@@ -200,7 +203,7 @@ export type ChronoCreate<Env extends BlankChronoEnv = BlankChronoEnv> = [
 
 export interface Chrono<Env extends BlankChronoEnv = BlankChronoEnv> {
   readonly schema: ChronoSchema<Env>
-  readonly projection: ChronoProjection<Env>
+  readonly normalize: ChronoTimeNormalizer<Env>
   readonly defaultValue: ChronoDefaultValue<Env>
   readonly create: ChronoCreate<Env>
 }

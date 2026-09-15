@@ -267,7 +267,7 @@ describe('SchedulerCore.newCard', () => {
     )
     const transformingChrono = defineChrono({
       schema: { time: timeSchema, card: cardSchema },
-      projection(value) {
+      normalize(value) {
         return {
           value: { previous: value.time, current: value.time },
         }
@@ -712,11 +712,11 @@ describe('SchedulerCore.review', () => {
     ).toThrow('Expected grade')
   })
 
-  it('throws chrono projection errors', () => {
+  it('throws chrono normalization errors', () => {
     const failingChrono = defineChrono({
       schema: { time: numberSchema },
-      projection() {
-        return { issues: [{ message: 'projection failed' }] }
+      normalize() {
+        return { issues: [{ message: 'normalization failed' }] }
       },
       create() {
         return {
@@ -735,7 +735,7 @@ describe('SchedulerCore.review', () => {
 
     expect(() =>
       failingCore.review({ card: card, grade: Rating.Good, now: 0 })
-    ).toThrow('projection failed')
+    ).toThrow('normalization failed')
   })
 
   it('uses middleware handlers to inject review result fields', () => {
@@ -752,7 +752,7 @@ describe('SchedulerCore.review', () => {
 })
 
 describe('SchedulerCore middleware handlers', () => {
-  it('records projected due dates without changing elapsed days in review, preview, and forward', () => {
+  it('records normalized due dates without changing elapsed days in review, preview, and forward', () => {
     const elapsedDays: number[] = []
     const elapsedMiddleware = defineMiddleware({
       name: Symbol('capture-elapsed-days'),
@@ -1314,7 +1314,7 @@ describe('SchedulerCore.forward', () => {
     )
     const transformingChrono = defineChrono({
       schema: { time: timeSchema },
-      projection(value) {
+      normalize(value) {
         return { value: { previous: 0, current: value.time } }
       },
       create() {
@@ -1748,7 +1748,7 @@ describe('SchedulerCore.rollback', () => {
     expect(restored).toEqual(card)
   })
 
-  it('restores non-new chrono card fields from revlog projection', () => {
+  it('restores non-new chrono card fields from normalized revlog times', () => {
     const dateCore = defineScheduler({
       model: SM2Model,
       chrono: dateChrono,
@@ -1796,7 +1796,7 @@ describe('SchedulerCore.rollback', () => {
           }
         : { issues: [{ message: 'Expected optional number fields' }] }
     )
-    const projectionSchema = defineSchema<
+    const timeNormalizer = defineSchema<
       | { readonly card: { readonly previous: number }; readonly time: number }
       | {
           readonly revlog: {
@@ -1807,7 +1807,9 @@ describe('SchedulerCore.rollback', () => {
       { readonly previous: number; readonly current: number }
     >((value) => {
       if (!isObject(value)) {
-        return { issues: [{ message: 'Expected optional projection input' }] }
+        return {
+          issues: [{ message: 'Expected optional normalization input' }],
+        }
       }
       if ('card' in value) {
         const time = typeof value.time === 'number' ? value.time : 0
@@ -1822,7 +1824,7 @@ describe('SchedulerCore.rollback', () => {
         revlog: optionalNumberFields,
         time: numberSchema,
       },
-      projection: projectionSchema,
+      normalize: timeNormalizer,
       create() {
         return {
           now: () => 0,
