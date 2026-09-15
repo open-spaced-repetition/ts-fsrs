@@ -19,11 +19,12 @@ function createItem() {
   ])
 }
 
-function createTrainingItems() {
+function createTrainingItems(modelVersion?: 'FSRS-6' | 'FSRS-7') {
   return convertCsvToFsrsItems(
     fs.readFileSync(new URL('./revlog.csv', import.meta.url)),
     4,
-    'Asia/Shanghai'
+    'Asia/Shanghai',
+    modelVersion
   )
 }
 
@@ -70,7 +71,7 @@ describeThreadless('threadless WASI binding', () => {
             const updatesAtCompletion = updates.length
             await new Promise((resolve) => setTimeout(resolve, 50))
 
-            if (parameters.length !== 21) {
+            if (parameters.length !== 34) {
               throw new Error('CommonJS computeParameters returned invalid parameters')
             }
             if (updates.length < 2) {
@@ -107,7 +108,7 @@ describeThreadless('threadless WASI binding', () => {
     expect(result).toBeInstanceOf(Promise)
 
     const parameters = await result
-    expect(parameters).toHaveLength(21)
+    expect(parameters).toHaveLength(34)
   })
 
   test('evaluates time-series splits without progress', async () => {
@@ -125,28 +126,43 @@ describeThreadless('threadless WASI binding', () => {
     )
   })
 
-  test('reports training progress', async () => {
+  test.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('reports %s training progress', async (modelVersion) => {
     const updates: Array<[number, number]> = []
-    const parameters = await computeParameters(createTrainingItems(), {
-      enableShortTerm: true,
-      progress: (current, total) => {
-        updates.push([current, total])
-      },
-    })
+    const parameters = await computeParameters(
+      createTrainingItems(modelVersion),
+      {
+        enableShortTerm: true,
+        modelVersion,
+        progress: (current, total) => {
+          updates.push([current, total])
+        },
+      }
+    )
 
-    expect(parameters).toHaveLength(21)
+    expect(parameters).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
+    expect(parameters.every(Number.isFinite)).toBe(true)
     expect(updates.length).toBeGreaterThan(1)
     expect(updates.at(-1)?.[0]).toBe(updates.at(-1)?.[1])
   })
 
-  test('reports each time-series split', async () => {
+  test.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('reports each %s time-series split', async (modelVersion) => {
     const updates: Array<[number, number]> = []
-    const metrics = await evaluateWithTimeSeriesSplits(createTrainingItems(), {
-      enableShortTerm: true,
-      progress: (current, total) => {
-        updates.push([current, total])
-      },
-    })
+    const metrics = await evaluateWithTimeSeriesSplits(
+      createTrainingItems(modelVersion),
+      {
+        enableShortTerm: true,
+        modelVersion,
+        progress: (current, total) => {
+          updates.push([current, total])
+        },
+      }
+    )
 
     expect(metrics).toEqual(
       expect.objectContaining({
@@ -163,10 +179,14 @@ describeThreadless('threadless WASI binding', () => {
     ])
   })
 
-  test('progress can stop training', async () => {
+  test.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('progress can stop %s training', async (modelVersion) => {
     await expect(
-      computeParameters(createTrainingItems(), {
+      computeParameters(createTrainingItems(modelVersion), {
         enableShortTerm: true,
+        modelVersion,
         progress: () => false,
       })
     ).rejects.toThrow('compute_parameters failed')

@@ -40,10 +40,12 @@ import {
 } from '@open-spaced-repetition/binding'
 
 const csvBuffer = readFileSync('./revlog.csv')
-const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const modelVersion = 'FSRS-7' // 'FSRS-7' (default) or 'FSRS-6'
+const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', modelVersion)
 
 const parameters = await computeParameters(items, {
   enableShortTerm: true,
+  modelVersion,
   numRelearningSteps: 1,
   timeout: 500,
   progress: (current, total) => {
@@ -53,6 +55,8 @@ const parameters = await computeParameters(items, {
 
 console.log(parameters)
 ```
+
+Pass the same `modelVersion` to `convertCsvToFsrsItems(data, nextDayStartsAt, timezoneOrOffset, modelVersion)` and `computeParameters`. The default is FSRS7, using fractional study days normalized by each study day’s actual duration between local rollover boundaries (including DST). Select FSRS6 explicitly to use whole study days.
 
 When using the threadless `wasm32-wasip1` package, `computeParameters` and `evaluateWithTimeSeriesSplits` run synchronously on the current worker and wrap the completed result in a `Promise` for API compatibility. In browser applications, call these methods from a dedicated Worker so the main thread stays responsive. Progress callbacks are supported; return `false` to stop the operation.
 
