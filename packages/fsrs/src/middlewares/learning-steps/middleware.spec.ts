@@ -98,7 +98,7 @@ describe('schedulerLearningStepsMiddleware integration', () => {
           const memoryState = { ...ctx.candidate.step(Rating.Easy) }
           interval = ctx.candidate.nextInterval(
             memoryState,
-            ctx.desiredRetention
+            ctx.candidate.desiredRetention[Rating.Easy]
           )
           next()
         },

@@ -1,6 +1,8 @@
 import {
   defineMiddleware,
+  desiredRetentionSchema,
   type Grade,
+  parse,
   Rating,
 } from '@open-spaced-repetition/srs-kit'
 import { calculateScheduleDay, type IntervalCandidates } from './core.js'
@@ -18,7 +20,7 @@ export const schedulerMonotonicIntervalMiddleware = defineMiddleware({
       const interval = (rating: Grade): number =>
         ctx.candidate.nextInterval(
           ctx.candidate.step(rating),
-          ctx.desiredRetention
+          parse(desiredRetentionSchema, ctx.candidate.desiredRetention[rating])
         )
       const schedule = (...candidates: IntervalCandidates): number =>
         calculateScheduleDay(candidates, ctx.config.maximumInterval)
