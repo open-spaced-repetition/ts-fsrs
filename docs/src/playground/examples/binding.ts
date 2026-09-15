@@ -9,7 +9,7 @@ if (!response.ok) throw new Error(`revlog.csv: ${response.status}`)
 if (!response.body) throw new Error('revlog.csv: empty response body')
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-const items = await convertCsvToFsrsItems(response.body, 4, timezone)
+const items = await convertCsvToFsrsItems(response.body, 4, timezone, 'FSRS-6')
 console.log('Downloaded revlog.csv.')
 console.log(`Optimising ${items.length} reviews (${timezone})…`)
 
@@ -20,6 +20,7 @@ const STEP_PERCENT = 10
 let reportedStep = -1
 const weights = await computeParameters(items, {
   enableShortTerm: true,
+  modelVersion: 'FSRS-6',
   progress(current, total) {
     const step = Math.floor((current / total) * (100 / STEP_PERCENT))
     if (step === reportedStep) return

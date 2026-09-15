@@ -29,15 +29,13 @@ impl FSRS {
   // allow users to create FSRS with custom parameters
   #[napi(constructor)]
   pub fn new(#[napi(ts_arg_type = "number[]")] parameters: Option<Vec<f64>>) -> Result<Self> {
-    let fsrs = match parameters {
-      Some(p) if !p.is_empty() => {
-        let params: Vec<f32> = p.iter().map(|&x| x as f32).collect();
-        fsrs::FSRS::new(&params)
-          .map_err(|e| napi::Error::from_reason(format!("Failed to create FSRS: {}", e)))?
-      }
-      _ => fsrs::FSRS::default(),
+    let params = match parameters {
+      Some(p) if !p.is_empty() => p.into_iter().map(|x| x as f32).collect(),
+      _ => fsrs::DEFAULT_PARAMETERS.to_vec(),
     };
-    Ok(Self { inner: fsrs })
+    let inner = fsrs::FSRS::new(&params)
+      .map_err(|e| napi::Error::from_reason(format!("Failed to create FSRS: {}", e)))?;
+    Ok(Self { inner })
   }
 
   #[napi]
@@ -45,15 +43,22 @@ impl FSRS {
     &self,
     current_memory_state: Option<&MemoryState>,
     desired_retention: f64,
-    days_elapsed: u32,
+    days_elapsed: f64,
   ) -> Result<NextStates> {
-    self
-      .inner
-      .next_states(
-        current_memory_state.map(|x| x.inner),
+    let memory_state = current_memory_state.map(|x| x.inner);
+    let result = match self.inner.version() {
+      fsrs::ModelVersion::Fsrs7 => self.inner.next_states_with_elapsed_days(
+        memory_state,
         desired_retention as f32,
-        days_elapsed,
-      )
+        days_elapsed as f32,
+      ),
+      fsrs::ModelVersion::Fsrs6 => {
+        self
+          .inner
+          .next_states(memory_state, desired_retention as f32, days_elapsed as u32)
+      }
+    };
+    result
       .map(|inner| NextStates { inner })
       .map_err(|e| napi::Error::from_reason(format!("Failed to get next states: {}", e)))
   }
@@ -96,7 +101,7 @@ impl FSRS {
 
     let params: Vec<f32> = match parameter {
       Some(p) if !p.is_empty() => p.iter().map(|&x| x as f32).collect(),
-      _ => fsrs::DEFAULT_PARAMETERS.clone().to_vec(),
+      _ => fsrs::DEFAULT_PARAMETERS.to_vec(),
     };
 
     let result = self.inner.universal_metrics(items, &params, |_| true);
