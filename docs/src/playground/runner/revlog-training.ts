@@ -5,6 +5,7 @@ import {
 
 export type RevlogTrainingOptions = {
   readonly enableShortTerm: boolean
+  readonly modelVersion?: 'FSRS-6' | 'FSRS-7'
   readonly nextDayStartsAt: number
   readonly timezone: string
   readonly onProgress?: (current: number, total: number) => void
@@ -23,18 +24,20 @@ export async function trainRevlogCsv(
     new TextEncoder().encode(csvText),
     options.nextDayStartsAt,
     options.timezone,
-    'FSRS-6'
+    options.modelVersion
   )
   if (items.length === 0) {
     throw new Error(
-      'No valid review was found. Each card needs an initial New/Learning review and a later review on another day.'
+      options.modelVersion !== 'FSRS-6'
+        ? 'No valid review was found. Each card needs an initial New/Learning review and a later review at a different timestamp.'
+        : 'No valid review was found. Each card needs an initial New/Learning review and a later review on another day.'
     )
   }
 
   let reportedPercent = -1
   const weights = await computeParameters(items, {
     enableShortTerm: options.enableShortTerm,
-    modelVersion: 'FSRS-6',
+    modelVersion: options.modelVersion,
     progress(current, total) {
       const percent = Math.floor((current / total) * 100)
       if (percent === reportedPercent && current !== total) return

@@ -186,6 +186,7 @@ describe('playground runner lifecycle', () => {
     const training = trainRevlogCsvInPlaygroundWorker({
       csvText: 'card_id,review_time,review_rating,review_state,review_duration',
       enableShortTerm: false,
+      modelVersion: 'FSRS-7',
       nextDayStartsAt: 23,
       onProgress: progress,
       timezone: 'Asia/Tokyo',
@@ -196,6 +197,7 @@ describe('playground runner lifecycle', () => {
     expect(request).toMatchObject({
       csvText: 'card_id,review_time,review_rating,review_state,review_duration',
       enableShortTerm: false,
+      modelVersion: 'FSRS-7',
       nextDayStartsAt: 23,
       timezone: 'Asia/Tokyo',
       type: 'train-csv',

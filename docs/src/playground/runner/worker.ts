@@ -142,6 +142,7 @@ async function handleTraining(request: CsvTrainingRequest): Promise<void> {
   try {
     const result = await trainRevlogCsv(request.csvText, {
       enableShortTerm: request.enableShortTerm,
+      modelVersion: request.modelVersion,
       nextDayStartsAt: request.nextDayStartsAt,
       onProgress(current, total) {
         workerScope.postMessage({
