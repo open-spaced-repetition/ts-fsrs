@@ -13,7 +13,7 @@ export const schedulerMonotonicIntervalMiddleware = defineMiddleware({
     config: monotonicIntervalConfigSchema,
   },
   handlers: {
-    review(ctx, next) {
+    nextInterval(ctx, next) {
       const { grade } = ctx.input
       const interval = (rating: Grade): number =>
         ctx.candidate.nextInterval(
