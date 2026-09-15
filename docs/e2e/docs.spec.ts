@@ -86,6 +86,16 @@ for (const route of runCodeRoutes) {
       const snippet = id ? snippets.get(id) : undefined
       expect(snippet, `Unknown RunCode source id: ${id}`).toBeDefined()
 
+      if (snippet) {
+        const displayedSource = await runner
+          .locator('xpath=preceding-sibling::*[1]//code')
+          .first()
+          .innerText()
+        expect(displayedSource?.trimEnd()).toBe(
+          readFileSync(snippet.file, 'utf8').trimEnd()
+        )
+      }
+
       await runner.getByTestId('run-code-button').click()
       await expect(runner).toHaveAttribute(
         'data-run-code-status',
