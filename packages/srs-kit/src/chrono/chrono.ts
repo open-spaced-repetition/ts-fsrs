@@ -78,7 +78,10 @@ type ChronoSchemaFields<Env extends BlankChronoEnv> = ChronoPart<
 export interface ChronoNormalizedTime<Time> {
   /** Previous event time, or null when no previous event exists. */
   readonly previous: Time | null
-  /** Current entity time; Date/Temporal cards and revlogs normalize their due date. */
+  /**
+   * Normalized time value; Date/Temporal presets use the dueAt value
+   * stored on the card or revlog.
+   */
   readonly current: Time
 }
 
