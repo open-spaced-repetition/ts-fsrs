@@ -12,11 +12,11 @@ import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
 
 スケジューラーの config 直下に `fractionalDays` を指定します（デフォルトは `false`）。直接呼ぶ場合は `dateChrono.create({ config: { fractionalDays: false } })` とします。`false` では同じ UTC 日付内の差はゼロで、23:00 から翌日01:00 の差は1日です。`true` ではこの2時間は `2 / 24` 日になります。`add(from, 0.5)` は常に12時間を加算します。正確な前後比較には `compare` を使ってください。
 
-## projection とスケジューリング
+## normalize とスケジューリング
 
-projection は card または revlog のフィールドを `{ previous, current }` に変換します。Date と Temporal のプリセットでは、次のように使われます。
+normalize は card または revlog のフィールドを `{ previous, current }` に変換します。Date と Temporal のプリセットでは、次のように使われます。
 
-- 復習時の projection は `previous: card.lastReviewAt` と `current: card.dueAt` を返します。
+- 復習時の normalize は `previous: card.lastReviewAt` と `current: card.dueAt` を返します。
 - 経過日数は `difference(previous ?? current, now)` です。New カードでは常にゼロです。
 - 新しい card は `dueAt: add(now, interval)` と `lastReviewAt: now` を保存します。
 - revlog は復習前の card の `dueAt`、`lastReviewAt` と、今回の `reviewTime: now` を保存します。
