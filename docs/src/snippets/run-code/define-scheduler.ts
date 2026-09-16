@@ -1,10 +1,14 @@
 import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
 
-const scheduler = defineScheduler({
+// Reuse this definition as the program's scheduling preset.
+const schedulerDefinition = defineScheduler({
   model: FSRS6Model,
   chrono: dateChrono,
-}).create({
+})
+
+// Create an independent scheduler when a user's config is available.
+const scheduler = schedulerDefinition.create({
   config: {
     weights: FSRS6_DEFAULT_WEIGHTS,
     enableShortTerm: true,
