@@ -158,7 +158,7 @@ export default function RevlogTrainer() {
       setState('training')
       const response = await trainRevlogCsvInPlaygroundWorker({
         csvText,
-        enableShortTerm,
+        enableShortTerm: modelVersion === 'FSRS-7' || enableShortTerm,
         modelVersion,
         nextDayStartsAt: config.nextDayStartsAt,
         onProgress({ current, total }) {
@@ -367,27 +367,29 @@ export default function RevlogTrainer() {
             ))}
           </select>
         </label>
-        <label
-          className={cn(
-            styles.field,
-            'min-h-9.5 grid-cols-[1fr_auto] items-center'
-          )}
-          htmlFor={enableShortTermId}
-        >
-          <span>{t('revlogTrainer.enableShortTerm')}</span>
-          <input
-            checked={enableShortTerm}
-            className={styles.checkbox}
-            data-testid="revlog-enable-short-term"
-            disabled={busy}
-            id={enableShortTermId}
-            onChange={(event) => {
-              setEnableShortTerm(event.currentTarget.checked)
-              clearOutput()
-            }}
-            type="checkbox"
-          />
-        </label>
+        {modelVersion === 'FSRS-6' && (
+          <label
+            className={cn(
+              styles.field,
+              'min-h-9.5 grid-cols-[1fr_auto] items-center'
+            )}
+            htmlFor={enableShortTermId}
+          >
+            <span>{t('revlogTrainer.enableShortTerm')}</span>
+            <input
+              checked={enableShortTerm}
+              className={styles.checkbox}
+              data-testid="revlog-enable-short-term"
+              disabled={busy}
+              id={enableShortTermId}
+              onChange={(event) => {
+                setEnableShortTerm(event.currentTarget.checked)
+                clearOutput()
+              }}
+              type="checkbox"
+            />
+          </label>
+        )}
       </div>
 
       <p className="mt-2.5 mb-0 text-xs text-muted">
@@ -397,7 +399,7 @@ export default function RevlogTrainer() {
               timezone: timezone || '—',
               nextDayStartsAt: String(nextDayStartsAt).padStart(2, '0'),
             })}{' '}
-        {t('revlogTrainer.enableShortTermHint')}
+        {modelVersion === 'FSRS-6' && t('revlogTrainer.enableShortTermHint')}
       </p>
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2.5 max-md:flex-col max-md:items-stretch">
