@@ -33,7 +33,7 @@ import defineSchedulerCode from '@/snippets/run-code/define-scheduler.ts?raw'
 
 需要選擇模型或時間系統，或自行組合 middleware 時，再使用 `defineScheduler`。它會建立可重複使用的 definition；`.create()` 會驗證設定並回傳獨立的排程器。
 
-`chrono` 定義時間的表示方式、在卡片與複習日誌中的儲存方式，以及如何參與排程計算，支援使用 JavaScript `Date`、Temporal 或數值表示時間。
+`chrono` 定義時間的表示方式、在卡片與複習日誌中的儲存方式，以及如何參與排程計算，支援使用 JavaScript `Date`、Temporal 或數值表示時間。 `chrono.normalize` 使用 `ChronoTimeNormalizer` schema，將卡片或複習日誌的時間欄位轉換為 `{ previous, current }`，供排程與撤銷使用。
 
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```

@@ -33,7 +33,7 @@ import defineSchedulerCode from '@/snippets/run-code/define-scheduler.ts?raw'
 
 需要选择模型或时间系统，或者自行组合 middleware 时，再使用 `defineScheduler`。它会创建可复用的 definition；`.create()` 会校验配置并返回独立的调度器。
 
-`chrono` 定义时间的表示方式、在卡片和复习日志中的存储方式，以及如何参与调度计算，支持使用 JavaScript `Date`、Temporal 或数值表示时间。
+`chrono` 定义时间的表示方式、在卡片和复习日志中的存储方式，以及如何参与调度计算，支持使用 JavaScript `Date`、Temporal 或数值表示时间。 `chrono.normalize` 使用 `ChronoTimeNormalizer` schema，将卡片或复习日志的时间字段转换为 `{ previous, current }`，供调度和撤销使用。
 
 ```ts twoslash file="../../snippets/run-code/define-scheduler.ts"
 ```
