@@ -13,7 +13,9 @@ description: defineChrono のリファレンス——スケジューラ向けの
 defineChrono(definition): Chrono
 ```
 
-定義には `schema`、`projection`、`defaultValue`、`create` ファクトリが含まれます。
+定義には `schema`、`normalize`、`defaultValue`、`create` ファクトリが含まれます。
+
+`normalize` は `ChronoTimeNormalizer` 型の Standard Schema で、`ChronoNormalizedTime<Time>`（`{ previous: Time | null, current: Time }`）を出力します。`defineChrono` には互換性のあるスキーマ、または `{ value }` / `{ issues }` を返す検証コールバックを渡せます。生成された定義ではスキーマとして公開されます。
 
 **実行時操作** — Chrono は、スケジューラが呼び出す時間関数を提供します：
 
@@ -26,4 +28,4 @@ defineChrono(definition): Chrono
 
 **プリセット** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets)。
 
-**参照** — [Chrono の概要](../../../guide/chrono)（projection と `defineChrono` の例）。
+**参照** — [Chrono の概要](../../../guide/chrono)（normalize と `defineChrono` の例）。

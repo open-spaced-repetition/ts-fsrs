@@ -13,7 +13,9 @@ description: defineChrono 的參考——為排程器定義自訂時間抽象
 defineChrono(definition): Chrono
 ```
 
-該定義攜帶 `schema`、`projection`、`defaultValue` 與 `create` 工廠。
+該定義攜帶 `schema`、`normalize`、`defaultValue` 與 `create` 工廠。
+
+`normalize` 是一個 `ChronoTimeNormalizer` Standard Schema，輸出 `ChronoNormalizedTime<Time>`（`{ previous: Time | null, current: Time }`）。向 `defineChrono` 傳入相容的 schema，或回傳 `{ value }` / `{ issues }` 的驗證回呼；產生的定義將其提供為 schema。
 
 **執行時期運算** — Chrono 提供排程器呼叫的時間函式：
 
@@ -26,4 +28,4 @@ defineChrono(definition): Chrono
 
 **預設** — [`dateChrono`、`numericChrono`、`temporalInstantChrono`](../chrono-presets)。
 
-**另見** — [Chrono 指南](../../../guide/chrono)（projection 與 `defineChrono` 範例）。
+**另見** — [Chrono 指南](../../../guide/chrono)（normalize 與 `defineChrono` 範例）。
