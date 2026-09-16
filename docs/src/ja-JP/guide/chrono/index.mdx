@@ -1,6 +1,6 @@
 ---
 title: Chrono の概要
-description: ts-fsrs の時間表現を選び、projection と日数演算を理解し、defineChrono で dateChrono をカスタマイズする
+description: ts-fsrs の時間表現を選び、normalize と日数演算を理解し、defineChrono で dateChrono をカスタマイズする
 ---
 
 import RunCode from '../../../components/RunCode'
@@ -24,7 +24,7 @@ Chrono は、スケジューラーが時間をどう表現し、経過日数と�
 
 ## 定義と実行時の操作
 
-`Chrono` の定義には `schema`、`projection`、`defaultValue`、`create` が含まれます。定義を `defineScheduler({ model, chrono })` に渡します。時間演算だけを使いたい場合は、定義の `create({ config })` を呼び出してください。設定済みの実行時オブジェクトには `scheduler.chrono` からもアクセスできます。
+`Chrono` の定義には `schema`、`normalize`、`defaultValue`、`create` が含まれます。定義を `defineScheduler({ model, chrono })` に渡します。時間演算だけを使いたい場合は、定義の `create({ config })` を呼び出してください。設定済みの実行時オブジェクトには `scheduler.chrono` からもアクセスできます。
 
 Date と Temporal の `create({ config })` には完全な設定を渡してください。引数なしの `create()` は Numeric など設定が不要なプリセットで使えます。スケジューラーの生成時には設定の検証と schema のデフォルト値の補完が行われます。
 
@@ -35,17 +35,19 @@ Date と Temporal の `create({ config })` には完全な設定を渡してく�
 | `add(from, days)` | 最終的な日数間隔を次の復習日時に変換します。 |
 | `compare(left, right)` | 正確な前後関係を負数・ゼロ・正数で返す任意の操作です。Date と Temporal のプリセットで利用できます。 |
 
-## projection の役割
+## normalize の役割
 
-`projection` は Chrono 固有の時刻フィールドを `{ previous, current }` に変換します。これにより、スケジューラーは card や revlog のフィールド名を知らなくても、経過日数の計算やロールバック時の時刻フィールドの復元ができます。復習時には `{ card, time: now }`（card フィールドを持たない Chrono では `{ time }` のみ）、ロールバック時には `{ revlog }` を受け取ります。
+`normalize` は `ChronoTimeNormalizer` 型の Standard Schema で、出力型は `ChronoNormalizedTime<Time>`（`{ previous: Time | null, current: Time }`）です。`defineChrono` は互換性のあるスキーマ、または `{ value }` か `{ issues }` を返す検証コールバックを受け取ります。`previous: null` は前回のイベントがないことを表します。
+
+`normalize` は Chrono 固有の時刻フィールドを `{ previous, current }` に変換します。これにより、スケジューラーは card や revlog のフィールド名を知らなくても、経過日数の計算やロールバック時の時刻フィールドの復元ができます。復習時には `{ card, time: now }`（card フィールドを持たない Chrono では `{ time }` のみ）、ロールバック時には `{ revlog }` を受け取ります。
 
 Date と Temporal では、`previous` は `lastReviewAt`、`current` は `dueAt` であり、今回の復習時刻 `now` ではありません。Numeric は時刻フィールドを保存せず、`{ previous: 0, current: time }` を返します。具体的な対応は Chrono の実装が決めます。復習とロールバックの流れは [Date](./date) を参照してください。
 
-`projection` は時刻表現を読み取り、`defaultValue` はスケジューラーが渡す時刻値を具体的な card と revlog のフィールドに書き戻します。この組み合わせにより、スケジューラーを保存先のフィールド名から切り離せます。
+`normalize` は時刻表現を読み取り、`defaultValue` はスケジューラーが渡す時刻値を具体的な card と revlog のフィールドに書き戻します。この組み合わせにより、スケジューラーを保存先のフィールド名から切り離せます。
 
 ## defineChrono で経過日数をカスタマイズする
 
-以下の例は Date プリセットの schema、projection、デフォルト値、正確な時刻比較をそのまま使い、経過時間だけを24時間単位の小数日数に変更します。これらを再利用することで、入力検証と card/revlog のフィールドの整合性を保てます。保存するフィールドを変える場合は、対応する schema、復習とロールバックの projection、デフォルト値をまとめて定義してください。
+以下の例は Date プリセットの schema、normalize、デフォルト値、正確な時刻比較をそのまま使い、経過時間だけを24時間単位の小数日数に変更します。これらを再利用することで、入力検証と card/revlog のフィールドの整合性を保てます。保存するフィールドを変える場合は、対応する schema、復習とロールバックの normalize、デフォルト値をまとめて定義してください。
 
 小数日数だけが必要なら、組み込みの `dateChrono.create({ config: { fractionalDays: true } })` で対応できます。以下は `defineChrono` で操作を上書きする方法を示す例です。
 

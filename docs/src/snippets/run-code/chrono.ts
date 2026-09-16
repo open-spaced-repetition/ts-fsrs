@@ -2,10 +2,10 @@ import { dateChrono, defineChrono } from 'ts-fsrs'
 
 const millisecondsPerDay = 86_400_000
 
-// Keep Date validation, card/revlog fields, and projection from the preset.
+// Keep Date validation, card/revlog fields, and time normalization from the preset.
 const fractionalDateChrono = defineChrono({
   schema: dateChrono.schema,
-  projection: dateChrono.projection,
+  normalize: dateChrono.normalize,
   defaultValue: dateChrono.defaultValue,
   create(ctx) {
     return {
