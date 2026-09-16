@@ -2,6 +2,21 @@ import { expect, test } from '@playwright/test'
 
 test.use({ timezoneId: 'UTC' })
 
+test('short-term training is configurable only for FSRS6', async ({ page }) => {
+  await page.goto('/playground')
+  const model = page.getByTestId('revlog-model-version')
+  const shortTerm = page.getByTestId('revlog-enable-short-term')
+  await expect(model).toHaveValue('FSRS-7')
+  await expect(shortTerm).toHaveCount(0)
+  await model.selectOption('FSRS-6')
+  await expect(shortTerm).toBeChecked()
+  await shortTerm.uncheck()
+  await model.selectOption('FSRS-7')
+  await expect(shortTerm).toHaveCount(0)
+  await model.selectOption('FSRS-6')
+  await expect(shortTerm).not.toBeChecked()
+})
+
 for (const modelVersion of ['FSRS-6', 'FSRS-7'] as const) {
   test(`RevlogTrainer trains ${modelVersion} in its WASI Worker`, async ({
     page,
