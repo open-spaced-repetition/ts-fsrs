@@ -13,7 +13,7 @@ description: 从 ts-fsrs 根入口导出的类型参考
 | --- | --- |
 | 调度器 | 调度器卡片、复习输入、复习日志与 `DefaultScheduler` 类型（`DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`）。 |
 | 模型 | 模型、模型核心、边界以及记忆状态 schema/状态类型。 |
-| Chrono | chrono 与 chrono-schema 类型。 |
+| Chrono | `Chrono`, `ChronoSchema`, `ChronoTimeNormalizer`, `ChronoTimeNormalizerInput`, `ChronoNormalizedTime`. |
 | 中间件 / schema | 中间件与对象 schema 类型。 |
 
 仅类型的导入不会添加运行时代码，因此使用 `import type` 是安全的。

@@ -13,7 +13,9 @@ description: Reference for defineChrono — define a custom time abstraction for
 defineChrono(definition): Chrono
 ```
 
-The definition carries `schema`, `projection`, `defaultValue`, and a `create` factory.
+The definition carries `schema`, `normalize`, `defaultValue`, and a `create` factory.
+
+`normalize` is a `ChronoTimeNormalizer` Standard Schema that produces `ChronoNormalizedTime<Time>` (`{ previous: Time | null, current: Time }`). Pass a compatible schema or a validation callback returning `{ value }` or `{ issues }` to `defineChrono`; the resulting definition exposes it as a schema.
 
 **Runtime operations** — a Chrono supplies the time functions a scheduler calls:
 
@@ -26,4 +28,4 @@ The definition carries `schema`, `projection`, `defaultValue`, and a `create` fa
 
 **Presets** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets).
 
-**See** — [Chrono guide](../../../guide/chrono) (projection and a `defineChrono` example).
+**See** — [Chrono guide](../../../guide/chrono) (normalize and a `defineChrono` example).
