@@ -5,6 +5,15 @@ import { clamp, roundTo } from '@/help.js'
 import { DR_MAX, DR_MIN, LOG_MIN_T, MIN_T } from './constants.js'
 import type { FSRS7State } from './schema.js'
 
+export interface CurveParameters {
+  fast: { decay: number; scale: number }
+  decay: number
+  scale: number
+  weight1: number
+  weight2: number
+  total: number
+}
+
 /** Dual-trace FSRS-7, ported from fsrs-rs model_v7.rs. Times are fractional days; callers validate inputs. */
 export class FSRS7Algorithm {
   private readonly logSMax: number
@@ -35,13 +44,18 @@ export class FSRS7Algorithm {
     return d
   }
 
-  private fast_component(t: number, s: number) {
+  private prepare_fast(s: number) {
     const w = this.weights
-    // Negative elapsed time would drive `base` below zero and make Math.pow return NaN.
-    const days = Math.max(t, 0)
     const decay = -clamp(w[23] * Math.pow(s, w[33] - 0.3), 0.01, 0.95)
     const factor = Math.exp(Math.min(Math.log(w[25]) / decay, 60)) - 1
     const scale = factor / s
+    return { decay, scale }
+  }
+
+  private fast_component(t: number, params: CurveParameters['fast']) {
+    // Negative elapsed time would drive `base` below zero and make Math.pow return NaN.
+    const days = Math.max(t, 0)
+    const { decay, scale } = params
     const base = 1 + scale * days
     return {
       recall: Math.pow(base, decay),
@@ -54,29 +68,35 @@ export class FSRS7Algorithm {
    * and the unnormalised weights mixing them.
    */
   curve(t: number, state: Readonly<FSRS7State>) {
+    return this.compute_curve(t, this.prepare_curve(state))
+  }
+
+  /** Clamp the state and prepare time-independent values once per curve or interval solve. */
+  private prepare_curve(state: Readonly<FSRS7State>): CurveParameters {
     const { sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax } =
       this.bounds
     const s = clamp(state.stability, sMin, sMax)
     const sFast = clamp(state.stabilityFast, stabilityFastMin, stabilityFastMax)
     const d = clamp(state.difficulty, dMin, dMax)
-    return this.compute_curve(t, s, sFast, d)
-  }
-
-  /** Computes the curve from memory values already clamped by the caller. */
-  private compute_curve(t: number, s: number, sFast: number, d: number) {
     const w = this.weights
-    const days = Math.max(t, 0)
-    const fast = this.fast_component(days, sFast)
+    const fast = this.prepare_fast(sFast)
     const decay = -clamp(w[24], 0.01, 0.95)
     const scale =
       ((Math.pow(w[26], 1 / decay) - 1) * Math.exp((d - 5) * (w[32] - 0.3))) / s
-    const base = 1 + scale * days
-    const slow = Math.pow(base, decay)
-    const derivative = decay * Math.pow(base, decay - 1) * scale
     const weight1 = w[27] * Math.pow(sFast, -w[29])
     const weight2 =
       w[28] * Math.pow(s, w[30]) * Math.exp((d - 5) * (w[31] - 0.5))
     const total = weight1 + weight2
+    return { fast, decay, scale, weight1, weight2, total }
+  }
+
+  private compute_curve(t: number, params: CurveParameters) {
+    const { decay, scale, weight1, weight2, total } = params
+    const days = Math.max(t, 0)
+    const fast = this.fast_component(days, params.fast)
+    const base = 1 + scale * days
+    const slow = Math.pow(base, decay)
+    const derivative = decay * Math.pow(base, decay - 1) * scale
     return {
       retrievability:
         ((weight1 * fast.recall + weight2 * slow) / total) * (1 - 2e-5) + 1e-5,
@@ -92,8 +112,7 @@ export class FSRS7Algorithm {
 
   /** Raw fractional days for retention in (0,1); rates >= 0.9999 yield zero. */
   next_interval(state: Readonly<FSRS7State>, desiredRetention: number): number {
-    const { sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax } =
-      this.bounds
+    const { sMin, sMax, stabilityFastMin, stabilityFastMax } = this.bounds
     if (
       !Number.isFinite(desiredRetention) ||
       desiredRetention <= 0 ||
@@ -108,13 +127,13 @@ export class FSRS7Algorithm {
 
     const s = clamp(state.stability, sMin, sMax)
     const sFast = clamp(state.stabilityFast, stabilityFastMin, stabilityFastMax)
-    const d = clamp(state.difficulty, dMin, dMax)
     const maxStability = Math.max(s, sFast)
+    const params = this.prepare_curve(state)
     let logT = Math.log(maxStability)
     for (let i = 0; i < 7; i++) {
       logT = clamp(logT, LOG_MIN_T, this.logSMax)
       const t = clamp(Math.exp(logT), MIN_T, sMax)
-      const { retrievability, derivative } = this.compute_curve(t, s, sFast, d)
+      const { retrievability, derivative } = this.compute_curve(t, params)
       logT -= clamp(
         (retrievability - target) / Math.min(derivative * t, -1e-12),
         -4,
@@ -124,9 +143,8 @@ export class FSRS7Algorithm {
     }
     const interval = clamp(Math.exp(logT), 0, sMax)
     if (
-      Math.abs(
-        this.compute_curve(interval, s, sFast, d).retrievability - target
-      ) <= 1e-3
+      Math.abs(this.compute_curve(interval, params).retrievability - target) <=
+      1e-3
     )
       return interval
 
@@ -134,15 +152,14 @@ export class FSRS7Algorithm {
     let low = 0
     let high = Math.min(Math.max(maxStability, 1), sMax)
     while (
-      this.compute_curve(high, s, sFast, d).retrievability > target &&
+      this.compute_curve(high, params).retrievability > target &&
       high < sMax
     ) {
       high = Math.min(high * 2, sMax)
     }
     for (let i = 0; i < 50; i++) {
       const mid = (low + high) / 2
-      if (this.compute_curve(mid, s, sFast, d).retrievability > target)
-        low = mid
+      if (this.compute_curve(mid, params).retrievability > target) low = mid
       else high = mid
     }
     return (low + high) / 2
@@ -238,12 +255,12 @@ export class FSRS7Algorithm {
     const d = clamp(state.difficulty, dMin, dMax)
     const r =
       retrievability ??
-      this.compute_curve(elapsedDays, s, sFast, d).retrievability
+      this.compute_curve(elapsedDays, this.prepare_curve(state)).retrievability
     const stability = this.next_stability(s, d, r, grade, 7)
     let stabilityFast = this.next_stability(
       sFast,
       d,
-      this.fast_component(elapsedDays, sFast).recall,
+      this.fast_component(elapsedDays, this.prepare_fast(sFast)).recall,
       grade,
       15
     )
