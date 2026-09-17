@@ -7,6 +7,15 @@ import { isNumberArray } from '@/kit/schema-utils.js'
 import type { FSRSState } from '@/kit/types.js'
 import { FSRS7_DEFAULT_WEIGHTS } from './constants.js'
 
+export const decaySchema = defineSchema<number>((value) => {
+  if (isFiniteNumber(value) && value >= 0.01 && value <= 0.95) {
+    return { value }
+  }
+  return {
+    issues: [{ message: 'Expected finite decay in the range [0.01, 0.95]' }],
+  }
+})
+
 export type FSRS7Config = { readonly weights: readonly number[] }
 
 export const fsrs7ConfigSchema = defineSchema<FSRS7Config>((value) => {

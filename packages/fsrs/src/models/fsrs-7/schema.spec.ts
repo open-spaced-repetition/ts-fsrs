@@ -3,7 +3,30 @@ import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it } from 'vitest'
 import { FSRS7_DEFAULT_WEIGHTS } from './constants.js'
 import { FSRS7Model } from './model.js'
-import { fsrs7ConfigSchema } from './schema.js'
+import { decaySchema, fsrs7ConfigSchema } from './schema.js'
+
+describe('decaySchema', () => {
+  it('accepts finite numbers within inclusive bounds without coercion', () => {
+    for (const value of [0.01, 0.5, 0.95]) {
+      expect(decaySchema.parse(value)).toBe(value)
+    }
+    for (const value of [
+      0.01 - Number.EPSILON,
+      0.95 + Number.EPSILON,
+      -0.5,
+      NaN,
+      Infinity,
+      -Infinity,
+      '0.5',
+      null,
+      undefined,
+    ]) {
+      expect(() => decaySchema.parse(value)).toThrow(
+        'Expected finite decay in the range [0.01, 0.95]'
+      )
+    }
+  })
+})
 
 describe('fsrs7ConfigSchema', () => {
   it('accepts the 34 default weights', () => {
