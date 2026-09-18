@@ -272,8 +272,8 @@ describe('DefaultScheduler', () => {
 
     it('rejects unsupported FSRS versions clearly', async () => {
       await expect(
-        DefaultScheduler({ version: 'FSRS-7' as never })
-      ).rejects.toThrow('Unsupported FSRS version "FSRS-7"')
+        DefaultScheduler({ version: 'FSRS-X' as never })
+      ).rejects.toThrow('Unsupported FSRS version "FSRS-X"')
     })
   })
 
