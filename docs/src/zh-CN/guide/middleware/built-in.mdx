@@ -15,7 +15,7 @@ description: 了解 ts-fsrs 自带的中间件策略，以及 DefaultScheduler �
 | `schedulerMaximumIntervalMiddleware` | 将天级间隔限制在 `maximumInterval` 以内；调用链返回时，显式学习步骤可以覆盖这个上限。 |
 | `schedulerStatsMiddleware` | 维护 `reps` 与 `lapses`，由 `clearStatsOnForget` 决定重置时是否清空。Review 状态的卡片评为 Again 才计为一次遗忘。 |
 | `schedulerMonotonicIntervalMiddleware` | 在 `maximumInterval` 限制内调整不同评分的天级间隔顺序；达到上限时，间隔可以相同。 |
-| `schedulerScheduledDaysMiddleware` | 将最终间隔保存为卡片上非负的整天数 `scheduledDays`，并把原值写入 revlog。不足一天的步骤记为 `0`。 |
+| `schedulerScheduledDaysMiddleware` | 将最终间隔保存为卡片上非负的 `scheduledDays`，并把原值写入 revlog。默认 `fractionalDays: false` 时向下取整，不足一天的步骤记为 `0`；设为 `true` 时保留小数，例如 `0.5`。 |
 | `schedulerLeechMiddleware` | 遗忘次数每达到正数 `leechThreshold` 的整数倍时，将 `scheduleStatus` 设为 `suspended`。默认阈值 `0` 关闭此行为；应用选卡时需要自行遵守该状态。 |
 
 `DefaultScheduler` 已包含前七项，顺序为目标保留率 → 模糊间隔 → 统计 → scheduled days → 学习步骤 → 最大间隔 → 单调间隔。Leech 需要在自行组合定义时按需添加。顺序为何重要见[生命周期](./lifecycle)；中间件如何运行见[概览](./index)。
