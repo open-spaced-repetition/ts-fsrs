@@ -10,7 +10,7 @@ import presetCode from '@/snippets/run-code/chrono-date.ts?raw'
 
 `dateChrono` is the preset used by `DefaultScheduler`. Its time schema accepts valid `Date` objects, so convert stored strings or timestamps to `Date` before calling the scheduler. The current schema also rejects `new Date(0)` (the exact Unix epoch) and invalid dates.
 
-Configure Date with `fractionalDays` at the top level of the scheduler config (default `false`). Direct calls require `dateChrono.create({ config: { fractionalDays: false } })`. With `false`, two times on the same UTC date have a difference of zero, and 23:00 to 01:00 the next day gives one day. With `true`, that two-hour gap gives `2 / 24` days. `add(from, 0.5)` always adds twelve hours. Use `compare` for precise ordering.
+Configure Date with `fractionalDays` at the top level of the scheduler config (default `false`). Direct calls require `dateChrono.create({ config: { fractionalDays: false } })`. With `false`, two times which have the same UTC date have a difference of zero, and 23:00 to 01:00 the next day gives one day. With `true`, that two-hour gap gives `2 / 24` days. `add(from, 0.5)` always adds twelve hours. Use `compare` for precise ordering.
 
 ## How normalize participates in scheduling
 
