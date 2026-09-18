@@ -4,5 +4,11 @@
   "quick-start",
   "state-transitions",
   "llms",
-  { "type": "dir", "name": "model", "collapsible": true, "collapsed": true, "label": "模型" }
+  {
+    "type": "dir",
+    "name": "model",
+    "collapsible": true,
+    "collapsed": true,
+    "label": "模型"
+  }
 ]
