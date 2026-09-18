@@ -45,9 +45,9 @@ const SM2Model = defineModel({
       }
       // Again / Hard / Good / Easy -> SM-2 quality 2 / 3 / 4 / 5.
       const quality = rating + 1
-      const repetitions = rating > Rating.Again ? previous.repetitions + 1 : 1
+      const repetitions = rating > Rating.Again ? previous.repetitions + 1 : 0
       const interval = clamp(
-        repetitions === 1
+        repetitions <= 1
           ? w[0]
           : repetitions === 2
             ? w[1]
@@ -113,6 +113,9 @@ const states = model.forward({
     { rating: Rating.Good, deltaT: 0 },
     { rating: Rating.Good, deltaT: 1 },
     { rating: Rating.Good, deltaT: 6 },
+    { rating: Rating.Again, deltaT: 15 },
+    { rating: Rating.Good, deltaT: 1 },
+    { rating: Rating.Good, deltaT: 1 },
   ],
 })
-console.log(JSON.stringify(states, null, 2)) // Intervals: 1, 6, 15 days.
+console.log(JSON.stringify(states, null, 2)) // Intervals: 1, 6, 15, 1, 1, 6 days.
