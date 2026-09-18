@@ -1,6 +1,5 @@
 /// <reference lib="webworker" />
 
-import * as binding from '@open-spaced-repetition/binding-wasm32-wasip1'
 import * as tsFsrs from 'ts-fsrs'
 import * as tsFsrsMiddlewares from 'ts-fsrs/middlewares'
 import * as tsFsrsFsrs3 from 'ts-fsrs/models/fsrs-3'
@@ -19,7 +18,6 @@ import type {
   RunnerLogLevel,
   RunnerRequest,
 } from './protocol'
-import { trainRevlogCsv } from './revlog-training'
 
 type AsyncExecutor = (...values: unknown[]) => Promise<unknown>
 type AsyncFunctionConstructor = new (
@@ -32,11 +30,8 @@ const AsyncFunction = Object.getPrototypeOf(
 const workerScope = globalThis as unknown as DedicatedWorkerGlobalScope
 // Playground code imports the specifiers an application would install, and every
 // subpath the packages export is mapped, so anything the typed editor offers as
-// a completion also resolves when the code runs. The wasm32-wasip1 build backs
-// the binding because it is the artifact that runs in a browser Worker;
-// applications resolve their own platform build.
+// a completion also resolves when the code runs.
 const runtimeModules: Readonly<Record<string, unknown>> = {
-  '@open-spaced-repetition/binding': binding,
   'ts-fsrs': tsFsrs,
   'ts-fsrs/middlewares': tsFsrsMiddlewares,
   'ts-fsrs/models/fsrs-3': tsFsrsFsrs3,
@@ -47,8 +42,12 @@ const runtimeModules: Readonly<Record<string, unknown>> = {
   'ts-fsrs/reschedule': tsFsrsReschedule,
 }
 
-// Optional example dependencies are fetched only when code imports them.
+// Optional example dependencies are fetched only when code imports them. The
+// wasm32-wasip1 build backs the binding because it is the artifact that runs in
+// a browser Worker; applications resolve their own platform build.
 const lazyModules: Readonly<Record<string, () => Promise<unknown>>> = {
+  '@open-spaced-repetition/binding': () =>
+    import('@open-spaced-repetition/binding-wasm32-wasip1'),
   zod: () => import('zod'),
   'temporal-polyfill/global': () => import('temporal-polyfill/global'),
   'temporal-polyfill/types/global': () =>
@@ -62,9 +61,9 @@ const REQUIRE_CALL = /\brequire\(\s*["'`]([^"'`]+)["'`]\s*\)/g
 
 async function loadLazyModules(code: string): Promise<void> {
   for (const [, specifier] of code.matchAll(REQUIRE_CALL)) {
-    const load = lazyModules[specifier]
-    if (!load || loadedLazyModules.has(specifier)) continue
-    loadedLazyModules.set(specifier, await load())
+    if (!Object.hasOwn(lazyModules, specifier)) continue
+    if (loadedLazyModules.has(specifier)) continue
+    loadedLazyModules.set(specifier, await lazyModules[specifier]())
   }
 }
 
@@ -140,6 +139,7 @@ async function execute(request: CodeRunRequest): Promise<void> {
 async function handleTraining(request: CsvTrainingRequest): Promise<void> {
   const startedAt = performance.now()
   try {
+    const { trainRevlogCsv } = await import('./revlog-training')
     const result = await trainRevlogCsv(request.csvText, {
       enableShortTerm: request.enableShortTerm,
       nextDayStartsAt: request.nextDayStartsAt,
