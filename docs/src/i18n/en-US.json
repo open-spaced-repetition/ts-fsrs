@@ -122,7 +122,7 @@
   "revlogTrainer.schema.review_rating.type": "unsigned integer (1–4)",
   "revlogTrainer.schema.review_state.meaning": "State before the answer: 0 New, 1 Learning, 2 Review, or 3 Relearning. Retained history begins at the last New/Learning block.",
   "revlogTrainer.schema.review_state.type": "unsigned integer (0–3)",
-  "revlogTrainer.schema.review_time.meaning": "Unix timestamp in milliseconds. FSRS6 uses whole study days; FSRS7 uses fractional study days normalized by their actual lengths. Optimization needs some interday observations.",
+  "revlogTrainer.schema.review_time.meaning": "Unix timestamp in milliseconds. FSRS6 uses whole study days; FSRS7 uses fractional study days normalized to their actual lengths. Will need some interday data in order to optimize.",
   "revlogTrainer.schema.review_time.type": "signed 64-bit integer",
   "revlogTrainer.select": "Select revlog.csv",
   "revlogTrainer.selected": "Selected: {{name}}",
