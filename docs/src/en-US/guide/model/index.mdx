@@ -68,6 +68,8 @@ In the FSRS-6 config, `enableShortTerm` controls the model's same-day stability 
 
 `defineModel` preserves the concrete config, memory-state, and algorithm types while packaging schemas, defaults, and a model-core factory into one definition. It does not parse config by itself:
 
+The following example implements an [SM-2 variant](https://github.com/open-spaced-repetition/srs-benchmark/blob/main/models/sm2_trainable.py) to demonstrate how to define a model.
+
 ```ts twoslash fold height=420 file="../../../snippets/run-code/custom-model.ts"
 ```
 

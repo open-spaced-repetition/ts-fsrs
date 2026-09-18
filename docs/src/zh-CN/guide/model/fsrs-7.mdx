@@ -7,12 +7,6 @@ description: FSRS-7 双分量遗忘曲线、混合权重、稳定性与难度更
 
 FSRS-7 使用 34 个权重和两个记忆分量。记忆状态包含 `stability`（慢分量）、`stabilityFast`（快分量）和 `difficulty`。
 
-:::info 实现依据
-本页描述 `feat/fsrs7` 分支在 `9ed49104` 提交中的 ts-fsrs 实现。当前文档分支尚未包含该实现。截至 2026 年 9 月 11 日，上游 [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) 页面没有 FSRS-7 章节；下列公式依据链接中的实现整理，并非上游规范。
-
-[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
-:::
-
 ## 记忆状态与符号
 
 沿用[公共符号](./#公共符号)，以 `math:S_s` 表示 `stability`，`math:S_f` 表示 `stabilityFast`。两者单位均为天，但都不等于混合回忆概率降至 90% 时的间隔。难度同时影响慢分量曲线及其混合权重。
