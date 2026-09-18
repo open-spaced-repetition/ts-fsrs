@@ -53,10 +53,19 @@ function createReviewContext({
       grade,
       now,
     },
-    desiredRetention: 0.9,
     elapsedDays: 9,
     scheduledDays,
-    candidate: { step, findGrade: () => undefined, nextInterval },
+    candidate: {
+      desiredRetention: {
+        [Rating.Again]: 0.9,
+        [Rating.Hard]: 0.9,
+        [Rating.Good]: 0.9,
+        [Rating.Easy]: 0.9,
+      },
+      step,
+      findGrade: () => undefined,
+      nextInterval,
+    },
     result: { card: {}, revlog: {} },
   } as unknown as ReviewContext
   const next = vi.fn(() => {

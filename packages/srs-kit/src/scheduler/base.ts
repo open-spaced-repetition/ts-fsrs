@@ -7,7 +7,7 @@ import type {
   ReviewCandidateContext,
 } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
-import { type Grade, gradeSchema, grades } from '@/primitives/rating.js'
+import { type Grade, gradeSchema, grades, Rating } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
 import {
   parsedCardMemoryStateSymbol,
@@ -81,8 +81,8 @@ type NextIntervalMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   readonly input: {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
     readonly grade: Grade
+    readonly desiredRetention?: number
   }
-  desiredRetention: number
   readonly elapsedDays: number
   scheduledDays: number | undefined
   readonly candidate: ReviewCandidateContext
@@ -359,12 +359,12 @@ export class BaseScheduler<
       _memoryState,
       elapsedDays,
       undefined,
-      [grade, nextMemoryState]
+      [grade, nextMemoryState],
+      retention
     )
     const ctx: NextIntervalMiddlewareOperationContext<Env> = {
       config: this.config,
-      input: Object.freeze({ card, grade }),
-      desiredRetention: retention,
+      input: Object.freeze({ card, grade, desiredRetention: retention }),
       elapsedDays,
       scheduledDays: undefined,
       candidate,
@@ -373,7 +373,10 @@ export class BaseScheduler<
       const memoryState = ctx.candidate.step(ctx.input.grade)
       ctx.scheduledDays ??= ctx.candidate.nextInterval(
         memoryState,
-        parse(desiredRetentionSchema, ctx.desiredRetention)
+        parse(
+          desiredRetentionSchema,
+          ctx.candidate.desiredRetention[ctx.input.grade]
+        )
       )
     })
     return parse(scheduledDaysSchema, ctx.scheduledDays)
@@ -506,7 +509,8 @@ export class BaseScheduler<
     memoryState: Record<string, unknown>,
     elapsedDays: number,
     retrievability?: number,
-    initial?: readonly [Grade, Record<string, unknown>]
+    initial?: readonly [Grade, Record<string, unknown>],
+    desiredRetention = DEFAULT_DESIRED_RETENTION
   ): ReviewCandidateContext {
     const memoryStateByGrade = new Map<Grade, Record<string, unknown>>(
       initial ? [initial] : undefined
@@ -553,7 +557,17 @@ export class BaseScheduler<
       return value
     }
 
-    return { step, findGrade, nextInterval }
+    return {
+      desiredRetention: {
+        [Rating.Again]: desiredRetention,
+        [Rating.Hard]: desiredRetention,
+        [Rating.Good]: desiredRetention,
+        [Rating.Easy]: desiredRetention,
+      },
+      step,
+      findGrade,
+      nextInterval,
+    }
   }
 
   private runReview(
@@ -564,7 +578,6 @@ export class BaseScheduler<
     const ctx: ReviewMiddlewareOperationContext<Env> = {
       config: this.config,
       input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
-      desiredRetention: DEFAULT_DESIRED_RETENTION,
       elapsedDays: prepared.elapsedDays,
       scheduledDays: undefined,
       candidate: prepared.candidate,
@@ -575,7 +588,10 @@ export class BaseScheduler<
       const memoryState = ctx.candidate.step(ctx.input.grade)
       ctx.scheduledDays ??= ctx.candidate.nextInterval(
         memoryState,
-        parse(desiredRetentionSchema, ctx.desiredRetention)
+        parse(
+          desiredRetentionSchema,
+          ctx.candidate.desiredRetention[ctx.input.grade]
+        )
       )
       this.finalizeReview(prepared, ctx, memoryState)
     })

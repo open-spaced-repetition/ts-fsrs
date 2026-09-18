@@ -33,10 +33,16 @@ function reviewContext({
       grade,
       now: 0,
     },
-    desiredRetention: 0.9,
     elapsedDays: 1,
     scheduledDays: undefined,
     candidate: {
+      desiredRetention: {
+        [Rating.Again]: 0.9,
+        [Rating.Hard]: 0.9,
+        [Rating.Good]: 0.9,
+        [Rating.Easy]: 0.9,
+      },
+
       step: () => ({}),
       findGrade: () => undefined,
       nextInterval: () => 1,
