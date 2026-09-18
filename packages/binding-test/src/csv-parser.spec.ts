@@ -178,6 +178,62 @@ describe('CSV Parser', () => {
     }
   })
 
+  test.each([
+    0, 4, 23,
+  ])('skips nonexistent study days at rollover %s', async (rollover) => {
+    const hour = String(rollover).padStart(2, '0')
+    const data = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        `one,${Date.parse(`2011-12-29T${hour}:00:00-10:00`)},3,0,1000`,
+        `one,${Date.parse(`2011-12-31T${hour}:00:00+14:00`)},4,2,1000`,
+        `one,${Date.parse(`2011-12-31T${hour}:30:00+14:00`)},4,2,1000`,
+      ].join('\n')
+    )
+    const items = convertCsvToFsrsItems(
+      data,
+      rollover,
+      'Pacific/Apia',
+      'FSRS-7'
+    )
+    expect(items[0].current?.deltaT).toBe(1)
+    expect(items[1].current?.deltaT).toBeCloseTo(0.5 / 24, 7)
+    const streamed = await convertCsvToFsrsItems(
+      Readable.toWeb(Readable.from([data])) as ReadableStream<Uint8Array>,
+      rollover,
+      'Pacific/Apia',
+      'FSRS-7'
+    )
+    expect(streamed.map((item) => item.toString())).toEqual(
+      items.map((item) => item.toString())
+    )
+    expect(
+      convertCsvToFsrsItems(data, rollover, 'Pacific/Apia', 'FSRS-6')[0].current
+        ?.deltaT
+    ).toBe(2)
+  })
+
+  test.each([
+    ['2011-12-29T00:00:00-10:00', '2011-12-31T00:00:00+14:00', 0, 1],
+    ['2011-12-31T01:00:00+14:00', '2011-12-31T05:00:00+14:00', 4, 4 / 24],
+    ['2011-12-31T05:00:00+14:00', '2012-01-01T05:00:00+14:00', 4, 1],
+  ] as const)('handles transition range endpoints: %s', (start, end, rollover, expected) => {
+    const data = Buffer.from(
+      [
+        'card_id,review_time,review_rating,review_state,review_duration',
+        `one,${Date.parse(start)},3,0,1000`,
+        `one,${Date.parse(end)},4,2,1000`,
+      ].join('\n')
+    )
+    const items = convertCsvToFsrsItems(
+      data,
+      rollover,
+      'Pacific/Apia',
+      'FSRS-7'
+    )
+    expect(items[0].current?.deltaT).toBeCloseTo(expected, 7)
+  })
+
   test('FSRS6 should match the legacy converter count', () => {
     // TS version
     const tsItems = parseCSVToFSRSItems(testDataPath, nextDayStartsAt, timezone)

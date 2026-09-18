@@ -40,26 +40,78 @@ fn study_day_position(
   if !use_fractional_days {
     return Ok((date, 0.0));
   }
-  let boundary = |date: Date| {
-    timezone
-      .to_zoned(date.at(0, 0, 0, 0).checked_add(rollover)?)
-      .map(|zoned| zoned.timestamp().as_millisecond())
-  };
   loop {
-    let (start, end) = match boundaries.get(&date) {
-      Some(&value) => value,
-      None => {
-        let value = (boundary(date)?, boundary(date.tomorrow()?)?);
-        boundaries.insert(date, value);
-        value
-      }
-    };
+    let (start, end) = study_day_boundaries(date, next_day_starts_at, timezone, boundaries)?;
     if start <= timestamp && timestamp < end {
       return Ok((date, (timestamp - start) as f64 / (end - start) as f64));
     }
     // Correct dates whose rollover lies in a skipped or repeated local-time range.
     date = date.checked_add(jiff::Span::new().days(if timestamp < start { -1 } else { 1 }))?;
   }
+}
+
+fn study_day_boundaries(
+  date: Date,
+  next_day_starts_at: i64,
+  timezone: &TimezoneOffset,
+  boundaries: &mut HashMap<Date, (i64, i64)>,
+) -> std::result::Result<(i64, i64), jiff::Error> {
+  if let Some(&value) = boundaries.get(&date) {
+    return Ok(value);
+  }
+  let boundary = |date: Date| {
+    timezone
+      .to_zoned(
+        date
+          .at(0, 0, 0, 0)
+          .checked_add(SignedDuration::from_hours(next_day_starts_at))?,
+      )
+      .map(|zoned| zoned.timestamp().as_millisecond())
+  };
+  let value = (boundary(date)?, boundary(date.tomorrow()?)?);
+  boundaries.insert(date, value);
+  Ok(value)
+}
+
+fn skipped_study_dates(
+  first: i64,
+  last: i64,
+  next_day_starts_at: i64,
+  timezone: &TimezoneOffset,
+  boundaries: &mut HashMap<Date, (i64, i64)>,
+) -> std::result::Result<Vec<Date>, jiff::Error> {
+  let first = Timestamp::from_millisecond(first)?;
+  let last = Timestamp::from_millisecond(last)?;
+  let rollover = SignedDuration::from_hours(next_day_starts_at);
+  let mut dates = Vec::new();
+  // Include the transition at the last review, and the latest one before the
+  // first review: a skipped rollover can resolve to an instant after its jump.
+  for transition in timezone.preceding(last.saturating_add(SignedDuration::from_nanos(1))?) {
+    let at = transition.timestamp();
+    let before = timezone.to_offset(at.saturating_sub(SignedDuration::from_nanos(1))?);
+    if transition.offset().seconds() - before.seconds() >= 86_400 {
+      let start = before.to_datetime(at).checked_sub(rollover)?.date();
+      let end = transition
+        .offset()
+        .to_datetime(at)
+        .checked_sub(rollover)?
+        .date();
+      // Only inspect dates touched by a whole-day jump, never the review interval.
+      for day in 0..=(end - start).get_days() {
+        let date = start.checked_add(jiff::Span::new().days(day))?;
+        let (start, end) = study_day_boundaries(date, next_day_starts_at, timezone, boundaries)?;
+        if start == end {
+          dates.push(date);
+        }
+      }
+    }
+    if at < first {
+      break;
+    }
+  }
+  dates.sort_unstable();
+  dates.dedup();
+  Ok(dates)
 }
 
 fn remove_revlog_before_last_first_learn(entries: Vec<RevlogEntry>) -> Vec<RevlogEntry> {
@@ -89,10 +141,11 @@ fn convert_to_fsrs_items_internal(
   timezone_offset: &TimezoneOffset,
   use_fractional_days: bool,
   boundaries: &mut HashMap<Date, (i64, i64)>,
+  skipped_dates: &[Date],
 ) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
 
-  let mut position = |timestamp| {
+  let position = |timestamp, boundaries: &mut HashMap<Date, (i64, i64)>| {
     study_day_position(
       timestamp,
       next_day_starts_at,
@@ -103,11 +156,13 @@ fn convert_to_fsrs_items_internal(
     .map_err(|e| napi::Error::from_reason(format!("Invalid study-day timestamp: {}", e)))
   };
   if let Some(first) = entries.first() {
-    let mut previous = position(first.review_time)?;
+    let mut previous = position(first.review_time, boundaries)?;
     for item in entries.iter_mut().skip(1) {
-      let current = position(item.review_time)?;
-      item.last_interval =
-        ((current.0 - previous.0).get_days() as f64 + current.1 - previous.1) as f32;
+      let current = position(item.review_time, boundaries)?;
+      let skipped = skipped_dates.partition_point(|&date| date < current.0)
+        - skipped_dates.partition_point(|&date| date < previous.0);
+      let days = (current.0 - previous.0).get_days() as f64 - skipped as f64;
+      item.last_interval = (days + current.1 - previous.1) as f32;
       previous = current;
     }
   }
@@ -157,6 +212,27 @@ pub(crate) fn convert_csv_bytes(
   // A conversion shares one timezone and rollover, so each date has one pair of boundaries.
   let mut boundaries = HashMap::new();
 
+  let skipped_dates = if use_fractional_days {
+    match revlogs
+      .iter()
+      .map(|entry| entry.review_time)
+      .minmax()
+      .into_option()
+    {
+      Some((first, last)) => skipped_study_dates(
+        first,
+        last,
+        next_day_starts_at,
+        timezone_offset,
+        &mut boundaries,
+      )
+      .map_err(|e| napi::Error::from_reason(format!("Invalid study-day timestamp: {}", e)))?,
+      None => Vec::new(),
+    }
+  } else {
+    Vec::new()
+  };
+
   // Group by card_id while maintaining time order
   let mut revlogs = revlogs
     .into_iter()
@@ -169,6 +245,7 @@ pub(crate) fn convert_csv_bytes(
         timezone_offset,
         use_fractional_days,
         &mut boundaries,
+        &skipped_dates,
       )
     })
     .collect::<Result<Vec<_>>>()?
