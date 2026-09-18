@@ -101,7 +101,10 @@ impl FSRS {
 
     let params: Vec<f32> = match parameter {
       Some(p) if !p.is_empty() => p.iter().map(|&x| x as f32).collect(),
-      _ => fsrs::DEFAULT_PARAMETERS.to_vec(),
+      _ => match self.inner.version() {
+        fsrs::ModelVersion::Fsrs6 => fsrs::FSRS6_DEFAULT_PARAMETERS.to_vec(),
+        fsrs::ModelVersion::Fsrs7 => fsrs::DEFAULT_PARAMETERS.to_vec(),
+      },
     };
 
     let result = self.inner.universal_metrics(items, &params, |_| true);

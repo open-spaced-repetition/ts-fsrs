@@ -231,6 +231,31 @@ index f5b20bf..6ff1d3b 100644
          Ok(())
      }
    */
+  test.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('universalMetrics uses %s defaults for omitted or empty comparison parameters', async (modelVersion) => {
+    const reference = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion,
+    })
+    const parameters = [...reference]
+    parameters[0] *= 2
+    const model = new FSRSBinding(parameters)
+    const items = [1, 2, 3, 4].map(
+      (rating) =>
+        new FSRSBindingItem([
+          new FSRSBindingReview(1, 0),
+          new FSRSBindingReview(3, 1),
+          new FSRSBindingReview(rating, 3),
+        ])
+    )
+    const expected = model.universalMetrics(items, reference)
+    expect(expected.every(Number.isFinite)).toBe(true)
+    expect(model.universalMetrics(items)).toEqual(expected)
+    expect(model.universalMetrics(items, [])).toEqual(expected)
+  })
+
   test('evaluate with explicit FSRS6 parameters', async () => {
     const f = new FSRSBinding([
       0.335561, 1.6840581, 5.166598, 11.659035, 7.466705, 0.7205129, 2.622295,
