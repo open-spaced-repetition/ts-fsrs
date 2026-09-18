@@ -32,8 +32,8 @@ const release = (tag: string, extra: Partial<Release> = {}): Release => ({
 
 const changelogs = {
   fsrs: '# ts-fsrs\n\n## 6.0.0\n\n### Minor Changes\n\nUnpublished\n\n## 5.4.2\n\n### Patch Changes\n\nFixed a bug.\n',
-  binding: '## 0.5.0\n\nWASM update.\n',
-  'srs-kit': '## 0.1.0-beta.7\n\nBeta update.\n',
+  binding: '## 0.6.0-beta.1\n\nBeta update.\n\n## 0.5.0\n\nWASM update.\n',
+  'srs-kit': '## 0.1.0\n\nInternal package.\n',
 }
 
 describe('published release updates', () => {
@@ -109,14 +109,14 @@ describe('published release updates', () => {
         prepareReleases(root, config.base, (done, total) =>
           progress.push([done, total])
         )
-      ).toBe(4)
+      ).toBe(3)
       expect(progress).toEqual(
-        Array.from({ length: 7 }, (_, done) => [done, 6])
+        Array.from({ length: 6 }, (_, done) => [done, 5])
       )
       const manifest = path.join(generated, 'pages.json')
       const timestamp = statSync(manifest).mtimeMs
       const pages = await plugin.addPages?.(config, false)
-      expect(pages).toHaveLength(4)
+      expect(pages).toHaveLength(3)
       expect(statSync(manifest).mtimeMs).toBe(timestamp)
       expect(
         readFileSync(path.join(generated, 'body_fsrs_5.4.2.md'), 'utf8')
@@ -133,7 +133,7 @@ describe('published release updates', () => {
       writeFileSync(snapshot, '[]')
       prepareReleases(root, config.base)
       expect(existsSync(path.join(generated, 'body_fsrs_5.4.2.md'))).toBe(false)
-      expect(await plugin.addPages?.(config, true)).toHaveLength(3)
+      expect(await plugin.addPages?.(config, true)).toHaveLength(2)
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
@@ -145,9 +145,7 @@ describe('published release updates', () => {
         release('v6.0.0', { draft: true }),
         release('v5.4.2', { published_at: '2026-09-01T02:23:29Z' }),
         release('@open-spaced-repetition/binding@0.5.0'),
-        release('@open-spaced-repetition/srs-kit@0.1.0-beta.7', {
-          published_at: null,
-        }),
+        release('@open-spaced-repetition/srs-kit@0.1.0'),
         release('@open-spaced-repetition/binding-darwin-arm64@0.5.0'),
         release('v5.4.1'),
       ],
@@ -165,7 +163,7 @@ describe('published release updates', () => {
     expect(
       publishedUpdates(
         [
-          release('@open-spaced-repetition/srs-kit@0.1.0-beta.7', {
+          release('@open-spaced-repetition/binding@0.6.0-beta.1', {
             prerelease: true,
           }),
         ],
@@ -174,7 +172,7 @@ describe('published release updates', () => {
     ).toEqual([])
     expect(
       publishedUpdates(
-        [release('@open-spaced-repetition/srs-kit@0.1.0-beta.7')],
+        [release('@open-spaced-repetition/binding@0.6.0-beta.1')],
         changelogs
       )
     ).toEqual([])
@@ -185,7 +183,7 @@ describe('published release updates', () => {
       version: `5.4.${i}`,
     }))
     const pages = updatePages(updates, '/ts-fsrs/')
-    expect(pages).toHaveLength(15)
+    expect(pages).toHaveLength(14)
     expect(pages[0].routePath).toBe('/updates/')
     expect(pages[1].routePath).toBe('/updates/page/2')
     expect(pages[0].content).toContain('Page 1 of 2')
@@ -210,6 +208,12 @@ describe('published release updates', () => {
       publishedUpdates(releases, changelogs),
       '/ts-fsrs/'
     )
+    expect(pages.some((page) => page.routePath.includes('/srs-kit/'))).toBe(
+      false
+    )
+    expect(
+      pages.some((page) => page.content.includes('/updates/srs-kit/'))
+    ).toBe(false)
     const fsrs = pages.find((p) => p.routePath === '/updates/')!
     const binding = pages.find((p) => p.routePath === '/updates/binding/')!
     expect(fsrs.extension).toBe('mdx')
@@ -242,7 +246,7 @@ describe('published release updates', () => {
   })
 
   it('has empty-state indexes but removes them from serialized feeds', async () => {
-    expect(updatePages([], '/')).toHaveLength(3)
+    expect(updatePages([], '/')).toHaveLength(2)
     expect(updatePages([], '/')[0].content).toContain('No published releases')
     const feed = {
       items: [{ id: 'updates-index-en-US' }, { id: '/updates/fsrs/5.4.2' }],
@@ -294,14 +298,9 @@ it('keeps Updates indexes and pagination while excluding release details from bo
     '/updates/index.md',
     '/updates/page/2.md',
     '/updates/binding/index.md',
-    '/updates/srs-kit/index.md',
     '/updates/binding/page/2.md',
   ]
-  const removed = [
-    '/updates/fsrs/5.4.2.md',
-    '/updates/binding/0.5.0.md',
-    '/updates/srs-kit/0.1.0-beta.1.md',
-  ]
+  const removed = ['/updates/fsrs/5.4.2.md', '/updates/binding/0.5.0.md']
   for (const prefix of ['', 'https://example.com/project/zh-CN']) {
     const link = (route: string) => `${prefix}${route}`
     const index = (route: string) => `- [Updates](${link(route)}): Description.`

@@ -28,11 +28,6 @@ const packages = [
     name: '@open-spaced-repetition/binding',
     tag: '@open-spaced-repetition/binding@',
   },
-  {
-    directory: 'srs-kit',
-    name: '@open-spaced-repetition/srs-kit',
-    tag: '@open-spaced-repetition/srs-kit@',
-  },
 ] as const
 
 export function publishedUpdates(
@@ -301,7 +296,7 @@ export function releaseBodyAnchors() {
 
 export function filterReleaseDetailsFromLlms(content: string, full: boolean) {
   const isDetail = (url: string) =>
-    /\/updates\/(?:fsrs|binding|srs-kit)\/(?!index\.md$|page\/)[^/]+\.md$/.test(
+    /\/updates\/(?:fsrs|binding)\/(?!index\.md$|page\/)[^/]+\.md$/.test(
       new URL(url, 'https://docs.invalid').pathname
     )
   if (full) {
@@ -346,9 +341,7 @@ export function pluginReleaseUpdates(workspaceRoot: string): RspressPlugin {
     markdown: { rehypePlugins: [releaseBodyAnchors] },
     extendPageData(page) {
       if (!page.routePath.startsWith('/updates/')) return
-      const directory = page.routePath.match(
-        /\/updates\/(fsrs|binding|srs-kit)\//
-      )?.[1]
+      const directory = page.routePath.match(/\/updates\/(fsrs|binding)\//)?.[1]
       page._relativePath = directory
         ? `../../packages/${directory}/CHANGELOG.md`
         : 'releases/index.ts'
