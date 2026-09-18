@@ -30,6 +30,7 @@ fn read_csv_stream<'env>(
   mut data: Vec<u8>,
   next_day_starts_at: i64,
   timezone_offset: TimezoneOffset,
+  use_fractional_days: bool,
 ) -> Result<PromiseRaw<'env, Object<'env>>> {
   let chained = read.borrow_back(env)?.call(())?.then(move |context| {
     if context.value.get_named_property("done")? {
@@ -37,6 +38,7 @@ fn read_csv_stream<'env>(
         &data,
         next_day_starts_at,
         &timezone_offset,
+        use_fractional_days,
       )?));
     }
 
@@ -49,6 +51,7 @@ fn read_csv_stream<'env>(
       data,
       next_day_starts_at,
       timezone_offset,
+      use_fractional_days,
     )?))
   })?;
 
@@ -61,6 +64,7 @@ pub(crate) fn convert_csv_stream<'env>(
   stream: ReadableStream<'env, Uint8Array>,
   next_day_starts_at: i64,
   timezone_offset: TimezoneOffset,
+  use_fractional_days: bool,
 ) -> Result<PromiseRaw<'env, Object<'env>>> {
   if stream.locked()? {
     return PromiseRaw::reject(env, napi::Error::from_reason("ReadableStream is locked"));
@@ -72,14 +76,20 @@ pub(crate) fn convert_csv_stream<'env>(
   let release_lock = Rc::new(release_lock);
   // ponytail: buffers in Rust because conversion must sort every revlog; add an async CSV parser
   // only if this extra raw buffer becomes a measured memory bottleneck.
-  let mut promise =
-    match read_csv_stream(env, read, Vec::new(), next_day_starts_at, timezone_offset) {
-      Ok(promise) => promise,
-      Err(error) => {
-        release_lock.borrow_back(env)?.call(())?;
-        return PromiseRaw::reject(env, error);
-      }
-    };
+  let mut promise = match read_csv_stream(
+    env,
+    read,
+    Vec::new(),
+    next_day_starts_at,
+    timezone_offset,
+    use_fractional_days,
+  ) {
+    Ok(promise) => promise,
+    Err(error) => {
+      release_lock.borrow_back(env)?.call(())?;
+      return PromiseRaw::reject(env, error);
+    }
+  };
   let release_lock_on_settle = Rc::clone(&release_lock);
   match promise.finally(move |env| release_lock_on_settle.borrow_back(&env)?.call(())) {
     Ok(promise) => Ok(promise),

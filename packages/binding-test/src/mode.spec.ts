@@ -1,11 +1,12 @@
+import { readFileSync } from 'node:fs'
 import {
   BindingMemoryState,
+  computeParameters,
   convertCsvToFsrsItems,
   FSRSBinding,
   FSRSBindingItem,
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
-import { readFileSync } from 'node:fs'
 
 describe('FSRS model', () => {
   test('model', () => {
@@ -24,22 +25,124 @@ describe('FSRS model', () => {
     expect(item.reviews.length).toBe(1)
     expect(item.reviews[0]).toBeInstanceOf(FSRSBindingReview)
 
-    const memoryState = new BindingMemoryState(1.0, 0.5)
+    const memoryState = new BindingMemoryState(1.0, 0.5, 1.0)
     expect(memoryState).toBeInstanceOf(BindingMemoryState)
   })
 
-  test('next_states', () => {
-    const f = new FSRSBinding()
-    const nextStates = f.nextStates(null, 0.9, 0)
-    expect(nextStates.again).not.toBeUndefined()
-    expect(nextStates.hard).not.toBeUndefined()
-    expect(nextStates.good).not.toBeUndefined()
-    expect(nextStates.easy).not.toBeUndefined()
-    console.log(nextStates)
+  test('preserves fractional review intervals and FSRS7 fast stability', () => {
+    expect(new FSRSBindingReview(3, 0.25).deltaT).toBe(0.25)
+    const sameDay = new FSRSBindingItem([
+      new FSRSBindingReview(3, 0),
+      new FSRSBindingReview(4, 0.25),
+    ])
+    expect(sameDay.longTermReviewCnt()).toBe(0)
+    expect(sameDay.includeLongTermReviews()).toBe(false)
+    const interday = new FSRSBindingItem([
+      new FSRSBindingReview(3, 0),
+      new FSRSBindingReview(4, 1.25),
+    ])
+    expect(interday.longTermReviewCnt()).toBe(1)
+    expect(interday.includeLongTermReviews()).toBe(true)
+    expect(new BindingMemoryState(10, 5, 10).stabilityFast).toBe(10)
+    const state = new BindingMemoryState(10, 5, 2)
+    expect(state.stabilityFast).toBe(2)
+    expect(JSON.parse(state.toString())).toEqual({
+      stability: 10,
+      difficulty: 5,
+      stability_fast: 2,
+    })
+    expect(
+      JSON.parse(new BindingMemoryState(0.1, 0.2, 0.3).toString())
+    ).toEqual({
+      stability: 0.1,
+      difficulty: 0.2,
+      stability_fast: 0.3,
+    })
   })
 
-  test('memoryStateFromSM2', () => {
-    const f = new FSRSBinding()
+  test('migrates legacy memory states with stability as fast stability', () => {
+    for (const args of [
+      [10, 5],
+      [10, 5, undefined],
+      [10, 5, null],
+    ]) {
+      const state = Reflect.construct(
+        BindingMemoryState,
+        args
+      ) as BindingMemoryState
+      expect(JSON.parse(state.toString())).toEqual({
+        stability: 10,
+        difficulty: 5,
+        stability_fast: 10,
+      })
+    }
+    expect(new BindingMemoryState(10, 5, 0).stabilityFast).toBe(0)
+  })
+
+  test('next_states defaults to FSRS7', () => {
+    for (const parameters of [undefined, []]) {
+      const f = new FSRSBinding(parameters)
+      const nextStates = f.nextStates(null, 0.9, 0)
+      expect(nextStates.again).not.toBeUndefined()
+      expect(nextStates.hard).not.toBeUndefined()
+      expect(nextStates.good).not.toBeUndefined()
+      expect(nextStates.easy).not.toBeUndefined()
+      expect(nextStates.good.memory.stabilityFast).toBeCloseTo(
+        nextStates.good.memory.stability * 0.8,
+        6
+      )
+    }
+  })
+
+  test('next_states preserves fractional elapsed days for FSRS7', async () => {
+    const parameters = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-7'
+    })
+    const model = new FSRSBinding(parameters)
+    const state = new BindingMemoryState(10, 5, 2)
+    for (const days of [0.25, 1.25]) {
+      const fractional = model.nextStates(state, 0.9, days)
+      const integer = model.nextStates(state, 0.9, Math.floor(days))
+      for (const rating of ['again', 'hard', 'good', 'easy'] as const) {
+        expect(fractional[rating].memory.stabilityFast).not.toBe(
+          integer[rating].memory.stabilityFast
+        )
+        expect(Number.isFinite(fractional[rating].memory.stabilityFast)).toBe(
+          true
+        )
+        expect(fractional[rating].interval).not.toBe(integer[rating].interval)
+        expect(Number.isFinite(fractional[rating].interval)).toBe(true)
+      }
+    }
+  })
+
+  test('next_states uses integer elapsed days for FSRS6', async () => {
+    const parameters = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-6',
+    })
+    const model = new FSRSBinding(parameters)
+    const state = new BindingMemoryState(10, 5, 10)
+    for (const days of [0.25, 1.25]) {
+      const fractional = model.nextStates(state, 0.9, days)
+      const integer = model.nextStates(state, 0.9, Math.floor(days))
+      for (const rating of ['again', 'hard', 'good', 'easy'] as const) {
+        expect(fractional[rating].memory.toString()).toBe(
+          integer[rating].memory.toString()
+        )
+        expect(fractional[rating].interval).toBe(integer[rating].interval)
+      }
+    }
+  })
+
+  test('memoryStateFromSM2 with explicit FSRS6 parameters', async () => {
+    const parameters = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-6',
+      timeout: 5,
+    })
+    const f = new FSRSBinding(parameters)
 
     let m = f.memoryStateFromSM2(2.5, 10, 0.9)
     expect(m).toBeInstanceOf(BindingMemoryState)
@@ -68,8 +171,13 @@ describe('FSRS model', () => {
     expect(Math.abs(fsrsFactor - easeFactor)).toBeLessThan(0.01)
   })
 
-  test('memoryStateFromSM2 throws on invalid input', () => {
-    const f = new FSRSBinding()
+  test('memoryStateFromSM2 with FSRS6 throws on invalid input', async () => {
+    const parameters = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-6',
+      timeout: 5,
+    })
+    const f = new FSRSBinding(parameters)
     expect(() => f.memoryStateFromSM2(2.5, 10, 1.0)).toThrow()
   })
 
@@ -123,7 +231,32 @@ index f5b20bf..6ff1d3b 100644
          Ok(())
      }
    */
-  test('evaluate', () => {
+  test.each([
+    'FSRS-6',
+    'FSRS-7',
+  ] as const)('universalMetrics uses %s defaults for omitted or empty comparison parameters', async (modelVersion) => {
+    const reference = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion,
+    })
+    const parameters = [...reference]
+    parameters[0] *= 2
+    const model = new FSRSBinding(parameters)
+    const items = [1, 2, 3, 4].map(
+      (rating) =>
+        new FSRSBindingItem([
+          new FSRSBindingReview(1, 0),
+          new FSRSBindingReview(3, 1),
+          new FSRSBindingReview(rating, 3),
+        ])
+    )
+    const expected = model.universalMetrics(items, reference)
+    expect(expected.every(Number.isFinite)).toBe(true)
+    expect(model.universalMetrics(items)).toEqual(expected)
+    expect(model.universalMetrics(items, [])).toEqual(expected)
+  })
+
+  test('evaluate with explicit FSRS6 parameters', async () => {
     const f = new FSRSBinding([
       0.335561, 1.6840581, 5.166598, 11.659035, 7.466705, 0.7205129, 2.622295,
       0.001, 1.315015, 0.10468433, 0.8349206, 1.822305, 0.12473127, 0.26111007,
@@ -134,16 +267,22 @@ index f5b20bf..6ff1d3b 100644
     expect(() => f.universalMetrics([])).toThrow()
 
     const csvBuffer = readFileSync(new URL('./revlog.csv', import.meta.url))
-    const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+    const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', 'FSRS-6')
     const metrics = f.evaluate(items)
     console.debug('metrics', metrics)
     expect(metrics.logLoss).toBeCloseTo(0.3340487, 4)
     expect(metrics.rmseBins).toBeCloseTo(0.038114432, 4)
 
-    const result = f.universalMetrics(items)
+    const reference = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-6',
+      timeout: 5,
+    })
+    const result = f.universalMetrics(items, reference)
     console.debug('universal metrics', result)
     expect(result.length).toBe(2)
-    expect(result[0]).toBeCloseTo(0.023714684, 4)
-    expect(result[1]).toBeCloseTo(0.017120838, 4)
+    // FSRS-6 reference after the fsrs-rs inference update to 4c168e4.
+    expect(result[0]).toBeCloseTo(0.023871411, 4)
+    expect(result[1]).toBeCloseTo(0.017724499, 4)
   })
 })
