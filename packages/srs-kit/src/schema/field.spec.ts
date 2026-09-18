@@ -1,7 +1,40 @@
 import { describe, expect, it } from 'vitest'
-import { dateSchema, emptyObjectSchema, numberSchema, parse } from './index.js'
+import {
+  dateSchema,
+  desiredRetentionSchema,
+  elapsedDaysSchema,
+  emptyObjectSchema,
+  numberSchema,
+  parse,
+  SRSSchemaError,
+  scheduledDaysSchema,
+} from './index.js'
 
 describe('field schemas', () => {
+  it('requires retention strictly between zero and one', () => {
+    expect(desiredRetentionSchema.parse(0.9)).toBe(0.9)
+    for (const value of [NaN, Infinity, -1, 0, 1]) {
+      expect(() => desiredRetentionSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
+
+  it('accepts zero and fractional elapsed days and rejects invalid durations', () => {
+    for (const value of [0, 1 / 1440, 2]) {
+      expect(elapsedDaysSchema.parse(value)).toBe(value)
+    }
+    for (const value of [NaN, Infinity, -1]) {
+      expect(() => elapsedDaysSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
+
+  it('validates scheduled intervals while preserving zero and fractions', () => {
+    for (const value of [0, 1 / 1440, 2]) {
+      expect(scheduledDaysSchema.parse(value)).toBe(value)
+    }
+    for (const value of [undefined, null, '1', NaN, Infinity, -1]) {
+      expect(() => scheduledDaysSchema.parse(value)).toThrow(SRSSchemaError)
+    }
+  })
   it('validates empty objects', () => {
     expect(parse(emptyObjectSchema, {})).toEqual({})
     expect(() => parse(emptyObjectSchema, null)).toThrow(

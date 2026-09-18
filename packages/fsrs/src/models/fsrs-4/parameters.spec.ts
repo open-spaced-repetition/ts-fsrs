@@ -7,6 +7,12 @@ import {
 } from './index.js'
 
 describe('FSRS-4 parameters', () => {
+  it('clips holes in sparse weights as zero', () => {
+    expect(clipFSRS4Parameters(new Array<number>(3))).toEqual([
+      0.01, 0.01, 0.01,
+    ])
+  })
+
   const weights = FSRS4_DEFAULT_WEIGHTS
 
   it('uses the FSRS-4 parameter bounds from the reference implementation', () => {

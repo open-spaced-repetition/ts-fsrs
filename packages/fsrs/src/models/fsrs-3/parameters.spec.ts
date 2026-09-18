@@ -7,6 +7,10 @@ import {
 } from './parameters.js'
 
 describe('FSRS-3 parameters', () => {
+  it('clips holes in sparse weights as zero', () => {
+    expect(clipFSRS3Parameters(new Array<number>(3))).toEqual([0.1, 0.1, 1])
+  })
+
   it('returns FSRS-3 default weights when input is missing', () => {
     expect(migrateFSRS3Parameters()).toEqual(FSRS3_DEFAULT_WEIGHTS)
   })

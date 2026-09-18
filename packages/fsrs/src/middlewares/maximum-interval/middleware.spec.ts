@@ -21,7 +21,7 @@ const fixedIntervalMiddleware = defineMiddleware({
     },
   },
 })
-const reviewHandler = schedulerMaximumIntervalMiddleware.handlers?.review
+const reviewHandler = schedulerMaximumIntervalMiddleware.handlers?.nextInterval
 
 if (!reviewHandler) throw new Error('Expected maximum interval review handler')
 

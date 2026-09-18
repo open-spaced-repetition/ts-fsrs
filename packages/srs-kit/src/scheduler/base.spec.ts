@@ -1389,6 +1389,112 @@ describe('SchedulerCore.forward', () => {
   })
 })
 
+describe('SchedulerCore.nextInterval', () => {
+  it('uses the supplied state and effective retention without stepping the current grade', () => {
+    const queryCore = createSM2NumericScheduler()
+      .use(
+        defineMiddleware({
+          name: 'query-retention',
+          handlers: {
+            nextInterval(ctx, next) {
+              ctx.desiredRetention = 0.8
+              next()
+            },
+          },
+        })
+      )
+      .create({ config })
+    const card = queryCore.newCard({ now: 0 })
+    const state = { interval: 10, easeFactor: 2.5, reviewStep: 3 }
+    const expected = queryCore.model.nextInterval(state, 0.8)
+    const step = vi.spyOn(queryCore.model, 'step')
+    const curve = vi.spyOn(queryCore.model, 'forgettingCurve')
+    const interval = vi.spyOn(queryCore.model, 'nextInterval')
+
+    expect(
+      queryCore.nextInterval(state, 0.9, {
+        card,
+        grade: Rating.Good,
+        elapsedDays: 0.5,
+      })
+    ).toBe(expected)
+    expect(interval).toHaveBeenCalledExactlyOnceWith(state, 0.8)
+    expect(step).not.toHaveBeenCalled()
+    expect(curve).not.toHaveBeenCalled()
+    expect(card.reviewStep).toBe(0)
+  })
+
+  it('lazily computes sibling grades once and caches intervals including zero', () => {
+    const queryCore = createSM2NumericScheduler()
+      .use(
+        defineMiddleware({
+          name: 'query-candidates',
+          handlers: {
+            nextInterval(ctx, next) {
+              const supplied = ctx.candidate.step(ctx.input.grade)
+              expect(ctx.candidate.findGrade(supplied)).toBe(Rating.Good)
+              const sibling = ctx.candidate.step(Rating.Again)
+              expect(ctx.candidate.step(Rating.Again)).toBe(sibling)
+              ctx.candidate.step(Rating.Hard)
+              expect(ctx.candidate.nextInterval(supplied, 0.9)).toBe(0)
+              expect(ctx.candidate.nextInterval(supplied, 0.9)).toBe(0)
+              expect(ctx.candidate.nextInterval(supplied, 0.8)).toBe(0)
+              next()
+            },
+          },
+        })
+      )
+      .create({ config })
+    const card = queryCore.newCard({ now: 0 })
+    const step = vi.spyOn(queryCore.model, 'step')
+    const curve = vi.spyOn(queryCore.model, 'forgettingCurve')
+    const interval = vi
+      .spyOn(queryCore.model, 'nextInterval')
+      .mockReturnValue(0)
+
+    expect(
+      queryCore.nextInterval(card, 0.9, {
+        card,
+        grade: Rating.Good,
+        elapsedDays: 1,
+      })
+    ).toBe(0)
+    expect(step.mock.calls.map(([input]) => input.rating)).toEqual([
+      Rating.Again,
+      Rating.Hard,
+    ])
+    expect(curve).toHaveBeenCalledOnce()
+    expect(interval).toHaveBeenCalledTimes(2)
+  })
+
+  it('preserves an interval set by middleware before calling next', () => {
+    const queryCore = createSM2NumericScheduler()
+      .use(
+        defineMiddleware({
+          name: 'query-interval',
+          handlers: {
+            nextInterval(ctx, next) {
+              ctx.scheduledDays = 1 / 1440
+              next()
+            },
+          },
+        })
+      )
+      .create({ config })
+    const card = queryCore.newCard({ now: 0 })
+    const interval = vi.spyOn(queryCore.model, 'nextInterval')
+
+    expect(
+      queryCore.nextInterval(card, 0.9, {
+        card,
+        grade: Rating.Good,
+        elapsedDays: 0,
+      })
+    ).toBe(1 / 1440)
+    expect(interval).not.toHaveBeenCalled()
+  })
+})
+
 describe('SchedulerCore.forget', () => {
   it('resets a reviewed card through new-card defaults without a revlog', () => {
     const card = core.newCard({ now: 0 })
@@ -1918,6 +2024,17 @@ describe('card schema validation', () => {
         grade: Rating.Good,
         now: 0,
       })
+    ).toThrow('Parsed scheduler card is missing model memory state')
+    expect(() =>
+      unmarkedCore.nextInterval(
+        { interval: 1, easeFactor: 2.5, reviewStep: 1 },
+        0.9,
+        {
+          card: { state: State.New, scheduleStatus: 'new' },
+          grade: Rating.Good,
+          elapsedDays: 0,
+        }
+      )
     ).toThrow('Parsed scheduler card is missing model memory state')
   })
 })

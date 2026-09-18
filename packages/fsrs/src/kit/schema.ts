@@ -1,12 +1,12 @@
-import { defineSchema } from '@open-spaced-repetition/srs-kit'
+import { defineSchema, isFiniteNumber } from '@open-spaced-repetition/srs-kit'
 import { isObject } from './schema-utils.js'
 import type { FSRSState } from './types.js'
 
 export const FSRSMemoryStateSchema = defineSchema<FSRSState>((value) => {
   if (
     isObject(value) &&
-    typeof value.stability === 'number' &&
-    typeof value.difficulty === 'number'
+    isFiniteNumber(value.stability) &&
+    isFiniteNumber(value.difficulty)
   ) {
     return {
       value: {

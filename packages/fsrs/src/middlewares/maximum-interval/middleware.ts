@@ -8,7 +8,7 @@ export const schedulerMaximumIntervalMiddleware = defineMiddleware({
     config: monotonicIntervalConfigSchema,
   },
   handlers: {
-    review(ctx, next) {
+    nextInterval(ctx, next) {
       next()
       if (ctx.scheduledDays !== undefined) {
         ctx.scheduledDays = Math.min(

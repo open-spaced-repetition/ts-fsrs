@@ -1,6 +1,7 @@
 import {
   defineMiddleware,
   type Grade,
+  type NextIntervalMiddlewareContext,
   type ReviewCandidateContext,
   State,
 } from '@open-spaced-repetition/srs-kit'
@@ -38,55 +39,18 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
     },
   },
   handlers: {
+    nextInterval: scheduleLearningSteps,
     review(ctx, next) {
-      const card = ctx.input.card
-      if (!ctx.config.enableShortTerm) {
-        next()
-        ctx.result.revlog.learningStep = card.learningStep
-        ctx.result.card.learningStep = 0
-        return
-      }
-
-      const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
-      let resolved = candidate[resolvedStepsSymbol]
-      if (!resolved) {
-        resolved = {
-          steps: calculateLearningSteps(
-            ctx.config,
-            card.state,
-            card.learningStep
-          ),
-          scheduledMinutes: {},
-        }
-        candidate[resolvedStepsSymbol] = resolved
-        const resolvedSteps = resolved
-        const nextInterval = candidate.nextInterval
-        candidate.nextInterval = (memoryState, desiredRetention) => {
-          const grade = candidate.findGrade(memoryState)
-          if (grade === undefined) {
-            return nextInterval(memoryState, desiredRetention)
-          }
-
-          const step = resolvedSteps.steps[grade]
-          const scheduledMinutes = step
-            ? getScheduledMinutes(resolvedSteps, grade, step)
-            : undefined
-          if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-            return scheduledMinutes / MINUTES_PER_DAY
-          }
-          return nextInterval(memoryState, desiredRetention)
-        }
-      }
-      const step = resolved.steps[ctx.input.grade]
-      const scheduledMinutes = step
-        ? getScheduledMinutes(resolved, ctx.input.grade, step)
+      const resolved = ctx.config.enableShortTerm
+        ? resolveLearningSteps(ctx)
         : undefined
       next()
-
-      // Restore the exact learning step after downstream day-level middleware.
-      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
-        ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
-      }
+      const card = ctx.input.card
+      const step = resolved?.steps[ctx.input.grade]
+      const scheduledMinutes =
+        resolved && step
+          ? getScheduledMinutes(resolved, ctx.input.grade, step)
+          : undefined
 
       ctx.result.revlog.learningStep = card.learningStep
       ctx.result.card.learningStep = 0
@@ -110,6 +74,68 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
     },
   },
 })
+
+function scheduleLearningSteps(
+  ctx: NextIntervalMiddlewareContext<{
+    config: typeof learningStepsConfigSchema
+    card: typeof learningStepFieldsSchema
+  }>,
+  next: () => void
+): ResolvedLearningSteps | undefined {
+  if (!ctx.config.enableShortTerm) {
+    next()
+    return
+  }
+  const resolved = resolveLearningSteps(ctx)
+  const step = resolved.steps[ctx.input.grade]
+  const scheduledMinutes = step
+    ? getScheduledMinutes(resolved, ctx.input.grade, step)
+    : undefined
+  next()
+
+  // Restore the exact learning step after downstream day-level middleware.
+  if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+    ctx.scheduledDays = scheduledMinutes / MINUTES_PER_DAY
+  }
+
+  return resolved
+}
+
+function resolveLearningSteps(
+  ctx: NextIntervalMiddlewareContext<{
+    config: typeof learningStepsConfigSchema
+    card: typeof learningStepFieldsSchema
+  }>
+): ResolvedLearningSteps {
+  const card = ctx.input.card
+  const candidate = ctx.candidate as Mutable<LearningStepsCandidate>
+  let resolved = candidate[resolvedStepsSymbol]
+  if (!resolved) {
+    resolved = {
+      steps: calculateLearningSteps(ctx.config, card.state, card.learningStep),
+      scheduledMinutes: {},
+    }
+    candidate[resolvedStepsSymbol] = resolved
+    const resolvedSteps = resolved
+    const nextInterval = candidate.nextInterval
+    candidate.nextInterval = (memoryState, desiredRetention) => {
+      const grade = candidate.findGrade(memoryState)
+      if (grade === undefined) {
+        return nextInterval(memoryState, desiredRetention)
+      }
+
+      const step = resolvedSteps.steps[grade]
+      const scheduledMinutes = step
+        ? getScheduledMinutes(resolvedSteps, grade, step)
+        : undefined
+      if (scheduledMinutes !== undefined && scheduledMinutes > 0) {
+        return scheduledMinutes / MINUTES_PER_DAY
+      }
+      return nextInterval(memoryState, desiredRetention)
+    }
+  }
+  return resolved
+}
 
 function nextLearningState(state: State): State {
   if (state === State.New) return State.Learning
