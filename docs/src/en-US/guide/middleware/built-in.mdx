@@ -9,7 +9,7 @@ The following policies are available from `ts-fsrs/middlewares` and the `ts-fsrs
 
 | Middleware | Behavior |
 | --- | --- |
-| `schedulerDesiredRetentionMiddleware` | Applies configured `desiredRetention` in `(0, 1]` before interval calculation. |
+| `schedulerDesiredRetentionMiddleware` | Applies configured `desiredRetention` before interval calculation. Acceptable values: `(0, 1]`|
 | `schedulerLearningStepsMiddleware` | Applies `learningSteps` and `relearningSteps` when `enableShortTerm` is enabled; maintains `learningStep` and learning state. |
 | `schedulerFuzzingMiddleware` | Spreads intervals when `enableFuzz` is enabled, using `cardId` and the review count for reproducible results. `createSchedulerFuzzingMiddleware()` accepts custom ranges and RNG. |
 | `schedulerMaximumIntervalMiddleware` | Caps the day interval at `maximumInterval`. Explicit learning steps can override this cap as the chain unwinds. |
