@@ -1,17 +1,17 @@
-export default `{
-  "config": {
-    "weights": [
-      1,
-      0.5
-    ]
+export default `[
+  {
+    "interval": 1,
+    "easeFactor": 2.5,
+    "repetitions": 1
   },
-  "firstReview": {
-    "stability": 3,
-    "difficulty": 4
+  {
+    "interval": 6,
+    "easeFactor": 2.5,
+    "repetitions": 2
   },
-  "secondReview": {
-    "stability": 3.45,
-    "difficulty": 4
-  },
-  "interval": 3
-}`
+  {
+    "interval": 15,
+    "easeFactor": 2.5,
+    "repetitions": 3
+  }
+]`
