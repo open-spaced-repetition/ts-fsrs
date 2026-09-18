@@ -89,6 +89,12 @@ export interface SchedulerForwardInput<Time, Card> {
   readonly initialCard?: Card
 }
 
+export interface SchedulerNextIntervalContext<Card> {
+  readonly card: Card
+  readonly grade: Grade
+  readonly elapsedDays: number
+}
+
 export interface SchedulerDefinition<
   Model extends AnyModel = AnyModel,
   Chrono extends AnyChrono = AnyChrono,
@@ -116,6 +122,15 @@ export interface SchedulerCore<
   }) => {
     [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
   }
+  /**
+   * Resolves the interval policy from an already computed post-rating state.
+   * Runs nextInterval handlers only; does not advance the card or chronology.
+   */
+  readonly nextInterval: (
+    memoryState: Parameters<M['nextInterval']>[0],
+    desiredRetention: number,
+    context: SchedulerNextIntervalContext<Env['card']['input']>
+  ) => number
   readonly review: (input: {
     readonly card: Env['card']['input']
     readonly grade: Grade
