@@ -1,5 +1,6 @@
 import {
   existsSync,
+  globSync,
   mkdirSync,
   readFileSync,
   rmSync,
@@ -298,9 +299,50 @@ export function releaseBodyAnchors() {
   }
 }
 
+export function filterReleaseDetailsFromLlms(content: string, full: boolean) {
+  const isDetail = (url: string) =>
+    /\/updates\/(?:fsrs|binding|srs-kit)\/(?!index\.md$|page\/)[^/]+\.md$/.test(
+      new URL(url, 'https://docs.invalid').pathname
+    )
+  if (full) {
+    return content
+      .split(/(?=^---\nurl: )/m)
+      .filter((section) => {
+        const url = section.match(/^---\nurl: ([^\n]+)\n---\n/)?.[1]
+        return !url || !isDetail(url)
+      })
+      .join('')
+  }
+  return content
+    .split('\n')
+    .filter((line) => {
+      const url = line.match(/^- \[.*\]\(([^)]+)\)/)?.[1]
+      return !url || !isDetail(url)
+    })
+    .join('\n')
+}
+
 export function pluginReleaseUpdates(workspaceRoot: string): RspressPlugin {
   return {
     name: 'release-updates',
+    afterBuild(config) {
+      const outDir = path.resolve(
+        workspaceRoot,
+        'docs',
+        config.outDir ?? 'doc_build'
+      )
+      for (const filename of globSync('**/llms{,-full}.txt', { cwd: outDir })) {
+        const file = path.join(outDir, filename)
+        const content = readFileSync(file, 'utf8')
+        writeFileSync(
+          file,
+          filterReleaseDetailsFromLlms(
+            content,
+            filename.endsWith('llms-full.txt')
+          )
+        )
+      }
+    },
     markdown: { rehypePlugins: [releaseBodyAnchors] },
     extendPageData(page) {
       if (!page.routePath.startsWith('/updates/')) return

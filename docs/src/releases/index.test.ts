@@ -12,6 +12,7 @@ import path from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { fetchReleases } from '../../scripts/fetch-releases'
 import {
+  filterReleaseDetailsFromLlms,
   pluginReleaseUpdates,
   prepareReleases,
   publishedUpdates,
@@ -285,4 +286,38 @@ describe('published release updates', () => {
       })
     ).rejects.toThrow('network down')
   })
+})
+
+it('keeps Updates indexes and pagination while excluding release details from both LLM files', () => {
+  const retained = [
+    '/guide/model/index.md',
+    '/updates/index.md',
+    '/updates/page/2.md',
+    '/updates/binding/index.md',
+    '/updates/srs-kit/index.md',
+    '/updates/binding/page/2.md',
+  ]
+  const removed = [
+    '/updates/fsrs/5.4.2.md',
+    '/updates/binding/0.5.0.md',
+    '/updates/srs-kit/0.1.0-beta.1.md',
+  ]
+  for (const prefix of ['', 'https://example.com/project/zh-CN']) {
+    const link = (route: string) => `${prefix}${route}`
+    const index = (route: string) => `- [Updates](${link(route)}): Description.`
+    const section = (route: string) =>
+      `---\nurl: ${link(route)}\n---\n# Updates\n\n---\nBody\n`
+    expect(
+      filterReleaseDetailsFromLlms(
+        [...retained, ...removed].map(index).join('\n'),
+        false
+      )
+    ).toBe(retained.map(index).join('\n'))
+    expect(
+      filterReleaseDetailsFromLlms(
+        [...retained, ...removed].map(section).join(''),
+        true
+      )
+    ).toBe(retained.map(section).join(''))
+  }
 })
