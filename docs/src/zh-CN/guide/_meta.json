@@ -28,5 +28,10 @@
     "label": "中间件",
     "collapsible": true,
     "collapsed": true
+  },
+  {
+    "type": "dir-section-header",
+    "name": "scheduler",
+    "label": "调度器"
   }
 ]
