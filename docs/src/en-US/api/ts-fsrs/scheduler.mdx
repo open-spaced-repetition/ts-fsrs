@@ -1,0 +1,45 @@
+---
+title: Scheduler
+description: Reference for the scheduler instance that defineScheduler.create and DefaultScheduler return
+---
+
+import RunCode from '../../../components/RunCode'
+import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
+
+# Scheduler
+
+`defineScheduler(...).create({ config })` and `DefaultScheduler(options)` both return an independent **scheduler instance**. It is the object your application calls to create cards and schedule, roll back, and preview reviews.
+
+**Methods**
+
+| Method | Signature | Returns |
+| --- | --- | --- |
+| `newCard` | `newCard(input?)` | A card in its default state. |
+| `review` | `review({ card, grade, now? })` | `{ card, revlog }` for the review. |
+| `preview` | `preview({ card, now? })` | A lazy iterable of `{ grade, card, revlog }` for each of the four grades. |
+| `rollback` | `rollback({ card, revlog })` | The card before a review, using its saved revlog. |
+| `forget` | `forget({ card, now? })` | A card reset through its defaults. |
+
+`review` and `preview` never mutate their input card; they return new cards. `rollback` takes a review's `{ card, revlog }` and restores the pre-review card.
+
+## Card state and scheduleStatus
+
+Every returned card carries two queue fields: `state` and `scheduleStatus`. `state` is the numeric lifecycle position (`New`, `Learning`, `Review`, `Relearning`) described on [Rating, Grade, State](./rating-grade-state). `scheduleStatus` is a string queue label the scheduler maintains as it schedules:
+
+| Value | Meaning |
+| --- | --- |
+| `'new'` | A new card waiting for its first review. |
+| `'learning'` | A card inside its learning or relearning steps. |
+| `'review'` | A card due in the review queue. |
+| extended | Middleware may assign more statuses — for example [Leech](./middlewares/leech) sets `'suspended'` on a card that lapses past its threshold. |
+
+The schema recognizes the three core values; middleware that adds a status also narrows the type. When you select which card to review next, respect any status your middleware writes (such as `'suspended'`).
+
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/scheduler.ts"
+```
+
+<RunCode code={schedulerCode} />
+
+A `newCard` starts in state `0` (New); a Good review moves it to `2` (Review); `preview` yields four candidates; `rollback` restores the original due time.
+
+**See** — [defineScheduler](./define/define-scheduler), [DefaultScheduler](./default-scheduler), [Guide: follow a review](../../guide/architecture).

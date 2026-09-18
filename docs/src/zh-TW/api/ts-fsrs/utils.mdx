@@ -1,0 +1,24 @@
+---
+title: Utils
+description: ts-fsrs 根匯出之小型數值輔助函式（clamp 與 roundTo）的參考
+---
+
+# Utils
+
+根匯出兩個小型數值輔助函式：
+
+```ts
+import { clamp, roundTo } from 'ts-fsrs'
+```
+
+| 匯出 | 簽章 | 行為 |
+| --- | --- | --- |
+| `clamp` | `clamp(value, min, max)` | 將 `value` 限制在 `[min, max]` 內。 |
+| `roundTo` | `roundTo(num, decimals)` | 將 `num` 四捨五入到 `decimals` 位。 |
+
+```ts
+clamp(15, 0, 10)   // 10
+roundTo(2.3065, 2) // 2.31
+```
+
+這些是不含任何排程狀態的純函式。

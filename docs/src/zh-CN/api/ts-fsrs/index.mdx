@@ -1,0 +1,54 @@
+---
+title: ts-fsrs API 概览
+description: 受支持的 ts-fsrs API 索引 —— 面向应用代码的定义、预设、策略、模型与类型
+---
+
+# ts-fsrs API 概览
+
+`ts-fsrs` 通过 `ts-fsrs` 根入口与若干子路径入口暴露其调度机制。下方每个页面都给出导入路径、行为，并链接到对应的[指南](../../guide/)主题。
+
+本参考文档介绍受支持的 API。包的入口点可能导出比这里更多的内容——内部实现、兼容层，以及为旧版 API 保留的辅助函数。未出现在这些页面上的内容不建议在应用代码中使用，且可能在未升级主版本号的情况下变更或移除。
+
+## 根定义
+
+| 页面 | 说明 |
+| --- | --- |
+| [DefaultScheduler](./default-scheduler) | 现成的调度器预设（默认为 FSRS-6）。 |
+| [defineScheduler](./define/define-scheduler) | 由模型与 chrono 组合出可复用的调度器。 |
+| [Scheduler](./scheduler) | `.create()` 与 `DefaultScheduler` 返回的实例（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
+| [defineModel](./define/define-model) | 把带版本的 FSRS 模型打包成定义。 |
+| [defineChrono](./define/define-chrono) | 定义自定义时间抽象。 |
+| [defineMiddleware](./define/define-middleware) | 扩展数据校验规则（schema），并在调度器核心处理前后执行逻辑。 |
+
+## 内置策略
+
+`ts-fsrs/middlewares` 中的每个策略都有独立页面并附带可运行示例：
+
+| 页面 | 中间件 |
+| --- | --- |
+| [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
+| [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
+| [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
+| [Stats](./middlewares/stats) | `schedulerStatsMiddleware` |
+| [MonotonicInterval](./middlewares/monotonic-interval) | `schedulerMonotonicIntervalMiddleware` |
+| [ScheduledDays](./middlewares/scheduled-days) | `schedulerScheduledDaysMiddleware` |
+| [Leech](./middlewares/leech) | `schedulerLeechMiddleware` |
+
+## 值与类型
+
+| 页面 | 说明 |
+| --- | --- |
+| [Chrono 预设](./chrono-presets) | `dateChrono`、`numericChrono`、`temporalInstantChrono`。 |
+| [Rating、Grade、State](./rating-grade-state) | 评分、等级与卡片状态及其 schema。 |
+| [Utils](./utils) | `clamp`、`roundTo` 数值辅助函数。 |
+| [类型](./types) | 导出的调度器、模型与中间件类型。 |
+
+## 入口点
+
+| 页面 | 说明 |
+| --- | --- |
+| [模型](./models/) | `ts-fsrs/models/fsrs-3` 至 `fsrs-6`，每个版本一页。 |
+| [重排](./reschedule) | `ts-fsrs/reschedule` 重排辅助工具。 |
+
+从 [DefaultScheduler](./default-scheduler) 或 [defineScheduler](./define/define-scheduler) 开始；[指南](../../guide/)解释如何组合这些部分。

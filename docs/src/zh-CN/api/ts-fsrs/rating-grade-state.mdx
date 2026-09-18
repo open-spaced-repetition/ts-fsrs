@@ -1,0 +1,31 @@
+---
+title: Rating、Grade、State
+description: 复习与卡片使用的评分与状态枚举及其校验 schema
+---
+
+# Rating、Grade、State
+
+```ts
+import { Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } from 'ts-fsrs'
+```
+
+`Rating` 涵盖复习可能携带的每一种评分，包括手动的：
+
+| 成员 | 值 |
+| --- | --- |
+| `Rating.Manual` | `0` |
+| `Rating.Again` | `1` |
+| `Rating.Hard` | `2` |
+| `Rating.Good` | `3` |
+| `Rating.Easy` | `4` |
+
+`Grade` 是调度器用于排程的评分子集 —— `Again`、`Hard`、`Good` 与 `Easy`（1 到 4）。`State` 描述卡片在生命周期中的位置：
+
+| 成员 | 值 |
+| --- | --- |
+| `State.New` | `0` |
+| `State.Learning` | `1` |
+| `State.Review` | `2` |
+| `State.Relearning` | `3` |
+
+`ratingSchema`、`gradeSchema` 与 `stateSchema` 校验各自的值并用于类型推断。返回卡片上的 `state` 与每条复习日志的 `rating` 都是这些枚举。复习期间状态如何转换，见[指南](../../guide/state-transitions)。

@@ -1,0 +1,34 @@
+---
+title: DefaultScheduler
+description: Reference for DefaultScheduler — async factory returning a ready scheduler preset
+---
+
+# DefaultScheduler
+
+**Import:** `import { DefaultScheduler } from 'ts-fsrs'`
+
+**Signature**
+
+```ts
+DefaultScheduler(options?): Promise<DefaultScheduler>
+```
+
+**Options** (`DefaultSchedulerOptions`)
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `version` | `'FSRS-6'` | `'FSRS-3'` … `'FSRS-6'`; parameters migrate per version. |
+| `weights` | preset weights | Optional trained weights. |
+| `desiredRetention` | `0.9` | Target retention before interval calculation. |
+| `enableShortTerm` | `true` | Enables learning and relearning steps. |
+| `learningSteps` | preset steps | Applied when short-term scheduling is on. |
+| `relearningSteps` | preset steps | Applied when short-term scheduling is on. |
+| `enableFuzz` | `false` | Spreads intervals when enabled. |
+| `maximumInterval` | `36500` | Upper bound on the interval in days. |
+| `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |
+
+**Behavior** — composes FSRS-6 (by default) with `dateChrono` and the built-in policies; returns an instance exposing `newCard`, `review`, `rollback`, `preview`, and `forget`.
+
+**Related types** — `DefaultSchedulerCard`, `DefaultSchedulerCardInput`, `DefaultSchedulerRevlog`, `DefaultSchedulerOptions`.
+
+**See** — [DefaultScheduler preset](../../guide/scheduler/default-scheduler), [Built-in policies](../../guide/middleware/built-in).

@@ -1,0 +1,16 @@
+---
+title: Chrono プリセット
+description: dateChrono、numericChrono、temporalInstantChrono のリファレンス
+---
+
+# Chrono プリセット
+
+**インポート：** `import { dateChrono, numericChrono, temporalInstantChrono } from 'ts-fsrs'`
+
+| プリセット | 時刻値 | 日数の計算 |
+| --- | --- | --- |
+| `dateChrono` | `Date` | `difference` はデフォルトで UTC の日付差を計算し、`fractionalDays: true` では24時間単位の小数日数を返します。`add` は常に24時間単位で加算します。 |
+| `numericChrono` | 日単位の数値 | `difference` は `to - from`、`add` は `from + days` です。 |
+| `temporalInstantChrono` | `Temporal.Instant` | 設定したタイムゾーン。任意で小数の日数差をサポートします。 |
+
+**参照** — [Chrono の概要](../../guide/chrono)のプリセット別ページ（[Date](../../guide/chrono/date)、[Numeric](../../guide/chrono/numeric)、[Temporal Instant](../../guide/chrono/temporal-instant)）。独自の Chrono は [defineChrono](./define/define-chrono) を参照してください。

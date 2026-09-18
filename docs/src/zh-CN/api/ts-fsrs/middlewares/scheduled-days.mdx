@@ -1,0 +1,26 @@
+---
+title: ScheduledDays
+description: 内置中间件 schedulerScheduledDaysMiddleware —— 将最终间隔保存为整数的已安排天数
+---
+
+import RunCode from '../../../../components/RunCode'
+import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts?raw'
+
+# ScheduledDays
+
+`ts-fsrs/middlewares` 导出 `schedulerScheduledDaysMiddleware`：
+
+```ts
+import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它将最终间隔以非负整数 `scheduledDays` 保存在卡片上，并在 revlog 中记录原值，使复习在回滚时可以恢复它。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
+```
+
+<RunCode code={scheduledDaysCode} />
+
+Good 复习在卡片上保存 `scheduledDays: 2`，而 revlog 保留之前的 `0`。
+
+**另见** —— [内置策略](../../../guide/middleware/built-in)。

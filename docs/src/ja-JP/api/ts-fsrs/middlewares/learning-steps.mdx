@@ -1,0 +1,26 @@
+---
+title: LearningSteps
+description: 組み込みミドルウェア schedulerLearningStepsMiddleware——短期スケジューリングで学習・再学習ステップを適用する
+---
+
+import RunCode from '../../../../components/RunCode'
+import learningStepsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts?raw'
+
+# LearningSteps
+
+`ts-fsrs/middlewares` は `schedulerLearningStepsMiddleware` をエクスポートします：
+
+```ts
+import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
+```
+
+短期スケジューリングが有効な場合、これは設定された `learningSteps` と `relearningSteps` を適用し、カードの `learningStep` と学習状態を管理します。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
+```
+
+<RunCode code={learningStepsCode} />
+
+New カードへの Good の復習は、カードを Learning（状態 `1`）に移し、次のステップを数分後に予定します。
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

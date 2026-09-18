@@ -1,0 +1,16 @@
+---
+title: Chrono 预设
+description: dateChrono、numericChrono 与 temporalInstantChrono 参考
+---
+
+# Chrono 预设
+
+**导入：** `import { dateChrono, numericChrono, temporalInstantChrono } from 'ts-fsrs'`
+
+| 预设 | 时间值 | 天数运算 |
+| --- | --- | --- |
+| `dateChrono` | `Date` | `difference` 默认按 UTC 日期边界计数，`fractionalDays: true` 时按固定 24 小时计算经过的小数天数；`add` 始终加上固定的 24 小时天数。 |
+| `numericChrono` | 数字（天数） | `difference` = `to - from`；`add` = `from + days`。 |
+| `temporalInstantChrono` | `Temporal.Instant` | 使用已配置的时区；可选的小数天数差。 |
+
+**另见** —— 各预设对应的 [Chrono 指南](../../guide/chrono)（[Date](../../guide/chrono/date)、[Numeric](../../guide/chrono/numeric)、[Temporal Instant](../../guide/chrono/temporal-instant)）；自定义 Chrono 见 [defineChrono](./define/define-chrono)。
