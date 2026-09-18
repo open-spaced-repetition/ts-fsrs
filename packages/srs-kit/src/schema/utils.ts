@@ -141,6 +141,10 @@ export function isObject(value: unknown): value is Record<string, unknown> {
   return !!value && !Array.isArray(value) && typeof value === 'object'
 }
 
+export function isFiniteNumber(value: unknown): value is number {
+  return Number.isFinite(value)
+}
+
 export function isFunction(fn: unknown): fn is AnyFn {
   return typeof fn === 'function'
 }
