@@ -16,8 +16,10 @@
     "label": "Model"
   },
   {
-    "type": "dir-section-header",
+    "type": "dir",
     "name": "chrono",
-    "label": "Chrono"
+    "label": "Chrono",
+    "collapsible": true,
+    "collapsed": true
   }
 ]
