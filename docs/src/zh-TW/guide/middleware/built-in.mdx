@@ -15,7 +15,7 @@ description: 了解 ts-fsrs 隨附的中介軟體策略，以及 DefaultSchedule
 | `schedulerMaximumIntervalMiddleware` | 將天級間隔限制在 `maximumInterval` 以內；呼叫鏈回傳時，明確指定的學習步驟可以覆寫這個上限。 |
 | `schedulerStatsMiddleware` | 維護 `reps` 與 `lapses`，由 `clearStatsOnForget` 決定重設時是否清除。Review 狀態的卡片評為 Again 才計為一次遺忘。 |
 | `schedulerMonotonicIntervalMiddleware` | 在 `maximumInterval` 限制內調整不同評分的天級間隔順序；達到上限時，間隔可以相同。 |
-| `schedulerScheduledDaysMiddleware` | 將最終間隔儲存為卡片上非負的整天數 `scheduledDays`，並把原值寫入 revlog。不到一天的步驟記為 `0`。 |
+| `schedulerScheduledDaysMiddleware` | 將最終間隔儲存為卡片上非負的 `scheduledDays`，並把原值寫入 revlog。預設 `fractionalDays: false` 時向下取整，不到一天的步驟記為 `0`；設為 `true` 時保留小數，例如 `0.5`。 |
 | `schedulerLeechMiddleware` | 遺忘次數每達到正數 `leechThreshold` 的整數倍時，將 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 關閉此行為；應用程式選卡時需要自行遵守該狀態。 |
 
 `DefaultScheduler` 已包含前七項，順序為目標保留率 → 模糊間隔 → 統計 → scheduled days → 學習步驟 → 最大間隔 → 單調間隔。Leech 需要在自行組合定義時視需要加入。順序為何重要見[生命週期](./lifecycle)；中介軟體如何執行見[概覽](./index)。
