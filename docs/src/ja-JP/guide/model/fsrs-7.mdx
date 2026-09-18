@@ -7,12 +7,6 @@ description: FSRS-7 の二成分忘却曲線、混合重み、安定度と難易
 
 FSRS-7 は 34 個の重みと二つの記憶成分を使います。記憶状態は `stability`（遅い成分）、`stabilityFast`（速い成分）、`difficulty` で構成されます。
 
-:::info 実装の参照元
-このページは `feat/fsrs7` ブランチのコミット `9ed49104` にある ts-fsrs 実装を説明します。このドキュメントブランチには、その実装はまだ含まれていません。2026 年 9 月 11 日時点で、上流の [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) に FSRS-7 の章はありません。以下の数式はリンク先の実装から整理したもので、上流の仕様ではありません。
-
-[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
-:::
-
 ## 記憶状態と記号
 
 [共通の記号](./#共通の記号)に加え、`math:S_s` を `stability`、`math:S_f` を `stabilityFast` とします。どちらも単位は日ですが、混合した想起確率が 90% に達する間隔とは一致しません。難易度は遅い成分の曲線と混合重みの両方に影響します。

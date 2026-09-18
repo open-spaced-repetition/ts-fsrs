@@ -7,12 +7,6 @@ description: FSRS-7 dual-trace formulas for recall, mixture weights, stability, 
 
 FSRS-7 uses 34 weights and two memory traces. Its state contains `stability` (slow trace), `stabilityFast` (fast trace), and `difficulty`.
 
-:::info Implementation reference
-This page describes the ts-fsrs implementation at `9ed49104` on `feat/fsrs7`. That implementation is not included in this documentation branch. As of September 11, 2026, the upstream [The Algorithm](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm) page has no FSRS-7 section; the equations below are derived from the linked implementation, not an upstream specification.
-
-[algorithm.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/algorithm.ts) · [model.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/model.ts) · [parameters.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/parameters.ts) · [constants.ts](https://github.com/open-spaced-repetition/ts-fsrs/blob/9ed49104e4c46b5961d86e52e74de170d66d5387/packages/fsrs/src/models/fsrs-7/constants.ts)
-:::
-
 ## Memory state and notation
 
 Use the [shared symbols](./#shared-symbols), with `math:S_s` for `stability` and `math:S_f` for `stabilityFast`. Both are measured in days, but neither is the interval at which the mixed recall probability reaches 90%. Difficulty affects both the slow curve and its mixture weight.

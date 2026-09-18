@@ -68,6 +68,8 @@ FSRS 模型根据评分和经过时间计算新的记忆状态，通过遗忘曲
 
 `defineModel` 会保留具体的配置、记忆状态和算法类型，并把 schema、默认值与模型核心工厂组织为一个定义。它本身不会解析配置：
 
+下面通过实现一个 [SM-2 变体](https://github.com/open-spaced-repetition/srs-benchmark/blob/main/models/sm2_trainable.py)，演示如何定义模型。
+
 ```ts twoslash fold height=420 file="../../../snippets/run-code/custom-model.ts"
 ```
 
