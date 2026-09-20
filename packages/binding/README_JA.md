@@ -40,10 +40,12 @@ import {
 } from '@open-spaced-repetition/binding'
 
 const csvBuffer = readFileSync('./revlog.csv')
-const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const modelVersion = 'FSRS-7' // 'FSRS-7' (default) or 'FSRS-6'
+const items = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', modelVersion)
 
 const parameters = await computeParameters(items, {
   enableShortTerm: true,
+  modelVersion,
   numRelearningSteps: 1,
   timeout: 500,
   progress: (current, total) => {
@@ -53,6 +55,8 @@ const parameters = await computeParameters(items, {
 
 console.log(parameters)
 ```
+
+`convertCsvToFsrsItems(data, nextDayStartsAt, timezoneOrOffset, modelVersion)` と `computeParameters` には同じ `modelVersion` を指定してください。既定の FSRS7 は現地の学習日境界間の実際の長さ（夏時間を含む）で正規化した小数日数を使い、同日内の間隔も保持します。整数の学習日を使う場合は FSRS6 を明示的に指定してください。
 
 スレッドレスの `wasm32-wasip1` パッケージを使う場合、`computeParameters` と `evaluateWithTimeSeriesSplits` は現在の Worker 上で同期的に実行され、完了した結果を API 互換性のため `Promise` にラップして返します。ブラウザではメインスレッドをブロックしないよう、専用 Worker からこれらのメソッドを呼び出してください。進捗コールバックにも対応しており、`false` を返すと処理を停止できます。
 

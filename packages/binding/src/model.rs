@@ -11,9 +11,12 @@ pub struct FSRSReview {
 #[napi]
 impl FSRSReview {
   #[napi(constructor)]
-  pub fn new(rating: u32, delta_t: u32) -> Self {
+  pub fn new(rating: u32, delta_t: f64) -> Self {
     Self {
-      inner: fsrs::FSRSReview { rating, delta_t },
+      inner: fsrs::FSRSReview {
+        rating,
+        delta_t: delta_t as f32,
+      },
     }
   }
   /// 1-4
@@ -25,8 +28,8 @@ impl FSRSReview {
   /// # Warning
   /// `delta_t` for item first(initial) review must be 0
   #[napi(getter)]
-  pub fn delta_t(&self) -> u32 {
-    self.inner.delta_t
+  pub fn delta_t(&self) -> f64 {
+    self.inner.delta_t as f64
   }
 
   #[napi(js_name = "toString")]
@@ -85,7 +88,11 @@ impl FSRSItem {
 
   #[napi]
   pub fn include_long_term_reviews(&self) -> bool {
-    self.inner.reviews.iter().any(|review| review.delta_t > 0)
+    self
+      .inner
+      .reviews
+      .iter()
+      .any(|review| review.delta_t >= 1.0)
   }
 
   #[napi(js_name = "toString")]
@@ -108,11 +115,12 @@ pub struct MemoryState {
 #[napi]
 impl MemoryState {
   #[napi(constructor)]
-  pub fn new(stability: f64, difficulty: f64) -> Self {
+  pub fn new(stability: f64, difficulty: f64, stability_fast: Option<f64>) -> Self {
     Self {
       inner: fsrs::MemoryState {
         stability: stability as f32,
         difficulty: difficulty as f32,
+        stability_fast: stability_fast.unwrap_or(stability) as f32,
       },
     }
   }
@@ -120,17 +128,19 @@ impl MemoryState {
   pub fn stability(&self) -> f64 {
     self.inner.stability as f64
   }
+  /// FSRS-7 fast stability.
+  #[napi(getter)]
+  pub fn stability_fast(&self) -> f64 {
+    self.inner.stability_fast as f64
+  }
   #[napi(getter)]
   pub fn difficulty(&self) -> f64 {
     self.inner.difficulty as f64
   }
   #[napi(js_name = "toString")]
   pub fn to_string(&self) -> napi::Result<String> {
-    serde_json::to_string(&serde_json::json!({
-      "stability": self.inner.stability as f64,
-      "difficulty": self.inner.difficulty as f64
-    }))
-    .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
+    serde_json::to_string(&self.inner)
+      .map_err(|e| napi::Error::from_reason(format!("Failed to serialize to JSON: {}", e)))
   }
 
   #[napi(js_name = "[Symbol.toStringTag]")]
@@ -292,15 +302,26 @@ impl TrainingConfig {
   }
 }
 
+#[napi(string_enum)]
+pub enum ModelVersion {
+  #[napi(value = "FSRS-6")]
+  Fsrs6,
+  #[napi(value = "FSRS-7")]
+  Fsrs7,
+}
+
 #[napi(object)]
 pub struct ComputeParametersOptions<'env> {
+  /// Model to train or evaluate. Defaults to FSRS-7, matching fsrs-rs.
+  #[napi(ts_type = "`${ModelVersion}`")]
+  pub model_version: Option<ModelVersion>,
   /// Whether to enable short-term memory parameters
   pub enable_short_term: bool,
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
-  /// Training hyperparameters. Omitted fields use fsrs-rs defaults.
+  /// Training hyperparameters. Omitted config preserves the selected model defaults.
   pub training_config: Option<TrainingConfig>,
-  // Progress callback temporarily disabled for v3 migration
+  /// Reports progress; return false to stop training.
   #[napi(ts_type = "(current: number, total: number) => boolean | undefined | void")]
   pub progress: Option<ProgressFunc<'env>>,
   #[napi(ts_type = "number")]
@@ -309,6 +330,7 @@ pub struct ComputeParametersOptions<'env> {
 
 /// `ComputeParametersOptions` translated into fsrs-rs types, with defaults applied.
 pub(crate) struct ResolvedOptions {
+  pub(crate) model_version: fsrs::ComputeParametersVersion,
   pub(crate) enable_short_term: bool,
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) training_config: Option<fsrs::TrainingConfig>,
@@ -323,14 +345,24 @@ impl ComputeParametersOptions<'_> {
   const DEFAULT_TIMEOUT_MS: u32 = 500;
 
   pub(crate) fn resolve(options: Option<&Self>) -> ResolvedOptions {
+    let model_version = match options.and_then(|x| x.model_version.as_ref()) {
+      Some(ModelVersion::Fsrs6) => fsrs::ComputeParametersVersion::Fsrs6,
+      _ => fsrs::ComputeParametersVersion::Fsrs7,
+    };
     ResolvedOptions {
+      model_version,
       enable_short_term: options.map(|x| x.enable_short_term).unwrap_or(true),
       num_relearning_steps: options
         .and_then(|x| x.num_relearning_steps)
         .map(|x| x as usize),
       training_config: options
         .and_then(|x| x.training_config.as_ref())
-        .map(|x| x.to_fsrs_config()),
+        .map(|x| x.to_fsrs_config())
+        // Preserve the old FSRS-6 defaults instead of the new internal branch defaults.
+        .or_else(|| {
+          (model_version == fsrs::ComputeParametersVersion::Fsrs6)
+            .then(fsrs::TrainingConfig::default)
+        }),
       #[cfg(not(threadless_wasm))]
       timeout_ms: options
         .and_then(|x| x.timeout)

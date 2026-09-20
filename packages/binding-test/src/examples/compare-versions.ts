@@ -15,7 +15,7 @@ console.log(`TS version: fsrs_items.len() = ${tsItems.length}`)
 console.log('\nTesting RS version...')
 console.time('RS parsing time')
 const csvBuffer = readFileSync(csvPath)
-const rsItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai')
+const rsItems = convertCsvToFsrsItems(csvBuffer, 4, 'Asia/Shanghai', 'FSRS-6')
 console.timeEnd('RS parsing time')
 console.log(`RS version: fsrs_items.len() = ${rsItems.length}`)
 
