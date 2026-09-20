@@ -3,5 +3,12 @@
   "index",
   "quick-start",
   "state-transitions",
-  "llms"
+  "llms",
+  {
+    "type": "dir",
+    "name": "model",
+    "collapsible": true,
+    "collapsed": true,
+    "label": "Model"
+  }
 ]

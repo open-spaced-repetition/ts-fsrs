@@ -1,0 +1,98 @@
+---
+title: FSRS-6
+description: FSRS-6 的可训练衰减、间隔计算、初始记忆、难度、稳定性和同日更新公式，以及与上一版本的核心差异
+---
+
+# FSRS-6
+
+FSRS-6 是 `DefaultScheduler` 默认使用的模型。它有 21 个可训练权重，包括可训练的遗忘曲线衰减和同日稳定性参数。
+
+公共符号和 Model 契约见[模型概览](./)。
+
+:::info 公式来源
+已依据 [awesome-fsrs Wiki — FSRS-6](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-6) 核对。
+:::
+
+## 遗忘曲线与间隔
+
+令正衰减值 `math:d = w_{20}`，并选取 `math:F`，使 `math:R(S, S) = 0.9`：
+
+```math
+F=0.9^{-1/d}-1,\qquad
+R(t,S)=\left(1+F\frac{t}{S}\right)^{-d}
+```
+
+```math
+I(r,S)=\frac{S}{F}\left(r^{-1/d}-1\right)
+```
+
+`nextInterval` 会把结果舍入为整数天，并保证至少为一天。
+
+## 初始记忆
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## 难度
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## 复习后的稳定性
+
+当 `math:t > 0` 或 `enableShortTerm` 未启用时，评分决定使用以下哪个分支。
+
+公式使用复习前的 `math:D` 和 `math:S`。Hard 时 `math:H_G = w_{15}`，否则为 `math:1`；Easy 时 `math:E_G = w_{16}`，否则为 `math:1`。
+
+启用 `enableShortTerm` 时，`math:C` 等于复习前的稳定性乘以 `math:\exp(-w_{17}w_{18})`；否则 `math:C = S`：
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` 是当前实现对遗忘后稳定性的上限，并不是单独配置的稳定性下限。最后，模型通过 `clamp` 将 `math:S'_{\mathrm{raw}}` 限制在 `math:S_{\min}` 到 `math:S_{\max}` 之间。
+
+## 同日更新
+
+这里的“同日”指模型收到 `elapsedDays = 0`，模型本身不检查日历日期。经过时间由直接调用方或 scheduler 的 `chrono` 决定。
+
+当 `enableShortTerm` 已启用且 `math:t = 0` 时：
+
+```math
+s_{inc}=S^{-w_{19}}e^{w_{17}(G-3+w_{18})}
+```
+
+```math
+S'=\operatorname{clamp}\left(Sm,S_{min},S_{max}\right),
+\qquad
+m=\begin{cases}
+s_{inc},&G=1\\
+\max(s_{inc},1),&G\ge2
+\end{cases}
+```
+
+Hard、Good 和 Easy 不会让稳定性低于当前值；Again 可以降低稳定性。
