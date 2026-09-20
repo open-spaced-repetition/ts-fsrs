@@ -21,13 +21,15 @@ const scenarios = [
 ] as const
 
 let sink = 0
-let _schedulerSink: FSRS | DefaultScheduler | undefined
+let _schedulerSink: FSRS | DefaultScheduler<'FSRS-6'> | undefined
 
 function consume(value: number): void {
   sink = (sink + value) % Number.MAX_SAFE_INTEGER
 }
 
-function consumePreview(result: ReturnType<DefaultScheduler['preview']>): void {
+function consumePreview(
+  result: ReturnType<DefaultScheduler<'FSRS-6'>['preview']>
+): void {
   for (const item of result) consume(item.card.dueAt.getTime())
 }
 
@@ -38,6 +40,7 @@ for (const enableFuzz of [false, true]) {
       enable_fuzz: enableFuzz,
     }
     const options = {
+      version: 'FSRS-6' as const,
       enableShortTerm: scenario.enableShortTerm,
       enableFuzz,
     }

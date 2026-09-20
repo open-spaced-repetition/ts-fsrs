@@ -18,6 +18,7 @@ import {
   type DefaultSchedulerCard,
   type DefaultSchedulerRevlog,
 } from './default-scheduler.js'
+import { getSchedulerPreset } from './preset.js'
 
 // Reference: fsrs-rs c9562d6 and srs-benchmark b4b0254, evaluated in float32.
 // biome-ignore format: compact independent reference values.
@@ -31,8 +32,14 @@ const now = new Date('2026-09-08T23:59:00Z')
 const MS_PER_DAY = 86400000
 
 describe('DefaultScheduler FSRS-7', () => {
+  it('defaults an unspecified preset version to FSRS-7', async () => {
+    expect(await getSchedulerPreset(undefined)).toBe(
+      await getSchedulerPreset('FSRS-7')
+    )
+  })
+
   it('exposes the FSRS-7 model config without legacy model fields', async () => {
-    const scheduler = await DefaultScheduler({ version: 'FSRS-7' })
+    const scheduler = await DefaultScheduler()
     expectTypeOf(scheduler.model.config).toEqualTypeOf<FSRS7Config>()
     expectTypeOf<
       keyof typeof scheduler.model.config
@@ -41,12 +48,28 @@ describe('DefaultScheduler FSRS-7', () => {
       weights: [...FSRS7_DEFAULT_WEIGHTS],
     })
     expect(scheduler.config.enableShortTerm).toBe(true)
+    expect(scheduler.config.fractionalDays).toBe(true)
+    const card = scheduler.newCard({ now })
+    expectTypeOf(card).toEqualTypeOf<DefaultSchedulerCard>()
+    expectTypeOf(card.stabilityFast).toEqualTypeOf<number>()
+    expect(
+      scheduler.chrono.difference(
+        new Date('2024-03-09T12:00:00-05:00'),
+        new Date('2024-03-10T12:00:00-04:00')
+      )
+    ).toBe(23 / 24)
+    expect(
+      scheduler.chrono.difference(
+        new Date('2024-11-02T12:00:00-04:00'),
+        new Date('2024-11-03T12:00:00-05:00')
+      )
+    ).toBe(25 / 24)
   })
   it('configures fractional days through the shared Date chrono definition', async () => {
     const scheduler = await DefaultScheduler({ version: 'FSRS-7' })
     expect(scheduler.definition.chrono).toBe(dateChrono)
     expect(scheduler.config.fractionalDays).toBe(true)
-    const legacy = await DefaultScheduler()
+    const legacy = await DefaultScheduler({ version: 'FSRS-6' })
     expect(legacy.config.fractionalDays).toBe(false)
     const definition = defineScheduler({
       model: FSRS7Model,

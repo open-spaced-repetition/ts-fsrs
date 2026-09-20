@@ -10,10 +10,10 @@ import {
   schedulerScheduledDaysMiddleware,
   schedulerStatsMiddleware,
 } from 'ts-fsrs'
-import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from 'ts-fsrs/models/fsrs-7'
 
 const baseScheduler = defineScheduler({
-  model: FSRS6Model,
+  model: FSRS7Model,
   chrono: dateChrono,
 })
 
@@ -36,9 +36,9 @@ const schedulerDefinition = baseScheduler.use(
 //   FSRSSchedulerPreview extends Iterable<infer Preview> ? Preview : never
 const scheduler = schedulerDefinition.create({
   config: {
-    weights: FSRS6_DEFAULT_WEIGHTS,
+    weights: FSRS7_DEFAULT_WEIGHTS,
+    fractionalDays: true,
     enableShortTerm: true,
-    numRelearningSteps: 1,
     desiredRetention: 0.9,
     enableFuzz: true,
     maximumInterval: 36500,

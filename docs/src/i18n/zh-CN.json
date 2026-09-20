@@ -26,7 +26,7 @@
   "home.entry.extend.title": "扩展",
   "home.entry.eyebrow": "渐进式 API",
   "home.entry.title": "从简单开始，扩展时无需推倒重来。",
-  "home.entry.use.body": "DefaultScheduler 提供带合理默认值的 FSRS 调度器，支持 FSRS-3 至 FSRS-6，默认使用 FSRS-6。",
+  "home.entry.use.body": "DefaultScheduler 提供带合理默认值的 FSRS 调度器，支持 FSRS-3 至 FSRS-7，默认使用 FSRS-7。",
   "home.entry.use.title": "使用",
   "home.field.difficulty": "难度",
   "home.field.stability": "稳定性",

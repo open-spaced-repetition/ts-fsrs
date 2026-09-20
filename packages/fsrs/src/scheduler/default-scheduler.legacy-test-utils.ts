@@ -1,16 +1,19 @@
 import {
   type Card,
-  type DefaultScheduler,
-  type DefaultSchedulerCard,
+  type DefaultSchedulerCard as CardFor,
   type DefaultSchedulerOptions,
   FSRS,
   type FSRSParameters,
   type Grade,
   generatorParameters,
   type ReviewLog,
+  type DefaultScheduler as SchedulerFor,
   State,
 } from 'ts-fsrs'
 import { scheduleStatusByState } from './default-scheduler.test-utils.js'
+
+type DefaultScheduler = SchedulerFor<'FSRS-6'>
+type DefaultSchedulerCard = CardFor<'FSRS-6'>
 
 type ReviewResult = ReturnType<DefaultScheduler['review']>
 const legacyDefaults = generatorParameters()

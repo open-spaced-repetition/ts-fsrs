@@ -8,6 +8,7 @@ import * as tsFsrsFsrs4 from 'ts-fsrs/models/fsrs-4'
 import * as tsFsrsFsrs4dot5 from 'ts-fsrs/models/fsrs-4dot5'
 import * as tsFsrsFsrs5 from 'ts-fsrs/models/fsrs-5'
 import * as tsFsrsFsrs6 from 'ts-fsrs/models/fsrs-6'
+import * as tsFsrsFsrs7 from 'ts-fsrs/models/fsrs-7'
 import * as tsFsrsReschedule from 'ts-fsrs/reschedule'
 import { formatConsoleArguments } from './format-console'
 import type {
@@ -44,6 +45,7 @@ const runtimeModules: Readonly<Record<string, unknown>> = {
   'ts-fsrs/models/fsrs-4dot5': tsFsrsFsrs4dot5,
   'ts-fsrs/models/fsrs-5': tsFsrsFsrs5,
   'ts-fsrs/models/fsrs-6': tsFsrsFsrs6,
+  'ts-fsrs/models/fsrs-7': tsFsrsFsrs7,
   'ts-fsrs/reschedule': tsFsrsReschedule,
 }
 

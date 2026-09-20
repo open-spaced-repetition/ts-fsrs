@@ -4,16 +4,15 @@ import {
   Rating,
   schedulerLeechMiddleware,
 } from 'ts-fsrs'
-import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from 'ts-fsrs/models/fsrs-7'
 
-const fsrs6 = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
-const withLeech = fsrs6.use(schedulerLeechMiddleware)
+const fsrs7 = defineScheduler({ model: FSRS7Model, chrono: dateChrono })
+const withLeech = fsrs7.use(schedulerLeechMiddleware)
 
 export const scheduler = withLeech.create({
   config: {
-    weights: FSRS6_DEFAULT_WEIGHTS,
-    enableShortTerm: false,
-    numRelearningSteps: 0,
+    weights: FSRS7_DEFAULT_WEIGHTS,
+    fractionalDays: true,
     leechThreshold: 2,
   },
 })

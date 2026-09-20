@@ -53,7 +53,7 @@ type CreateFor<M extends AnyModel> = SchedulerCreate<
 >
 
 export type DefaultSchedulerCreate<
-  Version extends DefaultSchedulerVersion = 'FSRS-6',
+  Version extends DefaultSchedulerVersion = 'FSRS-7',
 > = Version extends 'FSRS-7'
   ? CreateFor<FSRS7DefaultSchedulerModel>
   : CreateFor<DefaultSchedulerModel>
@@ -163,7 +163,7 @@ const schedulerPresetCache = new Map<
 export async function getSchedulerPreset(
   version: DefaultSchedulerVersion | undefined
 ): Promise<SchedulerPreset> {
-  const resolvedVersion = version ?? 'FSRS-6'
+  const resolvedVersion = version ?? 'FSRS-7'
   if (!Object.hasOwn(schedulerPresetLoaders, resolvedVersion)) {
     throw new FSRSValidationError(`Unsupported FSRS version "${version}"`)
   }

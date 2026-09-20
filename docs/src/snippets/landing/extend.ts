@@ -1,5 +1,5 @@
 import { dateChrono, defineMiddleware, defineScheduler, Rating } from 'ts-fsrs'
-import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from 'ts-fsrs/models/fsrs-7'
 import { z } from 'zod'
 
 // Any Standard Schema validator works here: `streak` is validated at runtime
@@ -17,13 +17,12 @@ const streakMiddleware = defineMiddleware({
   },
 })
 
-const fsrs6 = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+const fsrs7 = defineScheduler({ model: FSRS7Model, chrono: dateChrono })
 
-export const scheduler = fsrs6.use(streakMiddleware).create({
+export const scheduler = fsrs7.use(streakMiddleware).create({
   config: {
-    weights: FSRS6_DEFAULT_WEIGHTS,
-    enableShortTerm: false,
-    numRelearningSteps: 0,
+    weights: FSRS7_DEFAULT_WEIGHTS,
+    fractionalDays: true,
   },
 })
 

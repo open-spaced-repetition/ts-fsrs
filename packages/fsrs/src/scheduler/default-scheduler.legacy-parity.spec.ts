@@ -58,7 +58,10 @@ describe('DefaultScheduler legacy parity', () => {
     it.each(
       grades
     )('matches every card and revlog field for rating %s', async (grade) => {
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
       const card = createStateCard(State.Review)
       const actual = scheduler.review({ card, grade, now: NOW })
       const legacy = legacyNext(options, card, NOW, grade)
@@ -104,7 +107,10 @@ describe('DefaultScheduler legacy parity', () => {
     it.each(states)('matches every rating from state %s', async (state) => {
       const card = createStateCard(state)
       const actual = Array.from(
-        (await DefaultScheduler(options)).preview({ card, now: NOW })
+        (await DefaultScheduler({ ...options, version: 'FSRS-6' })).preview({
+          card,
+          now: NOW,
+        })
       )
 
       expect(actual.map((item) => item.grade)).toEqual(grades)
@@ -138,7 +144,10 @@ describe('DefaultScheduler legacy parity', () => {
     })
 
     it('matches a multi-round review sequence', async () => {
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
       const ratings = [
         Rating.Again,
         Rating.Hard,
@@ -165,7 +174,10 @@ describe('DefaultScheduler legacy parity', () => {
     })
 
     it('matches 200 fixed-seed randomized review rounds', async () => {
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
       let seed = enableShortTerm ? 0x6f6e : 0x6f66
       let card = scheduler.newCard({
         now: NOW,
@@ -194,7 +206,10 @@ describe('DefaultScheduler legacy parity', () => {
     })
 
     it.each(states)('restores the input card for state %s', async (state) => {
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
       const card = createStateCard(state)
 
       for (const grade of grades) {
@@ -253,7 +268,10 @@ describe('DefaultScheduler legacy parity', () => {
   ] as const)('parameter edge parity: $name', ({ options }) => {
     it.each(states)('matches every rating from state %s', async (state) => {
       const card = createStateCard(state)
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
 
       for (const grade of grades) {
         const expected = legacyReview(options, card, NOW, grade)
@@ -310,7 +328,10 @@ describe('DefaultScheduler legacy parity', () => {
       2.5, -1,
     ])('consumes legacy scheduledDays=%s without losing rollback parity', async (scheduledDays) => {
       const options = { enableShortTerm: true }
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
       const card = {
         ...createStateCard(State.Review),
         cardId: `legacy-scheduled-${scheduledDays}`,
@@ -334,7 +355,10 @@ describe('DefaultScheduler legacy parity', () => {
         learningSteps: ['23.999h'],
         relearningSteps: ['47.999h'],
       } satisfies DefaultSchedulerOptions
-      const scheduler = await DefaultScheduler(options)
+      const scheduler = await DefaultScheduler({
+        ...options,
+        version: 'FSRS-6',
+      })
 
       for (const [
         state,

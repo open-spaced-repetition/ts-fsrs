@@ -26,7 +26,7 @@
   "home.entry.extend.title": "拡張する",
   "home.entry.eyebrow": "段階的な API",
   "home.entry.title": "まずはシンプルに。拡張しても作り直しは不要。",
-  "home.entry.use.body": "DefaultScheduler は適切なデフォルト値を備えた FSRS スケジューラーです。FSRS-3 から FSRS-6 までをサポートし、デフォルトでは FSRS-6 を使います。",
+  "home.entry.use.body": "DefaultScheduler は適切なデフォルト値を備えた FSRS スケジューラーです。FSRS-3 から FSRS-7 までをサポートし、デフォルトでは FSRS-7 を使います。",
   "home.entry.use.title": "使う",
   "home.field.difficulty": "難易度",
   "home.field.stability": "安定度",
