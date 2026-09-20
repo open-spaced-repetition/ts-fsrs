@@ -1,0 +1,27 @@
+---
+title: Temporal Instant
+description: 設定 temporalInstantChrono 的時區與小數天數，理解日曆運算與日光節約時間行為
+---
+
+import { PackageManagerTabs } from '@rspress/core/theme'
+import RunCode from '../../../components/RunCode'
+import temporalCode from '@/snippets/run-code/chrono-temporal.ts?raw'
+
+# Temporal Instant
+
+將 `timezone` 和 `fractionalDays` 直接放在排程器 config 頂層，例如 `config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`。省略這兩個欄位時使用預設值 `'UTC'` 和 `false`。直接呼叫預設需要完整設定：`temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`；透過排程器建立實例時會驗證設定並補齊預設值。
+
+`fractionalDays: false` 表示按指定時區計算日曆日期差；設為 `true` 時，時間差包含該時區下的小數天數。`add` 在 UTC 下使用固定 24 小時，在其他時區下按日曆天計算；跨越日光節約時間切換時，當地的一天可能短於或長於 24 小時。增加小數天數時，使用相鄰當地日的實際長度。此預設不提供自訂每日換日時間。
+
+## 執行預設
+
+在應用程式中安裝 `temporal-polyfill`。範例在建立 Chrono 前匯入全域入口，僅在執行環境沒有原生 Temporal 時安裝 polyfill；第二條 import 提供全域 TypeScript 型別宣告。
+
+<PackageManagerTabs command="install temporal-polyfill" />
+
+```ts twoslash file="../../../snippets/run-code/chrono-temporal.ts"
+```
+
+<RunCode code={temporalCode} />
+
+紐約 3 月 7 日中午對應 17:00 UTC。增加一個當地日曆天後，是 3 月 8 日中午，也就是 16:00 UTC；由於進入日光節約時間，實際只經過 23 小時。`fractionalDays: true` 將半天的增量計算為 `0.5`。

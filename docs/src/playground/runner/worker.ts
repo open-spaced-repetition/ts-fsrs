@@ -47,10 +47,12 @@ const runtimeModules: Readonly<Record<string, unknown>> = {
   'ts-fsrs/reschedule': tsFsrsReschedule,
 }
 
-// The home page's Extend snippet needs zod, which would double this Worker's
-// payload for every run, so it is fetched as its own chunk when code imports it.
+// Optional example dependencies are fetched only when code imports them.
 const lazyModules: Readonly<Record<string, () => Promise<unknown>>> = {
   zod: () => import('zod'),
+  'temporal-polyfill/global': () => import('temporal-polyfill/global'),
+  'temporal-polyfill/types/global': () =>
+    import('temporal-polyfill/types/global'),
 }
 const loadedLazyModules = new Map<string, unknown>()
 
