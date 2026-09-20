@@ -5,7 +5,7 @@ description: FSRS-7 dual-trace formulas for recall, mixture weights, stability, 
 
 # FSRS-7
 
-FSRS-7 uses 34 weights and two memory traces. Its state contains `stability` (slow trace), `stabilityFast` (fast trace), and `difficulty`.
+FSRS-7 uses 34 weights and two stability components. Its state contains `stability` (slow component), `stabilityFast` (fast component), and `difficulty`. The two stability components produce the slow and fast recall components used by the forgetting curve.
 
 ## Memory state and notation
 
@@ -67,7 +67,7 @@ a_f=w_{27}S_f^{-w_{29}},\qquad  a_s=w_{28}S_s^{w_{30}}e^{(D-5)(w_{31}-0.5)}
 R(t)=\frac{a_fR_f(t)+a_sR_s(t)}{a_f+a_s}(1-2\varepsilon)+\varepsilon,\qquad\varepsilon=10^{-5}
 ```
 
-`algorithm.curve(t, state)` returns `fast`, `slow`, `fastWeight`, `slowWeight`, `retrievability`, and `derivative`. The first two are raw recalls; normalise the weights before combining them. The small final adjustment keeps recall away from 0 and 1, so `math:R(0)=0.99999`.
+`algorithm.curve(t, state)` returns `fast`, `slow`, `fastWeight`, `slowWeight`, `retrievability`, and `derivative`. The `fast` and `slow` fields are the two component recall probabilities, while `fastWeight` and `slowWeight` are positive, unnormalised mixture coefficients. The `retrievability` value is their weighted average followed by the final epsilon adjustment, so `math:R(0)=0.99999`.
 
 ## Stability after review
 
