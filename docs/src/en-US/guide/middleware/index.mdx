@@ -23,8 +23,8 @@ A scheduler composes a model, a chrono, and middleware. You should keep the mode
 
 1. Read ${withSiteOrigin(withBase('/guide/middleware/index.md'))}, ${withSiteOrigin(withBase('/guide/middleware/lifecycle.md'))}, and ${withSiteOrigin(withBase('/guide/middleware/built-in.md'))} for how middleware extends a scheduler.
 2. Declare the config, card, revlog, and cardInitInput schemas before defining behavior.
-3. Keep the middleware limited to schemas, defaultValue, and review/rollback handlers. Let the model own memory-state updates and interval math, and let the chrono own time values and day arithmetic.
-4. Call next() exactly once. Set inputs such as desiredRetention before it; read or adjust the computed result after it.
+3. Keep the middleware limited to schemas, defaultValue, scheduleStatus declarations for custom statuses, and review/rollback/nextInterval handlers. Let the model own memory-state updates and interval math, and let the chrono own time values and day arithmetic.
+4. Call next() exactly once. Set inputs such as ctx.candidate.desiredRetention[grade] before it; read or adjust the computed result after it.
 5. For rollback, read only ctx.input.card and ctx.input.revlog and write only ctx.result.card. Restore the old values the review handler saved.
 6. Keep handlers free of database writes, notifications, and other external effects; let the application persist the selected review result.
 7. Reuse a built-in policy when it already covers the behavior.
@@ -41,6 +41,8 @@ A `Middleware` definition has a required `name` and optional schemas, defaults, 
 | `schema.card` | Declares and validates fields on input and output cards. |
 | `schema.revlog` | Declares and validates fields on review logs, including values needed for rollback. |
 | `schema.cardInitInput` | Declares additional input accepted by `newCard()`, such as a card ID. |
+| `scheduleStatus` | Registers custom schedule statuses, for example `scheduleStatus: ['buried']`, so composed types and result validation accept them. |
+| `handlers.nextInterval` | Adjusts `ctx.candidate.desiredRetention[grade]` before `next()` or `ctx.scheduledDays` afterward. Runs during review and direct `scheduler.nextInterval()` queries. |
 | `defaultValue.card` | Supplies fields when creating or forgetting a card. `ctx.operation` distinguishes the two operations. |
 | `handlers.review` / `handlers.rollback` | Update `ctx.result` around the next handler in the chain. See [Lifecycle](./lifecycle) for how these run. |
 

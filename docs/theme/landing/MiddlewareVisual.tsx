@@ -6,6 +6,7 @@ import * as styles from './styles'
 const BUILT_INS = [
   'stats',
   'desiredRetention',
+  'costAdr',
   'fuzzing',
   'learningSteps',
   'leech',

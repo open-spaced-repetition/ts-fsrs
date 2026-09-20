@@ -35,6 +35,7 @@
   "home.grade.easy": "Easy（簡單）",
   "home.grade.good": "Good（良好）",
   "home.grade.hard": "Hard（困難）",
+  "home.middleware.builtin.costAdr": "依記憶狀態與複習成本調整保留率，用於取代固定目標保留率策略。",
   "home.middleware.builtin.desiredRetention": "將設定的目標保留率傳入間隔計算。",
   "home.middleware.builtin.fuzzing": "以卡片 ID 與複習次數為種子，套用確定性的間隔變化。",
   "home.middleware.builtin.learningSteps": "以分鐘、小時或天為單位安排學習與重新學習步驟。",

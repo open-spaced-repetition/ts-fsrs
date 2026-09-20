@@ -24,6 +24,7 @@ const COLUMNS = [
     items: [
       'learningSteps',
       'desiredRetention',
+      'costAdr',
       'fuzzing',
       'leech',
       'stats',

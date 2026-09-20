@@ -9,7 +9,7 @@ The following policies are available from `ts-fsrs/middlewares` and the `ts-fsrs
 
 | Middleware | Behavior |
 | --- | --- |
-| `schedulerDesiredRetentionMiddleware` | Applies configured `desiredRetention` before interval calculation. Acceptable values: `(0, 1]`|
+| `schedulerDesiredRetentionMiddleware` | Applies configured `desiredRetention` before interval calculation. Acceptable values: `(0, 1)`. |
 | `schedulerLearningStepsMiddleware` | Applies `learningSteps` and `relearningSteps` when `enableShortTerm` is enabled; maintains `learningStep` and learning state. |
 | `schedulerFuzzingMiddleware` | Spreads intervals when `enableFuzz` is enabled, using `cardId` and the review count for reproducible results. `createSchedulerFuzzingMiddleware()` accepts custom ranges and RNG. |
 | `schedulerMaximumIntervalMiddleware` | Caps the day interval at `maximumInterval`. Explicit learning steps can override this cap as the chain unwinds. |
@@ -17,6 +17,7 @@ The following policies are available from `ts-fsrs/middlewares` and the `ts-fsrs
 | `schedulerMonotonicIntervalMiddleware` | Orders day intervals across ratings, subject to `maximumInterval`; intervals can coincide at the cap. |
 | `schedulerScheduledDaysMiddleware` | Stores the final interval as nonnegative `scheduledDays` on the card and saves its previous value in the revlog. With the default `fractionalDays: false`, intervals are floored to whole days, so sub-day steps become `0`. With `fractionalDays: true`, fractional intervals such as `0.5` are preserved. |
 | `schedulerLeechMiddleware` | Sets `scheduleStatus` to `suspended` on each positive `leechThreshold` multiple of lapses. The default threshold `0` disables suspension. Your application must respect this status when selecting cards. |
+| `schedulerCostAdrMiddleware` | Adapts retention to memory state and review cost using `costAdrPolicy` and `goalCostWeight`. When composing a scheduler, use it instead of `schedulerDesiredRetentionMiddleware`, not alongside it. |
 
 `DefaultScheduler` already includes the first seven policies. Its order is desired retention → fuzzing → stats → scheduled days → learning steps → maximum interval → monotonic interval. Leech is opt-in when composing your own definition. See [Lifecycle](./lifecycle) for why the order matters and the [Overview](./index) for how middleware runs.
 

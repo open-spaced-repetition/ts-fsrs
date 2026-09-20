@@ -19,7 +19,7 @@ a: before next()
 a: after next()
 ```
 
-Call `next()` once to continue the normal scheduling flow. Set inputs such as `ctx.desiredRetention` before it; inspect or change the computed result after it. In review, `ctx.scheduledDays` is the interval in days. The scheduler applies the configured chrono after the handlers finish to calculate the due time, then validates the result.
+Call `next()` once to continue the normal scheduling flow. Set inputs such as `ctx.candidate.desiredRetention[grade]` before it; inspect or change the computed result after it. In review, `ctx.scheduledDays` is the interval in days. The scheduler applies the configured chrono after the handlers finish to calculate the due time, then validates the result.
 
 Order matters when policies interact: register `schedulerScheduledDaysMiddleware` before the interval policies so it records their final result on unwind; keep learning steps before the maximum- and monotonic-interval policies so explicit steps retain their delay. Register leech before handlers that set `scheduleStatus` after `next()`, so suspension is applied last. The [Built-in policies](./built-in) page lists each policy and how `DefaultScheduler` orders them.
 

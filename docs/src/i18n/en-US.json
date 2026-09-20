@@ -35,6 +35,7 @@
   "home.grade.easy": "Easy",
   "home.grade.good": "Good",
   "home.grade.hard": "Hard",
+  "home.middleware.builtin.costAdr": "Adapts retention to memory state and review cost. Use instead of the fixed desired-retention policy.",
   "home.middleware.builtin.desiredRetention": "Passes the configured retention target into interval calculation.",
   "home.middleware.builtin.fuzzing": "Applies deterministic interval variation, seeded by card ID and review count.",
   "home.middleware.builtin.learningSteps": "Schedules learning and relearning steps in minutes, hours, or days.",

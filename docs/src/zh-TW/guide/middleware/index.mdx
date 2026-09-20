@@ -23,8 +23,8 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 
 1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/middleware/index.md'))}、${withSiteOrigin(withBase('/zh-TW/guide/middleware/lifecycle.md'))} 和 ${withSiteOrigin(withBase('/zh-TW/guide/middleware/built-in.md'))}，了解中介軟體如何擴充排程器。
 2. 在定義行為前，先宣告 config、card、revlog 和 cardInitInput 的 schema。
-3. 將中介軟體限制為 schema、defaultValue 以及 review/rollback 處理函式；讓模型負責記憶狀態更新與間隔計算，讓 chrono 負責時間值與天數運算。
-4. 恰好呼叫一次 next()。在它之前設定 desiredRetention 等輸入；在它之後讀取或調整計算結果。
+3. 將中介軟體限制為 schema、defaultValue、自訂狀態的 scheduleStatus 宣告以及 review/rollback/nextInterval 處理函式；讓模型負責記憶狀態更新與間隔計算，讓 chrono 負責時間值與天數運算。
+4. 恰好呼叫一次 next()。在它之前設定 ctx.candidate.desiredRetention[grade] 等輸入；在它之後讀取或調整計算結果。
 5. 復原時只讀取 ctx.input.card 和 ctx.input.revlog，只寫入 ctx.result.card，並還原複習處理函式儲存的舊值。
 6. 不要在處理函式中寫入資料庫、傳送通知或執行其他外部操作；由應用程式儲存最後選定的複習結果。
 7. 當內建策略已能涵蓋該行為時，優先重用。
@@ -41,6 +41,8 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 | `schema.card` | 宣告並驗證輸入、輸出卡片上的欄位。 |
 | `schema.revlog` | 宣告並驗證複習紀錄欄位，包括復原所需的舊值。 |
 | `schema.cardInitInput` | 宣告 `newCard()` 接受的額外輸入，例如卡片 ID。 |
+| `scheduleStatus` | 註冊自訂排程狀態，例如 `scheduleStatus: ['buried']`，讓組合後的型別與結果驗證接受這些狀態。 |
+| `handlers.nextInterval` | 在 `next()` 前調整 `ctx.candidate.desiredRetention[grade]`，或在其後調整 `ctx.scheduledDays`。複習與直接呼叫 `scheduler.nextInterval()` 時都會執行。 |
 | `defaultValue.card` | 在建立或重設卡片時提供欄位值，透過 `ctx.operation` 區分這兩種操作。 |
 | `handlers.review` / `handlers.rollback` | 在呼叫下一個處理函式前後，更新 `ctx.result`。執行方式見[生命週期](./lifecycle)。 |
 

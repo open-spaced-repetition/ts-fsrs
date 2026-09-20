@@ -9,7 +9,7 @@ description: ts-fsrs に同梱されるミドルウェアポリシーと、Defau
 
 | ミドルウェア | 動作 |
 | --- | --- |
-| `schedulerDesiredRetentionMiddleware` | 間隔の計算前に設定の `desiredRetention` を適用します。範囲は `(0, 1]` です。 |
+| `schedulerDesiredRetentionMiddleware` | 間隔の計算前に設定の `desiredRetention` を適用します。範囲は `(0, 1)` です。 |
 | `schedulerLearningStepsMiddleware` | `enableShortTerm` が有効な場合に `learningSteps` と `relearningSteps` を適用し、`learningStep` と学習状態を管理します。 |
 | `schedulerFuzzingMiddleware` | `enableFuzz` が有効な場合に間隔を分散します。`cardId` と復習回数を使うため結果を再現できます。`createSchedulerFuzzingMiddleware()` で範囲や乱数生成器を指定できます。 |
 | `schedulerMaximumIntervalMiddleware` | 日単位の間隔を `maximumInterval` 以下に制限します。呼び出しから戻る際、明示的な学習ステップはこの上限を上書きできます。 |
@@ -17,6 +17,7 @@ description: ts-fsrs に同梱されるミドルウェアポリシーと、Defau
 | `schedulerMonotonicIntervalMiddleware` | `maximumInterval` の範囲内で、評価ごとの日単位の間隔を順序付けます。上限に達すると同じ間隔になることがあります。 |
 | `schedulerScheduledDaysMiddleware` | 最終間隔を非負の `scheduledDays` としてカードに保存し、変更前の値を revlog に記録します。既定の `fractionalDays: false` では日数を切り捨て、一日未満のステップは `0` になります。`true` では `0.5` などの小数の日数を保持します。 |
 | `schedulerLeechMiddleware` | 忘却回数が正の `leechThreshold` の倍数に達するたびに、`scheduleStatus` を `suspended` にします。デフォルトの閾値 `0` では無効です。カード選択時にこの状態を考慮するのはアプリケーションの役割です。 |
+| `schedulerCostAdrMiddleware` | `costAdrPolicy` と `goalCostWeight` を使い、記憶状態と復習コストに応じて保持率を調整します。スケジューラの構成時は `schedulerDesiredRetentionMiddleware` の代わりに使用し、併用しないでください。 |
 
 `DefaultScheduler` には最初の七つが含まれています。順序は目標保持率 → fuzzing → 統計 → scheduled days → 学習ステップ → 最大間隔 → 単調間隔です。Leech は独自の定義を組み立てる際に必要に応じて追加します。順序が重要な理由は[ライフサイクル](./lifecycle)、ミドルウェアの実行方法は[概要](./index)を参照してください。
 

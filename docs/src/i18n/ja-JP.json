@@ -35,6 +35,7 @@
   "home.grade.easy": "Easy（簡単）",
   "home.grade.good": "Good（普通）",
   "home.grade.hard": "Hard（難しい）",
+  "home.middleware.builtin.costAdr": "記憶状態と復習コストに応じて保持率を調整します。固定の目標保持率ポリシーの代わりに使用します。",
   "home.middleware.builtin.desiredRetention": "設定された目標保持率を間隔計算に渡します。",
   "home.middleware.builtin.fuzzing": "カード ID と復習回数をシードに、間隔へ決定的な揺らぎを加えます。",
   "home.middleware.builtin.learningSteps": "学習・再学習ステップを分・時間・日の単位でスケジュールします。",
