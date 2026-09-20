@@ -19,3 +19,7 @@ description: 从 ts-fsrs 根入口导出的类型参考
 仅类型的导入不会添加运行时代码，因此使用 `import type` 是安全的。
 
 **另见** —— [架构指南](../../guide/architecture)（模型、chrono、中间件与调度器如何映射到这些类型）。
+
+`DefaultSchedulerCard<'FSRS-7'>` 包含 `stabilityFast`；`DefaultSchedulerCard<'FSRS-6'>` 保留旧状态结构。`FSRS7State` 与 `FSRS7Config` 从 `ts-fsrs/models/fsrs-7` 导入。
+
+`NextIntervalMiddlewareContext`, `NextIntervalMiddlewareHandler`, `SchedulerNextIntervalContext`.

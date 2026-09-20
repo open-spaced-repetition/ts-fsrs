@@ -24,3 +24,7 @@ It contributes `desiredRetention` to the scheduler config and applies it before 
 Running the same review at `0.9` and `0.8` retention schedules the due time three days apart while stability stays equal.
 
 **See** — [Built-in policies](../../../guide/middleware/built-in).
+
+`desiredRetention` accepts a finite number in `(0, 1)` or a record keyed by all four grades. The `nextInterval` handler writes the candidate retention map; an explicit retention in a standalone query takes precedence.
+
+Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.

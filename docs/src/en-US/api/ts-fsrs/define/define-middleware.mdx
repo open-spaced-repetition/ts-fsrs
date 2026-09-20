@@ -19,6 +19,8 @@ defineMiddleware(definition): Middleware
 | --- | --- |
 | `name` | Required. |
 | `schema.config` / `card` / `revlog` / `cardInitInput` | Declare and validate fields. |
+| `scheduleStatus` | Declares extra accepted statuses, for example `['buried']`. |
+| `handlers.nextInterval` | Runs interval policies for review and direct `scheduler.nextInterval()` queries; update `ctx.candidate.desiredRetention[ctx.input.grade]` before `next()` or `ctx.scheduledDays` afterward. |
 | `defaultValue.card` | Supply fields when creating or forgetting a card. |
 | `handlers.review` / `handlers.rollback` | Run around `next()`; update `ctx.result`. |
 

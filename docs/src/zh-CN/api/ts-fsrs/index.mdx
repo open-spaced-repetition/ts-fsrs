@@ -13,7 +13,7 @@ description: 受支持的 ts-fsrs API 索引 —— 面向应用代码的定义�
 
 | 页面 | 说明 |
 | --- | --- |
-| [DefaultScheduler](./default-scheduler) | 现成的调度器预设（默认为 FSRS-6）。 |
+| [DefaultScheduler](./default-scheduler) | 现成的调度器预设（默认为 FSRS-7）。 |
 | [defineScheduler](./define/define-scheduler) | 由模型与 chrono 组合出可复用的调度器。 |
 | [Scheduler](./scheduler) | `.create()` 与 `DefaultScheduler` 返回的实例（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
 | [defineModel](./define/define-model) | 把带版本的 FSRS 模型打包成定义。 |
@@ -27,6 +27,7 @@ description: 受支持的 ts-fsrs API 索引 —— 面向应用代码的定义�
 | 页面 | 中间件 |
 | --- | --- |
 | [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [Cost ADR](./middlewares/cost-adr) | `schedulerCostAdrMiddleware` |
 | [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
 | [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
 | [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
@@ -48,7 +49,7 @@ description: 受支持的 ts-fsrs API 索引 —— 面向应用代码的定义�
 
 | 页面 | 说明 |
 | --- | --- |
-| [模型](./models/) | `ts-fsrs/models/fsrs-3` 至 `fsrs-6`，每个版本一页。 |
+| [模型](./models/) | `ts-fsrs/models/fsrs-3` 至 `fsrs-7`，每个版本一页。 |
 | [重排](./reschedule) | `ts-fsrs/reschedule` 重排辅助工具。 |
 
 从 [DefaultScheduler](./default-scheduler) 或 [defineScheduler](./define/define-scheduler) 开始；[指南](../../guide/)解释如何组合这些部分。

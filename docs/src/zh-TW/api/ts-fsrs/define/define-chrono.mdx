@@ -29,3 +29,5 @@ defineChrono(definition): Chrono
 **預設** — [`dateChrono`、`numericChrono`、`temporalInstantChrono`](../chrono-presets)。
 
 **另見** — [Chrono 指南](../../../guide/chrono)（normalize 與 `defineChrono` 範例）。
+
+`normalize` 在複習時接收 `{ card, time }`，復原時接收 `{ revlog }`，透過 Standard Schema 驗證回傳 `{ previous, current }`。`previous: null` 表示沒有上次事件。Date/Temporal 預設的 `current` 是已儲存的 `dueAt`；`time` 是目前操作時間，不應取代已儲存的到期時間。使用 `parse(chrono.normalize, input)`，不要把 `normalize` 當函式呼叫。

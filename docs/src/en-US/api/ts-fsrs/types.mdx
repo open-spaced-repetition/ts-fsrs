@@ -19,3 +19,7 @@ The root re-exports the types produced by and flowing through the scheduler, plu
 Type-only imports add no runtime code, so `import type` is safe.
 
 **See** — [Guide architecture](../../guide/architecture) (how model, chrono, middleware, and scheduler map to the types).
+
+`DefaultSchedulerCard<'FSRS-7'>` includes `stabilityFast`; `DefaultSchedulerCard<'FSRS-6'>` keeps the legacy state shape. Import `FSRS7State` and `FSRS7Config` from `ts-fsrs/models/fsrs-7`.
+
+`NextIntervalMiddlewareContext`, `NextIntervalMiddlewareHandler`, `SchedulerNextIntervalContext`.

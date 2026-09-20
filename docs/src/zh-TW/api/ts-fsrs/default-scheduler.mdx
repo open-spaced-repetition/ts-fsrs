@@ -17,7 +17,7 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 
 | 選項 | 預設 | 備註 |
 | --- | --- | --- |
-| `version` | `'FSRS-6'` | `'FSRS-3'` … `'FSRS-6'`；參數會依版本遷移。 |
+| `version` | `'FSRS-7'` | `'FSRS-3'` … `'FSRS-7'`；參數會依版本遷移。 |
 | `weights` | 預設權重 | 選用的訓練權重。 |
 | `desiredRetention` | `0.9` | 間隔計算前的目標保留率。 |
 | `enableShortTerm` | `true` | 啟用學習與再學習步驟。 |
@@ -27,8 +27,16 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 | `maximumInterval` | `36500` | 間隔天數的上限。 |
 | `clearStatsOnForget` | `true` | `forget` 是否清除 `reps` 與 `lapses`。 |
 
-**行為** — 以 FSRS-6（預設）組合 `dateChrono` 與內建策略；回傳的實例暴露 `newCard`、`review`、`rollback`、`preview` 與 `forget`。
+**行為** — 以 FSRS-7（預設）組合 `dateChrono` 與內建策略；回傳的實例暴露 `newCard`、`review`、`rollback`、`preview` 與 `forget`。
 
 **相關型別** — `DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`。
 
 **另見** — [DefaultScheduler 預設](../../guide/scheduler/default-scheduler)、[內建策略](../../guide/middleware/built-in)。
+
+FSRS-7 是預設模型，以 34 個權重和雙穩定性軌跡處理小數天數的複習。設定僅包含 `weights`；明確的學習步驟屬於中介軟體策略，不能用來停用快速軌跡。
+
+`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。舊狀態需透過 `Reschedule` 重播歷史重建；遷移權重不會重建快速軌跡。
+
+Cost ADR 依記憶狀態與複習成本調整保留率。組合時以 `schedulerCostAdrMiddleware` 取代 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。間隔上限仍由 `schedulerMaximumIntervalMiddleware` 負責。
+
+接收已計算的評分後記憶狀態，透過 `handlers.nextInterval` 回傳天數，不執行 review 處理函式，也不推進卡片或 chrono。

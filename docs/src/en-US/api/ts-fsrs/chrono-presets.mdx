@@ -14,3 +14,5 @@ description: Reference for dateChrono, numericChrono, and temporalInstantChrono
 | `temporalInstantChrono` | `Temporal.Instant` | Configured timezone; optional fractional day differences. |
 
 **See** — [Chrono guide](../../guide/chrono) per preset ([Date](../../guide/chrono/date), [Numeric](../../guide/chrono/numeric), [Temporal Instant](../../guide/chrono/temporal-instant)); [defineChrono](./define/define-chrono) for a custom Chrono.
+
+`normalize` receives `{ card, time }` for review or `{ revlog }` for rollback and returns `{ previous, current }` through Standard Schema validation. `previous: null` means there is no previous event. For Date/Temporal presets, `current` is the stored `dueAt`; `time` is the current operation time, not a replacement for that stored due time. Call `parse(chrono.normalize, input)` rather than calling `normalize` as a function.

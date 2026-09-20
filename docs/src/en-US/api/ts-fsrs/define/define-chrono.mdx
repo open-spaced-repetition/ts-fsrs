@@ -29,3 +29,5 @@ The definition carries `schema`, `normalize`, `defaultValue`, and a `create` fac
 **Presets** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets).
 
 **See** — [Chrono guide](../../../guide/chrono) (normalize and a `defineChrono` example).
+
+`normalize` receives `{ card, time }` for review or `{ revlog }` for rollback and returns `{ previous, current }` through Standard Schema validation. `previous: null` means there is no previous event. For Date/Temporal presets, `current` is the stored `dueAt`; `time` is the current operation time, not a replacement for that stored due time. Call `parse(chrono.normalize, input)` rather than calling `normalize` as a function.

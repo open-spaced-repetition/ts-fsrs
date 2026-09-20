@@ -14,3 +14,5 @@ description: dateChrono、numericChrono 与 temporalInstantChrono 参考
 | `temporalInstantChrono` | `Temporal.Instant` | 使用已配置的时区；可选的小数天数差。 |
 
 **另见** —— 各预设对应的 [Chrono 指南](../../guide/chrono)（[Date](../../guide/chrono/date)、[Numeric](../../guide/chrono/numeric)、[Temporal Instant](../../guide/chrono/temporal-instant)）；自定义 Chrono 见 [defineChrono](./define/define-chrono)。
+
+`normalize` 在复习时接收 `{ card, time }`，撤销时接收 `{ revlog }`，通过 Standard Schema 校验返回 `{ previous, current }`。`previous: null` 表示没有上次事件。Date/Temporal 预设的 `current` 是已存储的 `dueAt`；`time` 是当前操作时间，不应替换已存储的到期时间。使用 `parse(chrono.normalize, input)`，不要把 `normalize` 当函数调用。

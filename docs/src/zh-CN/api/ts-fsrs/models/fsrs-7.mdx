@@ -1,0 +1,36 @@
+---
+title: FSRS-7
+description: "FSRS-7 是默认模型，用 34 个权重和双稳定性轨迹处理小数天数的复习。配置仅包含 `weights`；显式学习步骤属于中间件策略，不能用于关闭快速轨迹。"
+---
+
+# FSRS-7
+
+FSRS-7 是默认模型，用 34 个权重和双稳定性轨迹处理小数天数的复习。配置仅包含 `weights`；显式学习步骤属于中间件策略，不能用于关闭快速轨迹。
+
+```ts
+import {
+  FSRS7Model,
+  FSRS7Algorithm,
+  FSRS7_DEFAULT_WEIGHTS,
+  FSRS7_MODEL_BOUNDS,
+  FSRS7MemoryStateSchema,
+  fsrs7ConfigSchema,
+  migrateFSRS7Parameters,
+  clipFSRS7Parameters,
+  checkFSRS7Parameters,
+  type FSRS7State,
+  type FSRS7Config,
+} from 'ts-fsrs/models/fsrs-7'
+```
+
+```ts
+const model = FSRS7Model.create({
+  config: { weights: FSRS7_DEFAULT_WEIGHTS },
+})
+const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
+const interval = model.nextInterval(state, 0.9)
+```
+
+`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。旧状态需要通过 `Reschedule` 重放历史重建；迁移权重不会重建快速轨迹。
+
+[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)

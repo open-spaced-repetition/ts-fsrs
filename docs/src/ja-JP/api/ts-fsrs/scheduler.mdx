@@ -19,6 +19,7 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | `preview` | `preview({ card, now? })` | 4 つのグレードそれぞれに対応する `{ grade, card, revlog }` の遅延イテラブル。 |
 | `rollback` | `rollback({ card, revlog })` | 保存された revlog を使い、レビュー前のカードを復元します。 |
 | `forget` | `forget({ card, now? })` | デフォルトを通してリセットされたカード。 |
+| `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | 計算済みの評価後の記憶状態から `handlers.nextInterval` を通して日数を返します。review ハンドラを実行せず、カードや chrono を進めません。 |
 
 `review` と `preview` は入力カードを決して変更せず、新しいカードを返します。`rollback` はレビューの `{ card, revlog }` を受け取り、レビュー前のカードを復元します。
 

@@ -1,6 +1,6 @@
 ---
 title: ScheduledDays
-description: Built-in middleware schedulerScheduledDaysMiddleware — stores the final interval as whole scheduled days
+description: Built-in middleware schedulerScheduledDaysMiddleware — stores the final interval as scheduled days
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/sched
 import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It stores the final interval as a nonnegative whole `scheduledDays` on the card and records the previous value in the revlog, so a review can restore it on rollback.
+It stores the final interval as a nonnegative `scheduledDays` on the card and records the previous value in the revlog, so a review can restore it on rollback.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```
@@ -24,3 +24,5 @@ It stores the final interval as a nonnegative whole `scheduledDays` on the card 
 The Good review stores `scheduledDays: 2` on the card while the revlog keeps the previous `0`.
 
 **See** — [Built-in policies](../../../guide/middleware/built-in).
+
+With `fractionalDays: false`, stored days are floored; with `fractionalDays: true`, nonnegative fractional intervals are preserved. `DefaultScheduler` selects fractional days for FSRS-7.

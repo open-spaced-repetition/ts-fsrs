@@ -1,0 +1,36 @@
+---
+title: FSRS-7
+description: "FSRS-7 是預設模型，以 34 個權重和雙穩定性軌跡處理小數天數的複習。設定僅包含 `weights`；明確的學習步驟屬於中介軟體策略，不能用來停用快速軌跡。"
+---
+
+# FSRS-7
+
+FSRS-7 是預設模型，以 34 個權重和雙穩定性軌跡處理小數天數的複習。設定僅包含 `weights`；明確的學習步驟屬於中介軟體策略，不能用來停用快速軌跡。
+
+```ts
+import {
+  FSRS7Model,
+  FSRS7Algorithm,
+  FSRS7_DEFAULT_WEIGHTS,
+  FSRS7_MODEL_BOUNDS,
+  FSRS7MemoryStateSchema,
+  fsrs7ConfigSchema,
+  migrateFSRS7Parameters,
+  clipFSRS7Parameters,
+  checkFSRS7Parameters,
+  type FSRS7State,
+  type FSRS7Config,
+} from 'ts-fsrs/models/fsrs-7'
+```
+
+```ts
+const model = FSRS7Model.create({
+  config: { weights: FSRS7_DEFAULT_WEIGHTS },
+})
+const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
+const interval = model.nextInterval(state, 0.9)
+```
+
+`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。舊狀態需透過 `Reschedule` 重播歷史重建；遷移權重不會重建快速軌跡。
+
+[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)

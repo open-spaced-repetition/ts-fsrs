@@ -1,0 +1,36 @@
+---
+title: FSRS-7
+description: "FSRS-7 は既定のモデルです。34 個の重みと 2 つの安定性トレースで小数日の復習を扱います。設定は `weights` のみです。明示的な学習ステップはミドルウェアのポリシーであり、高速トレースを無効にするものではありません。"
+---
+
+# FSRS-7
+
+FSRS-7 は既定のモデルです。34 個の重みと 2 つの安定性トレースで小数日の復習を扱います。設定は `weights` のみです。明示的な学習ステップはミドルウェアのポリシーであり、高速トレースを無効にするものではありません。
+
+```ts
+import {
+  FSRS7Model,
+  FSRS7Algorithm,
+  FSRS7_DEFAULT_WEIGHTS,
+  FSRS7_MODEL_BOUNDS,
+  FSRS7MemoryStateSchema,
+  fsrs7ConfigSchema,
+  migrateFSRS7Parameters,
+  clipFSRS7Parameters,
+  checkFSRS7Parameters,
+  type FSRS7State,
+  type FSRS7Config,
+} from 'ts-fsrs/models/fsrs-7'
+```
+
+```ts
+const model = FSRS7Model.create({
+  config: { weights: FSRS7_DEFAULT_WEIGHTS },
+})
+const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
+const interval = model.nextInterval(state, 0.9)
+```
+
+`ts-fsrs` の `FSRSMemoryStateSchema` は FSRS-3–6 の `{ stability, difficulty }` を表します。FSRS-7 は `ts-fsrs/models/fsrs-7` の `FSRS7MemoryStateSchema` を使い、`stabilityFast` を追加します。旧状態は `Reschedule` で履歴を再生して再構築します。重みの移行だけでは高速トレースは復元できません。
+
+[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)

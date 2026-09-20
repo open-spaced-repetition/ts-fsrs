@@ -19,6 +19,7 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 | ページ | エクスポート |
 | --- | --- |
 | [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [Cost ADR](./cost-adr) | `schedulerCostAdrMiddleware` |
 | [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
 | [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
 | [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
@@ -44,3 +45,5 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 <RunCode code={code} />
 
 **参照** — [defineMiddleware](../define/define-middleware)、[組み込みポリシー](../../../guide/middleware/built-in)。
+
+Cost ADR は記憶状態と復習コストから保持率を調整します。`schedulerDesiredRetentionMiddleware` の代わりに `schedulerCostAdrMiddleware` を組み合わせます。`DefaultScheduler` には含まれません。間隔の上限は引き続き `schedulerMaximumIntervalMiddleware` が担当します。

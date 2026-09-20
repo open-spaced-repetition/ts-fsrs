@@ -1,6 +1,6 @@
 ---
 title: モデル
-description: ts-fsrs/models/fsrs-3 から fsrs-6 までのバージョン別エントリポイントのリファレンス
+description: ts-fsrs/models/fsrs-3 から fsrs-7 までのバージョン別エントリポイントのリファレンス
 ---
 
 # モデル
@@ -8,11 +8,12 @@ description: ts-fsrs/models/fsrs-3 から fsrs-6 までのバージョン別エ�
 各 FSRS バージョンは独立したエントリポイントとして提供されるため、ビルドには実際に使うモデルだけが含まれます。
 
 ```ts
-import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 ```
 
 | サブパス | ページ | モデル |
 | --- | --- | --- |
+| `ts-fsrs/models/fsrs-7` | [FSRS-7](./fsrs-7) | FSRS-7 |
 | `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 |
 | `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
 | `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
@@ -38,7 +39,7 @@ import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
 
 ## 記憶状態
 
-`FSRSMemoryStateSchema` はバージョンではなく `ts-fsrs` ルートからエクスポートされます。記憶状態の構造（`{ stability, difficulty }`）はすべてのモデルで共通だからです。
+`ts-fsrs` の `FSRSMemoryStateSchema` は FSRS-3–6 の `{ stability, difficulty }` を表します。FSRS-7 は `ts-fsrs/models/fsrs-7` の `FSRS7MemoryStateSchema` を使い、`stabilityFast` を追加します。旧状態は `Reschedule` で履歴を再生して再構築します。重みの移行だけでは高速トレースは復元できません。
 
 ```ts
 import { FSRSMemoryStateSchema } from 'ts-fsrs'

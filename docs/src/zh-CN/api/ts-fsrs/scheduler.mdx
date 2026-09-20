@@ -19,6 +19,7 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | `preview` | `preview({ card, now? })` | 针对四种评分各产生一个 `{ grade, card, revlog }` 的惰性可迭代对象。 |
 | `rollback` | `rollback({ card, revlog })` | 复习前的卡片，依据其保存的 revlog。 |
 | `forget` | `forget({ card, now? })` | 重置回默认状态的一张卡片。 |
+| `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | 接收已计算的评分后记忆状态，通过 `handlers.nextInterval` 返回天数，不执行 review 处理函数，也不推进卡片或 chrono。 |
 
 `review` 与 `preview` 从不修改输入的卡片，而是返回新卡片。`rollback` 接受一次复习的 `{ card, revlog }`，并恢复复习前的卡片。
 

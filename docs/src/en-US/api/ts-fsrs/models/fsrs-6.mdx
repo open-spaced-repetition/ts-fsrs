@@ -1,6 +1,6 @@
 ---
 title: FSRS-6
-description: Reference for ts-fsrs/models/fsrs-6 — the default model, its weights, bounds, parameter helpers, and decay
+description: Reference for ts-fsrs/models/fsrs-6 — the FSRS-6 model, its weights, bounds, parameter helpers, and decay
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -8,8 +8,9 @@ import fsrs6Code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-6.ts?raw'
 
 # FSRS-6
 
-The default model. [DefaultScheduler](../default-scheduler) uses it, and
-[defineScheduler](../define/define-scheduler) takes it as the `model` argument.
+[DefaultScheduler](../default-scheduler): `version: 'FSRS-6'`.
+
+FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace.
 
 ```ts
 import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'

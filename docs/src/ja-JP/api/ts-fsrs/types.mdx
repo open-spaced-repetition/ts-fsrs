@@ -19,3 +19,7 @@ description: ts-fsrs ルートからエクスポートされる型のリファ�
 型のみのインポートはランタイムコードを追加しないため、`import type` は安全です。
 
 **参照** — [アーキテクチャ](../../guide/architecture)（モデル・chrono・ミドルウェア・スケジューラが型とどう対応するか）。
+
+`DefaultSchedulerCard<'FSRS-7'>` は `stabilityFast` を含み、`DefaultSchedulerCard<'FSRS-6'>` は旧状態の構造を保持します。`FSRS7State` と `FSRS7Config` は `ts-fsrs/models/fsrs-7` からインポートします。
+
+`NextIntervalMiddlewareContext`, `NextIntervalMiddlewareHandler`, `SchedulerNextIntervalContext`.

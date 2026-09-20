@@ -1,6 +1,6 @@
 ---
 title: Models
-description: Reference for the versioned model entry points under ts-fsrs/models/fsrs-3 through fsrs-6
+description: Reference for the versioned model entry points under ts-fsrs/models/fsrs-3 through fsrs-7
 ---
 
 # Models
@@ -9,12 +9,13 @@ Each FSRS version ships as its own entry point, so a build only pulls in the
 model it uses.
 
 ```ts
-import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 ```
 
 | Subpath | Page | Model |
 | --- | --- | --- |
-| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 (default) |
+| `ts-fsrs/models/fsrs-7` | [FSRS-7](./fsrs-7) | FSRS-7 |
+| `ts-fsrs/models/fsrs-6` | [FSRS-6](./fsrs-6) | FSRS-6 |
 | `ts-fsrs/models/fsrs-5` | [FSRS-5](./fsrs-5) | FSRS-5 |
 | `ts-fsrs/models/fsrs-4dot5` | [FSRS-4.5](./fsrs-4dot5) | FSRS-4.5 |
 | `ts-fsrs/models/fsrs-4` | [FSRS-4](./fsrs-4) | FSRS-4 |
@@ -41,9 +42,7 @@ and per-version helpers. Each page lists its own.
 
 ## Memory state
 
-`FSRSMemoryStateSchema` is exported from the `ts-fsrs` root rather than from a
-version, because the memory state shape (`{ stability, difficulty }`) is shared
-across every model.
+`FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.
 
 ```ts
 import { FSRSMemoryStateSchema } from 'ts-fsrs'

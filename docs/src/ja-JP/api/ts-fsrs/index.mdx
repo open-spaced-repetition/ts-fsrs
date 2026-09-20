@@ -13,7 +13,7 @@ description: サポート対象の ts-fsrs API の索引——アプリケーシ
 
 | ページ | 内容 |
 | --- | --- |
-| [DefaultScheduler](./default-scheduler) | 既製のスケジューラプリセット（既定は FSRS-6）。 |
+| [DefaultScheduler](./default-scheduler) | 既製のスケジューラプリセット（既定は FSRS-7）。 |
 | [defineScheduler](./define/define-scheduler) | モデルと chrono から再利用可能なスケジューラを組み立てます。 |
 | [Scheduler](./scheduler) | `.create()` と `DefaultScheduler` が返すインスタンス（`newCard`、`review`、`rollback`、`preview`、`forget`）。 |
 | [defineModel](./define/define-model) | バージョン付きの FSRS モデルを定義にまとめます。 |
@@ -27,6 +27,7 @@ description: サポート対象の ts-fsrs API の索引——アプリケーシ
 | ページ | ミドルウェア |
 | --- | --- |
 | [DesiredRetention](./middlewares/desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [Cost ADR](./middlewares/cost-adr) | `schedulerCostAdrMiddleware` |
 | [LearningSteps](./middlewares/learning-steps) | `schedulerLearningStepsMiddleware` |
 | [Fuzzing](./middlewares/fuzz) | `schedulerFuzzingMiddleware` |
 | [MaximumInterval](./middlewares/maximum-interval) | `schedulerMaximumIntervalMiddleware` |
@@ -48,7 +49,7 @@ description: サポート対象の ts-fsrs API の索引——アプリケーシ
 
 | ページ | 内容 |
 | --- | --- |
-| [モデル](./models/) | `ts-fsrs/models/fsrs-3` から `fsrs-6` まで、バージョンごとに 1 ページ。 |
+| [モデル](./models/) | `ts-fsrs/models/fsrs-3` から `fsrs-7` まで、バージョンごとに 1 ページ。 |
 | [リスケジュール](./reschedule) | `ts-fsrs/reschedule` のリスケジュールヘルパー。 |
 
 [DefaultScheduler](./default-scheduler) か [defineScheduler](./define/define-scheduler) から始めてください。部品の組み合わせ方は[ガイド](../../guide/)で説明しています。

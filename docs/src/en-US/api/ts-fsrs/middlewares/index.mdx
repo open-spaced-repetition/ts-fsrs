@@ -20,6 +20,7 @@ own with [defineMiddleware](../define/define-middleware).
 | Page | Export |
 | --- | --- |
 | [DesiredRetention](./desired-retention) | `schedulerDesiredRetentionMiddleware` |
+| [Cost ADR](./cost-adr) | `schedulerCostAdrMiddleware` |
 | [LearningSteps](./learning-steps) | `schedulerLearningStepsMiddleware` |
 | [Fuzzing](./fuzz) | `schedulerFuzzingMiddleware` |
 | [MaximumInterval](./maximum-interval) | `schedulerMaximumIntervalMiddleware` |
@@ -46,3 +47,5 @@ pieces the policies are built from.
 <RunCode code={code} />
 
 **See** — [defineMiddleware](../define/define-middleware), [Built-in policies](../../../guide/middleware/built-in).
+
+Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.

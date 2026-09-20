@@ -19,6 +19,8 @@ defineMiddleware(definition): Middleware
 | --- | --- |
 | `name` | 必須。 |
 | `schema.config` / `card` / `revlog` / `cardInitInput` | フィールドを宣言し検証します。 |
+| `scheduleStatus` | `['buried']` など、受け入れる追加の状態を宣言します。 |
+| `handlers.nextInterval` | 復習と `scheduler.nextInterval()` の直接呼び出しで間隔ポリシーを実行します。`next()` の前に `ctx.candidate.desiredRetention[ctx.input.grade]`、または後に `ctx.scheduledDays` を調整します。 |
 | `defaultValue.card` | カードの作成時や forget 時にフィールドを提供します。 |
 | `handlers.review` / `handlers.rollback` | `next()` の周囲で実行し、`ctx.result` を更新します。 |
 

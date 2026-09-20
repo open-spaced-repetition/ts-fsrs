@@ -24,3 +24,7 @@ import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
 分别在 `0.9` 与 `0.8` 保留率下运行同一次复习，到期时间会相差三天，而稳定性保持不变。
 
 **另见** —— [内置策略](../../../guide/middleware/built-in)。
+
+`desiredRetention` 接受 `(0, 1)` 内的有限数字，或包含全部四种评分的记录。`nextInterval` 处理函数写入候选保留率映射；独立查询显式传入的保留率优先。
+
+Cost ADR 根据记忆状态和复习成本调整保留率。组合时用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。间隔上限仍由 `schedulerMaximumIntervalMiddleware` 负责。

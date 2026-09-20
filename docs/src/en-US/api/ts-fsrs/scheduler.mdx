@@ -19,6 +19,7 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | `preview` | `preview({ card, now? })` | A lazy iterable of `{ grade, card, revlog }` for each of the four grades. |
 | `rollback` | `rollback({ card, revlog })` | The card before a review, using its saved revlog. |
 | `forget` | `forget({ card, now? })` | A card reset through its defaults. |
+| `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | Uses an already computed post-rating memory state and returns days through `handlers.nextInterval`. It does not run review handlers or advance the card or chrono. |
 
 `review` and `preview` never mutate their input card; they return new cards. `rollback` takes a review's `{ card, revlog }` and restores the pre-review card.
 

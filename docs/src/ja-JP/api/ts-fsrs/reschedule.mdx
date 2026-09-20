@@ -48,3 +48,5 @@ const result = reschedule.reschedule({ history, initialCard: card })
 **関連型** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`、および推論型 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
 
 **参照** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。
+
+`ts-fsrs` の `FSRSMemoryStateSchema` は FSRS-3–6 の `{ stability, difficulty }` を表します。FSRS-7 は `ts-fsrs/models/fsrs-7` の `FSRS7MemoryStateSchema` を使い、`stabilityFast` を追加します。旧状態は `Reschedule` で履歴を再生して再構築します。重みの移行だけでは高速トレースは復元できません。

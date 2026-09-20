@@ -24,3 +24,7 @@ import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
 同じ復習を目標保持率 `0.9` と `0.8` で実行すると、期限は 3 日ずれますが、安定度は等しいままです。
 
 **参照** — [組み込みポリシー](../../../guide/middleware/built-in)。
+
+`desiredRetention` は `(0, 1)` の有限数値、または全 4 評価をキーとするレコードです。`nextInterval` ハンドラが候補の保持率マップを更新し、独立した問い合わせで明示した保持率が優先されます。
+
+Cost ADR は記憶状態と復習コストから保持率を調整します。`schedulerDesiredRetentionMiddleware` の代わりに `schedulerCostAdrMiddleware` を組み合わせます。`DefaultScheduler` には含まれません。間隔の上限は引き続き `schedulerMaximumIntervalMiddleware` が担当します。

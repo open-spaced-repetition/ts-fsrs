@@ -19,6 +19,8 @@ defineMiddleware(definition): Middleware
 | --- | --- |
 | `name` | 必填。 |
 | `schema.config` / `card` / `revlog` / `cardInitInput` | 宣告並驗證欄位。 |
+| `scheduleStatus` | 宣告可接受的額外狀態，例如 `['buried']`。 |
+| `handlers.nextInterval` | 在複習及直接呼叫 `scheduler.nextInterval()` 時執行間隔策略；在 `next()` 前設定 `ctx.candidate.desiredRetention[ctx.input.grade]`，或在其後調整 `ctx.scheduledDays`。 |
 | `defaultValue.card` | 建立或重設卡片時提供欄位值。 |
 | `handlers.review` / `handlers.rollback` | 環繞 `next()` 執行；更新 `ctx.result`。 |
 

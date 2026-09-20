@@ -48,3 +48,5 @@ const result = reschedule.reschedule({ history, initialCard: card })
 **Related types** — `RescheduleReview`, `NonManualReview`, `ReplayResult`, `RescheduleResult`, and the inference types `CardOf`, `MemoryStateOf`, `TimeOf`, `ScheduleResultOf`.
 
 **See** — [defineScheduler](./define/define-scheduler), [DefaultScheduler](./default-scheduler).
+
+`FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.

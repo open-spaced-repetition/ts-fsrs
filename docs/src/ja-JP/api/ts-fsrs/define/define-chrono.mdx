@@ -29,3 +29,5 @@ defineChrono(definition): Chrono
 **プリセット** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets)。
 
 **参照** — [Chrono の概要](../../../guide/chrono)（normalize と `defineChrono` の例）。
+
+`normalize` は復習時に `{ card, time }`、ロールバック時に `{ revlog }` を受け取り、Standard Schema の検証で `{ previous, current }` を返します。`previous: null` は前のイベントがないことを示します。Date/Temporal の `current` は保存済みの `dueAt` で、操作時刻 `time` とは異なります。関数として呼ばず、`parse(chrono.normalize, input)` を使ってください。

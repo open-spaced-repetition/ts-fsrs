@@ -48,3 +48,5 @@ const result = reschedule.reschedule({ history, initialCard: card })
 **相关类型** —— `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`，以及推断类型 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
 
 **另见** —— [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。
+
+`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。旧状态需要通过 `Reschedule` 重放历史重建；迁移权重不会重建快速轨迹。

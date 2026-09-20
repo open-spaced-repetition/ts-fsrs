@@ -1,0 +1,37 @@
+---
+title: Cost ADR
+description: "Cost ADR は記憶状態と復習コストから保持率を調整します。`schedulerDesiredRetentionMiddleware` の代わりに `schedulerCostAdrMiddleware` を組み合わせます。`DefaultScheduler` には含まれません。間隔の上限は引き続き `schedulerMaximumIntervalMiddleware` が担当します。"
+---
+
+# Cost ADR
+
+Cost ADR は記憶状態と復習コストから保持率を調整します。`schedulerDesiredRetentionMiddleware` の代わりに `schedulerCostAdrMiddleware` を組み合わせます。`DefaultScheduler` には含まれません。間隔の上限は引き続き `schedulerMaximumIntervalMiddleware` が担当します。
+
+```ts
+import { dateChrono, defineScheduler } from 'ts-fsrs'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
+import {
+  schedulerCostAdrMiddleware,
+  COST_ADR_DEFAULT_POLICY,
+  COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
+} from 'ts-fsrs/middlewares'
+
+const scheduler = defineScheduler({ model: FSRS7Model, chrono: dateChrono })
+  .use(schedulerCostAdrMiddleware)
+  .create({
+    config: {
+      weights: FSRS7_DEFAULT_WEIGHTS,
+      fractionalDays: true,
+      costAdrPolicy: COST_ADR_DEFAULT_POLICY,
+      goalCostWeight: COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
+    },
+  })
+```
+
+復習と `scheduler.nextInterval()` の直接呼び出しで間隔ポリシーを実行します。`next()` の前に `ctx.candidate.desiredRetention[ctx.input.grade]`、または後に `ctx.scheduledDays` を調整します。
+
+`goalCostWeight`: [0, 1024]. `costAdrPolicy.coefficients`: 15 × [-64, 64].
+
+`costAdrConfigSchema`, `costAdrPolicySchema`, `CostAdrConfig`, `CostAdrPolicy` — `ts-fsrs/middlewares`.
+
+[DesiredRetention](./desired-retention) · [Middleware](../../../guide/middleware/built-in)

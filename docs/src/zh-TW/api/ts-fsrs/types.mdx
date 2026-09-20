@@ -19,3 +19,7 @@ description: ts-fsrs 根匯出型別的參考
 純型別匯入不會加入執行時期程式碼，因此 `import type` 是安全的。
 
 **另見** — [架構指南](../../guide/architecture)（模型、chrono、中介軟體與排程器如何對應到這些型別）。
+
+`DefaultSchedulerCard<'FSRS-7'>` 包含 `stabilityFast`；`DefaultSchedulerCard<'FSRS-6'>` 保留舊狀態結構。`FSRS7State` 與 `FSRS7Config` 從 `ts-fsrs/models/fsrs-7` 匯入。
+
+`NextIntervalMiddlewareContext`, `NextIntervalMiddlewareHandler`, `SchedulerNextIntervalContext`.

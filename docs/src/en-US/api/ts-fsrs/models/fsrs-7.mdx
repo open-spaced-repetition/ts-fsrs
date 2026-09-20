@@ -1,0 +1,36 @@
+---
+title: FSRS-7
+description: "FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace."
+---
+
+# FSRS-7
+
+FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace.
+
+```ts
+import {
+  FSRS7Model,
+  FSRS7Algorithm,
+  FSRS7_DEFAULT_WEIGHTS,
+  FSRS7_MODEL_BOUNDS,
+  FSRS7MemoryStateSchema,
+  fsrs7ConfigSchema,
+  migrateFSRS7Parameters,
+  clipFSRS7Parameters,
+  checkFSRS7Parameters,
+  type FSRS7State,
+  type FSRS7Config,
+} from 'ts-fsrs/models/fsrs-7'
+```
+
+```ts
+const model = FSRS7Model.create({
+  config: { weights: FSRS7_DEFAULT_WEIGHTS },
+})
+const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
+const interval = model.nextInterval(state, 0.9)
+```
+
+`FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.
+
+[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)
