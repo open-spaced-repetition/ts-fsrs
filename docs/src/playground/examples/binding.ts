@@ -9,18 +9,24 @@ if (!response.ok) throw new Error(`revlog.csv: ${response.status}`)
 if (!response.body) throw new Error('revlog.csv: empty response body')
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
-const items = await convertCsvToFsrsItems(response.body, 4, timezone, 'FSRS-6')
+const modelVersion = 'FSRS-7' // Use 'FSRS-6' for FSRS6 with whole study days.
+const items = await convertCsvToFsrsItems(
+  response.body,
+  4,
+  timezone,
+  modelVersion
+)
 console.log('Downloaded revlog.csv.')
 console.log(`Optimising ${items.length} reviews (${timezone})…`)
 
 // Console output is streamed while the run is still going, so `progress`
-// reports the optimiser as it advances. It fires per epoch, which is far more
+// reports the optimiser as it advances. It fires per batch, which is far more
 // often than the output needs to change, so lines are kept to every tenth.
 const STEP_PERCENT = 10
 let reportedStep = -1
 const weights = await computeParameters(items, {
   enableShortTerm: true,
-  modelVersion: 'FSRS-6',
+  modelVersion,
   progress(current, total) {
     const step = Math.floor((current / total) * (100 / STEP_PERCENT))
     if (step === reportedStep) return

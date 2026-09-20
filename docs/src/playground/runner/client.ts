@@ -156,6 +156,7 @@ export function runInPlaygroundWorker(
 export type RevlogTrainingRequest = {
   readonly csvText: string
   readonly enableShortTerm: boolean
+  readonly modelVersion?: 'FSRS-6' | 'FSRS-7'
   readonly nextDayStartsAt: number
   readonly onProgress?: (progress: TrainingProgress) => void
   readonly timezone: string
@@ -164,6 +165,7 @@ export type RevlogTrainingRequest = {
 export function trainRevlogCsvInPlaygroundWorker({
   csvText,
   enableShortTerm,
+  modelVersion = 'FSRS-7',
   nextDayStartsAt,
   onProgress,
   timezone,
@@ -179,6 +181,7 @@ export function trainRevlogCsvInPlaygroundWorker({
   const request = {
     csvText,
     enableShortTerm,
+    modelVersion,
     id,
     ...validation.config,
     type: 'train-csv',
