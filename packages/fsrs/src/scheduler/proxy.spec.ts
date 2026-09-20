@@ -29,6 +29,19 @@ describe('FSRS-7 scheduler migration proxy', () => {
     expect(scheduler.review(input)).toBe(input)
   })
 
+  it('preserves a new state and non-object inputs', () => {
+    const scheduler = createFSRS7MigrationProxy({
+      review(input: unknown) {
+        return input
+      },
+    })
+
+    expect(scheduler.review({ card: { stability: 0, difficulty: 0 } })).toEqual(
+      { card: { stability: 0, stabilityFast: 0, difficulty: 0 } }
+    )
+    expect(scheduler.review(null)).toBeNull()
+  })
+
   it('migrates a state-only FSRS-6 card with the 0.8 fast-trace seed', async () => {
     const fsrs6 = await DefaultScheduler({
       version: 'FSRS-6',
