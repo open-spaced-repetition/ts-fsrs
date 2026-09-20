@@ -25,7 +25,7 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 2. 挙動を定義する前に、config、card、revlog、cardInitInput の schema を宣言する。
 3. ミドルウェアの責務を schema、defaultValue、独自の状態を宣言する scheduleStatus、review/rollback/nextInterval ハンドラに限定する。記憶状態の更新と間隔計算はモデル、時間値と日数演算は chrono に任せる。
 4. next() をちょうど一回呼ぶ。ctx.candidate.desiredRetention[ctx.input.grade] などの入力は呼び出し前に設定し、計算結果の確認や調整は呼び出し後に行う。
-5. ロールバックでは ctx.input.card と ctx.input.revlog だけを読み、ctx.result.card だけに書き込み、review ハンドラが保存した古い値を復元する。
+5. ロールバックでは ctx.config、ctx.input.card、ctx.input.revlog を読み取り、ctx.result.card だけに書き込む。設定されたポリシーに従って、review ハンドラが保存した古い値を復元する。
 6. ハンドラ内でデータベースへの書き込みや通知などの外部操作を行わない。確定した復習結果の保存はアプリケーションの役割。
 7. 挙動が既存の組み込みポリシーでカバーできるなら、それを再利用する。
 8. 現在の public API を使い、書いたハンドラごとに焦点を絞ったテストを追加する。`}

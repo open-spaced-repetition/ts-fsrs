@@ -25,6 +25,6 @@ a: next() 後
 
 ## 複習與復原
 
-復原會依相同的註冊順序執行獨立的 rollback 處理函式。它接收 `ctx.input.card` 和 `ctx.input.revlog`，結果只寫入 `ctx.result.card`。僅宣告 schema 不會自動還原自訂欄位：應像[概覽](./index)的連續答對範例一樣，在複習時儲存所需的舊值，在復原時讀取並還原。
+復原會依相同的註冊順序執行獨立的 rollback 處理函式。它可以讀取 `ctx.config`、`ctx.input.card` 和 `ctx.input.revlog`，結果只寫入 `ctx.result.card`。僅宣告 schema 不會自動還原自訂欄位：應像[概覽](./index)的連續答對範例一樣，在複習時儲存所需的舊值，在復原時依設定的策略讀取並還原。
 
 預覽也會為所需的候選評分執行 review 處理函式。因此不要在處理函式中寫入資料庫、傳送通知或執行其他外部操作；由應用程式儲存最後選定的複習結果。`forget()` 透過預設值重設卡片，沒有獨立的 forget 處理函式；連續答對範例因此會把計數歸零。

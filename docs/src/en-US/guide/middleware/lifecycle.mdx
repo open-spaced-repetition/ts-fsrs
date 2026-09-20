@@ -25,6 +25,6 @@ Order matters when policies interact: register `schedulerScheduledDaysMiddleware
 
 ## Review and rollback
 
-Rollback uses its own handlers in the same registration order. A rollback handler receives `ctx.input.card` and `ctx.input.revlog`, and writes only `ctx.result.card`. Schema declarations alone do not restore custom fields: save the required old values during review and restore them in the rollback handler, as the streak example on the [Overview](./index) does.
+Rollback uses its own handlers in the same registration order. A rollback handler can read `ctx.config`, `ctx.input.card`, and `ctx.input.revlog`, and writes only `ctx.result.card`. Schema declarations alone do not restore custom fields: save the required old values during review and restore them in the rollback handler according to the configured policy, as the streak example on the [Overview](./index) does.
 
 `preview()` runs the review handlers for the requested candidate ratings. Keep handlers free of database writes, notifications, and other external effects; persist the selected review result in your application. `forget()` resets a card with its defaults rather than running a separate handler, so the streak example resets the counter to zero.

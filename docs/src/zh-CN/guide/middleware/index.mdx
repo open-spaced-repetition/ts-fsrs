@@ -25,7 +25,7 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 2. 在定义行为前，先声明 config、card、revlog 和 cardInitInput 的 schema。
 3. 将中间件限制为 schema、defaultValue、自定义状态的 scheduleStatus 声明以及 review/rollback/nextInterval 处理函数；让模型负责记忆状态更新与间隔计算，让 chrono 负责时间值与天数运算。
 4. 恰好调用一次 next()。在它之前设置 ctx.candidate.desiredRetention[ctx.input.grade] 等输入；在它之后读取或调整计算结果。
-5. 撤销时只读取 ctx.input.card 和 ctx.input.revlog，只写入 ctx.result.card，并恢复复习处理函数保存的旧值。
+5. 撤销时可以读取 ctx.config、ctx.input.card 和 ctx.input.revlog，只写入 ctx.result.card，并按配置的策略恢复复习处理函数保存的旧值。
 6. 不要在处理函数中写数据库、发通知或执行其他外部操作；由应用保存最终选定的复习结果。
 7. 当内置策略已能覆盖该行为时，优先复用。
 8. 使用当前公共 API，并为所写的处理函数添加聚焦测试。`}

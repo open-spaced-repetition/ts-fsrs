@@ -25,7 +25,7 @@ A scheduler composes a model, a chrono, and middleware. You should keep the mode
 2. Declare the config, card, revlog, and cardInitInput schemas before defining behavior.
 3. Keep the middleware limited to schemas, defaultValue, scheduleStatus declarations for custom statuses, and review/rollback/nextInterval handlers. Let the model own memory-state updates and interval math, and let the chrono own time values and day arithmetic.
 4. Call next() exactly once. Set inputs such as ctx.candidate.desiredRetention[ctx.input.grade] before it; read or adjust the computed result after it.
-5. For rollback, read only ctx.input.card and ctx.input.revlog and write only ctx.result.card. Restore the old values the review handler saved.
+5. For rollback, read ctx.config, ctx.input.card, and ctx.input.revlog, and write only ctx.result.card. Restore the old values the review handler saved according to the configured policy.
 6. Keep handlers free of database writes, notifications, and other external effects; let the application persist the selected review result.
 7. Reuse a built-in policy when it already covers the behavior.
 8. Use the current public API and add focused tests for any handler you write.`}

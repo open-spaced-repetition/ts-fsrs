@@ -25,6 +25,6 @@ a: next() 后
 
 ## 复习与撤销
 
-撤销会按相同的注册顺序执行独立的 rollback 处理函数。它接收 `ctx.input.card` 和 `ctx.input.revlog`，结果只写入 `ctx.result.card`。仅声明 schema 不会自动恢复自定义字段：应像[概览](./index)的连续答对示例一样，在复习时保存所需旧值，在撤销时读取并恢复。
+撤销会按相同的注册顺序执行独立的 rollback 处理函数。它可以读取 `ctx.config`、`ctx.input.card` 和 `ctx.input.revlog`，结果只写入 `ctx.result.card`。仅声明 schema 不会自动恢复自定义字段：应像[概览](./index)的连续答对示例一样，在复习时保存所需旧值，在撤销时按配置的策略读取并恢复。
 
 预览也会为所需的候选评分执行 review 处理函数。因此不要在处理函数中写数据库、发通知或执行其他外部操作；由应用保存最终选定的复习结果。`forget()` 通过默认值重置卡片，没有单独的 forget 处理函数；连续答对示例因此会把计数重置为零。
