@@ -22,7 +22,8 @@ export async function trainRevlogCsv(
   const items = convertCsvToFsrsItems(
     new TextEncoder().encode(csvText),
     options.nextDayStartsAt,
-    options.timezone
+    options.timezone,
+    'FSRS-6'
   )
   if (items.length === 0) {
     throw new Error(
@@ -33,6 +34,7 @@ export async function trainRevlogCsv(
   let reportedPercent = -1
   const weights = await computeParameters(items, {
     enableShortTerm: options.enableShortTerm,
+    modelVersion: 'FSRS-6',
     progress(current, total) {
       const percent = Math.floor((current / total) * 100)
       if (percent === reportedPercent && current !== total) return

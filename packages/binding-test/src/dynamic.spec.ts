@@ -132,12 +132,16 @@ describeIfWasm('initOptimizer', () => {
     expect(nextStates.easy).toBeDefined()
   })
 
-  test('memoryStateFromSM2 works after init', async () => {
+  test('memoryStateFromSM2 supports explicit FSRS6 after init', async () => {
     const binding = await initialize({
       wasm: wasmPath!,
       worker: workerPath!,
     })
-    const fsrs = new binding.FSRSBinding()
+    const parameters = await binding.computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-6',
+    })
+    const fsrs = new binding.FSRSBinding(parameters)
     expect(typeof fsrs.memoryStateFromSM2).toBe('function')
     const m = fsrs.memoryStateFromSM2(2.5, 10, 0.9)
     expect(m.stability).toBeCloseTo(10.0, 3)
@@ -159,7 +163,7 @@ describeIfWasm('initOptimizer', () => {
     })
     expect(parameters).toBeDefined()
     expect(Array.isArray(parameters)).toBe(true)
-    expect(parameters.length).toBe(21)
+    expect(parameters.length).toBe(34)
   })
 
   test('initializes with URL objects', async () => {

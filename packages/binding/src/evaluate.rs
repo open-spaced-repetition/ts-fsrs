@@ -42,6 +42,8 @@ pub fn evaluate_with_time_series_splits<'env>(
       enable_short_term: resolved.enable_short_term,
       num_relearning_steps: resolved.num_relearning_steps,
       training_config: resolved.training_config,
+      model_version: resolved.model_version,
+      ..Default::default()
     },
     |progress| match callback {
       Some(callback) => {
@@ -96,6 +98,7 @@ pub struct EvaluateParametersTask {
   pub(crate) enable_short_term: bool,
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) training_config: Option<fsrs::TrainingConfig>,
+  pub(crate) model_version: fsrs::ComputeParametersVersion,
   #[cfg(not(target_arch = "wasm32"))]
   pub(crate) timeout_ms: u32,
   #[cfg(not(target_arch = "wasm32"))]
@@ -124,6 +127,7 @@ impl EvaluateParametersTask {
       enable_short_term: resolved.enable_short_term,
       num_relearning_steps: resolved.num_relearning_steps,
       training_config: resolved.training_config,
+      model_version: resolved.model_version,
       // non-wasm reuses the TSFN in the task; wasm already consumed it above
       #[cfg(not(target_arch = "wasm32"))]
       timeout_ms: resolved.timeout_ms,
@@ -150,6 +154,8 @@ impl EvaluateParametersTask {
       enable_short_term: self.enable_short_term,
       num_relearning_steps: self.num_relearning_steps,
       training_config: self.training_config,
+      model_version: self.model_version,
+      ..Default::default()
     };
     let result = fsrs::evaluate_with_time_series_splits(input, move |item_progress| {
       if let Ok(mut guard) = state.lock() {

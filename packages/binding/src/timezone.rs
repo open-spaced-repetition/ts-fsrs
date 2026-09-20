@@ -1,7 +1,4 @@
-use jiff::{
-  Timestamp,
-  tz::{TimeZone, TimeZoneDatabase},
-};
+use jiff::tz::{Offset, TimeZone, TimeZoneDatabase};
 use napi::bindgen_prelude::{Either, Result};
 use napi_derive::napi;
 use std::sync::OnceLock;
@@ -12,23 +9,7 @@ fn bundled_timezone_database() -> &'static TimeZoneDatabase {
   BUNDLED_TIMEZONE_DATABASE.get_or_init(TimeZoneDatabase::bundled)
 }
 
-pub(crate) enum TimezoneOffset {
-  TimeZone(TimeZone),
-  Fixed(i64),
-}
-
-impl TimezoneOffset {
-  pub(crate) fn offset_minutes(&self, timestamp: i64) -> Result<i64> {
-    match self {
-      Self::TimeZone(timezone) => {
-        let ts = Timestamp::from_millisecond(timestamp)
-          .map_err(|e| napi::Error::from_reason(format!("Invalid timestamp: {}", e)))?;
-        Ok(i64::from(timezone.to_offset(ts).seconds() / 60))
-      }
-      Self::Fixed(offset_minutes) => Ok(*offset_minutes),
-    }
-  }
-}
+pub(crate) type TimezoneOffset = TimeZone;
 
 /// Timezone input used when converting CSV review timestamps to FSRS items.
 ///
@@ -45,8 +26,15 @@ pub(crate) fn resolve_timezone_offset(
   match timezone_or_offset {
     Either::A(timezone) => bundled_timezone_database()
       .get(&timezone)
-      .map(TimezoneOffset::TimeZone)
       .map_err(|e| napi::Error::from_reason(format!("Unsupported timezone '{}': {}", timezone, e))),
-    Either::B(offset_minutes) => Ok(TimezoneOffset::Fixed(offset_minutes)),
+    Either::B(minutes) => {
+      let seconds = minutes
+        .checked_mul(60)
+        .and_then(|n| i32::try_from(n).ok())
+        .ok_or_else(|| napi::Error::from_reason("Invalid timezone offset"))?;
+      Offset::from_seconds(seconds)
+        .map(TimeZone::fixed)
+        .map_err(|e| napi::Error::from_reason(format!("Invalid timezone offset: {}", e)))
+    }
   }
 }
