@@ -1,0 +1,84 @@
+---
+title: FSRS-5
+description: FSRS-5 的幂函数遗忘曲线、间隔计算、难度、稳定性和同日更新公式，以及与相邻版本的核心差异和实现说明
+---
+
+# FSRS-5
+
+FSRS-5 有 19 个可训练权重。它保留 FSRS-4.5 的固定遗忘曲线，并增加根据评分变化的同日稳定性更新。
+
+公共符号和 Model 契约见[模型概览](./)。
+
+:::info 公式来源
+已依据 [awesome-fsrs Wiki — FSRS-5](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-5) 核对。
+:::
+
+## 遗忘曲线与间隔
+
+```math
+R(t,S)=\left(1+\frac{19t}{81S}\right)^{-1/2}
+```
+
+```math
+I(r,S)=\frac{81S}{19}\left(r^{-2}-1\right)
+```
+
+## 初始记忆
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_{G-1},S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=w_4-e^{w_5(G-1)}+1,\qquad
+D_{initial}=\operatorname{clamp}\left(D_0(G),1,10\right)
+```
+
+## 难度
+
+```math
+\Delta D=-w_6(G-3),\qquad
+D^*=D+\Delta D\frac{10-D}{9}
+```
+
+```math
+D'=\operatorname{clamp}\left(w_7D_0(4)+(1-w_7)D^*,1,10\right)
+```
+
+## 复习后的稳定性
+
+当 `math:t > 0` 或 `enableShortTerm` 未启用时，评分决定使用以下哪个分支。
+
+Hard 时 `math:H_G = w_{15}`，否则为 `math:1`；Easy 时 `math:E_G = w_{16}`，否则为 `math:1`。
+
+启用 `enableShortTerm` 时，`math:C` 等于复习前的稳定性乘以 `math:\exp(-w_{17}w_{18})`；否则 `math:C = S`：
+
+```math
+S_f=\min\left(w_{11}D^{-w_{12}}\left((S+1)^{w_{13}}-1\right)e^{w_{14}(1-R)},C\right)
+```
+
+```math
+S_r=S\left[1+e^{w_8}(11-D)S^{-w_9}\left(e^{w_{10}(1-R)}-1\right)H_GE_G\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+`math:C` 是当前实现对遗忘后稳定性的上限，并不是单独配置的稳定性下限。最后，模型通过 `clamp` 将 `math:S'_{\mathrm{raw}}` 限制在 `math:S_{\min}` 到 `math:S_{\max}` 之间。
+
+## 同日更新
+
+这里的“同日”指模型收到 `elapsedDays = 0`，模型本身不检查日历日期。经过时间由直接调用方或 scheduler 的 `chrono` 决定。
+
+当 `enableShortTerm` 已启用且 `math:t = 0` 时：
+
+```math
+S'=\operatorname{clamp}\left(
+S e^{w_{17}(G-3+w_{18})},S_{min},S_{max}
+\right)
+```

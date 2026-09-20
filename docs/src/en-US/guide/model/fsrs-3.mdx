@@ -1,0 +1,64 @@
+---
+title: FSRS-3
+description: FSRS-3 formulas for the exponential forgetting curve, interval inversion, initial memory, difficulty, recall, and forgetting
+---
+
+# FSRS-3
+
+FSRS-3 has 13 trainable weights and uses an exponential forgetting curve. Its stability updates use the newly calculated difficulty `math:D'`.
+
+See the [Model overview](./) for the shared symbols and Model contract.
+
+:::info Formula source
+Reviewed against [awesome-fsrs Wiki — FSRS-3](https://github.com/open-spaced-repetition/awesome-fsrs/wiki/The-Algorithm#fsrs-v3).
+:::
+
+## Forgetting curve and interval
+
+```math
+R(t,S)=0.9^{t/S}
+```
+
+```math
+I(r,S)=S\frac{\ln r}{\ln 0.9}
+```
+
+## Initial memory
+
+```math
+S_0(G)=\operatorname{clamp}\left(w_0+(G-1)w_1,S_{min},S_{max}\right)
+```
+
+```math
+D_0(G)=\operatorname{clamp}\left(w_2+(G-3)w_3,D_{min},D_{max}\right)
+```
+
+## Difficulty
+
+```math
+D^*=D+w_4(G-3)
+```
+
+```math
+D'=\operatorname{clamp}\left(w_5w_2+(1-w_5)D^*,D_{min},D_{max}\right)
+```
+
+## Stability after review
+
+```math
+S_f=w_9(D')^{w_{10}}S^{w_{11}}e^{w_{12}(1-R)}
+```
+
+```math
+S_r=S\left[1+e^{w_6}(11-D')S^{w_7}\left(e^{w_8(1-R)}-1\right)\right]
+```
+
+```math
+S'_{raw}(G)=
+\begin{cases}
+S_f,&G=1\\
+S_r,&G\in\{2,3,4\}
+\end{cases}
+```
+
+The model then clamps `math:S'_{\mathrm{raw}}` to the range from `math:S_{\min}` to `math:S_{\max}`.

@@ -1,0 +1,9 @@
+[
+  { "type": "file", "name": "index", "label": "概要" },
+  "fsrs-7",
+  "fsrs-6",
+  "fsrs-5",
+  { "type": "file", "name": "fsrs-4dot5", "label": "FSRS-4.5" },
+  "fsrs-4",
+  "fsrs-3"
+]

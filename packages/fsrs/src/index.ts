@@ -2,6 +2,7 @@ export type * from '@open-spaced-repetition/srs-kit'
 export {
   defineChrono,
   defineMiddleware,
+  defineModel,
   defineScheduler,
   type Grade,
   gradeSchema,
