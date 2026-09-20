@@ -12,7 +12,6 @@ import type {
   DefaultSchedulerVersion,
 } from './preset.js'
 import { getSchedulerPreset } from './preset.js'
-import { createFSRS7MigrationProxy } from './proxy.js'
 
 type DefaultSchedulerConfigInput = Parameters<
   DefaultSchedulerCreate<'FSRS-6'>
@@ -128,7 +127,7 @@ export async function DefaultScheduler<
     enableShortTerm
   )
 
-  const scheduler = preset.definition.create({
+  return preset.definition.create({
     config: {
       fractionalDays: version === 'FSRS-7',
       weights: migratedWeights,
@@ -142,6 +141,4 @@ export async function DefaultScheduler<
       clearStatsOnForget: options.clearStatsOnForget,
     } satisfies DefaultSchedulerConfigInput,
   }) as unknown as DefaultScheduler<Version>
-
-  return version === 'FSRS-7' ? createFSRS7MigrationProxy(scheduler) : scheduler
 }
