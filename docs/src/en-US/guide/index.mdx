@@ -12,7 +12,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 ## Building blocks
 
-A **model** is the FSRS algorithm and its parameters. `FSRS6Model` is the current one; FSRS-3 through FSRS-5 stay available for review histories built on them.
+A **model** is the FSRS algorithm and its parameters. `FSRS7Model` is the current one; FSRS-3 through FSRS-6 stay available for review histories built on them.
 
 A **chronology** decides how time is represented. `dateChrono` works with `Date`, `numericChrono` with numbers in days, and `temporalInstantChrono` with `Temporal.Instant`.
 
@@ -22,12 +22,12 @@ A **chronology** decides how time is represented. `dateChrono` works with `Date`
 
 <Prompt
   title="Integrate ts-fsrs into a TypeScript application"
-  description="Copy this prompt and send it to your AI agent to install ts-fsrs and create a working FSRS-6 scheduler."
+  description="Copy this prompt and send it to your AI agent to install ts-fsrs and create a working FSRS-7 scheduler."
   prompt={`Integrate ts-fsrs into my TypeScript application.
 
 1. Read the documentation index at ${withSiteOrigin(withBase('/llms.txt'))} and follow the pages that cover the scheduler API.
 2. Install the \`ts-fsrs\` package.
-3. Create an FSRS-6 scheduler with \`defineScheduler\`, \`FSRS6Model\`, and \`dateChrono\`.
+3. Create an FSRS-7 scheduler with \`defineScheduler\`, \`FSRS7Model\`, and \`dateChrono\`.
 4. Create a new card and review it with \`Rating.Good\`.
 5. Keep the implementation minimal and use the current ts-fsrs public API.`}
 />

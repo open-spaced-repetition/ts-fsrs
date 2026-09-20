@@ -26,7 +26,7 @@
   "home.entry.extend.title": "Extend",
   "home.entry.eyebrow": "Progressive API",
   "home.entry.title": "Start simple. Extend without starting over.",
-  "home.entry.use.body": "DefaultScheduler provides an FSRS scheduler with sensible defaults. It supports FSRS-3 through FSRS-6 and defaults to FSRS-6.",
+  "home.entry.use.body": "DefaultScheduler provides an FSRS scheduler with sensible defaults. It supports FSRS-3 through FSRS-7 and defaults to FSRS-7.",
   "home.entry.use.title": "Use",
   "home.field.difficulty": "Difficulty",
   "home.field.stability": "Stability",
