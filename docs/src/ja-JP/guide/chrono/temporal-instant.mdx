@@ -1,0 +1,27 @@
+---
+title: Temporal Instant
+description: temporalInstantChrono のタイムゾーンと小数日数を設定し、暦日と夏時間の計算を理解する
+---
+
+import { PackageManagerTabs } from '@rspress/core/theme'
+import RunCode from '../../../components/RunCode'
+import temporalCode from '@/snippets/run-code/chrono-temporal.ts?raw'
+
+# Temporal Instant
+
+`timezone` と `fractionalDays` はスケジューラーの config 直下に指定します。例：`config: { ...modelConfig, timezone: 'Asia/Tokyo', fractionalDays: false }`。両方を省略するとデフォルトの `'UTC'` と `false` を使用します。直接呼ぶ場合は完全な設定を渡します：`temporalInstantChrono.create({ config: { timezone: 'Asia/Tokyo', fractionalDays: false } })`。スケジューラーの生成時には設定の検証とデフォルト値の補完が行われます。
+
+`fractionalDays: false` では指定したタイムゾーンの暦日差を計算し、`true` ではそのタイムゾーンでの日数の小数部分も含めます。`add` は UTC では1日を24時間として加算し、それ以外のタイムゾーンでは暦日を加算します。夏時間の切り替えをまたぐと、現地の1日は24時間より短く、または長くなることがあります。小数部分の加算には、隣接する現地の日の実際の長さを使います。このプリセットでは、1日の切り替え時刻を任意の時刻に設定することはできません。
+
+## プリセットを実行する
+
+アプリケーションに `temporal-polyfill` をインストールします。この例は Chrono の作成前にグローバルエントリーポイントを読み込み、実行環境にネイティブの Temporal がない場合だけ polyfill を適用します。2つ目の import はグローバルな TypeScript 型宣言を読み込みます。
+
+<PackageManagerTabs command="install temporal-polyfill" />
+
+```ts twoslash file="../../../snippets/run-code/chrono-temporal.ts"
+```
+
+<RunCode code={temporalCode} />
+
+ニューヨークの3月7日正午は 17:00 UTC です。現地の暦日を1日加算すると3月8日正午、つまり 16:00 UTC になります。夏時間が始まるため、実際の経過時間は23時間です。`fractionalDays: true` は半日の加算を `0.5` として計算します。
