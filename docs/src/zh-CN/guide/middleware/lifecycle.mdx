@@ -19,7 +19,7 @@ a: next() 前
 a: next() 后
 ```
 
-调用一次 `next()`，让正常调度流程继续执行。在它之前设置 `ctx.candidate.desiredRetention[grade]` 等计算输入，在它之后读取或调整计算结果。复习阶段的 `ctx.scheduledDays` 表示以天为单位的间隔。所有处理函数结束后，调度器再通过配置的 chrono 计算到期时间，并校验最终结果。
+调用一次 `next()`，让正常调度流程继续执行。在它之前设置 `ctx.candidate.desiredRetention[ctx.input.grade]` 等计算输入，在它之后读取或调整计算结果。复习阶段的 `ctx.scheduledDays` 表示以天为单位的间隔。所有处理函数结束后，调度器再通过配置的 chrono 计算到期时间，并校验最终结果。
 
 策略相互作用时，顺序会影响结果：scheduled days 应放在间隔策略之前，才能在调用链返回时记录最终值；学习步骤应放在最大间隔和单调间隔之前，以保留显式步骤的等待时间。Leech 应放在那些会于 `next()` 后设置 `scheduleStatus` 的处理函数之前，让暂停状态最后生效。[内置策略](./built-in) 列出了每个策略以及 `DefaultScheduler` 的排列顺序。
 

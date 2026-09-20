@@ -19,7 +19,7 @@ a: next() 前
 a: next() 後
 ```
 
-呼叫一次 `next()`，讓正常排程流程繼續執行。在它之前設定 `ctx.candidate.desiredRetention[grade]` 等計算輸入，在它之後讀取或調整計算結果。複習階段的 `ctx.scheduledDays` 表示以天為單位的間隔。所有處理函式結束後，排程器再透過設定的 chrono 計算到期時間，並驗證最終結果。
+呼叫一次 `next()`，讓正常排程流程繼續執行。在它之前設定 `ctx.candidate.desiredRetention[ctx.input.grade]` 等計算輸入，在它之後讀取或調整計算結果。複習階段的 `ctx.scheduledDays` 表示以天為單位的間隔。所有處理函式結束後，排程器再透過設定的 chrono 計算到期時間，並驗證最終結果。
 
 策略互相影響時，順序會影響結果：scheduled days 應放在間隔策略之前，才能在呼叫鏈回傳時記錄最終值；學習步驟應放在最大間隔和單調間隔之前，以保留明確指定的等待時間。Leech 應放在那些會於 `next()` 後設定 `scheduleStatus` 的處理函式之前，讓暫停狀態最後生效。[內建策略](./built-in) 列出了每個策略以及 `DefaultScheduler` 的排列順序。
 

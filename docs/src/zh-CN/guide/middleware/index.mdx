@@ -24,7 +24,7 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/middleware/index.md'))}、${withSiteOrigin(withBase('/zh-CN/guide/middleware/lifecycle.md'))} 和 ${withSiteOrigin(withBase('/zh-CN/guide/middleware/built-in.md'))}，了解中间件如何扩展调度器。
 2. 在定义行为前，先声明 config、card、revlog 和 cardInitInput 的 schema。
 3. 将中间件限制为 schema、defaultValue、自定义状态的 scheduleStatus 声明以及 review/rollback/nextInterval 处理函数；让模型负责记忆状态更新与间隔计算，让 chrono 负责时间值与天数运算。
-4. 恰好调用一次 next()。在它之前设置 ctx.candidate.desiredRetention[grade] 等输入；在它之后读取或调整计算结果。
+4. 恰好调用一次 next()。在它之前设置 ctx.candidate.desiredRetention[ctx.input.grade] 等输入；在它之后读取或调整计算结果。
 5. 撤销时只读取 ctx.input.card 和 ctx.input.revlog，只写入 ctx.result.card，并恢复复习处理函数保存的旧值。
 6. 不要在处理函数中写数据库、发通知或执行其他外部操作；由应用保存最终选定的复习结果。
 7. 当内置策略已能覆盖该行为时，优先复用。
@@ -42,7 +42,7 @@ import middlewareCode from '@/snippets/run-code/middleware.ts?raw'
 | `schema.revlog` | 声明并校验复习日志字段，包括撤销所需的旧值。 |
 | `schema.cardInitInput` | 声明 `newCard()` 接受的额外输入，例如卡片 ID。 |
 | `scheduleStatus` | 注册自定义调度状态，例如 `scheduleStatus: ['buried']`，使组合后的类型和结果校验接受这些状态。 |
-| `handlers.nextInterval` | 在 `next()` 前调整 `ctx.candidate.desiredRetention[grade]`，或在其后调整 `ctx.scheduledDays`。复习和直接调用 `scheduler.nextInterval()` 时都会执行。 |
+| `handlers.nextInterval` | 在 `next()` 前调整 `ctx.candidate.desiredRetention[ctx.input.grade]`，或在其后调整 `ctx.scheduledDays`。复习和直接调用 `scheduler.nextInterval()` 时都会执行。 |
 | `defaultValue.card` | 在创建或重置卡片时提供字段值，通过 `ctx.operation` 区分这两种操作。 |
 | `handlers.review` / `handlers.rollback` | 在调用下一个处理函数前后，更新 `ctx.result`。运行方式见[生命周期](./lifecycle)。 |
 
