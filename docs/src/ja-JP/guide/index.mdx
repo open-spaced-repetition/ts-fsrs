@@ -12,7 +12,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 ## 構成要素
 
-**モデル**は FSRS アルゴリズムとそのパラメーターです。`FSRS6Model` が現行版で、FSRS-3 から FSRS-5 もそれらで蓄積した復習履歴のために利用できます。
+**モデル**は FSRS アルゴリズムとそのパラメーターです。`FSRS7Model` が現行版で、FSRS-3 から FSRS-6 もそれらで蓄積した復習履歴のために利用できます。
 
 **時刻体系**は時間の表現方法を決めます。`dateChrono` は `Date`、`numericChrono` は日単位の数値、`temporalInstantChrono` は `Temporal.Instant` を使います。
 
@@ -22,12 +22,12 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 <Prompt
   title="TypeScript アプリに ts-fsrs を組み込む"
-  description="このプロンプトをコピーして AI Agent に送り、ts-fsrs のインストールと動作する FSRS-6 スケジューラーの作成を依頼できます。"
+  description="このプロンプトをコピーして AI Agent に送り、ts-fsrs のインストールと動作する FSRS-7 スケジューラーの作成を依頼できます。"
   prompt={`私の TypeScript アプリに ts-fsrs を組み込んでください。
 
 1. ドキュメント索引 ${withSiteOrigin(withBase('/ja-JP/llms.txt'))} を読み、スケジューラー API を扱うページをたどる。
 2. \`ts-fsrs\` package をインストールする。
-3. \`defineScheduler\`、\`FSRS6Model\`、\`dateChrono\` で FSRS-6 スケジューラーを作成する。
+3. \`defineScheduler\`、\`FSRS7Model\`、\`dateChrono\` で FSRS-7 スケジューラーを作成する。
 4. 新しいカードを作成し、\`Rating.Good\` で復習する。
 5. 実装を最小限に保ち、現在の ts-fsrs public API を使用する。`}
 />

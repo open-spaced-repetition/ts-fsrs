@@ -2,7 +2,7 @@ import { DefaultScheduler, Rating } from 'ts-fsrs'
 
 const now = new Date('2026-01-01T00:00:00.000Z')
 const scheduler = await DefaultScheduler({
-  version: 'FSRS-6',
+  version: 'FSRS-7',
   desiredRetention: 0.9,
   enableShortTerm: true,
   learningSteps: ['1m', '10m'],

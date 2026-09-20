@@ -26,7 +26,7 @@
   "home.entry.extend.title": "擴充",
   "home.entry.eyebrow": "漸進式 API",
   "home.entry.title": "從簡單開始，擴充時無須重來。",
-  "home.entry.use.body": "DefaultScheduler 提供具備合理預設值的 FSRS 排程器，支援 FSRS-3 至 FSRS-6，預設使用 FSRS-6。",
+  "home.entry.use.body": "DefaultScheduler 提供具備合理預設值的 FSRS 排程器，支援 FSRS-3 至 FSRS-7，預設使用 FSRS-7。",
   "home.entry.use.title": "使用",
   "home.field.difficulty": "難度",
   "home.field.stability": "穩定度",
