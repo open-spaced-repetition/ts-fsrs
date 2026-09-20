@@ -37,7 +37,7 @@ const csv = [
 ].join('\n')
 
 // The day starts at 04:00 local, in the UTC timezone.
-const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7')
 
 console.log(
   JSON.stringify(
@@ -54,7 +54,7 @@ console.log(
 
 <RunCode code={optimizerCsvCode} />
 
-1 枚のカードの 2 回の復習は 1 つの `FSRSItem` になり、その `reviews` は両方の行を時系列順に保持します。別の日に後の復習がないカードは捨てられます。訓練には初回復習の後の保持率の観測が必要だからです。
+CSV 変換・学習・評価・スケジューリングでは同じ `modelVersion`（既定は `'FSRS-7'`、または `'FSRS-6'`）を使います。`convertCsvToFsrsItems` の第 4 引数と学習・評価のオプションに渡し、`DefaultScheduler({ version: modelVersion, weights })` で利用します。FSRS-7 は 34 個の重みを返し、現地の学習日の実際の長さで正規化した小数・同日間隔を保持します。FSRS-6 は 21 個の重みと整数の学習日を使います。同日の追加復習も FSRS-7 の学習に利用できます。
 
 ## 重みを学習する
 
@@ -62,11 +62,12 @@ console.log(
 
 ```ts
 const weights = await computeParameters(items, {
+  modelVersion: 'FSRS-7',
   enableShortTerm: true,
 })
 ```
 
-`trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。`computeParameters` は実際の学習ループを実行するため、メインスレッドではなく Worker で呼んでください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
+`trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。`computeParameters` は実際の学習ループを実行するため、メインスレッドではなく Worker で呼んでください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ version: modelVersion, weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
 
 ## 適合度を評価する
 

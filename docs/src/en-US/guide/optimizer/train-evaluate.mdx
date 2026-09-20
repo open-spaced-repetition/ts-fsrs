@@ -37,7 +37,7 @@ const csv = [
 ].join('\n')
 
 // The day starts at 04:00 local, in the UTC timezone.
-const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7')
 
 console.log(
   JSON.stringify(
@@ -54,7 +54,7 @@ console.log(
 
 <RunCode code={optimizerCsvCode} />
 
-The two reviews for one card become a single `FSRSItem` whose `reviews` hold both rows in chronological order. A card with no later review on another day is dropped, because training needs a retention observation after the initial review.
+Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conversion, training, evaluation, and scheduling. Pass it as the fourth argument to `convertCsvToFsrsItems` and in the training/evaluation options, then call `DefaultScheduler({ version: modelVersion, weights })`. FSRS-7 produces 34 weights and preserves fractional and same-day intervals normalized by the actual local study-day duration; FSRS-6 produces 21 weights and uses whole study days. Same-day follow-up reviews can therefore contribute to FSRS-7 training.
 
 ## Train weights
 
@@ -62,11 +62,12 @@ The two reviews for one card become a single `FSRSItem` whose `reviews` hold bot
 
 ```ts
 const weights = await computeParameters(items, {
+  modelVersion: 'FSRS-7',
   enableShortTerm: true,
 })
 ```
 
-`trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. `computeParameters` runs the real training loop, so call it in a Worker rather than on the main thread. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ weights })` or a `defineScheduler` config, replacing the model defaults.
+`trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. `computeParameters` runs the real training loop, so call it in a Worker rather than on the main thread. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ version: modelVersion, weights })` or a `defineScheduler` config, replacing the model defaults.
 
 ## Evaluate fit
 

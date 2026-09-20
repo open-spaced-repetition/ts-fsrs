@@ -21,7 +21,7 @@ Optimizer 目前仍处于 beta 阶段，API 方法可能随时调整。
 
 1. 阅读 ${withSiteOrigin(withBase('/zh-CN/guide/optimizer/index.md'))} 与 ${withSiteOrigin(withBase('/zh-CN/guide/optimizer/train-evaluate.md'))}，了解运行时选择与复习日志流程。
 2. 用 convertCsvToFsrsItems 转换复习日志 CSV，传入「新一天开始的小时」以及时区或 UTC 偏移。
-3. 用 computeParameters(items, { enableShortTerm }) 训练，并把返回的权重用于 DefaultScheduler 或自定义 defineScheduler。
+3. 用 computeParameters(items, { enableShortTerm, modelVersion }) 训练，并把返回的权重用于 DefaultScheduler 或自定义 defineScheduler。
 4. 用 evaluateWithTimeSeriesSplits 报告拟合质量；保证复习日志、评分与状态转换准确。
 5. Node 里优先用原生 binding，浏览器 Worker 里用 wasip1 的 wasm 构建。
 6. 使用当前公共 API，并为所实现的训练路径添加聚焦测试。`}

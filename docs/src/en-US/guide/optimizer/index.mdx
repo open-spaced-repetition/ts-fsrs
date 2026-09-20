@@ -10,6 +10,8 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 FSRS ships default model weights, but you can retrain them from your own review logs so the intervals match the people you serve. The Optimizer runs on `@open-spaced-repetition/binding`, which converts review-log CSV into training items, estimates parameters, and reports how well the result predicts held-out reviews. The trained weights plug straight back into `DefaultScheduler` or a custom `defineScheduler` through `weights`. See [Model](../model) for what weights mean and [Scheduler](../scheduler) for where they are applied.
 
+Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conversion, training, evaluation, and scheduling. Pass it as the fourth argument to `convertCsvToFsrsItems` and in the training/evaluation options, then call `DefaultScheduler({ version: modelVersion, weights })`. FSRS-7 produces 34 weights and preserves fractional and same-day intervals normalized by the actual local study-day duration; FSRS-6 produces 21 weights and uses whole study days. Same-day follow-up reviews can therefore contribute to FSRS-7 training.
+
 :::warning Beta
 The Optimizer is currently in beta, and its API methods may change at any time.
 :::
@@ -21,7 +23,7 @@ The Optimizer is currently in beta, and its API methods may change at any time.
 
 1. Read ${withSiteOrigin(withBase('/guide/optimizer/index.md'))} and ${withSiteOrigin(withBase('/guide/optimizer/train-evaluate.md'))} for the runtime choices and the review-log pipeline.
 2. Convert review-log CSV with convertCsvToFsrsItems; pass the day the next day starts and a timezone or UTC offset.
-3. Train with computeParameters(items, { enableShortTerm }) and use the returned weights in DefaultScheduler or a custom defineScheduler.
+3. Train with computeParameters(items, { enableShortTerm, modelVersion }) and use the returned weights in DefaultScheduler or a custom defineScheduler.
 4. Report fit with evaluateWithTimeSeriesSplits; keep review logs, ratings, and state transitions accurate.
 5. Prefer the napi-rs binding in Node and the wasip1 wasm build in a browser Worker.
 6. Use the current public API and add focused tests for the training path you implement.`}

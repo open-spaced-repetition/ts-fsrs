@@ -21,7 +21,7 @@ Optimizer は現在ベータ版であり、API メソッドは随時変更され
 
 1. ${withSiteOrigin(withBase('/ja-JP/guide/optimizer/index.md'))} と ${withSiteOrigin(withBase('/ja-JP/guide/optimizer/train-evaluate.md'))} を読み、実行環境の選択と復習ログのパイプラインを理解する。
 2. convertCsvToFsrsItems で復習ログ CSV を変換し、翌日が始まる時刻とタイムゾーンまたは UTC オフセットを渡す。
-3. computeParameters(items, { enableShortTerm }) で訓練し、返された重みを DefaultScheduler かカスタムの defineScheduler で使う。
+3. computeParameters(items, { enableShortTerm, modelVersion }) で訓練し、返された重みを DefaultScheduler かカスタムの defineScheduler で使う。
 4. 適合度は evaluateWithTimeSeriesSplits で報告する。復習ログ・評価・状態遷移を正確に保つ。
 5. Node ではネイティブ binding、ブラウザの Worker では wasip1 の wasm ビルドを優先する。
 6. 現在の public API を使い、実装した訓練パスに焦点を絞ったテストを追加する。`}

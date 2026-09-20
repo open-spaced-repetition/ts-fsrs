@@ -37,7 +37,7 @@ const csv = [
 ].join('\n')
 
 // The day starts at 04:00 local, in the UTC timezone.
-const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7')
 
 console.log(
   JSON.stringify(
@@ -54,7 +54,7 @@ console.log(
 
 <RunCode code={optimizerCsvCode} />
 
-一张卡片的两次复习变成一个 `FSRSItem`，其 `reviews` 按时间顺序保存两行。没有在另一天出现后续复习的卡片会被丢弃，因为训练需要在首次复习之后有一个保留率观测。
+CSV 转换、训练、评估和调度必须选择相同的 `modelVersion`（默认 `'FSRS-7'`，也可选 `'FSRS-6'`）。将它作为 `convertCsvToFsrsItems` 的第四个参数，并传入训练和评估选项；调度时使用 `DefaultScheduler({ version: modelVersion, weights })`。FSRS-7 产生 34 个权重，按本地学习日的实际时长归一化并保留小数与同日间隔；FSRS-6 产生 21 个权重，使用整数学习日。因此同日的后续复习也可以参与 FSRS-7 训练。
 
 ## 训练权重
 
@@ -62,11 +62,12 @@ console.log(
 
 ```ts
 const weights = await computeParameters(items, {
+  modelVersion: 'FSRS-7',
   enableShortTerm: true,
 })
 ```
 
-`trainingConfig`（epochs、batch size、seed、最大序列长度、学习率与 L2 权重）可选，缺省时用 binding 的默认值。`computeParameters` 运行真正的训练循环，因此应在 Worker 而非主线程中调用。[Playground](../../playground)页的训练器就在 Web Worker 里跑同一路径并实时回报进度。返回的 `weights` 数组就是传给 `DefaultScheduler({ weights })` 或 `defineScheduler` 配置、用于替换模型默认值的东西。
+`trainingConfig`（epochs、batch size、seed、最大序列长度、学习率与 L2 权重）可选，缺省时用 binding 的默认值。`computeParameters` 运行真正的训练循环，因此应在 Worker 而非主线程中调用。[Playground](../../playground)页的训练器就在 Web Worker 里跑同一路径并实时回报进度。返回的 `weights` 数组就是传给 `DefaultScheduler({ version: modelVersion, weights })` 或 `defineScheduler` 配置、用于替换模型默认值的东西。
 
 ## 评估拟合
 

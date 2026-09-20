@@ -21,7 +21,7 @@ Optimizer 目前仍處於 beta 階段，API 方法可能隨時調整。
 
 1. 閱讀 ${withSiteOrigin(withBase('/zh-TW/guide/optimizer/index.md'))} 與 ${withSiteOrigin(withBase('/zh-TW/guide/optimizer/train-evaluate.md'))}，了解執行環境選擇與複習記錄流程。
 2. 用 convertCsvToFsrsItems 轉換複習記錄 CSV，傳入「新一天開始的小時」以及時區或 UTC 偏移。
-3. 用 computeParameters(items, { enableShortTerm }) 訓練，並把回傳的權重用於 DefaultScheduler 或自訂 defineScheduler。
+3. 用 computeParameters(items, { enableShortTerm, modelVersion }) 訓練，並把回傳的權重用於 DefaultScheduler 或自訂 defineScheduler。
 4. 用 evaluateWithTimeSeriesSplits 回報擬合品質；保證複習記錄、評分與狀態轉換準確。
 5. Node 裡優先使用原生 binding，瀏覽器 Worker 裡使用 wasip1 的 wasm 建置。
 6. 使用目前 public API，並為所實作的訓練路徑加入聚焦測試。`}
