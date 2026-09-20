@@ -1,0 +1,56 @@
+---
+title: 架構
+description: 理解 ts-fsrs 中 model、chrono、middleware 與 scheduler 的職責，組合可重複使用的預設，並追蹤一次 review 如何產生新的 card 與 revlog
+---
+
+import RunCode from '../../components/RunCode'
+import architectureCode from '@/snippets/run-code/architecture.ts?raw'
+
+# 架構
+
+ts-fsrs v6 的排程架構圍繞 Model、Chrono、Middleware 和 Scheduler 組織，將記憶模型、時間處理與排程策略分開，並由 Scheduler 協調執行。
+
+## 職責劃分
+
+| 組成部分 | 職責 |
+| --- | --- |
+| Model | 透過 `step` 更新記憶狀態，透過 `nextInterval` 計算基礎間隔；FSRS-6 的記憶狀態包含穩定性和難度。 |
+| Chrono | 定義時間表示與時間運算。`dateChrono` 使用 JavaScript `Date`，提供時間差計算和日期加減。 |
+| Middleware | 加入排程策略，並可擴充 config、card 與 revlog 的 schema，例如目標保留率、學習步驟和最大間隔。 |
+| Scheduler | 組合 schema 與預設值，驗證設定和輸入，協調 `newCard`、`review`、`preview` 和 `rollback` 等操作。 |
+
+Model 的記憶狀態（如穩定性和難度）不同於 New、Learning 等卡片狀態。卡片的學習狀態與排程策略由 Scheduler 和 Middleware 共同處理。
+
+應用程式負責選卡、儲存回傳的 card 與 revlog，以及管理使用者和集合。排程器不會自動儲存結果。
+
+## 排程器定義與實例
+
+`defineScheduler({ model, chrono })` 建立定義。`.use(...)` 回傳包含新增 middleware 及其推導型別的新定義，原定義仍可重複使用。`.create({ config })` 驗證使用者設定並建立獨立的排程器實例。
+
+:::note 重複使用完整定義
+將包含 `.use(...)` 組合的定義保留為程式層級預設，在使用者或集合的設定可用時建立實例。
+:::
+
+```ts twoslash file="../../snippets/run-code/architecture.ts"
+```
+
+<RunCode code={architectureCode} />
+
+範例刻意將最大間隔設為一天。模型仍計算出 `2.3065` 的穩定性，最大間隔策略將到期時間調整為 1 月 2 日。原卡片保持 New，回傳的卡片為 Review。這個最小預設未加入學習步驟、統計或 fuzzing。
+
+## 一次 review 的資料流
+
+1. 將 `card`、`grade` 和 `now` 傳給 `review`。排程器驗證輸入，並透過 Chrono 計算經過時間。
+2. Middleware 圍繞核心操作執行。目標保留率 middleware 在計算間隔前提供保留率目標。
+3. 核心操作計算新的記憶狀態，並在需要時呼叫模型計算基礎間隔；Middleware 可以提供或調整最終排程間隔。
+4. 整條鏈返回後，排程器透過 Chrono，根據複習時間和最終間隔計算 `dueAt`，回傳新的 card 與 revlog。Card 包含新的記憶狀態；revlog 保留複習前的記憶狀態，以及本次評分和複習時間。
+
+## Middleware 順序
+
+對於 `.use(A, B)`，當各 review handler 都呼叫 `next()` 時，執行順序為：
+
+`A 的 next() 前 → B 的 next() 前 → 核心操作 → B 的 next() 後 → A 的 next() 後`
+
+`next()` 前的程式碼準備操作，之後的程式碼讀取下游處理結果。因此註冊順序會影響哪個策略最終生效。範例中，目標保留率在核心操作前設定，最大間隔在其後限制結果。加入學習步驟時，應將最大間隔 middleware 註冊在學習步驟 middleware 之後，學習步驟 middleware 會在返回階段恢復設定的學習間隔，避免它被按天計算的間隔策略覆蓋。
+
+卡片生命週期見[狀態轉換](./state-transitions)，數學細節見 [FSRS-6 公式](./model/fsrs-6)。
