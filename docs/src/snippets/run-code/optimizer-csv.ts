@@ -8,7 +8,12 @@ const csv = [
 ].join('\n')
 
 // The day starts at 04:00 local, in the UTC timezone.
-const items = convertCsvToFsrsItems(new TextEncoder().encode(csv), 4, 'UTC')
+const items = convertCsvToFsrsItems(
+  new TextEncoder().encode(csv),
+  4,
+  'UTC',
+  'FSRS-7'
+)
 
 console.log(
   JSON.stringify(
