@@ -8,13 +8,19 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 # DefaultScheduler
 
-`DefaultScheduler` は、すぐ使えるスケジューラインスタンスを返す非同期ファクトリです。モデル（既定は FSRS-6）を `dateChrono` と標準のスケジュールポリシーに組み合わせるため、設定するのはオプションだけです。内部ではカスタムの `defineScheduler` と同じ「定義とインスタンス」の仕組みを使っています——プリセットは部品を便利に組み立てたものです。
+`DefaultScheduler` は、すぐ使えるスケジューラインスタンスを返す非同期ファクトリです。モデル（既定は FSRS-7）を `dateChrono` と標準のスケジュールポリシーに組み合わせるため、設定するのはオプションだけです。内部ではカスタムの `defineScheduler` と同じ「定義とインスタンス」の仕組みを使っています——プリセットは部品を便利に組み立てたものです。
 
 ## オプション
 
+FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` を持ちます。FSRS-3–6 の記憶状態は `Reschedule` で復習履歴を再生して再構築してください。パラメータ移行はカード状態を移行せず、更新済みの高速トレースを `0.8 * stability` で推測できません。FSRS-7 では小数日を使います。`enableShortTerm: false` は明示的な学習ステップだけを無効にし、高速トレースは無効にしません。
+
+コストに応じた保持率には、独自の定義で `schedulerDesiredRetentionMiddleware` を `schedulerCostAdrMiddleware` に置き換えます。Cost ADR は `DefaultScheduler` のオプションではありません。
+
+`scheduler.nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` は計算済みの評価後状態から間隔を問い合わせます。`handlers.nextInterval` だけを実行し、カードや chrono を進めません。共通の間隔ポリシーはこのフックに置いてください。
+
 | オプション | 既定値 | 用途 |
 | --- | --- | --- |
-| `version` | `'FSRS-6'` | FSRS モデルを選びます。`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`、`'FSRS-6'`。プリセットは選択したバージョン向けにパラメータを移行します。 |
+| `version` | `'FSRS-7'` | FSRS モデルを選びます。`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'`、`'FSRS-7'`。プリセットは選択したバージョン向けにパラメータを移行します。 |
 | `weights` | プリセットの重み | 任意の学習済み重み。省略すると選択したバージョンの既定値を使います。 |
 | `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
 | `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |

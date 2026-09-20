@@ -8,13 +8,19 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 # DefaultScheduler
 
-`DefaultScheduler` is an async factory that returns a ready scheduler instance. It composes a model (FSRS-6 by default) with `dateChrono` and the standard scheduling policies, so the only thing you configure is its options. Internally it is the same definition-and-instance machinery as a custom `defineScheduler` — the preset is just a convenient assembly.
+`DefaultScheduler` is an async factory that returns a ready scheduler instance. It composes a model (FSRS-7 by default) with `dateChrono` and the standard scheduling policies, so the only thing you configure is its options. Internally it is the same definition-and-instance machinery as a custom `defineScheduler` — the preset is just a convenient assembly.
 
 ## Options
 
+FSRS-7 cards include `stabilityFast` as well as `stability` and `difficulty`. Rebuild legacy FSRS-3–6 memory states by replaying review history with `Reschedule`; parameter migration does not migrate card state. Do not seed an evolved fast trace with `0.8 * stability`. The preset enables fractional days for FSRS-7, and `enableShortTerm: false` only disables explicit learning steps, not the model's fast trace.
+
+For cost-adaptive retention, compose a custom definition with `schedulerCostAdrMiddleware` in place of `schedulerDesiredRetentionMiddleware`. Cost ADR is not a `DefaultScheduler` option.
+
+`scheduler.nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` queries the interval for an already computed post-rating state. It runs `handlers.nextInterval` without advancing the card or chrono; put shared interval policies in that hook.
+
 | Option | Default | Purpose |
 | --- | --- | --- |
-| `version` | `'FSRS-6'` | Selects the FSRS model: `'FSRS-3'`, `'FSRS-4'`, `'FSRS-4.5'`, `'FSRS-5'`, or `'FSRS-6'`. The preset migrates parameters for the selected version. |
+| `version` | `'FSRS-7'` | Selects the FSRS model: `'FSRS-3'`, `'FSRS-4'`, `'FSRS-4.5'`, `'FSRS-5'`, `'FSRS-6'`, or `'FSRS-7'`. The preset migrates parameters for the selected version. |
 | `weights` | preset weights | Optional trained weights; omit to use the preset's defaults for the selected version. |
 | `desiredRetention` | `0.9` | Target retention applied before interval calculation. |
 | `enableShortTerm` | `true` | Enables learning and relearning steps. |

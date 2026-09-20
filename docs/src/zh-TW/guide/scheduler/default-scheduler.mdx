@@ -8,13 +8,19 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 # DefaultScheduler
 
-`DefaultScheduler` 是非同步工廠，回傳一個可直接使用的排程器實例。它把模型（預設 FSRS-6）與 `dateChrono` 以及標準排程策略組合在一起，因此你只需設定它的選項。內部它與自訂 `defineScheduler` 使用同一套「定義與實例」機制——預設只是把各部分裝配起來的便利方式。
+`DefaultScheduler` 是非同步工廠，回傳一個可直接使用的排程器實例。它把模型（預設 FSRS-7）與 `dateChrono` 以及標準排程策略組合在一起，因此你只需設定它的選項。內部它與自訂 `defineScheduler` 使用同一套「定義與實例」機制——預設只是把各部分裝配起來的便利方式。
 
 ## 選項
 
+FSRS-7 卡片除了 `stability` 與 `difficulty`，還包含 `stabilityFast`。舊版 FSRS-3–6 的記憶狀態需透過 `Reschedule` 重播複習歷史來重建；參數遷移不會遷移卡片狀態，不應以 `0.8 * stability` 推測演化後的快速軌跡。預設為 FSRS-7 啟用小數天數；`enableShortTerm: false` 只停用明確的學習步驟，不會停用模型的快速軌跡。
+
+需要成本自適應保留率時，自行組合定義，以 `schedulerCostAdrMiddleware` 取代 `schedulerDesiredRetentionMiddleware`。Cost ADR 不是 `DefaultScheduler` 選項。
+
+`scheduler.nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` 查詢已計算的評分後狀態所對應的間隔，只執行 `handlers.nextInterval`，不推進卡片或 chrono；共用間隔策略應放在這個掛鉤中。
+
 | 選項 | 預設 | 用途 |
 | --- | --- | --- |
-| `version` | `'FSRS-6'` | 選擇 FSRS 模型：`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'` 或 `'FSRS-6'`。預設會為所選版本遷移參數。 |
+| `version` | `'FSRS-7'` | 選擇 FSRS 模型：`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'` 或 `'FSRS-7'`。預設會為所選版本遷移參數。 |
 | `weights` | 預設權重 | 選用的訓練權重；省略時使用所選版本的預設值。 |
 | `desiredRetention` | `0.9` | 在計算間隔前套用的目標保留率。 |
 | `enableShortTerm` | `true` | 啟用學習與再學習步驟。 |
