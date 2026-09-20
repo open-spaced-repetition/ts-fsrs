@@ -8,7 +8,15 @@ import * as styles from './styles'
 const COLUMNS = [
   {
     titleKey: 'home.architecture.models',
-    items: ['FSRS-3', 'FSRS-4', 'FSRS-4.5', 'FSRS-5', 'FSRS-6', 'defineModel'],
+    items: [
+      'FSRS-3',
+      'FSRS-4',
+      'FSRS-4.5',
+      'FSRS-5',
+      'FSRS-6',
+      'FSRS-7',
+      'defineModel',
+    ],
   },
   {
     titleKey: 'home.architecture.chrono',

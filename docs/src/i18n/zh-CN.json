@@ -42,7 +42,7 @@
   "home.middleware.builtin.leech": "每当卡片的遗忘次数达到所配置阈值的整数倍时，暂停该卡片。",
   "home.middleware.builtin.maximumInterval": "将最终调度间隔限制在配置的上限内。",
   "home.middleware.builtin.monotonicInterval": "避免更高评分得到更短的调度间隔。",
-  "home.middleware.builtin.scheduledDays": "将最终的整日间隔写入卡片与复习日志。",
+  "home.middleware.builtin.scheduledDays": "保存安排天数及其撤销所需的旧值，启用小数天数时保留小数间隔。",
   "home.middleware.builtin.stats": "为卡片添加并维护复习次数（reps）与遗忘次数（lapses）两个计数器。",
   "home.middleware.eyebrow": "内置能力",
   "home.middleware.title": "开箱即用，按需组合。",

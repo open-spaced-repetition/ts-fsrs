@@ -42,7 +42,7 @@
   "home.middleware.builtin.leech": "Suspends a card whenever its lapse count reaches a multiple of the configured threshold.",
   "home.middleware.builtin.maximumInterval": "Clamps the final schedule to the configured maximum.",
   "home.middleware.builtin.monotonicInterval": "Keeps higher ratings from producing shorter schedules.",
-  "home.middleware.builtin.scheduledDays": "Stores the final whole-day interval on cards and review logs.",
+  "home.middleware.builtin.scheduledDays": "Stores scheduled days and their rollback values, preserving fractional intervals when enabled.",
   "home.middleware.builtin.stats": "Adds and maintains the reps and lapses counters on cards.",
   "home.middleware.eyebrow": "Built-ins",
   "home.middleware.title": "Scheduling behavior, ready to compose.",
