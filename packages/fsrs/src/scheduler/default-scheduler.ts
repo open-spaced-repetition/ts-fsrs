@@ -12,6 +12,7 @@ import type {
   DefaultSchedulerVersion,
 } from './preset.js'
 import { getSchedulerPreset } from './preset.js'
+import { createFSRS7MigrationProxy } from './proxy.js'
 
 type DefaultSchedulerConfigInput = Parameters<
   DefaultSchedulerCreate<'FSRS-6'>
@@ -55,13 +56,55 @@ export type DefaultScheduler<
 }
 export type DefaultSchedulerCard<
   Version extends DefaultSchedulerVersion = 'FSRS-7',
-> = ReturnType<DefaultScheduler<Version>['newCard']>
+> = Version extends 'FSRS-7'
+  ? {
+      [Key in keyof ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['newCard']
+      >]: ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['newCard']
+      >[Key]
+    }
+  : {
+      [Key in keyof ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['newCard']
+      >]: ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['newCard']
+      >[Key]
+    }
 export type DefaultSchedulerCardInput<
   Version extends DefaultSchedulerVersion = 'FSRS-7',
-> = Parameters<DefaultScheduler<Version>['review']>[0]['card']
+> = Version extends 'FSRS-7'
+  ? {
+      [Key in keyof Parameters<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['review']
+      >[0]['card']]: Parameters<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['review']
+      >[0]['card'][Key]
+    }
+  : {
+      [Key in keyof Parameters<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['review']
+      >[0]['card']]: Parameters<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['review']
+      >[0]['card'][Key]
+    }
 export type DefaultSchedulerRevlog<
   Version extends DefaultSchedulerVersion = 'FSRS-7',
-> = ReturnType<DefaultScheduler<Version>['review']>['revlog']
+> = Version extends 'FSRS-7'
+  ? {
+      [Key in keyof ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['review']
+      >['revlog']]: ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-7'>>['review']
+      >['revlog'][Key]
+    }
+  : {
+      [Key in keyof ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['review']
+      >['revlog']]: ReturnType<
+        ReturnType<DefaultSchedulerCreate<'FSRS-6'>>['review']
+      >['revlog'][Key]
+    }
 
 export async function DefaultScheduler<
   Version extends DefaultSchedulerVersion = 'FSRS-7',
@@ -85,7 +128,7 @@ export async function DefaultScheduler<
     enableShortTerm
   )
 
-  return preset.definition.create({
+  const scheduler = preset.definition.create({
     config: {
       fractionalDays: version === 'FSRS-7',
       weights: migratedWeights,
@@ -99,4 +142,6 @@ export async function DefaultScheduler<
       clearStatsOnForget: options.clearStatsOnForget,
     } satisfies DefaultSchedulerConfigInput,
   }) as unknown as DefaultScheduler<Version>
+
+  return version === 'FSRS-7' ? createFSRS7MigrationProxy(scheduler) : scheduler
 }
