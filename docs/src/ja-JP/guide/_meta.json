@@ -28,5 +28,10 @@
     "label": "ミドルウェア",
     "collapsible": true,
     "collapsed": true
+  },
+  {
+    "type": "dir-section-header",
+    "name": "scheduler",
+    "label": "スケジューラ"
   }
 ]
