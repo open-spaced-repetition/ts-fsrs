@@ -28,5 +28,10 @@
     "label": "中介軟體",
     "collapsible": true,
     "collapsed": true
+  },
+  {
+    "type": "dir-section-header",
+    "name": "scheduler",
+    "label": "排程器"
   }
 ]
