@@ -12,7 +12,9 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 ## 选项
 
-FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧版 FSRS-3–6 的记忆状态需要通过 `Reschedule` 重放复习历史来重建；参数迁移不会迁移卡片状态，不应以 `0.8 * stability` 推测演化后的快速轨迹。预设为 FSRS-7 启用小数天数；`enableShortTerm: false` 仅关闭显式学习步骤，不会关闭模型的快速轨迹。
+从 FSRS-3~6 升级到 FSRS-7 时，省略 `weights` 以使用 FSRS-7 默认权重，或提供为 FSRS-7 训练的权重。重放历史用于重建卡片状态，不会转换旧版权重。
+
+FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧版 FSRS-3~6 的记忆状态需要通过 `Reschedule` 重放复习历史来重建；参数迁移不会迁移卡片状态，不应以 `0.8 * stability` 推测演化后的快速轨迹。预设为 FSRS-7 启用小数天数；`enableShortTerm: false` 仅关闭显式学习步骤，不会关闭模型的快速轨迹。
 
 需要成本自适应保留率时，自行组合定义，用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`。Cost ADR 不是 `DefaultScheduler` 选项。
 
@@ -20,8 +22,8 @@ FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧
 
 | 选项 | 默认 | 用途 |
 | --- | --- | --- |
-| `version` | `'FSRS-7'` | 选择 FSRS 模型：`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'` 或 `'FSRS-7'`。预设会为所选版本迁移参数。 |
-| `weights` | 预设权重 | 可选的训练权重；省略时使用所选版本的预设默认值。 |
+| `version` | `'FSRS-7'` | 选择 FSRS 模型：`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'` 或 `'FSRS-7'`。FSRS-7 无法迁移旧版 FSRS-3~6 的权重。 |
+| `weights` | 预设权重 | 可选的训练权重；省略时使用所选版本的预设默认值。FSRS-7 需要恰好 34 个 FSRS-7 权重；传入旧版权重会在构造调度器时抛出异常。 |
 | `desiredRetention` | `0.9` | 在计算间隔前应用的目标保留率。 |
 | `enableShortTerm` | `true` | 启用学习与再学习步骤。 |
 | `learningSteps` | 预设步骤 | `enableShortTerm` 开启时应用的学习步骤。 |
@@ -30,7 +32,7 @@ FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧
 | `maximumInterval` | `36500` | 间隔的天数上限。 |
 | `clearStatsOnForget` | `true` | `forget` 是否清空 `reps` 与 `lapses`。 |
 
-`DefaultScheduler` 始终使用 `dateChrono`，并按[中间件](../middleware/built-in)页面所述的顺序组合标准策略：目标保留率、模糊间隔、统计、scheduled days、学习步骤、最大间隔、单调间隔。选择 `version` 只改变模型及其迁移后的参数，不改变这套策略。
+`DefaultScheduler` 始终使用 `dateChrono`，并按[中间件](../middleware/built-in)页面所述的顺序组合标准策略：目标保留率、模糊间隔、统计、scheduled days、学习步骤、最大间隔、单调间隔。选择 `version` 只改变模型及其参数，不改变这套策略。
 
 ```ts twoslash file="../../../snippets/run-code/default-scheduler.ts"
 ```

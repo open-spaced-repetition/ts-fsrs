@@ -12,7 +12,9 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 ## オプション
 
-FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` を持ちます。FSRS-3–6 の記憶状態は `Reschedule` で復習履歴を再生して再構築してください。パラメータ移行はカード状態を移行せず、更新済みの高速トレースを `0.8 * stability` で推測できません。FSRS-7 では小数日を使います。`enableShortTerm: false` は明示的な学習ステップだけを無効にし、高速トレースは無効にしません。
+FSRS-3~6 から FSRS-7 に更新する際は、`weights` を省略して FSRS-7 の既定の重みを使うか、FSRS-7 用に学習した重みを指定してください。履歴の再生はカード状態を再構築するもので、旧版の重みは変換しません。
+
+FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` を持ちます。FSRS-3~6 の記憶状態は `Reschedule` で復習履歴を再生して再構築してください。パラメータ移行はカード状態を移行せず、更新済みの高速トレースを `0.8 * stability` で推測できません。FSRS-7 では小数日を使います。`enableShortTerm: false` は明示的な学習ステップだけを無効にし、高速トレースは無効にしません。
 
 コストに応じた保持率には、独自の定義で `schedulerDesiredRetentionMiddleware` を `schedulerCostAdrMiddleware` に置き換えます。Cost ADR は `DefaultScheduler` のオプションではありません。
 
@@ -20,8 +22,8 @@ FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` �
 
 | オプション | 既定値 | 用途 |
 | --- | --- | --- |
-| `version` | `'FSRS-7'` | FSRS モデルを選びます。`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'`、`'FSRS-7'`。プリセットは選択したバージョン向けにパラメータを移行します。 |
-| `weights` | プリセットの重み | 任意の学習済み重み。省略すると選択したバージョンの既定値を使います。 |
+| `version` | `'FSRS-7'` | FSRS モデルを選びます。`'FSRS-3'`、`'FSRS-4'`、`'FSRS-4.5'`、`'FSRS-5'`, `'FSRS-6'`、`'FSRS-7'`。FSRS-7 は旧版 FSRS-3~6 の重みを移行できません。 |
+| `weights` | プリセットの重み | 任意の学習済み重み。省略すると選択したバージョンの既定値を使います。FSRS-7 には FSRS-7 用の重みがちょうど 34 個必要です。旧版の重みを渡すと、スケジューラの構築時に例外が発生します。 |
 | `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
 | `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
 | `learningSteps` | プリセットのステップ | `enableShortTerm` 有効時に適用する学習ステップ。 |
@@ -30,7 +32,7 @@ FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` �
 | `maximumInterval` | `36500` | 間隔の日数上限。 |
 | `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |
 
-`DefaultScheduler` は常に `dateChrono` を使い、[ミドルウェア](../middleware/built-in)ページに示す順序で標準ポリシーを組み合わせます。目標保持率、fuzzing、統計、scheduled days、学習ステップ、最大間隔、単調間隔の順です。`version` を選ぶのはモデルと移行後のパラメータだけを変え、このポリシー構成は変わりません。
+`DefaultScheduler` は常に `dateChrono` を使い、[ミドルウェア](../middleware/built-in)ページに示す順序で標準ポリシーを組み合わせます。目標保持率、fuzzing、統計、scheduled days、学習ステップ、最大間隔、単調間隔の順です。`version` を選ぶのはモデルとそのパラメータだけを変え、このポリシー構成は変わりません。
 
 ```ts twoslash file="../../../snippets/run-code/default-scheduler.ts"
 ```
