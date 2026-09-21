@@ -21,5 +21,12 @@
     "label": "Chrono",
     "collapsible": true,
     "collapsed": true
+  },
+  {
+    "type": "dir",
+    "name": "middleware",
+    "label": "中介軟體",
+    "collapsible": true,
+    "collapsed": true
   }
 ]
