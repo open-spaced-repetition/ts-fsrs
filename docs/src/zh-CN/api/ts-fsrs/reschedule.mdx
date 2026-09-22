@@ -26,7 +26,7 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — 每次复习后的记忆
 ```
 
-每条历史项都是一个 `{ rating, reviewTime }` 对。当历史并非从模型的起始点开始时，传入 `initialState`；`sortHistory`（默认为 `true`）通过时间抽象的 `compare` 按时间对历史排序。
+每条历史项都是一个 `{ rating, reviewTime }` 对。从已有记忆状态继续时，在第一个参数中传入 `initialState`。两个方法都接受第二个参数 `{ sortHistory: false }`。默认的 `sortHistory: true` 仅在 chrono 提供 `compare` 时排序。`numericChrono` 或未提供 `compare` 的自定义 chrono 会保留输入顺序，因此必须自行按时间排列历史。手动评分会被跳过；历史至少需要一条非手动复习。
 
 ## Reschedule
 

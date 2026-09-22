@@ -1,12 +1,34 @@
 [
-  { "type": "file", "name": "index", "label": "Overview" },
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
   "default-scheduler",
   "scheduler",
-  { "type": "dir", "name": "define", "label": "Definitions" },
+  {
+    "type": "dir",
+    "name": "define",
+    "label": "Definitions",
+    "collapsible": true,
+    "collapsed": true
+  },
   "chrono-presets",
   "rating-grade-state",
-  { "type": "dir", "name": "models", "label": "Models" },
-  { "type": "dir", "name": "middlewares", "label": "Middlewares" },
+  {
+    "type": "dir",
+    "name": "models",
+    "label": "Models",
+    "collapsible": true,
+    "collapsed": true
+  },
+  {
+    "type": "dir",
+    "name": "middlewares",
+    "label": "Middlewares",
+    "collapsible": true,
+    "collapsed": true
+  },
   "reschedule",
   "utils",
   "types"

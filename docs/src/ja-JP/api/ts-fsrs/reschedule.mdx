@@ -26,7 +26,7 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — memory after each review
 ```
 
-履歴の各項目は `{ rating, reviewTime }` のペアです。履歴がモデルの起点から始まらない場合は `initialState` を渡してください。`sortHistory`（既定値 `true`）は chrono の `compare` で履歴を時刻順に並べます。
+履歴の各項目は `{ rating, reviewTime }` のペアです。既存の記憶状態から続ける場合は、第1引数に `initialState` を渡します。どちらのメソッドも第2引数に `{ sortHistory: false }` を指定できます。既定の `sortHistory: true` は、chrono が `compare` を提供する場合にのみ並べ替えます。`numericChrono` や `compare` のないカスタム chrono では入力順が維持されるため、時刻順の履歴を渡してください。手動評価は除外され、手動以外の復習が少なくとも1件必要です。
 
 ## リスケジュール
 

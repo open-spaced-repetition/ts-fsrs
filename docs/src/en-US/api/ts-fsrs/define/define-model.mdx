@@ -45,7 +45,7 @@ const model = FSRS6Model.create({
 | Member | Type / meaning |
 | --- | --- |
 | `config` | The parsed configuration. |
-| `bounds` | Memory-state bounds (`S_min`, `S_max`, …). |
+| `bounds` | Memory-state bounds (`sMin`, `sMax`, `dMin`, `dMax`, …). |
 | `algorithm` | The model's algorithm value. |
 | `step` | `({ memoryState, rating, elapsedDays }) => memoryState` — updates memory on a review. |
 | `nextInterval` | `(memoryState, desiredRetention) => days` — the base interval. |

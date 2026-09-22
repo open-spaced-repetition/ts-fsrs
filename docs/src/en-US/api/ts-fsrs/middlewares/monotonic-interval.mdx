@@ -21,6 +21,8 @@ It orders the scheduled day interval across the four ratings so harder ratings n
 
 <RunCode code={monotonicCode} />
 
+Register ScheduledDays before MonotonicInterval so it stores the adjusted interval as the handlers unwind. This example uses high retention to force overlapping raw intervals; `scheduledDays` and the actual due-time offsets both become `[1, 2, 3, 4]`.
+
 Previewing the candidate ratings on one Review card yields ascending `scheduledDays`.
 
 **See** — [Built-in policies](../../../guide/middleware/built-in).

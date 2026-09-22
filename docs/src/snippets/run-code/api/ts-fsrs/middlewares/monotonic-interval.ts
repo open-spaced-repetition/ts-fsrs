@@ -12,8 +12,8 @@ const schedulerDefinition = defineScheduler({
   chrono: dateChrono,
 }).use(
   schedulerDesiredRetentionMiddleware,
-  schedulerMonotonicIntervalMiddleware,
-  schedulerScheduledDaysMiddleware
+  schedulerScheduledDaysMiddleware,
+  schedulerMonotonicIntervalMiddleware
 )
 
 // 2) create() validates the config and returns an instance.
@@ -22,15 +22,20 @@ const scheduler = schedulerDefinition.create({
     weights: FSRS6_DEFAULT_WEIGHTS,
     enableShortTerm: true,
     numRelearningSteps: 1,
-    desiredRetention: 0.9,
+    desiredRetention: 0.99,
   },
 })
 
 const now = new Date('2026-01-01T00:00:00.000Z')
 const card = scheduler.newCard({ now })
 const review = scheduler.review({ card, grade: Rating.Good, now }).card
-const days = Array.from(
+// High retention makes raw intervals overlap, so the policy must adjust them.
+const candidates = Array.from(
   scheduler.preview({ card: review, now: review.dueAt })
-).map(({ card }) => card.scheduledDays)
+)
+const days = candidates.map(({ card }) => card.scheduledDays)
+const dueDays = candidates.map(
+  ({ card }) => (card.dueAt.getTime() - review.dueAt.getTime()) / 86_400_000
+)
 
-console.log(JSON.stringify({ days }))
+console.log(JSON.stringify({ days, dueDays }))

@@ -21,6 +21,8 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 <RunCode code={monotonicCode} />
 
+將 ScheduledDays 註冊在 MonotonicInterval 之前，確保處理函式返回時記錄調整後的間隔。範例使用較高保留率產生重疊的原始間隔；`scheduledDays` 與實際到期時間偏移皆為 `[1, 2, 3, 4]`。
+
 在一張 Review 卡片上預覽候選評分，會得到遞增的 `scheduledDays`。
 
 **另見** — [內建策略](../../../guide/middleware/built-in)。

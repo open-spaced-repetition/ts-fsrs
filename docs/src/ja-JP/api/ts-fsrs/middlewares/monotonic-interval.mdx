@@ -21,6 +21,8 @@ import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 
 <RunCode code={monotonicCode} />
 
+ScheduledDays を MonotonicInterval より先に登録し、ハンドラが戻るときに調整後の間隔を記録させます。この例では高い保持率で元の間隔を重複させ、`scheduledDays` と実際の期限までの日数がどちらも `[1, 2, 3, 4]` になることを確認します。
+
 1 枚の Review カードで候補の評価をプレビューすると、`scheduledDays` は昇順になります。
 
 **参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

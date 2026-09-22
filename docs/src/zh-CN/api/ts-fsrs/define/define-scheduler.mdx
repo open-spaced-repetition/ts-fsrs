@@ -10,7 +10,7 @@ description: defineScheduler 参考 —— 用模型与 chrono 组合出可复�
 **签名**
 
 ```ts
-defineScheduler({ model, chrono }): SchedulerDefinition
+defineScheduler({ model, chrono }): ComposableScheduler
 ```
 
 **参数**
@@ -23,8 +23,8 @@ defineScheduler({ model, chrono }): SchedulerDefinition
 **返回** —— 一个带两个方法的可复用定义：
 
 ```ts
-definition.use(...middleware): SchedulerDefinition   // new definition; original unchanged
-definition.create({ config }): Scheduler              // validates config, independent instance
+definition.use(...middleware): ComposableScheduler   // new definition; original unchanged
+definition.create({ config }): SchedulerCore          // validates config, independent instance
 ```
 
 **另见** —— [调度器概览](../../../guide/scheduler)（定义与实例模型）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

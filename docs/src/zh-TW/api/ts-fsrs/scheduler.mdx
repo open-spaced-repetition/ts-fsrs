@@ -8,7 +8,7 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 
 # Scheduler
 
-`defineScheduler(...).create({ config })` 與 `DefaultScheduler(options)` 都會回傳獨立的**排程器實例**。應用程式會呼叫此物件來建立卡片，以及排程、復原與預覽複習。
+`defineScheduler(...).create({ config })` 與 `await DefaultScheduler(options)` 都會回傳獨立的**排程器實例**。應用程式會呼叫此物件來建立卡片，以及排程、復原與預覽複習。
 
 **方法**
 

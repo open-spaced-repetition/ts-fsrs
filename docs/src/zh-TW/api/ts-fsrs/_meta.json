@@ -9,19 +9,25 @@
   {
     "type": "dir",
     "name": "define",
-    "label": "定義"
+    "label": "定義",
+    "collapsible": true,
+    "collapsed": true
   },
   "chrono-presets",
   "rating-grade-state",
   {
     "type": "dir",
     "name": "models",
-    "label": "模型"
+    "label": "模型",
+    "collapsible": true,
+    "collapsed": true
   },
   {
     "type": "dir",
     "name": "middlewares",
-    "label": "中介軟體"
+    "label": "中介軟體",
+    "collapsible": true,
+    "collapsed": true
   },
   "reschedule",
   "utils",

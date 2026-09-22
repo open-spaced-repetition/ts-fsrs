@@ -9,19 +9,25 @@
   {
     "type": "dir",
     "name": "define",
-    "label": "定義"
+    "label": "定義",
+    "collapsible": true,
+    "collapsed": true
   },
   "chrono-presets",
   "rating-grade-state",
   {
     "type": "dir",
     "name": "models",
-    "label": "モデル"
+    "label": "モデル",
+    "collapsible": true,
+    "collapsed": true
   },
   {
     "type": "dir",
     "name": "middlewares",
-    "label": "ミドルウェア"
+    "label": "ミドルウェア",
+    "collapsible": true,
+    "collapsed": true
   },
   "reschedule",
   "utils",

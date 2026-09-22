@@ -31,7 +31,7 @@ read the rest — `x` below stands for the version.
 | `FSRSxModel` | model definition | Pass to `defineScheduler({ model })`. |
 | `FSRSxAlgorithm` | class | Algorithm class instantiated by the model. |
 | `FSRSx_DEFAULT_WEIGHTS` | numbers | Default weight array; its length is the required parameter count. |
-| `FSRSx_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | Stability and difficulty limits. |
+| `FSRSx_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax, … }` | Stability and difficulty limits. |
 | `clipFSRSxParameters` | function | Clamps out-of-range weights to their allowed ranges, leaving in-range values unchanged. |
 | `checkFSRSxParameters` | function | Returns the input untouched, or throws `FSRSValidationError`. |
 | `migrateFSRSxParameters` | function | Migrates weights according to the version-specific rules; uses defaults for absent or empty input. |

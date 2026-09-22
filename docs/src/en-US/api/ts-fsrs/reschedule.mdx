@@ -26,7 +26,7 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — memory after each review
 ```
 
-Each history item is a `{ rating, reviewTime }` pair. Pass `initialState` when the history does not begin at the model's starting point; `sortHistory` (default `true`) orders the history by time through the chronology's `compare`.
+Each history item is a `{ rating, reviewTime }` pair. Pass `initialState` in the first argument when continuing from an existing memory state. Both methods accept `{ sortHistory: false }` as their second argument. By default, `sortHistory: true` sorts only when the chronology provides `compare`. With `numericChrono` or a custom chronology without `compare`, input order is preserved, so supply chronological history yourself. Manual ratings are skipped; at least one non-manual review is required.
 
 ## Reschedule
 

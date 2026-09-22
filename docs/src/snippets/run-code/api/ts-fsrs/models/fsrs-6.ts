@@ -21,7 +21,7 @@ console.log(
   })
 )
 
-// migrate fills a shorter or absent weight list with the defaults.
+// migrate accepts 17, 19, or 21 weights; absent or empty input uses defaults.
 console.log(JSON.stringify({ migrated: migrateFSRS6Parameters().length }))
 
 // The decay drives the forgetting curve; factor is derived from it.

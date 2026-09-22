@@ -3,30 +3,17 @@ title: Cost ADR
 description: "Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`."
 ---
 
+import RunCode from '../../../../components/RunCode'
+import costAdrCode from '@/snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts?raw'
+
 # Cost ADR
 
 Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
 
-```ts
-import { dateChrono, defineScheduler } from 'ts-fsrs'
-import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
-import {
-  schedulerCostAdrMiddleware,
-  COST_ADR_DEFAULT_POLICY,
-  COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
-} from 'ts-fsrs/middlewares'
-
-const scheduler = defineScheduler({ model: FSRS7Model, chrono: dateChrono })
-  .use(schedulerCostAdrMiddleware)
-  .create({
-    config: {
-      weights: FSRS7_DEFAULT_WEIGHTS,
-      fractionalDays: true,
-      costAdrPolicy: COST_ADR_DEFAULT_POLICY,
-      goalCostWeight: COST_ADR_DEFAULT_GOAL_COST_WEIGHT,
-    },
-  })
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts"
 ```
+
+<RunCode code={costAdrCode} />
 
 Runs interval policies for review and direct `scheduler.nextInterval()` queries; update `ctx.candidate.desiredRetention[ctx.input.grade]` before `next()` or `ctx.scheduledDays` afterward.
 
