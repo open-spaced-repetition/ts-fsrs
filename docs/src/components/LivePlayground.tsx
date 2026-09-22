@@ -17,6 +17,7 @@ import { readSharedCode } from '@/playground/shared/share-link'
 import * as styles from '@/playground/shared/styles'
 import { useShare } from '@/playground/shared/use-share'
 import { cn } from '@/utils/cn'
+import CopyOutputButton from './CopyOutputButton'
 import WorkerLogLine from './WorkerLogLine'
 
 const INITIAL_SCENARIO = PLAYGROUND_SCENARIOS[0]
@@ -299,11 +300,14 @@ export default function LivePlayground() {
         data-testid="playground-output"
         aria-live="polite"
       >
-        <div className="sticky top-0 flex justify-between border-b border-line bg-surface-soft px-3.5 py-2.5 text-[11px] font-[650] tracking-[0.04em] text-muted uppercase">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface-soft px-3.5 py-2.5 text-[11px] font-[650] tracking-[0.04em] text-muted uppercase">
           <span>{t('playground.output')}</span>
-          {runner.durationMs !== undefined && (
-            <span>{runner.durationMs.toFixed(0)} ms</span>
-          )}
+          <div className="flex items-center gap-3">
+            {runner.durationMs !== undefined && (
+              <span>{runner.durationMs.toFixed(0)} ms</span>
+            )}
+            <CopyOutputButton logs={runner.logs} error={runner.error} />
+          </div>
         </div>
         {runner.logs.length === 0 && !runner.error && (
           <p className="m-0 px-4 py-6 text-center text-xs text-subtle">
