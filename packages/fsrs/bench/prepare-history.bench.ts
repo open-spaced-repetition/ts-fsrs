@@ -1,5 +1,5 @@
 import { Rating } from '@open-spaced-repetition/srs-kit'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 type Review = { readonly rating: Rating; readonly reviewTime: number }
 type ModelReview = { rating: Rating; deltaT: number }
@@ -63,12 +63,16 @@ for (const size of [10, 100, 1000]) {
   const history = makeHistory(size)
 
   describe(`prepareHistory ${size} reviews`, () => {
-    bench('push', () => {
-      consume(withPush(history))
+    test('push', async ({ bench }) => {
+      await bench('push', () => {
+        consume(withPush(history))
+      }).run()
     })
 
-    bench('preallocated new Array(n)', () => {
-      consume(withPreallocation(history))
+    test('preallocated new Array(n)', async ({ bench }) => {
+      await bench('preallocated new Array(n)', () => {
+        consume(withPreallocation(history))
+      }).run()
     })
   })
 }

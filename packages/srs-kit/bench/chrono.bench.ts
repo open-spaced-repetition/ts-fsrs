@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { dateChrono } from '@/chrono/presets/date/index.js'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { temporalInstantChrono } from '@/chrono/presets/temporal-instant/index.js'
@@ -57,20 +57,30 @@ function createInstant(
 describe('numericChrono preset', () => {
   const core = numericChrono.create()
 
-  bench('create', () => {
-    numericChrono.create()
+  test('create', async ({ bench }) => {
+    await bench('create', () => {
+      numericChrono.create()
+    }).run()
   })
-  bench('now', () => {
-    core.now()
+  test('now', async ({ bench }) => {
+    await bench('now', () => {
+      core.now()
+    }).run()
   })
-  bench('normalize', () => {
-    numericChrono.normalize['~standard'].validate({ time: 4.5 })
+  test('normalize', async ({ bench }) => {
+    await bench('normalize', () => {
+      numericChrono.normalize['~standard'].validate({ time: 4.5 })
+    }).run()
   })
-  bench('difference', () => {
-    core.difference(1.25, 4.75)
+  test('difference', async ({ bench }) => {
+    await bench('difference', () => {
+      core.difference(1.25, 4.75)
+    }).run()
   })
-  bench('add', () => {
-    core.add(1.25, 3.5)
+  test('add', async ({ bench }) => {
+    await bench('add', () => {
+      core.add(1.25, 3.5)
+    }).run()
   })
 })
 
@@ -82,34 +92,48 @@ describe('dateChrono preset', () => {
   const card = { dueAt: now, lastReviewAt: now }
   const previous = { previous: now, current: later }
 
-  bench('create', () => {
-    dateChrono.create({ config })
+  test('create', async ({ bench }) => {
+    await bench('create', () => {
+      dateChrono.create({ config })
+    }).run()
   })
-  bench('now', () => {
-    core.now()
+  test('now', async ({ bench }) => {
+    await bench('now', () => {
+      core.now()
+    }).run()
   })
-  bench('normalize', () => {
-    dateChrono.normalize['~standard'].validate({ card, time: later })
+  test('normalize', async ({ bench }) => {
+    await bench('normalize', () => {
+      dateChrono.normalize['~standard'].validate({ card, time: later })
+    }).run()
   })
-  bench('default card', () => {
-    dateChrono.defaultValue.card?.({
-      config: { fractionalDays: false },
-      previous: later,
-      time: now,
-    })
+  test('default card', async ({ bench }) => {
+    await bench('default card', () => {
+      dateChrono.defaultValue.card?.({
+        config: { fractionalDays: false },
+        previous: later,
+        time: now,
+      })
+    }).run()
   })
-  bench('default revlog', () => {
-    dateChrono.defaultValue.revlog?.({
-      config: { fractionalDays: false },
-      previous,
-      time: now,
-    })
+  test('default revlog', async ({ bench }) => {
+    await bench('default revlog', () => {
+      dateChrono.defaultValue.revlog?.({
+        config: { fractionalDays: false },
+        previous,
+        time: now,
+      })
+    }).run()
   })
-  bench('difference', () => {
-    core.difference(now, later)
+  test('difference', async ({ bench }) => {
+    await bench('difference', () => {
+      core.difference(now, later)
+    }).run()
   })
-  bench('add', () => {
-    core.add(now, 2.25)
+  test('add', async ({ bench }) => {
+    await bench('add', () => {
+      core.add(now, 2.25)
+    }).run()
   })
 })
 
@@ -138,61 +162,91 @@ function describeTemporalInstant(
     const card = { dueAt: now, lastReviewAt: now }
     const previous = { previous: now, current: later }
 
-    bench('create', () => {
-      temporalInstantChrono.create({ config })
+    test('create', async ({ bench }) => {
+      await bench('create', () => {
+        temporalInstantChrono.create({ config })
+      }).run()
     })
-    bench('parse config', () => {
-      temporalInstantChrono.schema.config.parse(rawConfig)
+    test('parse config', async ({ bench }) => {
+      await bench('parse config', () => {
+        temporalInstantChrono.schema.config.parse(rawConfig)
+      }).run()
     })
-    bench('parse config UTC', () => {
-      temporalInstantChrono.schema.config.parse(rawUtcConfig)
+    test('parse config UTC', async ({ bench }) => {
+      await bench('parse config UTC', () => {
+        temporalInstantChrono.schema.config.parse(rawUtcConfig)
+      }).run()
     })
-    bench('parse config offset', () => {
-      temporalInstantChrono.schema.config.parse(rawOffsetConfig)
+    test('parse config offset', async ({ bench }) => {
+      await bench('parse config offset', () => {
+        temporalInstantChrono.schema.config.parse(rawOffsetConfig)
+      }).run()
     })
-    bench('now', () => {
-      core.now()
+    test('now', async ({ bench }) => {
+      await bench('now', () => {
+        core.now()
+      }).run()
     })
-    bench('normalize', () => {
-      temporalInstantChrono.normalize['~standard'].validate({
-        card,
-        time: later,
-      })
+    test('normalize', async ({ bench }) => {
+      await bench('normalize', () => {
+        temporalInstantChrono.normalize['~standard'].validate({
+          card,
+          time: later,
+        })
+      }).run()
     })
-    bench('default card', () => {
-      temporalInstantChrono.defaultValue.card?.({
-        config,
-        previous: later,
-        time: now,
-      })
+    test('default card', async ({ bench }) => {
+      await bench('default card', () => {
+        temporalInstantChrono.defaultValue.card?.({
+          config,
+          previous: later,
+          time: now,
+        })
+      }).run()
     })
-    bench('default revlog', () => {
-      temporalInstantChrono.defaultValue.revlog?.({
-        config,
-        previous,
-        time: now,
-      })
+    test('default revlog', async ({ bench }) => {
+      await bench('default revlog', () => {
+        temporalInstantChrono.defaultValue.revlog?.({
+          config,
+          previous,
+          time: now,
+        })
+      }).run()
     })
-    bench('difference', () => {
-      core.difference(now, later)
+    test('difference', async ({ bench }) => {
+      await bench('difference', () => {
+        core.difference(now, later)
+      }).run()
     })
-    bench('fractional difference', () => {
-      fractionalCore.difference(now, later)
+    test('fractional difference', async ({ bench }) => {
+      await bench('fractional difference', () => {
+        fractionalCore.difference(now, later)
+      }).run()
     })
-    bench('add whole days', () => {
-      core.add(now, 2)
+    test('add whole days', async ({ bench }) => {
+      await bench('add whole days', () => {
+        core.add(now, 2)
+      }).run()
     })
-    bench('add fractional days', () => {
-      core.add(now, 2.25)
+    test('add fractional days', async ({ bench }) => {
+      await bench('add fractional days', () => {
+        core.add(now, 2.25)
+      }).run()
     })
-    bench('difference UTC', () => {
-      utcCore.difference(now, later)
+    test('difference UTC', async ({ bench }) => {
+      await bench('difference UTC', () => {
+        utcCore.difference(now, later)
+      }).run()
     })
-    bench('add whole days UTC', () => {
-      utcCore.add(now, 2)
+    test('add whole days UTC', async ({ bench }) => {
+      await bench('add whole days UTC', () => {
+        utcCore.add(now, 2)
+      }).run()
     })
-    bench('add fractional days UTC', () => {
-      utcCore.add(now, 2.25)
+    test('add fractional days UTC', async ({ bench }) => {
+      await bench('add fractional days UTC', () => {
+        utcCore.add(now, 2.25)
+      }).run()
     })
   })
 }

@@ -92,22 +92,25 @@ describe('schedulerMonotonicIntervalMiddleware handler', () => {
     [Rating.Hard, 4, [Rating.Again]],
     [Rating.Good, 5, [Rating.Again, Rating.Hard]],
     [Rating.Easy, 7, [Rating.Again, Rating.Hard, Rating.Good]],
-  ] as const)('uses the required long-term candidates for grade %s', (grade, expected, expectedGrades) => {
-    const { ctx, next, nextInterval, step } = createReviewContext({
-      grade,
-      intervals: longTermIntervals,
-    })
+  ] as const)(
+    'uses the required long-term candidates for grade %s',
+    (grade, expected, expectedGrades) => {
+      const { ctx, next, nextInterval, step } = createReviewContext({
+        grade,
+        intervals: longTermIntervals,
+      })
 
-    reviewHandler(ctx, next)
+      reviewHandler(ctx, next)
 
-    expect(ctx.scheduledDays).toBe(expected)
-    expect(step.mock.calls.map(([rating]) => rating)).toEqual(expectedGrades)
-    expect(nextInterval).toHaveBeenCalledTimes(expectedGrades.length)
-    expect(
-      nextInterval.mock.calls.every(([, retention]) => retention === 0.9)
-    ).toBe(true)
-    expect(next).toHaveBeenCalledOnce()
-  })
+      expect(ctx.scheduledDays).toBe(expected)
+      expect(step.mock.calls.map(([rating]) => rating)).toEqual(expectedGrades)
+      expect(nextInterval).toHaveBeenCalledTimes(expectedGrades.length)
+      expect(
+        nextInterval.mock.calls.every(([, retention]) => retention === 0.9)
+      ).toBe(true)
+      expect(next).toHaveBeenCalledOnce()
+    }
+  )
 
   it('normalizes an interval selected by an earlier middleware', () => {
     const { ctx, next, step } = createReviewContext({
@@ -126,28 +129,26 @@ describe('schedulerMonotonicIntervalMiddleware handler', () => {
     expect(next).toHaveBeenCalledOnce()
   })
 
-  it.each([
-    State.New,
-    State.Learning,
-    State.Review,
-    State.Relearning,
-  ])('uses the full rating chain for card state %s', (state) => {
-    const { ctx, next, step } = createReviewContext({
-      grade: Rating.Easy,
-      intervals: longTermIntervals,
-      state,
-    })
+  it.each([State.New, State.Learning, State.Review, State.Relearning])(
+    'uses the full rating chain for card state %s',
+    (state) => {
+      const { ctx, next, step } = createReviewContext({
+        grade: Rating.Easy,
+        intervals: longTermIntervals,
+        state,
+      })
 
-    reviewHandler(ctx, next)
+      reviewHandler(ctx, next)
 
-    expect(ctx.scheduledDays).toBe(7)
-    expect(step.mock.calls.map(([rating]) => rating)).toEqual([
-      Rating.Again,
-      Rating.Hard,
-      Rating.Good,
-    ])
-    expect(next).toHaveBeenCalledOnce()
-  })
+      expect(ctx.scheduledDays).toBe(7)
+      expect(step.mock.calls.map(([rating]) => rating)).toEqual([
+        Rating.Again,
+        Rating.Hard,
+        Rating.Good,
+      ])
+      expect(next).toHaveBeenCalledOnce()
+    }
+  )
 
   it('allows later ratings to share the maximum interval', () => {
     const { ctx, next } = createReviewContext({
@@ -386,54 +387,57 @@ describe('schedulerMonotonicIntervalMiddleware integration', () => {
     ['exhausted', ['1m'], 1, 100, [1440, 2880, 4320, 5760]],
     // Again 1m, Hard 5m, Good 1d, Easy capped at 1d
     ['maximum interval', ['1m', '9m'], 1, 1, [1, 5, 1440, 1440]],
-  ] as const)('keeps %s learning intervals monotonic', (_name, learningSteps, learningStep, maximum, expected) => {
-    const modelConfig = {
-      weights: [...FSRS6_DEFAULT_WEIGHTS],
-      enableShortTerm: true,
-    }
-    const baseScheduler = defineScheduler({
-      model: FSRS6Model,
-      chrono: dateChrono,
-    })
-    const learningCore = baseScheduler
-      .use(schedulerLearningStepsMiddleware)
-      .create({
-        config: {
-          ...modelConfig,
-          numRelearningSteps: 1,
-          learningSteps: ['1m', '10m'],
-          relearningSteps: ['10m'],
-        },
+  ] as const)(
+    'keeps %s learning intervals monotonic',
+    (_name, learningSteps, learningStep, maximum, expected) => {
+      const modelConfig = {
+        weights: [...FSRS6_DEFAULT_WEIGHTS],
+        enableShortTerm: true,
+      }
+      const baseScheduler = defineScheduler({
+        model: FSRS6Model,
+        chrono: dateChrono,
       })
-    const monotonicCore = baseScheduler
-      .use(
-        schedulerLearningStepsMiddleware,
-        schedulerMonotonicIntervalMiddleware
-      )
-      .create({
-        config: {
-          ...modelConfig,
-          numRelearningSteps: learningSteps.length,
-          maximumInterval: maximum,
-          learningSteps,
-          relearningSteps: learningSteps,
-        },
-      })
-    const learningCard = learningCore.review({
-      card: learningCore.newCard({ now }),
-      grade: Rating.Again,
-      now,
-    }).card
-    const reviewTime = learningCard.dueAt
+      const learningCore = baseScheduler
+        .use(schedulerLearningStepsMiddleware)
+        .create({
+          config: {
+            ...modelConfig,
+            numRelearningSteps: 1,
+            learningSteps: ['1m', '10m'],
+            relearningSteps: ['10m'],
+          },
+        })
+      const monotonicCore = baseScheduler
+        .use(
+          schedulerLearningStepsMiddleware,
+          schedulerMonotonicIntervalMiddleware
+        )
+        .create({
+          config: {
+            ...modelConfig,
+            numRelearningSteps: learningSteps.length,
+            maximumInterval: maximum,
+            learningSteps,
+            relearningSteps: learningSteps,
+          },
+        })
+      const learningCard = learningCore.review({
+        card: learningCore.newCard({ now }),
+        grade: Rating.Again,
+        now,
+      }).card
+      const reviewTime = learningCard.dueAt
 
-    expect(
-      Array.from(
-        monotonicCore.preview({
-          card: { ...learningCard, learningStep },
-          now: reviewTime,
-        }),
-        (item) => (item.card.dueAt.getTime() - reviewTime.getTime()) / 60_000
-      )
-    ).toEqual(expected)
-  })
+      expect(
+        Array.from(
+          monotonicCore.preview({
+            card: { ...learningCard, learningStep },
+            now: reviewTime,
+          }),
+          (item) => (item.card.dueAt.getTime() - reviewTime.getTime()) / 60_000
+        )
+      ).toEqual(expected)
+    }
+  )
 })

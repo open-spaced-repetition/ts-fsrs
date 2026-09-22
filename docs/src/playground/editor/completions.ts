@@ -1,5 +1,5 @@
 import type { editor, IDisposable, languages, Position } from 'monaco-editor'
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
+import * as monaco from 'monaco-editor/editor/editor.api.js'
 
 /**
  * Monaco's built-in TypeScript completion provider cannot auto-import: it

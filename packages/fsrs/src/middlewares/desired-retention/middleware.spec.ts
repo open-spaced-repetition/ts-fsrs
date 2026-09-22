@@ -176,34 +176,28 @@ describe('schedulerDesiredRetentionMiddleware', () => {
     )
   })
 
-  it.each([
-    0,
-    -0.1,
-    1,
-    1.1,
-    Number.NaN,
-    Number.POSITIVE_INFINITY,
-  ])('rejects desiredRetention %s outside (0, 1)', (desiredRetention) => {
-    expect(() =>
-      desiredRetentionConfigSchema.parse({ desiredRetention })
-    ).toThrow('Expected desiredRetention in (0, 1)')
-  })
+  it.each([0, -0.1, 1, 1.1, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects desiredRetention %s outside (0, 1)',
+    (desiredRetention) => {
+      expect(() =>
+        desiredRetentionConfigSchema.parse({ desiredRetention })
+      ).toThrow('Expected desiredRetention in (0, 1)')
+    }
+  )
 
-  it.each([
-    0.1,
-    0.9,
-    0.99,
-    1 - Number.EPSILON,
-  ])('accepts desiredRetention %s', (desiredRetention) => {
-    expect(desiredRetentionConfigSchema.parse({ desiredRetention })).toEqual({
-      desiredRetention: {
-        [Rating.Again]: desiredRetention,
-        [Rating.Hard]: desiredRetention,
-        [Rating.Good]: desiredRetention,
-        [Rating.Easy]: desiredRetention,
-      },
-    })
-  })
+  it.each([0.1, 0.9, 0.99, 1 - Number.EPSILON])(
+    'accepts desiredRetention %s',
+    (desiredRetention) => {
+      expect(desiredRetentionConfigSchema.parse({ desiredRetention })).toEqual({
+        desiredRetention: {
+          [Rating.Again]: desiredRetention,
+          [Rating.Hard]: desiredRetention,
+          [Rating.Good]: desiredRetention,
+          [Rating.Easy]: desiredRetention,
+        },
+      })
+    }
+  )
 
   it.each([
     'FSRS-3',

@@ -58,8 +58,8 @@
     "./package.json": "./package.json"
   },
   "dependencies": {
-    "@napi-rs/wasm-runtime": "^1.2.0",
-    "@emnapi/core": "2.0.0-alpha.4",
-    "@emnapi/runtime": "2.0.0-alpha.4"
+    "@napi-rs/wasm-runtime": "^1.2.4",
+    "@emnapi/core": "2.0.0-alpha.5",
+    "@emnapi/runtime": "2.0.0-alpha.5"
   }
 }

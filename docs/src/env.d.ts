@@ -1,10 +1,10 @@
 declare module '*.css'
 
-declare module 'monaco-editor/esm/vs/editor/editor.worker'
+declare module 'monaco-editor/editor/editor.worker'
 
 // Monaco ships no types for the worker entry. Only the surface the playground
 // subclasses is declared; see src/playground/monaco-typescript.worker.ts.
-declare module 'monaco-editor/esm/vs/language/typescript/ts.worker' {
+declare module 'monaco-editor/language/typescript/ts.worker' {
   export class TypeScriptWorker {
     constructor(context: unknown, createData: unknown)
 

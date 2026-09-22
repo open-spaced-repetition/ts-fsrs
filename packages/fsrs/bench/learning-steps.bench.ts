@@ -13,7 +13,7 @@ import {
 } from 'ts-fsrs/middlewares/learning-steps/core'
 import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares/learning-steps/middleware'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6/index'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 let sink = 0
 
@@ -28,38 +28,48 @@ const learningConfig = {
   relearningSteps,
 }
 describe('learning-steps core', () => {
-  bench('convert decimal step', () => {
-    consume(ConvertStepUnitToMinutes('1.5h'))
+  test('convert decimal step', async ({ bench }) => {
+    await bench('convert decimal step', () => {
+      consume(ConvertStepUnitToMinutes('1.5h'))
+    }).run()
   })
 
-  bench('calculate new two-step schedule', () => {
-    consume(
-      calculateLearningSteps(learningConfig, State.New, 0)[Rating.Good]
-        ?.scheduledMinutes ?? 0
-    )
-  })
-
-  bench('calculate relearning two-step schedule', () => {
-    consume(
-      calculateLearningSteps(learningConfig, State.Relearning, 0)[Rating.Good]
-        ?.scheduledMinutes ?? 0
-    )
-  })
-
-  bench('calculate preview without shared result', () => {
-    for (const grade of grades) {
+  test('calculate new two-step schedule', async ({ bench }) => {
+    await bench('calculate new two-step schedule', () => {
       consume(
-        calculateLearningSteps(learningConfig, State.New, 0)[grade]
+        calculateLearningSteps(learningConfig, State.New, 0)[Rating.Good]
           ?.scheduledMinutes ?? 0
       )
-    }
+    }).run()
   })
 
-  bench('calculate preview with shared result', () => {
-    const steps = calculateLearningSteps(learningConfig, State.New, 0)
-    for (const grade of grades) {
-      consume(steps[grade]?.scheduledMinutes ?? 0)
-    }
+  test('calculate relearning two-step schedule', async ({ bench }) => {
+    await bench('calculate relearning two-step schedule', () => {
+      consume(
+        calculateLearningSteps(learningConfig, State.Relearning, 0)[Rating.Good]
+          ?.scheduledMinutes ?? 0
+      )
+    }).run()
+  })
+
+  test('calculate preview without shared result', async ({ bench }) => {
+    await bench('calculate preview without shared result', () => {
+      for (const grade of grades) {
+        consume(
+          calculateLearningSteps(learningConfig, State.New, 0)[grade]
+            ?.scheduledMinutes ?? 0
+        )
+      }
+    }).run()
+  })
+
+  test('calculate preview with shared result', async ({ bench }) => {
+    await bench('calculate preview with shared result', () => {
+      const steps = calculateLearningSteps(learningConfig, State.New, 0)
+      for (const grade of grades) {
+        consume(steps[grade]?.scheduledMinutes ?? 0)
+      }
+    }).run()
   })
 })
 
@@ -96,39 +106,51 @@ describe('legacy FSRS vs scheduler middleware', () => {
   })
   const baseCard = baseCore.newCard({ now })
 
-  bench('legacy next new card', () => {
-    consume(legacy.next(legacyCard, now, Rating.Good).card.due.getTime())
+  test('legacy next new card', async ({ bench }) => {
+    await bench('legacy next new card', () => {
+      consume(legacy.next(legacyCard, now, Rating.Good).card.due.getTime())
+    }).run()
   })
 
-  bench('middleware review new card', () => {
-    consume(
-      core
-        .review({ card: schedulerCard, grade: Rating.Good, now })
-        .card.dueAt.getTime()
-    )
+  test('middleware review new card', async ({ bench }) => {
+    await bench('middleware review new card', () => {
+      consume(
+        core
+          .review({ card: schedulerCard, grade: Rating.Good, now })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('scheduler review without middleware', () => {
-    consume(
-      baseCore
-        .review({ card: baseCard, grade: Rating.Good, now })
-        .card.dueAt.getTime()
-    )
+  test('scheduler review without middleware', async ({ bench }) => {
+    await bench('scheduler review without middleware', () => {
+      consume(
+        baseCore
+          .review({ card: baseCard, grade: Rating.Good, now })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('legacy repeat new card', () => {
-    consume(legacy.repeat(legacyCard, now)[Rating.Easy].card.due.getTime())
+  test('legacy repeat new card', async ({ bench }) => {
+    await bench('legacy repeat new card', () => {
+      consume(legacy.repeat(legacyCard, now)[Rating.Easy].card.due.getTime())
+    }).run()
   })
 
-  bench('middleware preview new card', () => {
-    for (const item of core.preview({ card: schedulerCard, now })) {
-      consume(item.card.dueAt.getTime())
-    }
+  test('middleware preview new card', async ({ bench }) => {
+    await bench('middleware preview new card', () => {
+      for (const item of core.preview({ card: schedulerCard, now })) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
   })
 
-  bench('scheduler preview without middleware', () => {
-    for (const item of baseCore.preview({ card: baseCard, now })) {
-      consume(item.card.dueAt.getTime())
-    }
+  test('scheduler preview without middleware', async ({ bench }) => {
+    await bench('scheduler preview without middleware', () => {
+      for (const item of baseCore.preview({ card: baseCard, now })) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
   })
 })

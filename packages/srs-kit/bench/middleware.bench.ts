@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import type { Middleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
@@ -82,37 +82,49 @@ for (const { label, middlewares } of middlewareSets) {
     const reviewCard = review.card
     const reviewRevlog = review.revlog
 
-    bench('create', () => {
-      createCore(middlewares)
+    test('create', async ({ bench }) => {
+      await bench('create', () => {
+        createCore(middlewares)
+      }).run()
     })
 
-    bench('newCard', () => {
-      consumeCard(core.newCard({ now: 0 }))
+    test('newCard', async ({ bench }) => {
+      await bench('newCard', () => {
+        consumeCard(core.newCard({ now: 0 }))
+      }).run()
     })
 
-    bench('review new card', () => {
-      core.review({ card: newCard, grade: Rating.Good, now: 0 })
+    test('review new card', async ({ bench }) => {
+      await bench('review new card', () => {
+        core.review({ card: newCard, grade: Rating.Good, now: 0 })
+      }).run()
     })
 
-    bench('review existing card', () => {
-      core.review({
-        card: reviewCard,
-        grade: Rating.Good,
-        now: reviewCard.interval,
-      })
+    test('review existing card', async ({ bench }) => {
+      await bench('review existing card', () => {
+        core.review({
+          card: reviewCard,
+          grade: Rating.Good,
+          now: reviewCard.interval,
+        })
+      }).run()
     })
 
-    bench('preview existing card', () => {
-      for (const item of core.preview({
-        card: reviewCard,
-        now: reviewCard.interval,
-      })) {
-        consume(item.grade)
-      }
+    test('preview existing card', async ({ bench }) => {
+      await bench('preview existing card', () => {
+        for (const item of core.preview({
+          card: reviewCard,
+          now: reviewCard.interval,
+        })) {
+          consume(item.grade)
+        }
+      }).run()
     })
 
-    bench('rollback', () => {
-      core.rollback({ card: reviewCard, revlog: reviewRevlog })
+    test('rollback', async ({ bench }) => {
+      await bench('rollback', () => {
+        core.rollback({ card: reviewCard, revlog: reviewRevlog })
+      }).run()
     })
   })
 }

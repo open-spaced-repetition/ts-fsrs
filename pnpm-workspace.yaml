@@ -5,10 +5,12 @@ packages:
   # - examples/*
 
 overrides:
+  # Vitest 5 pins tinybench 6.1.4, whose types require the DOM lib.
+  vitest>tinybench: 6.2.0
   is-core-module: npm:@nolyfill/is-core-module@^1
   minimatch: '>=10.2.3'
-  '@napi-rs/cli@3.8.0>emnapi': 2.0.0-alpha.4
-  '@rolldown/binding-wasm32-wasi>@napi-rs/wasm-runtime': 1.1.4
+  # Rolldown uses Emnapi 1; wasm-runtime 1.2 requires Emnapi 2.
+  '@rolldown/binding-wasm32-wasi>@napi-rs/wasm-runtime': 1.1.6
 
 verifyDepsBeforeRun: error
 
@@ -18,10 +20,3 @@ allowBuilds:
 
 supportedArchitectures:
   cpu: [current, wasm32]
-
-minimumReleaseAgeExclude:
-  - '@napi-rs/cli@3.8.0'
-  - '@napi-rs/wasm-runtime@1.2.0'
-  - '@emnapi/core@2.0.0-alpha.4'
-  - '@emnapi/runtime@2.0.0-alpha.4'
-  - emnapi@2.0.0-alpha.4

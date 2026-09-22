@@ -50,15 +50,18 @@ describe('schedulerLeechMiddleware review', () => {
   it.each([
     [7, 8],
     [15, 16],
-  ] as const)('suspends a review card at lapse multiple %s -> %s', (before, after) => {
-    const core = createLeechCore()
-    const card = { ...createReviewCard(core), lapses: before }
+  ] as const)(
+    'suspends a review card at lapse multiple %s -> %s',
+    (before, after) => {
+      const core = createLeechCore()
+      const card = { ...createReviewCard(core), lapses: before }
 
-    const result = core.review({ card, grade: Rating.Again, now: later })
+      const result = core.review({ card, grade: Rating.Again, now: later })
 
-    expect(result.card.lapses).toBe(after)
-    expect(result.card.scheduleStatus).toBe('suspended')
-  })
+      expect(result.card.lapses).toBe(after)
+      expect(result.card.scheduleStatus).toBe('suspended')
+    }
+  )
 
   it('does not suspend before the next threshold multiple', () => {
     const core = createLeechCore()

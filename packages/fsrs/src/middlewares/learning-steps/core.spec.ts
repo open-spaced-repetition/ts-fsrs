@@ -25,15 +25,12 @@ describe('ConvertStepUnitToMinutes', () => {
     expect(ConvertStepUnitToMinutes(step)).toBe(expected)
   })
 
-  it.each([
-    'm',
-    'sd',
-    '1..5m',
-    '-1m',
-    '2g',
-  ])('rejects invalid step %s', (step) => {
-    expect(() => ConvertStepUnitToMinutes(step as StepUnit)).toThrow()
-  })
+  it.each(['m', 'sd', '1..5m', '-1m', '2g'])(
+    'rejects invalid step %s',
+    (step) => {
+      expect(() => ConvertStepUnitToMinutes(step as StepUnit)).toThrow()
+    }
+  )
 
   it('rejects non-string and non-finite numeric values', () => {
     expect(() => ConvertStepUnitToMinutes(1 as unknown as StepUnit)).toThrow()

@@ -7,7 +7,7 @@ import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares/leech/middleware'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 let sink = 0
 
@@ -62,45 +62,55 @@ const nonLeechCard = {
 const leechCard = { ...nonLeechCard, lapses: 7 }
 
 describe('leech scheduler', () => {
-  bench('review with stats only', () => {
-    const card = statsCore.review({
-      card: statsCard,
-      grade: Rating.Again,
-      now: later,
-    }).card
-    consume(card.lapses, card.scheduleStatus)
+  test('review with stats only', async ({ bench }) => {
+    await bench('review with stats only', () => {
+      const card = statsCore.review({
+        card: statsCard,
+        grade: Rating.Again,
+        now: later,
+      }).card
+      consume(card.lapses, card.scheduleStatus)
+    }).run()
   })
 
-  bench('review with leech disabled', () => {
-    const card = disabledCore.review({
-      card: disabledCard,
-      grade: Rating.Again,
-      now: later,
-    }).card
-    consume(card.lapses, card.scheduleStatus)
+  test('review with leech disabled', async ({ bench }) => {
+    await bench('review with leech disabled', () => {
+      const card = disabledCore.review({
+        card: disabledCard,
+        grade: Rating.Again,
+        now: later,
+      }).card
+      consume(card.lapses, card.scheduleStatus)
+    }).run()
   })
 
-  bench('review before leech threshold', () => {
-    const card = enabledCore.review({
-      card: nonLeechCard,
-      grade: Rating.Again,
-      now: later,
-    }).card
-    consume(card.lapses, card.scheduleStatus)
+  test('review before leech threshold', async ({ bench }) => {
+    await bench('review before leech threshold', () => {
+      const card = enabledCore.review({
+        card: nonLeechCard,
+        grade: Rating.Again,
+        now: later,
+      }).card
+      consume(card.lapses, card.scheduleStatus)
+    }).run()
   })
 
-  bench('review at leech threshold', () => {
-    const card = enabledCore.review({
-      card: leechCard,
-      grade: Rating.Again,
-      now: later,
-    }).card
-    consume(card.lapses, card.scheduleStatus)
+  test('review at leech threshold', async ({ bench }) => {
+    await bench('review at leech threshold', () => {
+      const card = enabledCore.review({
+        card: leechCard,
+        grade: Rating.Again,
+        now: later,
+      }).card
+      consume(card.lapses, card.scheduleStatus)
+    }).run()
   })
 
-  bench('preview at leech threshold', () => {
-    for (const item of enabledCore.preview({ card: leechCard, now: later })) {
-      consume(item.card.lapses, item.card.scheduleStatus)
-    }
+  test('preview at leech threshold', async ({ bench }) => {
+    await bench('preview at leech threshold', () => {
+      for (const item of enabledCore.preview({ card: leechCard, now: later })) {
+        consume(item.card.lapses, item.card.scheduleStatus)
+      }
+    }).run()
   })
 })

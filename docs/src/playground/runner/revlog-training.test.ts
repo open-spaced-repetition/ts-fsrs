@@ -9,31 +9,31 @@ const options = {
 } as const
 
 describe('revlog.csv training', () => {
-  it.each([
-    'FSRS-6',
-    'FSRS-7',
-  ] as const)('trains %s and returns its complete weights array', async (modelVersion) => {
-    const csvText = [
-      HEADER,
-      '1704067200000,card-one,3,1000,0',
-      '1704153600000,card-one,4,900,2',
-    ].join('\n')
+  it.each(['FSRS-6', 'FSRS-7'] as const)(
+    'trains %s and returns its complete weights array',
+    async (modelVersion) => {
+      const csvText = [
+        HEADER,
+        '1704067200000,card-one,3,1000,0',
+        '1704153600000,card-one,4,900,2',
+      ].join('\n')
 
-    const onProgress = vi.fn()
-    const result = await trainRevlogCsv(csvText, {
-      ...options,
-      modelVersion,
-      onProgress,
-    })
+      const onProgress = vi.fn()
+      const result = await trainRevlogCsv(csvText, {
+        ...options,
+        modelVersion,
+        onProgress,
+      })
 
-    expect(result.itemCount).toBe(1)
-    expect(result.weights).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
-    expect(result.weights.every(Number.isFinite)).toBe(true)
-    if (modelVersion === 'FSRS-6')
-      expect(result.weights[0]).toBeCloseTo(0.212, 6)
-    expect(onProgress.mock.calls.length).toBeLessThanOrEqual(101)
-    expect(onProgress.mock.lastCall?.[0]).toBe(onProgress.mock.lastCall?.[1])
-  })
+      expect(result.itemCount).toBe(1)
+      expect(result.weights).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
+      expect(result.weights.every(Number.isFinite)).toBe(true)
+      if (modelVersion === 'FSRS-6')
+        expect(result.weights[0]).toBeCloseTo(0.212, 6)
+      expect(onProgress.mock.calls.length).toBeLessThanOrEqual(101)
+      expect(onProgress.mock.lastCall?.[0]).toBe(onProgress.mock.lastCall?.[1])
+    }
+  )
 
   it('accepts CRLF records and quoted card ids containing commas and quotes', async () => {
     const csvText = [

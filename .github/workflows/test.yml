@@ -67,13 +67,13 @@ jobs:
 
       - name: Test WASI binding
         if: startsWith(inputs.target, 'wasm32-')
-        run: pnpm test
+        run: pnpm test:ci
         # Flavor names match their target, except the threaded one, whose
         # generated flavor is still called wasm32-wasi. Anything unmapped is
         # passed through so the loader rejects it instead of silently falling
         # back to the threaded flavor.
         env:
-          NAPI_RS_WASI_FLAVOR: ${{ inputs.target == 'wasm32-wasip1-threads' && 'wasm32-wasi' || inputs.target }}
+          FSRS_BINDING_WASI_FLAVOR: ${{ inputs.target == 'wasm32-wasip1-threads' && 'wasm32-wasi' || inputs.target }}
 
       - name: Determine docker params
         if: contains(inputs.target, 'unknown-linux-gnu') == true || contains(inputs.target, 'unknown-linux-musl') == true
@@ -112,11 +112,11 @@ jobs:
           image: ${{ steps.docker.outputs.IMAGE }}
           options: -e CI=true -e PNPM_STORE_PATH=${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ steps.docker.outputs.PNPM_STORE_PATH }}:${{ steps.docker.outputs.PNPM_STORE_PATH }} -v ${{ github.workspace }}:${{ github.workspace }} -v ${{ github.workspace }}/node_modules -w ${{ github.workspace }} --platform ${{ steps.docker.outputs.PLATFORM }}
           run: |
-            sh -lc "npm install --global corepack --force && corepack enable pnpm && pnpm install --store-dir=$PNPM_STORE_PATH --frozen-lockfile && pnpm test"
+            sh -lc "npm install --global corepack --force && corepack enable pnpm && pnpm install --store-dir=$PNPM_STORE_PATH --frozen-lockfile && pnpm test:ci"
 
       - name: Test native binding (Windows/MacOS)
         if: inputs.target == 'x86_64-pc-windows-msvc' || inputs.target == 'x86_64-apple-darwin' || inputs.target == 'aarch64-apple-darwin'
-        run: pnpm test:coverage
+        run: pnpm test:coverage:ci
 
       - name: Upload coverage to Codecov
         if: (!cancelled()) && inputs.target == 'aarch64-apple-darwin'

@@ -43,63 +43,61 @@ describe('FSRS7Model reference parity', () => {
     expect(model.algorithm).toBeInstanceOf(FSRS7Algorithm)
   })
 
-  it.each(
-    referenceHistories
-  )('replays every memory state in a $history.length-review history', ({
-    history,
-    states,
-    benchmarkStates,
-  }) => {
-    const reviews = history.map(({ deltaT, rating }) => ({
-      deltaT,
-      rating: rating as Grade,
-    }))
-    const actual = model.forward({ history: reviews })
-    expect(actual).toHaveLength(states.length)
-    actual.forEach((state, i) => {
-      expectState(state, states[i])
-      expectState(state, benchmarkStates[i])
-    })
-    const split = Math.floor(reviews.length / 2)
-    expect(
-      model.forward({
-        history: reviews.slice(split),
-        initialState: actual[split - 1],
+  it.each(referenceHistories)(
+    'replays every memory state in a $history.length-review history',
+    ({ history, states, benchmarkStates }) => {
+      const reviews = history.map(({ deltaT, rating }) => ({
+        deltaT,
+        rating: rating as Grade,
+      }))
+      const actual = model.forward({ history: reviews })
+      expect(actual).toHaveLength(states.length)
+      actual.forEach((state, i) => {
+        expectState(state, states[i])
+        expectState(state, benchmarkStates[i])
       })
-    ).toEqual(actual.slice(split))
-  })
-
-  it.each(
-    referenceCases
-  )('matches all four grades at elapsedDays=$elapsedDays from $input', (test) => {
-    if (test.input) {
-      expect(model.forgettingCurve(test.input, test.elapsedDays)).toBeCloseTo(
-        test.retrievability,
-        5
-      )
-      expect(model.forgettingCurve(test.input, test.elapsedDays)).toBeCloseTo(
-        test.benchmarkRetrievability,
-        5
-      )
+      const split = Math.floor(reviews.length / 2)
+      expect(
+        model.forward({
+          history: reviews.slice(split),
+          initialState: actual[split - 1],
+        })
+      ).toEqual(actual.slice(split))
     }
-    for (const [index, expected] of test.next.entries()) {
-      const actual = model.step({
-        memoryState: test.input,
-        elapsedDays: test.elapsedDays,
-        rating: (index + 1) as Grade,
-      })
-      expectState(actual, expected.state)
-      expectState(actual, expected.benchmarkState)
-      for (const { retention, interval } of expected.intervals) {
-        // Use the reference state to isolate interval inversion from recurrence drift.
-        const result = model.nextInterval(expected.state, retention)
-        expect(
-          Math.abs(result - interval),
-          `interval at ${retention}: ${result} vs ${interval}`
-        ).toBeLessThanOrEqual(Math.max(1e-8, interval * 2e-3))
+  )
+
+  it.each(referenceCases)(
+    'matches all four grades at elapsedDays=$elapsedDays from $input',
+    (test) => {
+      if (test.input) {
+        expect(model.forgettingCurve(test.input, test.elapsedDays)).toBeCloseTo(
+          test.retrievability,
+          5
+        )
+        expect(model.forgettingCurve(test.input, test.elapsedDays)).toBeCloseTo(
+          test.benchmarkRetrievability,
+          5
+        )
+      }
+      for (const [index, expected] of test.next.entries()) {
+        const actual = model.step({
+          memoryState: test.input,
+          elapsedDays: test.elapsedDays,
+          rating: (index + 1) as Grade,
+        })
+        expectState(actual, expected.state)
+        expectState(actual, expected.benchmarkState)
+        for (const { retention, interval } of expected.intervals) {
+          // Use the reference state to isolate interval inversion from recurrence drift.
+          const result = model.nextInterval(expected.state, retention)
+          expect(
+            Math.abs(result - interval),
+            `interval at ${retention}: ${result} vs ${interval}`
+          ).toBeLessThanOrEqual(Math.max(1e-8, interval * 2e-3))
+        }
       }
     }
-  })
+  )
 
   it('has distinct fast and slow traces and does not round fractional elapsed days', () => {
     const state = { stability: 10, stabilityFast: 8, difficulty: 5 }
@@ -251,22 +249,17 @@ describe('FSRS7Model validation and create controls', () => {
     ).toThrow()
   })
 
-  it.each([
-    Number.NaN,
-    Infinity,
-    -Infinity,
-    0,
-    -1,
-    1,
-    1.01,
-  ])('rejects invalid retention %s', (retention) => {
-    expect(() =>
-      model.nextInterval(
-        { stability: 1, stabilityFast: 1, difficulty: 5 },
-        retention
-      )
-    ).toThrow('Desired retention rate should be in the range (0,1)')
-  })
+  it.each([Number.NaN, Infinity, -Infinity, 0, -1, 1, 1.01])(
+    'rejects invalid retention %s',
+    (retention) => {
+      expect(() =>
+        model.nextInterval(
+          { stability: 1, stabilityFast: 1, difficulty: 5 },
+          retention
+        )
+      ).toThrow('Desired retention rate should be in the range (0,1)')
+    }
+  )
 
   it('rejects missing or non-finite fast stability rather than dropping it', () => {
     for (const state of [
