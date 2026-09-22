@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.3
+
+### Minor Changes
+
+- [#534](https://github.com/open-spaced-repetition/ts-fsrs/pull/534) [`efee576`](https://github.com/open-spaced-repetition/ts-fsrs/commit/efee576bdf92bba401f0f3e7888b9de663300e59) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): support FSRS-7 training and evaluation with model selection, fast stability, and fractional study-day intervals while preserving explicit FSRS-6 support.
+
 ## 0.6.0-beta.2
 
 ### Minor Changes
