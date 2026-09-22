@@ -104,11 +104,11 @@ jobs:
         id: changesets
         uses: changesets/action@v2.1.2
         with:
-          version: pnpm run version
-          publish: pnpm run release
-          createGithubReleases: false
-          commit: 'chore(release): version packages'
-          title: 'chore: release new versions'
+          version-script: pnpm run version
+          publish-script: pnpm run release
+          create-github-releases: false
+          commit-message: 'chore(release): version packages'
+          pr-title: 'chore: release new versions'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -116,7 +116,7 @@ jobs:
         if: steps.changesets.outputs.published == 'true'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs.publishedPackages }}
+          PUBLISHED_PACKAGES: ${{ steps.changesets.outputs['published-packages'] }}
         run: |
           if [[ "$GITHUB_REF" != "refs/heads/main" ]]; then
             echo "Non-main branch ($GITHUB_REF) — running in dry-run."
