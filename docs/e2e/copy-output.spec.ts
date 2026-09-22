@@ -16,10 +16,22 @@ test('copies full playground output and handles clipboard failure', async ({
   await page
     .getByRole('textbox', { name: /Editor content/ })
     .press('ControlOrMeta+a')
+  let releaseRun!: () => void
+  const runGate = new Promise<void>((resolve) => {
+    releaseRun = resolve
+  })
+  await context.route('**/copy-output-release', async (route) => {
+    await runGate
+    await route.fulfill({ body: 'ok' })
+  })
   await page.keyboard.insertText(
-    'console.log({ nested: { value: "copy test" } }); console.warn("warning"); throw new Error("failure")'
+    'console.log({ nested: { value: "copy test" } }); await fetch("/copy-output-release"); console.warn("warning"); throw new Error("failure")'
   )
   await page.getByTestId('playground-run').click()
+  await expect(page.getByTestId('worker-log')).toHaveCount(1)
+  await expect(page.getByTestId('playground-run')).toBeDisabled()
+  await expect(copy).toBeDisabled()
+  releaseRun()
   await expect(page.getByTestId('playground-output')).toHaveAttribute(
     'data-state',
     'error'

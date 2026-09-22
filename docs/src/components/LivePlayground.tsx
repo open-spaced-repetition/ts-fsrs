@@ -306,7 +306,11 @@ export default function LivePlayground() {
             {runner.durationMs !== undefined && (
               <span>{runner.durationMs.toFixed(0)} ms</span>
             )}
-            <CopyOutputButton logs={runner.logs} error={runner.error} />
+            <CopyOutputButton
+              disabled={runner.state !== 'idle'}
+              logs={runner.logs}
+              error={runner.error}
+            />
           </div>
         </div>
         {runner.logs.length === 0 && !runner.error && (

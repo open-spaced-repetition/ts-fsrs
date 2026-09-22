@@ -47,7 +47,11 @@ export default function RunCode({ code, test = true }: Props) {
         >
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface-soft px-3.5 py-2 text-xs text-muted">
             <span>{t('playground.output')}</span>
-            <CopyOutputButton logs={runner.logs} error={runner.error} />
+            <CopyOutputButton
+              disabled={runner.state !== 'idle'}
+              logs={runner.logs}
+              error={runner.error}
+            />
           </div>
           {runner.logs.map((line, index) => (
             <WorkerLogLine

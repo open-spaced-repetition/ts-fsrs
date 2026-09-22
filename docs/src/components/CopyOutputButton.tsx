@@ -7,8 +7,10 @@ import { cn } from '@/utils/cn'
 export default function CopyOutputButton({
   logs,
   error,
+  disabled,
 }: {
   readonly logs: readonly RunnerLog[]
+  readonly disabled: boolean
   readonly error?: string
 }) {
   const output = [
@@ -45,7 +47,7 @@ export default function CopyOutputButton({
         data-status={status}
         data-tooltip={label}
         data-testid="copy-output"
-        disabled={logs.length === 0 && !error}
+        disabled={disabled || (logs.length === 0 && !error)}
         onClick={async () => {
           try {
             await navigator.clipboard.writeText(output)
