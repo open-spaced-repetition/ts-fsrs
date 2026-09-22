@@ -58,47 +58,48 @@ const usedCore = usedScheduler.create({
 })
 
 describe('defineScheduler', () => {
-  it.each([
-    undefined,
-    false,
-    true,
-  ])('shares flat fractionalDays config with Date chrono and middleware (%s)', (fractionalDays) => {
-    const capture = defineMiddleware({
-      name: 'test.shared-fractional-days',
-      schema: { config: fractionalDaysConfigSchema },
-      handlers: {
-        review(ctx, next) {
-          expect(ctx.config.fractionalDays).toBe(fractionalDays ?? false)
-          expect(ctx.elapsedDays).toBe(fractionalDays ? 2 / 1440 : 1)
-          next()
+  it.each([undefined, false, true])(
+    'shares flat fractionalDays config with Date chrono and middleware (%s)',
+    (fractionalDays) => {
+      const capture = defineMiddleware({
+        name: 'test.shared-fractional-days',
+        schema: { config: fractionalDaysConfigSchema },
+        handlers: {
+          review(ctx, next) {
+            expect(ctx.config.fractionalDays).toBe(fractionalDays ?? false)
+            expect(ctx.elapsedDays).toBe(fractionalDays ? 2 / 1440 : 1)
+            next()
+          },
         },
-      },
-    })
-    const definition = defineScheduler({
-      model: SM2Model,
-      chrono: dateChrono,
-    }).use(capture)
-    const shared = definition.create({ config: { ...config, fractionalDays } })
-    expect(shared.config.fractionalDays).toBe(fractionalDays ?? false)
-    const from = new Date('2026-09-08T23:59:00Z')
-    const to = new Date('2026-09-09T00:01:00Z')
-    const card = {
-      ...shared.newCard({ now: from }),
-      state: State.Review,
-      lastReviewAt: from,
-    }
-    const result = shared.review({ card, now: to, grade: Rating.Good })
-    expect(shared.rollback(result).lastReviewAt).toEqual(from)
-    // A parsed config can be reused without introducing a nested chrono config.
-    expect(definition.create({ config: shared.config }).config).toEqual(
-      shared.config
-    )
-    expect(() =>
-      definition.create({
-        config: { ...config, fractionalDays: 'true' } as never,
       })
-    ).toThrow('fractionalDays')
-  })
+      const definition = defineScheduler({
+        model: SM2Model,
+        chrono: dateChrono,
+      }).use(capture)
+      const shared = definition.create({
+        config: { ...config, fractionalDays },
+      })
+      expect(shared.config.fractionalDays).toBe(fractionalDays ?? false)
+      const from = new Date('2026-09-08T23:59:00Z')
+      const to = new Date('2026-09-09T00:01:00Z')
+      const card = {
+        ...shared.newCard({ now: from }),
+        state: State.Review,
+        lastReviewAt: from,
+      }
+      const result = shared.review({ card, now: to, grade: Rating.Good })
+      expect(shared.rollback(result).lastReviewAt).toEqual(from)
+      // A parsed config can be reused without introducing a nested chrono config.
+      expect(definition.create({ config: shared.config }).config).toEqual(
+        shared.config
+      )
+      expect(() =>
+        definition.create({
+          config: { ...config, fractionalDays: 'true' } as never,
+        })
+      ).toThrow('fractionalDays')
+    }
+  )
 
   it('accepts Temporal timezone and fractionalDays in the same flat config', () => {
     const capture = defineMiddleware({

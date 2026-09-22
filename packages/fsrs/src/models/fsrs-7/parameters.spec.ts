@@ -30,27 +30,26 @@ describe('FSRS-7 parameters', () => {
     )
   })
 
-  it.each([
-    1, 17, 19, 21, 33, 35,
-  ])('rejects incompatible %s-parameter layouts', (length) => {
-    const weights = Array.from({ length }, () => 1)
-    expect(() => migrateFSRS7Parameters(weights)).toThrow('expected 34')
-    expect(() => checkFSRS7Parameters(weights)).toThrow()
-    expect(clipFSRS7Parameters(weights)).toHaveLength(length)
-  })
+  it.each([1, 17, 19, 21, 33, 35])(
+    'rejects incompatible %s-parameter layouts',
+    (length) => {
+      const weights = Array.from({ length }, () => 1)
+      expect(() => migrateFSRS7Parameters(weights)).toThrow('expected 34')
+      expect(() => checkFSRS7Parameters(weights)).toThrow()
+      expect(clipFSRS7Parameters(weights)).toHaveLength(length)
+    }
+  )
 
-  it.each(
-    referenceClips
-  )('clips exactly like fsrs-rs, including dependent bounds', ({
-    input,
-    expected,
-  }) => {
-    const before = [...input]
-    expect(clipFSRS7Parameters(input)).toEqual(expected)
-    expect(input).toEqual(before)
-    expect(checkFSRS7Parameters(expected)).toBe(expected)
-    expect(clipFSRS7Parameters(expected)).toEqual(expected)
-  })
+  it.each(referenceClips)(
+    'clips exactly like fsrs-rs, including dependent bounds',
+    ({ input, expected }) => {
+      const before = [...input]
+      expect(clipFSRS7Parameters(input)).toEqual(expected)
+      expect(input).toEqual(before)
+      expect(checkFSRS7Parameters(expected)).toBe(expected)
+      expect(clipFSRS7Parameters(expected)).toEqual(expected)
+    }
+  )
 
   it('floors base2 at 0.5 when base1 sits below it', () => {
     const weights = [...FSRS7_DEFAULT_WEIGHTS]
@@ -69,18 +68,17 @@ describe('FSRS-7 parameters', () => {
     expect(() => checkFSRS7Parameters(weights)).toThrow()
   })
 
-  it.each([
-    Number.NaN,
-    Infinity,
-    -Infinity,
-  ])('repairs non-finite parameters with the lower bound like clamp_safe (%s)', (value) => {
-    for (let i = 0; i < 34; i++) {
-      const weights = [...FSRS7_DEFAULT_WEIGHTS]
-      weights[i] = value
-      expect(() => checkFSRS7Parameters(weights)).toThrow()
-      const clipped = clipFSRS7Parameters(weights)
-      expect(clipped.every(Number.isFinite)).toBe(true)
-      expect(() => checkFSRS7Parameters(clipped)).not.toThrow()
+  it.each([Number.NaN, Infinity, -Infinity])(
+    'repairs non-finite parameters with the lower bound like clamp_safe (%s)',
+    (value) => {
+      for (let i = 0; i < 34; i++) {
+        const weights = [...FSRS7_DEFAULT_WEIGHTS]
+        weights[i] = value
+        expect(() => checkFSRS7Parameters(weights)).toThrow()
+        const clipped = clipFSRS7Parameters(weights)
+        expect(clipped.every(Number.isFinite)).toBe(true)
+        expect(() => checkFSRS7Parameters(clipped)).not.toThrow()
+      }
     }
-  })
+  )
 })

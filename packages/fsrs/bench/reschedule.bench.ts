@@ -3,7 +3,7 @@ import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
 import { Reschedule } from 'ts-fsrs/reschedule'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 const DAY_MS = 86_400_000
 const HISTORY_SIZE = 100
@@ -34,23 +34,31 @@ function consume(stability: number): void {
 }
 
 describe(`replay ${HISTORY_SIZE} reviews (memory only)`, () => {
-  bench('model.forward', () => {
-    const states = scheduler.model.forward({ history: modelHistory })
-    consume(states[states.length - 1].stability)
+  test('model.forward', async ({ bench }) => {
+    await bench('model.forward', () => {
+      const states = scheduler.model.forward({ history: modelHistory })
+      consume(states[states.length - 1].stability)
+    }).run()
   })
 
-  bench('Reschedule.replay', () => {
-    consume(reschedule.replay({ history }).memoryState.stability)
+  test('Reschedule.replay', async ({ bench }) => {
+    await bench('Reschedule.replay', () => {
+      consume(reschedule.replay({ history }).memoryState.stability)
+    }).run()
   })
 })
 
 describe(`reschedule ${HISTORY_SIZE} reviews (card + revlog)`, () => {
-  bench('scheduler.forward', () => {
-    const results = scheduler.forward({ history })
-    consume(results[results.length - 1].card.stability)
+  test('scheduler.forward', async ({ bench }) => {
+    await bench('scheduler.forward', () => {
+      const results = scheduler.forward({ history })
+      consume(results[results.length - 1].card.stability)
+    }).run()
   })
 
-  bench('Reschedule.reschedule', () => {
-    consume(reschedule.reschedule({ history }).card.stability)
+  test('Reschedule.reschedule', async ({ bench }) => {
+    await bench('Reschedule.reschedule', () => {
+      consume(reschedule.reschedule({ history }).card.stability)
+    }).run()
   })
 })

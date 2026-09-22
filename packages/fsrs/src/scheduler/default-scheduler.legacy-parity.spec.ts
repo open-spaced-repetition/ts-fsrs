@@ -49,54 +49,57 @@ const revlogKeys = [
 ] as const
 
 describe('DefaultScheduler legacy parity', () => {
-  describe.each([
-    true,
-    false,
-  ])('field parity with enableShortTerm=%s', (enableShortTerm) => {
-    const options = { enableShortTerm } satisfies DefaultSchedulerOptions
+  describe.each([true, false])(
+    'field parity with enableShortTerm=%s',
+    (enableShortTerm) => {
+      const options = { enableShortTerm } satisfies DefaultSchedulerOptions
 
-    it.each(
-      grades
-    )('matches every card and revlog field for rating %s', async (grade) => {
-      const scheduler = await DefaultScheduler({
-        ...options,
-        version: 'FSRS-6',
-      })
-      const card = createStateCard(State.Review)
-      const actual = scheduler.review({ card, grade, now: NOW })
-      const legacy = legacyNext(options, card, NOW, grade)
+      it.each(grades)(
+        'matches every card and revlog field for rating %s',
+        async (grade) => {
+          const scheduler = await DefaultScheduler({
+            ...options,
+            version: 'FSRS-6',
+          })
+          const card = createStateCard(State.Review)
+          const actual = scheduler.review({ card, grade, now: NOW })
+          const legacy = legacyNext(options, card, NOW, grade)
 
-      expect(Object.keys(actual.card).sort()).toEqual(cardKeys)
-      expect(actual.card.cardId).toBe(card.cardId)
-      expect(actual.card.dueAt).toEqual(legacy.card.due)
-      expect(actual.card.stability).toBe(legacy.card.stability)
-      expect(actual.card.difficulty).toBe(legacy.card.difficulty)
-      expect(actual.card.scheduledDays).toBe(legacy.card.scheduled_days)
-      expect(actual.card.learningStep).toBe(legacy.card.learning_steps)
-      expect(actual.card.reps).toBe(legacy.card.reps)
-      expect(actual.card.lapses).toBe(legacy.card.lapses)
-      expect(actual.card.state).toBe(legacy.card.state)
-      expect(actual.card.scheduleStatus).toBe(
-        scheduleStatusByState[legacy.card.state]
+          expect(Object.keys(actual.card).sort()).toEqual(cardKeys)
+          expect(actual.card.cardId).toBe(card.cardId)
+          expect(actual.card.dueAt).toEqual(legacy.card.due)
+          expect(actual.card.stability).toBe(legacy.card.stability)
+          expect(actual.card.difficulty).toBe(legacy.card.difficulty)
+          expect(actual.card.scheduledDays).toBe(legacy.card.scheduled_days)
+          expect(actual.card.learningStep).toBe(legacy.card.learning_steps)
+          expect(actual.card.reps).toBe(legacy.card.reps)
+          expect(actual.card.lapses).toBe(legacy.card.lapses)
+          expect(actual.card.state).toBe(legacy.card.state)
+          expect(actual.card.scheduleStatus).toBe(
+            scheduleStatusByState[legacy.card.state]
+          )
+          expect(actual.card.lastReviewAt).toEqual(
+            legacy.card.last_review ?? null
+          )
+
+          expect(Object.keys(actual.revlog).sort()).toEqual(revlogKeys)
+          expect(actual.revlog.cardId).toBe(card.cardId)
+          expect(actual.revlog.dueAt).toEqual(card.dueAt)
+          expect(actual.revlog.lastReviewAt).toEqual(card.lastReviewAt)
+          expect(actual.revlog.stability).toBe(legacy.log.stability)
+          expect(actual.revlog.difficulty).toBe(legacy.log.difficulty)
+          expect(actual.revlog.scheduledDays).toBe(legacy.log.scheduled_days)
+          expect(actual.revlog.learningStep).toBe(legacy.log.learning_steps)
+          expect(actual.revlog.rating).toBe(legacy.log.rating)
+          expect(actual.revlog.state).toBe(legacy.log.state)
+          expect(actual.revlog.scheduleStatus).toBe(
+            scheduleStatusByState[legacy.log.state]
+          )
+          expect(actual.revlog.reviewTime).toEqual(legacy.log.review)
+        }
       )
-      expect(actual.card.lastReviewAt).toEqual(legacy.card.last_review ?? null)
-
-      expect(Object.keys(actual.revlog).sort()).toEqual(revlogKeys)
-      expect(actual.revlog.cardId).toBe(card.cardId)
-      expect(actual.revlog.dueAt).toEqual(card.dueAt)
-      expect(actual.revlog.lastReviewAt).toEqual(card.lastReviewAt)
-      expect(actual.revlog.stability).toBe(legacy.log.stability)
-      expect(actual.revlog.difficulty).toBe(legacy.log.difficulty)
-      expect(actual.revlog.scheduledDays).toBe(legacy.log.scheduled_days)
-      expect(actual.revlog.learningStep).toBe(legacy.log.learning_steps)
-      expect(actual.revlog.rating).toBe(legacy.log.rating)
-      expect(actual.revlog.state).toBe(legacy.log.state)
-      expect(actual.revlog.scheduleStatus).toBe(
-        scheduleStatusByState[legacy.log.state]
-      )
-      expect(actual.revlog.reviewTime).toEqual(legacy.log.review)
-    })
-  })
+    }
+  )
 
   describe.each([
     { name: 'short-term', enableShortTerm: true },
@@ -324,30 +327,31 @@ describe('DefaultScheduler legacy parity', () => {
   })
 
   describe('legacy card compatibility', () => {
-    it.each([
-      2.5, -1,
-    ])('consumes legacy scheduledDays=%s without losing rollback parity', async (scheduledDays) => {
-      const options = { enableShortTerm: true }
-      const scheduler = await DefaultScheduler({
-        ...options,
-        version: 'FSRS-6',
-      })
-      const card = {
-        ...createStateCard(State.Review),
-        cardId: `legacy-scheduled-${scheduledDays}`,
-        scheduledDays,
-      }
-      const expected = legacyReview(options, card, NOW, Rating.Good)
-      const actual = scheduler.review({
-        card,
-        grade: Rating.Good,
-        now: NOW,
-      })
+    it.each([2.5, -1])(
+      'consumes legacy scheduledDays=%s without losing rollback parity',
+      async (scheduledDays) => {
+        const options = { enableShortTerm: true }
+        const scheduler = await DefaultScheduler({
+          ...options,
+          version: 'FSRS-6',
+        })
+        const card = {
+          ...createStateCard(State.Review),
+          cardId: `legacy-scheduled-${scheduledDays}`,
+          scheduledDays,
+        }
+        const expected = legacyReview(options, card, NOW, Rating.Good)
+        const actual = scheduler.review({
+          card,
+          grade: Rating.Good,
+          now: NOW,
+        })
 
-      expectFullParity(actual, expected)
-      expectRollbackParity(scheduler.rollback(actual), card)
-      expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
-    })
+        expectFullParity(actual, expected)
+        expectRollbackParity(scheduler.rollback(actual), card)
+        expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
+      }
+    )
 
     it('keeps scheduledDays aligned with the second-precision learning-step due', async () => {
       const options = {

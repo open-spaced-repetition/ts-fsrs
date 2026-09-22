@@ -125,58 +125,58 @@ describe('scheduler.nextInterval', () => {
     expect(queryOnly).toHaveBeenCalledTimes(7)
   })
 
-  it.each([
-    'FSRS-6',
-    'FSRS-7',
-  ] as const)('matches the final review delay across %s policies', async (version) => {
-    for (const enableFuzz of [false, true]) {
-      for (const enableShortTerm of [false, true]) {
-        for (const maximumInterval of [1, 36500]) {
-          for (const learningSteps of [
-            ['1m', '10m'],
-            ['0m', '10m'],
-            ['0m'],
-            [],
-          ] satisfies StepUnit[][]) {
-            const core: AnySchedulerCore = await DefaultScheduler({
-              version,
-              enableFuzz,
-              enableShortTerm,
-              maximumInterval,
-              learningSteps,
-              relearningSteps: learningSteps,
-            })
-            for (const state of [
-              State.New,
-              State.Learning,
-              State.Review,
-              State.Relearning,
-            ]) {
-              for (const learningStep of [0, 1]) {
-                const card = Object.assign(
-                  core.newCard({ now: before, cardId: 'query-parity' }),
-                  {
-                    state,
-                    learningStep,
-                    stability: state === State.New ? 0 : 10,
-                    difficulty: state === State.New ? 0 : 5,
-                    lastReviewAt: state === State.New ? null : before,
-                  }
-                )
-                if ('stabilityFast' in card && state !== State.New) {
-                  card.stabilityFast = 0.1
-                }
-                const elapsedDays = state === State.New ? 0 : 9
-                for (const grade of grades) {
-                  const result = core.review({ card, grade, now })
-                  const interval = core.nextInterval(result.card, 0.9, {
-                    card,
-                    grade,
-                    elapsedDays,
-                  })
-                  expect(Math.trunc(now.getTime() + interval * DAY)).toBe(
-                    result.card.dueAt.getTime()
+  it.each(['FSRS-6', 'FSRS-7'] as const)(
+    'matches the final review delay across %s policies',
+    async (version) => {
+      for (const enableFuzz of [false, true]) {
+        for (const enableShortTerm of [false, true]) {
+          for (const maximumInterval of [1, 36500]) {
+            for (const learningSteps of [
+              ['1m', '10m'],
+              ['0m', '10m'],
+              ['0m'],
+              [],
+            ] satisfies StepUnit[][]) {
+              const core: AnySchedulerCore = await DefaultScheduler({
+                version,
+                enableFuzz,
+                enableShortTerm,
+                maximumInterval,
+                learningSteps,
+                relearningSteps: learningSteps,
+              })
+              for (const state of [
+                State.New,
+                State.Learning,
+                State.Review,
+                State.Relearning,
+              ]) {
+                for (const learningStep of [0, 1]) {
+                  const card = Object.assign(
+                    core.newCard({ now: before, cardId: 'query-parity' }),
+                    {
+                      state,
+                      learningStep,
+                      stability: state === State.New ? 0 : 10,
+                      difficulty: state === State.New ? 0 : 5,
+                      lastReviewAt: state === State.New ? null : before,
+                    }
                   )
+                  if ('stabilityFast' in card && state !== State.New) {
+                    card.stabilityFast = 0.1
+                  }
+                  const elapsedDays = state === State.New ? 0 : 9
+                  for (const grade of grades) {
+                    const result = core.review({ card, grade, now })
+                    const interval = core.nextInterval(result.card, 0.9, {
+                      card,
+                      grade,
+                      elapsedDays,
+                    })
+                    expect(Math.trunc(now.getTime() + interval * DAY)).toBe(
+                      result.card.dueAt.getTime()
+                    )
+                  }
                 }
               }
             }
@@ -184,7 +184,7 @@ describe('scheduler.nextInterval', () => {
         }
       }
     }
-  })
+  )
 
   it('reuses the supplied FSRS-7 state without review or chronology effects', () => {
     const review = vi.fn((_ctx, next: () => void) => next())

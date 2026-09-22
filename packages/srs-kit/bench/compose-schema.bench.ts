@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import type { Middleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
@@ -67,19 +67,25 @@ describe('composeSchema', () => {
   const baseCard = createCard(noMiddleware)
   const statsCard = createCard(statsMiddlewares)
 
-  bench('compose schema', () => {
-    composeSchema({
-      model: SM2Model,
-      chrono: numericChrono,
-      middlewares: statsMiddlewares,
-    })
+  test('compose schema', async ({ bench }) => {
+    await bench('compose schema', () => {
+      composeSchema({
+        model: SM2Model,
+        chrono: numericChrono,
+        middlewares: statsMiddlewares,
+      })
+    }).run()
   })
 
-  bench('parse card without middleware', () => {
-    consumeCardWithRememberedMemoryState(baseSchema.card.parse(baseCard))
+  test('parse card without middleware', async ({ bench }) => {
+    await bench('parse card without middleware', () => {
+      consumeCardWithRememberedMemoryState(baseSchema.card.parse(baseCard))
+    }).run()
   })
 
-  bench('parse card with stats middleware', () => {
-    consumeCardWithRememberedMemoryState(statsSchema.card.parse(statsCard))
+  test('parse card with stats middleware', async ({ bench }) => {
+    await bench('parse card with stats middleware', () => {
+      consumeCardWithRememberedMemoryState(statsSchema.card.parse(statsCard))
+    }).run()
   })
 })

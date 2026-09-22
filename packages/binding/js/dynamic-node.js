@@ -216,6 +216,7 @@ export async function initOptimizer(options) {
   })
   let context
   let instance
+  let threadManager
   let contextDestroyed = false
   let cleanupPrepared = false
   let disposed = false
@@ -243,6 +244,8 @@ export async function initOptimizer(options) {
     await Promise.all(
       [...workers].map(async (worker) => {
         try {
+          threadManager?.terminateWorker(worker)
+          worker.onmessage = undefined
           await worker.terminate()
           workers.delete(worker)
         } catch (error) {
@@ -263,25 +266,31 @@ export async function initOptimizer(options) {
   }
 
   async function cleanup() {
-    const errors = []
+    // Workers are unreferenced; keep Node alive until asynchronous cleanup finishes.
+    const keepAlive = setInterval(() => {}, 1000)
     try {
-      await destroyContext()
-    } catch (error) {
-      errors.push(error)
-    }
-    try {
-      await terminateWorkers()
-    } catch (error) {
-      errors.push(error)
-    }
-    try {
-      rmSync(temporaryDirectory, { recursive: true, force: true })
-    } catch (error) {
-      errors.push(error)
-    }
-    removeExitListener()
-    if (errors.length > 0) {
-      throw createCleanupError(errors, 'WASI binding cleanup failed')
+      const errors = []
+      try {
+        await destroyContext()
+      } catch (error) {
+        errors.push(error)
+      }
+      try {
+        await terminateWorkers()
+      } catch (error) {
+        errors.push(error)
+      }
+      try {
+        rmSync(temporaryDirectory, { recursive: true, force: true })
+      } catch (error) {
+        errors.push(error)
+      }
+      removeExitListener()
+      if (errors.length > 0) {
+        throw createCleanupError(errors, 'WASI binding cleanup failed')
+      }
+    } finally {
+      clearInterval(keepAlive)
     }
   }
 
@@ -306,13 +315,14 @@ export async function initOptimizer(options) {
         throw error
       }
     )
+
     return disposePromise
   }
 
   try {
     const finishAutoDestroyCapture = captureAutoDestroyListener()
     try {
-      context = createContext({ autoDestroy: false })
+      context = createContext()
       context.suppressDestroy()
     } finally {
       finishAutoDestroyCapture()
@@ -330,7 +340,14 @@ export async function initOptimizer(options) {
       context,
       asyncWorkPoolSize,
       reuseWorker: true,
-      plugins: [emnapiAsyncWorkPlugin, emnapiTSFNPlugin],
+      plugins: [
+        (runtime) => {
+          threadManager = runtime.PThread
+          return {}
+        },
+        emnapiAsyncWorkPlugin,
+        emnapiTSFNPlugin,
+      ],
       wasi,
       onCreateWorker() {
         const worker = workerFactory()

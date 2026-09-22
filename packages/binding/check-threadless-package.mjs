@@ -135,16 +135,6 @@ function assertThreadlessLoaders() {
       `Threadless loader contains a threaded path: ${file}`
     )
   }
-
-  const workerdLoader = readFileSync(
-    join(threadlessDir, 'fsrs-binding.wasip1-deferred.js'),
-    'utf8'
-  )
-  assert(
-    /new WebAssembly\.Memory\(\{\s*initial:\s*1024,/.test(workerdLoader) &&
-      !/initial:\s*16384,/.test(workerdLoader),
-    'Threadless workerd loader must use 1024 initial memory pages'
-  )
 }
 
 function readWasm(path) {
@@ -215,6 +205,11 @@ async function smokeTestWorkerd(wasmModule) {
   )
   const instance = await createInstance(wasmModule)
   try {
+    assert.equal(
+      instance.memory.buffer.byteLength,
+      1024 * 65536,
+      'Threadless workerd loader must use 1024 initial memory pages'
+    )
     return nextStatesSnapshot(
       'Threadless workerd facade',
       instance.exports.FSRSBinding

@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
@@ -33,32 +33,46 @@ describe('SM2 numeric scheduler', () => {
     return Array.from(previews)
   }
 
-  bench('create', () => {
-    scheduler.create({ config })
+  test('create', async ({ bench }) => {
+    await bench('create', () => {
+      scheduler.create({ config })
+    }).run()
   })
 
-  bench('newCard', () => {
-    core.newCard({ now: 0 })
+  test('newCard', async ({ bench }) => {
+    await bench('newCard', () => {
+      core.newCard({ now: 0 })
+    }).run()
   })
 
-  bench('review new card', () => {
-    core.review({ card: newCard, grade: Rating.Good, now: 0 })
+  test('review new card', async ({ bench }) => {
+    await bench('review new card', () => {
+      core.review({ card: newCard, grade: Rating.Good, now: 0 })
+    }).run()
   })
 
-  bench('review existing card', () => {
-    core.review({
-      card: reviewCard,
-      grade: Rating.Good,
-      now: reviewCard.interval,
-    })
+  test('review existing card', async ({ bench }) => {
+    await bench('review existing card', () => {
+      core.review({
+        card: reviewCard,
+        grade: Rating.Good,
+        now: reviewCard.interval,
+      })
+    }).run()
   })
 
-  bench('preview new card', () => {
-    consumePreview(core.preview({ card: newCard, now: 0 }))
+  test('preview new card', async ({ bench }) => {
+    await bench('preview new card', () => {
+      consumePreview(core.preview({ card: newCard, now: 0 }))
+    }).run()
   })
 
-  bench('preview existing card', () => {
-    consumePreview(core.preview({ card: reviewCard, now: reviewCard.interval }))
+  test('preview existing card', async ({ bench }) => {
+    await bench('preview existing card', () => {
+      consumePreview(
+        core.preview({ card: reviewCard, now: reviewCard.interval })
+      )
+    }).run()
   })
 })
 
@@ -84,79 +98,103 @@ describe('defineScheduler composition', () => {
     deepScheduler = deepScheduler.use(schedulerStatsMiddleware)
   }
 
-  bench('use branch (base)', () => {
-    consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware))
+  test('use branch (base)', async ({ bench }) => {
+    await bench('use branch (base)', () => {
+      consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware))
+    }).run()
   })
 
-  bench('use branch (8 ancestors)', () => {
-    consumeScheduler(deepScheduler.use(schedulerStatsMiddleware))
+  test('use branch (8 ancestors)', async ({ bench }) => {
+    await bench('use branch (8 ancestors)', () => {
+      consumeScheduler(deepScheduler.use(schedulerStatsMiddleware))
+    }).run()
   })
 
-  bench('use branch (4 added)', () => {
-    consumeScheduler(
-      runtimeBaseScheduler.use(
-        schedulerStatsMiddleware,
-        schedulerStatsMiddleware,
-        schedulerStatsMiddleware,
-        schedulerStatsMiddleware
+  test('use branch (4 added)', async ({ bench }) => {
+    await bench('use branch (4 added)', () => {
+      consumeScheduler(
+        runtimeBaseScheduler.use(
+          schedulerStatsMiddleware,
+          schedulerStatsMiddleware,
+          schedulerStatsMiddleware,
+          schedulerStatsMiddleware
+        )
       )
-    )
+    }).run()
   })
 
-  bench('define/use (unmaterialized)', () => {
-    consumeScheduler(
-      defineScheduler({
-        model: SM2Model,
-        chrono: numericChrono,
-      }).use(schedulerStatsMiddleware)
-    )
+  test('define/use (unmaterialized)', async ({ bench }) => {
+    await bench('define/use (unmaterialized)', () => {
+      consumeScheduler(
+        defineScheduler({
+          model: SM2Model,
+          chrono: numericChrono,
+        }).use(schedulerStatsMiddleware)
+      )
+    }).run()
   })
 
-  bench('define/use (name-only legacy workload)', () => {
-    consumeScheduler(
-      defineScheduler({
-        model: SM2Model,
-        chrono: numericChrono,
-      }).use(schedulerStatsMiddleware).name
-    )
+  test('define/use (name-only legacy workload)', async ({ bench }) => {
+    await bench('define/use (name-only legacy workload)', () => {
+      consumeScheduler(
+        defineScheduler({
+          model: SM2Model,
+          chrono: numericChrono,
+        }).use(schedulerStatsMiddleware).name
+      )
+    }).run()
   })
 
-  bench('define/use/create (cold)', () => {
-    consumeScheduler(
-      defineScheduler({
-        model: SM2Model,
-        chrono: numericChrono,
-      })
-        .use(schedulerStatsMiddleware)
-        .create({ config })
-    )
+  test('define/use/create (cold)', async ({ bench }) => {
+    await bench('define/use/create (cold)', () => {
+      consumeScheduler(
+        defineScheduler({
+          model: SM2Model,
+          chrono: numericChrono,
+        })
+          .use(schedulerStatsMiddleware)
+          .create({ config })
+      )
+    }).run()
   })
 
-  bench('create (cached composition)', () => {
-    consumeScheduler(cachedScheduler.create({ config }))
+  test('create (cached composition)', async ({ bench }) => {
+    await bench('create (cached composition)', () => {
+      consumeScheduler(cachedScheduler.create({ config }))
+    }).run()
   })
 
-  bench('schema getter (cached)', () => {
-    consumeScheduler(cachedScheduler.schema)
+  test('schema getter (cached)', async ({ bench }) => {
+    await bench('schema getter (cached)', () => {
+      consumeScheduler(cachedScheduler.schema)
+    }).run()
   })
 
-  bench('defaultValue getter (cached)', () => {
-    consumeScheduler(cachedScheduler.defaultValue)
+  test('defaultValue getter (cached)', async ({ bench }) => {
+    await bench('defaultValue getter (cached)', () => {
+      consumeScheduler(cachedScheduler.defaultValue)
+    }).run()
   })
 
-  bench('schema getter (cold branch)', () => {
-    consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware).schema)
+  test('schema getter (cold branch)', async ({ bench }) => {
+    await bench('schema getter (cold branch)', () => {
+      consumeScheduler(cachedBaseScheduler.use(schedulerStatsMiddleware).schema)
+    }).run()
   })
 
-  bench('defaultValue getter (cold branch)', () => {
-    consumeScheduler(
-      cachedBaseScheduler.use(schedulerStatsMiddleware).defaultValue
-    )
+  test('defaultValue getter (cold branch)', async ({ bench }) => {
+    await bench('defaultValue getter (cold branch)', () => {
+      consumeScheduler(
+        cachedBaseScheduler.use(schedulerStatsMiddleware).defaultValue
+      )
+    }).run()
   })
 
-  bench('use/create branch (cached base)', () => {
-    consumeScheduler(
-      cachedBaseScheduler.use(schedulerStatsMiddleware).create({ config })
-    )
+  test('use/create branch (cached base)', async ({ bench }) => {
+    await bench('use/create branch (cached base)', () => {
+      consumeScheduler(
+        cachedBaseScheduler.use(schedulerStatsMiddleware).create({ config })
+      )
+    }).run()
   })
 })

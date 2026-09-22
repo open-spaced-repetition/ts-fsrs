@@ -6,6 +6,7 @@ const mocks = vi.hoisted(() => ({
     destroy: vi.fn(),
     suppressDestroy: vi.fn(),
   },
+  threadManager: { terminateWorker: vi.fn() },
   createContext: vi.fn(),
   instantiateNapiModule: vi.fn(),
   asyncWorkPlugin: {},
@@ -39,12 +40,14 @@ beforeAll(async () => {
 
 beforeEach(() => {
   vi.restoreAllMocks()
+  mocks.threadManager.terminateWorker.mockReset()
   mocks.context.destroy.mockReset()
   mocks.context.suppressDestroy.mockReset()
   mocks.createContext.mockReset().mockReturnValue(mocks.context)
   mocks.instantiateNapiModule
     .mockReset()
     .mockImplementation(async (_wasm, options) => {
+      options.plugins[0]({ PThread: mocks.threadManager })
       options.onCreateWorker()
       options.beforeInit({ instance: { exports: {} } })
       return { napiModule: { exports: {} } }
@@ -66,13 +69,13 @@ test('initializes BufferSource with the emnapi v2 plugins', async () => {
     worker: () => worker,
   })
 
-  expect(mocks.createContext).toHaveBeenCalledWith({ autoDestroy: false })
+  expect(mocks.createContext).toHaveBeenCalledWith()
   expect(mocks.context.suppressDestroy).toHaveBeenCalledOnce()
   expect(mocks.instantiateNapiModule).toHaveBeenCalledWith(
     expect.any(Uint8Array),
     expect.objectContaining({
       asyncWorkPoolSize: 4,
-      plugins: [mocks.asyncWorkPlugin, mocks.tsfnPlugin],
+      plugins: [expect.any(Function), mocks.asyncWorkPlugin, mocks.tsfnPlugin],
     })
   )
 })
@@ -161,6 +164,7 @@ test('dispatches worker error events through globalThis', async () => {
 test('rolls back context and worker after initialization fails', async () => {
   const worker = createWorker()
   mocks.instantiateNapiModule.mockImplementationOnce(async (_wasm, options) => {
+    options.plugins[0]({ PThread: mocks.threadManager })
     options.onCreateWorker()
     throw new Error('initialization failed')
   })
@@ -173,6 +177,10 @@ test('rolls back context and worker after initialization fails', async () => {
   ).rejects.toThrow('initialization failed')
 
   expect(mocks.context.destroy).toHaveBeenCalledOnce()
+  expect(mocks.threadManager.terminateWorker).toHaveBeenCalledWith(worker)
+  expect(
+    mocks.threadManager.terminateWorker.mock.invocationCallOrder[0]
+  ).toBeLessThan(worker.terminate.mock.invocationCallOrder[0])
   expect(worker.terminate).toHaveBeenCalledOnce()
 })
 
@@ -187,5 +195,23 @@ test('exposes idempotent disposal', async () => {
   await Promise.all([dispose(), dispose()])
 
   expect(mocks.context.destroy).toHaveBeenCalledOnce()
+  expect(mocks.threadManager.terminateWorker).toHaveBeenCalledWith(worker)
+  expect(
+    mocks.threadManager.terminateWorker.mock.invocationCallOrder[0]
+  ).toBeLessThan(worker.terminate.mock.invocationCallOrder[0])
   expect(worker.terminate).toHaveBeenCalledOnce()
+})
+
+test('rejects a non-function N-API registration export and cleans up', async () => {
+  mocks.instantiateNapiModule.mockImplementationOnce(async (_wasm, options) => {
+    options.beforeInit({
+      instance: { exports: { __napi_register__invalid: 1 } },
+    })
+  })
+  await expect(
+    initOptimizer({ wasm: new Uint8Array([0]), worker: createWorker })
+  ).rejects.toThrow(
+    'Invalid N-API registration export: __napi_register__invalid'
+  )
+  expect(mocks.context.destroy).toHaveBeenCalledOnce()
 })

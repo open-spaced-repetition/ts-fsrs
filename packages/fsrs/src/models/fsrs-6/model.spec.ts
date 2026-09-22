@@ -33,18 +33,21 @@ describe('FSRS6Model', () => {
   it.each([
     [true, 0.01],
     [false, 0],
-  ])('clips migrated FSRS-5 weights when enableShortTerm=%s', (enableShortTerm, expectedW19) => {
-    const weights = Array.from(FSRS5_DEFAULT_WEIGHTS)
-    const model = FSRS6Model.create({
-      config: {
-        weights,
-        enableShortTerm,
-        numRelearningSteps: 0,
-      },
-    })
+  ])(
+    'clips migrated FSRS-5 weights when enableShortTerm=%s',
+    (enableShortTerm, expectedW19) => {
+      const weights = Array.from(FSRS5_DEFAULT_WEIGHTS)
+      const model = FSRS6Model.create({
+        config: {
+          weights,
+          enableShortTerm,
+          numRelearningSteps: 0,
+        },
+      })
 
-    expect(model.config.weights[19]).toBe(expectedW19)
-  })
+      expect(model.config.weights[19]).toBe(expectedW19)
+    }
+  )
 
   it('bypasses parameter clipping when requested', () => {
     const config = {

@@ -6,41 +6,37 @@ import {
 } from './revlog-config'
 
 describe('revlog training configuration', () => {
-  it.each([
-    0, 4, 23,
-  ])('accepts nextDayStartsAt=%i with an IANA timezone', (nextDayStartsAt) => {
-    expect(
-      validateRevlogTrainingConfig('America/New_York', nextDayStartsAt)
-    ).toEqual({
-      config: { nextDayStartsAt, timezone: 'America/New_York' },
-      ok: true,
-    })
-  })
+  it.each([0, 4, 23])(
+    'accepts nextDayStartsAt=%i with an IANA timezone',
+    (nextDayStartsAt) => {
+      expect(
+        validateRevlogTrainingConfig('America/New_York', nextDayStartsAt)
+      ).toEqual({
+        config: { nextDayStartsAt, timezone: 'America/New_York' },
+        ok: true,
+      })
+    }
+  )
 
-  it.each([
-    -1,
-    24,
-    4.5,
-    Number.NaN,
-    Number.POSITIVE_INFINITY,
-  ])('rejects illegal nextDayStartsAt=%s', (nextDayStartsAt) => {
-    expect(validateRevlogTrainingConfig('UTC', nextDayStartsAt)).toEqual({
-      error: 'invalid-next-day-start',
-      ok: false,
-    })
-  })
+  it.each([-1, 24, 4.5, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects illegal nextDayStartsAt=%s',
+    (nextDayStartsAt) => {
+      expect(validateRevlogTrainingConfig('UTC', nextDayStartsAt)).toEqual({
+        error: 'invalid-next-day-start',
+        ok: false,
+      })
+    }
+  )
 
-  it.each([
-    '',
-    'Mars/Base',
-    '+01:00',
-    '-0800',
-  ])('rejects non-IANA timezone %j', (timezone) => {
-    expect(validateRevlogTrainingConfig(timezone, 4)).toEqual({
-      error: 'invalid-timezone',
-      ok: false,
-    })
-  })
+  it.each(['', 'Mars/Base', '+01:00', '-0800'])(
+    'rejects non-IANA timezone %j',
+    (timezone) => {
+      expect(validateRevlogTrainingConfig(timezone, 4)).toEqual({
+        error: 'invalid-timezone',
+        ok: false,
+      })
+    }
+  )
 
   it('normalizes a valid IANA timezone before it reaches the binding', () => {
     expect(validateRevlogTrainingConfig('  america/new_york  ', 4)).toEqual({

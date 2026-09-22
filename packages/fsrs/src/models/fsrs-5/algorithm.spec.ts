@@ -99,28 +99,31 @@ describe('FSRS5Algorithm', () => {
   it.each([
     [true, 48.26549438, 7.10441712],
     [false, 48.065163, 7.10441712],
-  ])('matches v4.7.1 memory-state progression when enableShortTerm=%s', (enableShortTerm, expectedStability, expectedDifficulty) => {
-    const testAlgorithm = new FSRS5Algorithm(
-      FSRS5_DEFAULT_WEIGHTS,
-      enableShortTerm,
-      FSRS5_MODEL_BOUNDS
-    )
-    const ratings: Grade[] = [
-      Rating.Again,
-      Rating.Good,
-      Rating.Good,
-      Rating.Good,
-      Rating.Good,
-      Rating.Good,
-    ]
-    const intervals = [0, 0, 1, 3, 8, 21]
-    let state = null
+  ])(
+    'matches v4.7.1 memory-state progression when enableShortTerm=%s',
+    (enableShortTerm, expectedStability, expectedDifficulty) => {
+      const testAlgorithm = new FSRS5Algorithm(
+        FSRS5_DEFAULT_WEIGHTS,
+        enableShortTerm,
+        FSRS5_MODEL_BOUNDS
+      )
+      const ratings: Grade[] = [
+        Rating.Again,
+        Rating.Good,
+        Rating.Good,
+        Rating.Good,
+        Rating.Good,
+        Rating.Good,
+      ]
+      const intervals = [0, 0, 1, 3, 8, 21]
+      let state = null
 
-    for (const [index, rating] of ratings.entries()) {
-      state = testAlgorithm.next_state(state, intervals[index], rating)
+      for (const [index, rating] of ratings.entries()) {
+        state = testAlgorithm.next_state(state, intervals[index], rating)
+      }
+
+      expect(state!.stability).toBeCloseTo(expectedStability, 4)
+      expect(state!.difficulty).toBeCloseTo(expectedDifficulty, 4)
     }
-
-    expect(state!.stability).toBeCloseTo(expectedStability, 4)
-    expect(state!.difficulty).toBeCloseTo(expectedDifficulty, 4)
-  })
+  )
 })

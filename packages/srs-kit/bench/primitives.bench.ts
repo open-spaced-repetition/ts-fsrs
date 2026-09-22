@@ -4,48 +4,64 @@
 // safeParse() returns { success, data/issues } without throwing,
 // so both valid and invalid paths measure pure validation cost.
 
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { gradeSchema, Rating, ratingSchema } from '@/primitives/rating.js'
 import { State, stateSchema } from '@/primitives/state.js'
 
 describe('ratingSchema (safeParse)', () => {
-  bench('valid rating', () => {
-    ratingSchema.safeParse(Rating.Good)
+  test('valid rating', async ({ bench }) => {
+    await bench('valid rating', () => {
+      ratingSchema.safeParse(Rating.Good)
+    }).run()
   })
 
-  bench('invalid rating', () => {
-    ratingSchema.safeParse(5)
+  test('invalid rating', async ({ bench }) => {
+    await bench('invalid rating', () => {
+      ratingSchema.safeParse(5)
+    }).run()
   })
 })
 
 describe('ratingSchema (parse)', () => {
-  bench('valid rating', () => {
-    ratingSchema.parse(Rating.Good)
+  test('valid rating', async ({ bench }) => {
+    await bench('valid rating', () => {
+      ratingSchema.parse(Rating.Good)
+    }).run()
   })
 
-  bench('invalid rating', () => {
-    try {
-      ratingSchema.parse(5)
-    } catch {}
+  test('invalid rating', async ({ bench }) => {
+    await bench('invalid rating', () => {
+      try {
+        ratingSchema.parse(5)
+      } catch {}
+    }).run()
   })
 })
 
 describe('gradeSchema (safeParse)', () => {
-  bench('valid grade', () => {
-    gradeSchema.safeParse(Rating.Easy)
+  test('valid grade', async ({ bench }) => {
+    await bench('valid grade', () => {
+      gradeSchema.safeParse(Rating.Easy)
+    }).run()
   })
 
-  bench('invalid grade (Manual)', () => {
-    gradeSchema.safeParse(Rating.Manual)
+  test('invalid grade (Manual)', async ({ bench }) => {
+    await bench('invalid grade (Manual)', () => {
+      gradeSchema.safeParse(Rating.Manual)
+    }).run()
   })
 })
 
 describe('stateSchema (safeParse)', () => {
-  bench('valid state', () => {
-    stateSchema.safeParse(State.Review)
+  test('valid state', async ({ bench }) => {
+    await bench('valid state', () => {
+      stateSchema.safeParse(State.Review)
+    }).run()
   })
 
-  bench('invalid state', () => {
-    stateSchema.safeParse(4)
+  test('invalid state', async ({ bench }) => {
+    await bench('invalid state', () => {
+      stateSchema.safeParse(4)
+    }).run()
   })
 })
