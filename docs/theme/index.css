@@ -419,3 +419,40 @@
     }
   }
 }
+
+.copy-output-button .copy-output-glyph {
+  opacity: 1;
+  transition: opacity 120ms ease;
+}
+.copy-output-button .copy-output-check {
+  opacity: 0;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition:
+    opacity 120ms ease,
+    stroke-dashoffset 180ms ease;
+}
+.copy-output-button[data-status="copied"] {
+  border-color: var(--playground-border-success);
+  background: var(--playground-accent-muted);
+  color: var(--playground-on-accent);
+}
+.copy-output-button[data-status="copied"] .copy-output-glyph {
+  opacity: 0;
+}
+.copy-output-button[data-status="copied"] .copy-output-check {
+  opacity: 1;
+  stroke-dashoffset: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy-output-button *,
+  .copy-output-button::after {
+    transition: none;
+  }
+}
+
+.copy-output-button::after {
+  top: calc(100% + 8px);
+  bottom: auto;
+  text-transform: none;
+}
