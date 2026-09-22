@@ -15,11 +15,11 @@ runs:
   using: 'composite'
   steps:
     - name: Setup pnpm
-      run: npm install -g corepack@0.35.0 --force && corepack enable pnpm
+      run: npm install -g corepack@0.36.0 --force && corepack enable pnpm
       shell: bash
 
     - name: Install Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs['node-version'] }}
         architecture: ${{ inputs.architecture }}

@@ -18,7 +18,7 @@ import {
 } from 'ts-fsrs/middlewares/fuzzing/middleware'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 let sink = 0
 
@@ -45,24 +45,32 @@ const disabledFuzzingConfig = { ...fuzzingConfig, enableFuzz: false }
 describe('fuzzing core', () => {
   const seed = `${cardId}2`
 
-  bench('disabled', () => {
-    consume(withFuzzing(30, 9, disabledFuzzingConfig, seed))
+  test('disabled', async ({ bench }) => {
+    await bench('disabled', () => {
+      consume(withFuzzing(30, 9, disabledFuzzingConfig, seed))
+    }).run()
   })
 
-  bench('enabled', () => {
-    consume(withFuzzing(30, 9, fuzzingConfig, seed))
+  test('enabled', async ({ bench }) => {
+    await bench('enabled', () => {
+      consume(withFuzzing(30, 9, fuzzingConfig, seed))
+    }).run()
   })
 })
 
 describe('fuzzing rng', () => {
   const seed = `${cardId}2`
 
-  bench('fnv1a32 + mulberry32 (default)', () => {
-    consume(fnv1aMulberry32Rng(seed)())
+  test('fnv1a32 + mulberry32 (default)', async ({ bench }) => {
+    await bench('fnv1a32 + mulberry32 (default)', () => {
+      consume(fnv1aMulberry32Rng(seed)())
+    }).run()
   })
 
-  bench('alea', () => {
-    consume(aleaRng(seed)())
+  test('alea', async ({ bench }) => {
+    await bench('alea', () => {
+      consume(aleaRng(seed)())
+    }).run()
   })
 })
 
@@ -118,69 +126,90 @@ describe('fuzzing scheduler', () => {
   })
   const legacyCard = legacy.next(createEmptyCard(now), now, Rating.Good).card
 
-  bench('newCard with generated UUID', () => {
-    consume(Number(enabledCore.newCard({ now }).cardId !== ''))
+  test('newCard with generated UUID', async ({ bench }) => {
+    await bench('newCard with generated UUID', () => {
+      consume(Number(enabledCore.newCard({ now }).cardId !== ''))
+    }).run()
   })
 
-  bench('newCard with explicit cardId', () => {
-    consume(Number(enabledCore.newCard({ now, cardId }).cardId === cardId))
+  test('newCard with explicit cardId', async ({ bench }) => {
+    await bench('newCard with explicit cardId', () => {
+      consume(Number(enabledCore.newCard({ now, cardId }).cardId === cardId))
+    }).run()
   })
 
-  bench('review existing card (stats only)', () => {
-    consume(
-      statsCore
-        .review({ card: statsCard, grade: Rating.Good, now: later })
-        .card.dueAt.getTime()
-    )
+  test('review existing card (stats only)', async ({ bench }) => {
+    await bench('review existing card (stats only)', () => {
+      consume(
+        statsCore
+          .review({ card: statsCard, grade: Rating.Good, now: later })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('review existing card (fuzz disabled)', () => {
-    consume(
-      disabledCore
-        .review({
-          card: disabledCard,
-          grade: Rating.Good,
-          now: later,
-        })
-        .card.dueAt.getTime()
-    )
+  test('review existing card (fuzz disabled)', async ({ bench }) => {
+    await bench('review existing card (fuzz disabled)', () => {
+      consume(
+        disabledCore
+          .review({
+            card: disabledCard,
+            grade: Rating.Good,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('review existing card (fuzz enabled)', () => {
-    consume(
-      enabledCore
-        .review({
-          card: enabledCard,
-          grade: Rating.Good,
-          now: later,
-        })
-        .card.dueAt.getTime()
-    )
+  test('review existing card (fuzz enabled)', async ({ bench }) => {
+    await bench('review existing card (fuzz enabled)', () => {
+      consume(
+        enabledCore
+          .review({
+            card: enabledCard,
+            grade: Rating.Good,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('review existing card (alea)', () => {
-    consume(
-      aleaCore
-        .review({
-          card: aleaCard,
-          grade: Rating.Good,
-          now: later,
-        })
-        .card.dueAt.getTime()
-    )
+  test('review existing card (alea)', async ({ bench }) => {
+    await bench('review existing card (alea)', () => {
+      consume(
+        aleaCore
+          .review({
+            card: aleaCard,
+            grade: Rating.Good,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('legacy next existing card (fuzz enabled)', () => {
-    consume(legacy.next(legacyCard, later, Rating.Easy).card.due.getTime())
+  test('legacy next existing card (fuzz enabled)', async ({ bench }) => {
+    await bench('legacy next existing card (fuzz enabled)', () => {
+      consume(legacy.next(legacyCard, later, Rating.Easy).card.due.getTime())
+    }).run()
   })
 
-  bench('legacy repeat existing card (fuzz enabled)', () => {
-    consume(legacy.repeat(legacyCard, later)[Rating.Easy].card.due.getTime())
+  test('legacy repeat existing card (fuzz enabled)', async ({ bench }) => {
+    await bench('legacy repeat existing card (fuzz enabled)', () => {
+      consume(legacy.repeat(legacyCard, later)[Rating.Easy].card.due.getTime())
+    }).run()
   })
 
-  bench('middleware preview existing card (fuzz enabled)', () => {
-    for (const item of enabledCore.preview({ card: enabledCard, now: later })) {
-      consume(item.card.dueAt.getTime())
-    }
+  test('middleware preview existing card (fuzz enabled)', async ({ bench }) => {
+    await bench('middleware preview existing card (fuzz enabled)', () => {
+      for (const item of enabledCore.preview({
+        card: enabledCard,
+        now: later,
+      })) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
   })
 })

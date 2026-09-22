@@ -280,18 +280,21 @@ describe('playground runner lifecycle', () => {
   it.each([
     [24, 'UTC', /nextDayStartsAt must be an integer from 0 through 23/],
     [4, 'Mars/Base', /timezone must be a valid IANA timezone name/],
-  ] as const)('rejects invalid configuration before creating a Worker', async (nextDayStartsAt, timezone, message) => {
-    // Import after the test globals because runner-client owns module-level Worker state.
-    const { trainRevlogCsvInPlaygroundWorker } = await import('./client')
+  ] as const)(
+    'rejects invalid configuration before creating a Worker',
+    async (nextDayStartsAt, timezone, message) => {
+      // Import after the test globals because runner-client owns module-level Worker state.
+      const { trainRevlogCsvInPlaygroundWorker } = await import('./client')
 
-    await expect(
-      trainRevlogCsvInPlaygroundWorker({
-        csvText: '',
-        enableShortTerm: true,
-        nextDayStartsAt,
-        timezone,
-      })
-    ).rejects.toThrow(message)
-    expect(FakeWorker.instances).toHaveLength(0)
-  })
+      await expect(
+        trainRevlogCsvInPlaygroundWorker({
+          csvText: '',
+          enableShortTerm: true,
+          nextDayStartsAt,
+          timezone,
+        })
+      ).rejects.toThrow(message)
+      expect(FakeWorker.instances).toHaveLength(0)
+    }
+  )
 })

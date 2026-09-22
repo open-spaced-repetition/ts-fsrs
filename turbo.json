@@ -20,15 +20,21 @@
       "dependsOn": ["^build"],
       "outputs": ["dist/**"],
       "env": ["NAPI_TARGET"],
-      "passThroughEnv": ["ANDROID_NDK_LATEST_HOME"]
+      "passThroughEnv": [
+        "ANDROID_NDK_LATEST_HOME",
+        "CARGO_BUILD_RUSTC_WRAPPER",
+        "RUSTC_WRAPPER"
+      ]
     },
     "@open-spaced-repetition/binding#build:wasm": {
       "cache": false,
-      "env": ["WASI_SDK_PATH"]
+      "env": ["WASI_SDK_PATH"],
+      "passThroughEnv": ["CARGO_BUILD_RUSTC_WRAPPER", "RUSTC_WRAPPER"],
+      "dependsOn": ["build"]
     },
     "@open-spaced-repetition/binding#build:wasm:threadless": {
       "cache": false,
-      "passThroughEnv": ["RUSTC_WRAPPER"]
+      "passThroughEnv": ["CARGO_BUILD_RUSTC_WRAPPER", "RUSTC_WRAPPER"]
     },
     "@ts-fsrs/website#prepare:packages": {
       "dependsOn": [
@@ -125,9 +131,13 @@
       "env": ["TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding-test#test": {
-      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
+      "dependsOn": [
+        "^build",
+        "@open-spaced-repetition/binding#build:wasm",
+        "@open-spaced-repetition/binding#build:dynamic"
+      ],
       "outputs": [],
-      "env": ["NAPI_RS_WASI_FLAVOR"]
+      "env": ["FSRS_BINDING_WASI_FLAVOR", "TURBO_PLATFORM"]
     },
     "@open-spaced-repetition/binding#build:dynamic": {
       "outputs": [
@@ -143,16 +153,57 @@
       "env": ["TURBO_PLATFORM"]
     },
     "bench": {
-      "dependsOn": ["^build"],
       "cache": false
     },
     "@open-spaced-repetition/binding-test#test:coverage": {
-      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
-      "outputs": ["coverage/**"]
+      "dependsOn": [
+        "^build",
+        "@open-spaced-repetition/binding#build:wasm",
+        "@open-spaced-repetition/binding#build:dynamic"
+      ],
+      "outputs": ["coverage/**"],
+      "env": ["FSRS_BINDING_WASI_FLAVOR", "TURBO_PLATFORM"]
     },
     "dev": {
       "cache": false,
       "persistent": true
+    },
+    "@ts-fsrs/website#test:e2e": {
+      "dependsOn": ["rspress:build"],
+      "outputs": [],
+      "cache": false
+    },
+    "@open-spaced-repetition/binding#check": {
+      "outputs": [],
+      "passThroughEnv": ["CARGO_BUILD_RUSTC_WRAPPER", "RUSTC_WRAPPER"]
+    },
+    "ts-fsrs#typecheck": {
+      "dependsOn": ["^build"],
+      "outputs": []
+    },
+    "ts-fsrs#bench": {
+      "dependsOn": ["^build"],
+      "cache": false
+    },
+    "test:ci": {
+      "dependsOn": ["test"],
+      "outputs": []
+    },
+    "@open-spaced-repetition/binding-test#test:ci": {
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
+      "outputs": [],
+      "cache": false,
+      "env": ["FSRS_BINDING_WASI_FLAVOR", "TURBO_PLATFORM"]
+    },
+    "test:coverage:ci": {
+      "dependsOn": ["test:coverage"],
+      "outputs": []
+    },
+    "@open-spaced-repetition/binding-test#test:coverage:ci": {
+      "dependsOn": ["@open-spaced-repetition/binding#build:dynamic"],
+      "outputs": ["coverage/**"],
+      "cache": false,
+      "env": ["FSRS_BINDING_WASI_FLAVOR", "TURBO_PLATFORM"]
     }
   }
 }

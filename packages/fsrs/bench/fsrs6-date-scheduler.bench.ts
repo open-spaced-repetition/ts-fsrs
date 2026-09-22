@@ -1,5 +1,5 @@
 import { createEmptyCard, DefaultScheduler, FSRS, Rating } from 'ts-fsrs'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 const initialReviewAt = new Date('2026-01-01T00:00:00.000Z')
 const reviewAt = new Date('2026-01-10T00:00:00.000Z')
@@ -62,115 +62,163 @@ for (const enableFuzz of [false, true]) {
         now: initialReviewAt,
       }).card
 
-      bench('legacy FSRS constructor', () => {
-        _schedulerSink = new FSRS(parameters)
+      test('legacy FSRS constructor', async ({ bench }) => {
+        await bench('legacy FSRS constructor', () => {
+          _schedulerSink = new FSRS(parameters)
+        }).run()
       })
 
-      bench('DefaultScheduler cached factory', async () => {
-        _schedulerSink = await DefaultScheduler(options)
+      test('DefaultScheduler cached factory', async ({ bench }) => {
+        await bench('DefaultScheduler cached factory', async () => {
+          _schedulerSink = await DefaultScheduler(options)
+        }).run()
       })
 
-      bench('legacy FSRS review new card', () => {
-        consume(
-          legacy.next(legacyNewCard, initialReviewAt, grade).card.due.getTime()
-        )
-      })
-
-      bench('DefaultScheduler review new card', () => {
-        consume(
-          scheduler
-            .review({ card: newCard, grade, now: initialReviewAt })
-            .card.dueAt.getTime()
-        )
-      })
-
-      bench(`legacy FSRS review ${scenario.existingCardName}`, () => {
-        consume(
-          legacy
-            .next(legacyExistingCard, scenario.existingReviewAt, grade)
-            .card.due.getTime()
-        )
-      })
-
-      bench(`DefaultScheduler review ${scenario.existingCardName}`, () => {
-        consume(
-          scheduler
-            .review({
-              card: existingCard,
-              grade,
-              now: scenario.existingReviewAt,
-            })
-            .card.dueAt.getTime()
-        )
-      })
-
-      bench('legacy FSRS repeat new card', () => {
-        consume(
-          legacy
-            .repeat(legacyNewCard, initialReviewAt)
-            [Rating.Easy].card.due.getTime()
-        )
-      })
-
-      bench('DefaultScheduler full preview new card', () => {
-        consumePreview(
-          scheduler.preview({ card: newCard, now: initialReviewAt })
-        )
-      })
-
-      bench(`legacy FSRS repeat ${scenario.existingCardName}`, () => {
-        consume(
-          legacy
-            .repeat(legacyExistingCard, scenario.existingReviewAt)
-            [Rating.Easy].card.due.getTime()
-        )
-      })
-
-      bench(
-        `DefaultScheduler full preview ${scenario.existingCardName}`,
-        () => {
-          consumePreview(
-            scheduler.preview({
-              card: existingCard,
-              now: scenario.existingReviewAt,
-            })
+      test('legacy FSRS review new card', async ({ bench }) => {
+        await bench('legacy FSRS review new card', () => {
+          consume(
+            legacy
+              .next(legacyNewCard, initialReviewAt, grade)
+              .card.due.getTime()
           )
-        }
-      )
-
-      bench('legacy FSRS forget new card', () => {
-        consume(
-          legacy
-            .forget(legacyNewCard, scenario.existingReviewAt)
-            .card.due.getTime()
-        )
+        }).run()
       })
 
-      bench('DefaultScheduler forget new card', () => {
-        consume(
-          scheduler
-            .forget({ card: newCard, now: scenario.existingReviewAt })
-            .dueAt.getTime()
-        )
+      test('DefaultScheduler review new card', async ({ bench }) => {
+        await bench('DefaultScheduler review new card', () => {
+          consume(
+            scheduler
+              .review({ card: newCard, grade, now: initialReviewAt })
+              .card.dueAt.getTime()
+          )
+        }).run()
       })
 
-      bench(`legacy FSRS forget ${scenario.existingCardName}`, () => {
-        consume(
-          legacy
-            .forget(legacyExistingCard, scenario.existingReviewAt)
-            .card.due.getTime()
-        )
+      test(`legacy FSRS review ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(`legacy FSRS review ${scenario.existingCardName}`, () => {
+          consume(
+            legacy
+              .next(legacyExistingCard, scenario.existingReviewAt, grade)
+              .card.due.getTime()
+          )
+        }).run()
       })
 
-      bench(`DefaultScheduler forget ${scenario.existingCardName}`, () => {
-        consume(
-          scheduler
-            .forget({
-              card: existingCard,
-              now: scenario.existingReviewAt,
-            })
-            .dueAt.getTime()
-        )
+      test(`DefaultScheduler review ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(
+          `DefaultScheduler review ${scenario.existingCardName}`,
+          () => {
+            consume(
+              scheduler
+                .review({
+                  card: existingCard,
+                  grade,
+                  now: scenario.existingReviewAt,
+                })
+                .card.dueAt.getTime()
+            )
+          }
+        ).run()
+      })
+
+      test('legacy FSRS repeat new card', async ({ bench }) => {
+        await bench('legacy FSRS repeat new card', () => {
+          consume(
+            legacy
+              .repeat(legacyNewCard, initialReviewAt)
+              [Rating.Easy].card.due.getTime()
+          )
+        }).run()
+      })
+
+      test('DefaultScheduler full preview new card', async ({ bench }) => {
+        await bench('DefaultScheduler full preview new card', () => {
+          consumePreview(
+            scheduler.preview({ card: newCard, now: initialReviewAt })
+          )
+        }).run()
+      })
+
+      test(`legacy FSRS repeat ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(`legacy FSRS repeat ${scenario.existingCardName}`, () => {
+          consume(
+            legacy
+              .repeat(legacyExistingCard, scenario.existingReviewAt)
+              [Rating.Easy].card.due.getTime()
+          )
+        }).run()
+      })
+
+      test(`DefaultScheduler full preview ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(
+          `DefaultScheduler full preview ${scenario.existingCardName}`,
+          () => {
+            consumePreview(
+              scheduler.preview({
+                card: existingCard,
+                now: scenario.existingReviewAt,
+              })
+            )
+          }
+        ).run()
+      })
+
+      test('legacy FSRS forget new card', async ({ bench }) => {
+        await bench('legacy FSRS forget new card', () => {
+          consume(
+            legacy
+              .forget(legacyNewCard, scenario.existingReviewAt)
+              .card.due.getTime()
+          )
+        }).run()
+      })
+
+      test('DefaultScheduler forget new card', async ({ bench }) => {
+        await bench('DefaultScheduler forget new card', () => {
+          consume(
+            scheduler
+              .forget({ card: newCard, now: scenario.existingReviewAt })
+              .dueAt.getTime()
+          )
+        }).run()
+      })
+
+      test(`legacy FSRS forget ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(`legacy FSRS forget ${scenario.existingCardName}`, () => {
+          consume(
+            legacy
+              .forget(legacyExistingCard, scenario.existingReviewAt)
+              .card.due.getTime()
+          )
+        }).run()
+      })
+
+      test(`DefaultScheduler forget ${scenario.existingCardName}`, async ({
+        bench,
+      }) => {
+        await bench(
+          `DefaultScheduler forget ${scenario.existingCardName}`,
+          () => {
+            consume(
+              scheduler
+                .forget({
+                  card: existingCard,
+                  now: scenario.existingReviewAt,
+                })
+                .dueAt.getTime()
+            )
+          }
+        ).run()
       })
     })
   }

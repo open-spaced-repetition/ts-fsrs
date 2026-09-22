@@ -60,11 +60,14 @@ describe('Cost ADR policy', () => {
     [36500, 10, 1024, 0.9783571959],
     [0, -1, 0, 0.61252141],
     [1000000, 20, 2048, 0.9783571959],
-  ])('matches Rust for stability=%s difficulty=%s cost=%s', (stability, difficulty, weight, retention) => {
-    expect(
-      evaluateCostAdrRetention(policy, { stability, difficulty }, weight)
-    ).toBeCloseTo(retention, 6)
-  })
+  ])(
+    'matches Rust for stability=%s difficulty=%s cost=%s',
+    (stability, difficulty, weight, retention) => {
+      expect(
+        evaluateCostAdrRetention(policy, { stability, difficulty }, weight)
+      ).toBeCloseTo(retention, 6)
+    }
+  )
 
   it('supports custom bounds and clamps cost weights at both ends', () => {
     const custom: CostAdrPolicy = {
@@ -200,98 +203,104 @@ describe('schedulerCostAdrMiddleware', () => {
   it.each([
     [fsrs6Scheduler.use(schedulerCostAdrMiddleware), FSRS6_DEFAULT_WEIGHTS],
     [fsrs7Scheduler.use(schedulerCostAdrMiddleware), FSRS7_DEFAULT_WEIGHTS],
-  ] as const)('matches Rust constant-retention scenarios (%#)', (scheduler, weights) => {
-    // cost_adr.rs: constant_retention(0.9) and
-    // test_cost_adr_next_states_matches_constant_retention.
-    const ratio = (0.9 - 0.3) / (0.995 - 0.3)
-    const coefficients = Array<number>(15).fill(0)
-    coefficients[0] = Math.log(ratio / (1 - ratio))
-    coefficients[5] = -40
-    coefficients[10] = -40
-    const constantPolicy = { ...policy, coefficients }
-    const core: AnySchedulerCore = scheduler.create({
-      config: {
-        ...config,
-        costAdrPolicy: constantPolicy,
-        weights,
-        enableShortTerm: true,
-        numRelearningSteps: 1,
-      },
-    })
-    for (const memoryState of [
-      null,
-      { stability: 7, difficulty: 5, stabilityFast: 7 },
-      { stability: 7, difficulty: 3, stabilityFast: 1.5 },
-    ]) {
-      for (const elapsedDays of [0.25, 7]) {
-        const card = { ...core.newCard({ now }), ...memoryState }
-        for (const grade of grades) {
-          const nextState = core.model.step({
-            memoryState: memoryState ?? card,
-            rating: grade,
-            elapsedDays,
-          })
-          const expected = core.model.nextInterval(nextState, 0.9)
-          const interval = core.nextInterval(nextState, 0.9, {
-            card,
-            grade,
-            elapsedDays,
-          })
-          expect(Math.abs(interval - expected)).toBeLessThan(1e-3)
-          expect(
-            Math.abs(
-              evaluateCostAdrRetention(constantPolicy, nextState, 64) - 0.9
-            )
-          ).toBeLessThan(1e-4)
+  ] as const)(
+    'matches Rust constant-retention scenarios (%#)',
+    (scheduler, weights) => {
+      // cost_adr.rs: constant_retention(0.9) and
+      // test_cost_adr_next_states_matches_constant_retention.
+      const ratio = (0.9 - 0.3) / (0.995 - 0.3)
+      const coefficients = Array<number>(15).fill(0)
+      coefficients[0] = Math.log(ratio / (1 - ratio))
+      coefficients[5] = -40
+      coefficients[10] = -40
+      const constantPolicy = { ...policy, coefficients }
+      const core: AnySchedulerCore = scheduler.create({
+        config: {
+          ...config,
+          costAdrPolicy: constantPolicy,
+          weights,
+          enableShortTerm: true,
+          numRelearningSteps: 1,
+        },
+      })
+      for (const memoryState of [
+        null,
+        { stability: 7, difficulty: 5, stabilityFast: 7 },
+        { stability: 7, difficulty: 3, stabilityFast: 1.5 },
+      ]) {
+        for (const elapsedDays of [0.25, 7]) {
+          const card = { ...core.newCard({ now }), ...memoryState }
+          for (const grade of grades) {
+            const nextState = core.model.step({
+              memoryState: memoryState ?? card,
+              rating: grade,
+              elapsedDays,
+            })
+            const expected = core.model.nextInterval(nextState, 0.9)
+            const interval = core.nextInterval(nextState, 0.9, {
+              card,
+              grade,
+              elapsedDays,
+            })
+            expect(Math.abs(interval - expected)).toBeLessThan(1e-3)
+            expect(
+              Math.abs(
+                evaluateCostAdrRetention(constantPolicy, nextState, 64) - 0.9
+              )
+            ).toBeLessThan(1e-4)
+          }
         }
       }
     }
-  })
+  )
 
   it.each([
     [fsrs6Scheduler.use(schedulerCostAdrMiddleware), FSRS6_DEFAULT_WEIGHTS],
     [fsrs7Scheduler.use(schedulerCostAdrMiddleware), FSRS7_DEFAULT_WEIGHTS],
-  ] as const)('uses post-rating state in review, preview, forward and queries (%#)', (scheduler, weights) => {
-    const core: AnySchedulerCore = scheduler.create({
-      config: {
-        ...config,
-        weights,
-        enableShortTerm: true,
-        numRelearningSteps: 1,
-      },
-    })
-    const card = core.newCard({ now })
-    for (const result of core.preview({ card, now })) {
-      const retention = evaluateCostAdrRetention(
-        policy,
-        {
-          stability: result.card.stability,
-          difficulty: result.card.difficulty,
+  ] as const)(
+    'uses post-rating state in review, preview, forward and queries (%#)',
+    (scheduler, weights) => {
+      const core: AnySchedulerCore = scheduler.create({
+        config: {
+          ...config,
+          weights,
+          enableShortTerm: true,
+          numRelearningSteps: 1,
         },
-        64
-      )
-      const expected = core.model.nextInterval(result.card, retention)
-      expect(result.card.dueAt.getTime()).toBe(
-        Math.trunc(now.getTime() + expected * 86400000)
-      )
-      expect(core.review({ card, grade: result.grade, now }).card).toEqual(
-        result.card
-      )
-      expect(
-        core.forward({
-          initialCard: card,
-          history: [{ rating: result.grade, reviewTime: now }],
-        })[0].card
-      ).toEqual(result.card)
-      expect(
-        core.nextInterval(result.card, 0.9, {
-          card,
-          grade: result.grade,
-          elapsedDays: 0,
-        })
-      ).toBe(expected)
+      })
+      const card = core.newCard({ now })
+      for (const result of core.preview({ card, now })) {
+        const retention = evaluateCostAdrRetention(
+          policy,
+          {
+            stability: result.card.stability,
+            difficulty: result.card.difficulty,
+          },
+          64
+        )
+        const expected = core.model.nextInterval(result.card, retention)
+        expect(result.card.dueAt.getTime()).toBe(
+          Math.trunc(now.getTime() + expected * 86400000)
+        )
+        expect(core.review({ card, grade: result.grade, now }).card).toEqual(
+          result.card
+        )
+        expect(
+          core.forward({
+            initialCard: card,
+            history: [{ rating: result.grade, reviewTime: now }],
+          })[0].card
+        ).toEqual(result.card)
+        expect(
+          core.nextInterval(result.card, 0.9, {
+            card,
+            grade: result.grade,
+            elapsedDays: 0,
+          })
+        ).toBe(expected)
+      }
     }
-  })
+  )
 
   it('passes the supplied FSRS-7 state without stepping the current grade or reading time', () => {
     const core = fsrs7Scheduler
@@ -348,25 +357,28 @@ describe('schedulerCostAdrMiddleware', () => {
     [0, 0],
     [1 / 1440, 1 / 1440],
     [10, 3],
-  ])('applies only the upper cap to model interval %s', (modelInterval, expected) => {
-    const core = fsrs7Scheduler
-      .use(schedulerCostAdrMiddleware, schedulerMaximumIntervalMiddleware)
-      .create({
-        config: {
-          ...config,
-          maximumInterval: 3,
-        },
-      })
-    const card = core.newCard({ now })
-    vi.spyOn(core.model, 'nextInterval').mockReturnValue(modelInterval)
-    expect(
-      core.nextInterval(state, 0.9, {
-        card,
-        grade: Rating.Good,
-        elapsedDays: 0,
-      })
-    ).toBe(expected)
-  })
+  ])(
+    'applies only the upper cap to model interval %s',
+    (modelInterval, expected) => {
+      const core = fsrs7Scheduler
+        .use(schedulerCostAdrMiddleware, schedulerMaximumIntervalMiddleware)
+        .create({
+          config: {
+            ...config,
+            maximumInterval: 3,
+          },
+        })
+      const card = core.newCard({ now })
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(modelInterval)
+      expect(
+        core.nextInterval(state, 0.9, {
+          card,
+          grade: Rating.Good,
+          elapsedDays: 0,
+        })
+      ).toBe(expected)
+    }
+  )
 
   it('caps due times without changing the post-rating memory state', () => {
     const definition = fsrs7Scheduler.use(schedulerCostAdrMiddleware)
@@ -454,39 +466,37 @@ describe('schedulerCostAdrMiddleware', () => {
     expect(intervals.slice(1)).toEqual([3, 3, 3])
   })
 
-  it.each([
-    undefined,
-    NaN,
-    Infinity,
-    -1,
-  ])('rejects invalid interval %s after downstream middleware', (scheduledDays) => {
-    const core = fsrs7Scheduler
-      .use(
-        schedulerCostAdrMiddleware,
-        defineMiddleware({
-          name: 'missing-interval',
-          handlers: {
-            nextInterval(ctx, next) {
-              next()
-              ctx.scheduledDays = scheduledDays
+  it.each([undefined, NaN, Infinity, -1])(
+    'rejects invalid interval %s after downstream middleware',
+    (scheduledDays) => {
+      const core = fsrs7Scheduler
+        .use(
+          schedulerCostAdrMiddleware,
+          defineMiddleware({
+            name: 'missing-interval',
+            handlers: {
+              nextInterval(ctx, next) {
+                next()
+                ctx.scheduledDays = scheduledDays
+              },
             },
+          })
+        )
+        .create({
+          config: {
+            ...config,
           },
         })
-      )
-      .create({
-        config: {
-          ...config,
-        },
-      })
-    const card = core.newCard({ now })
-    expect(() =>
-      core.nextInterval(state, 0.9, {
-        card,
-        grade: Rating.Good,
-        elapsedDays: 0,
-      })
-    ).toThrow('scheduledDays')
-  })
+      const card = core.newCard({ now })
+      expect(() =>
+        core.nextInterval(state, 0.9, {
+          card,
+          grade: Rating.Good,
+          elapsedDays: 0,
+        })
+      ).toThrow('scheduledDays')
+    }
+  )
 
   it('uses downstream per-rating retention for sibling comparisons', () => {
     const core = fsrs7Scheduler

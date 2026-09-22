@@ -2,13 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { scheduledDaysFieldsSchema } from './schema.js'
 
 describe('scheduledDaysFieldsSchema', () => {
-  it.each([
-    0, 12, 1.5, -1,
-  ])('accepts finite scheduledDays %s', (scheduledDays) => {
-    expect(scheduledDaysFieldsSchema.parse({ scheduledDays })).toEqual({
-      scheduledDays,
-    })
-  })
+  it.each([0, 12, 1.5, -1])(
+    'accepts finite scheduledDays %s',
+    (scheduledDays) => {
+      expect(scheduledDaysFieldsSchema.parse({ scheduledDays })).toEqual({
+        scheduledDays,
+      })
+    }
+  )
 
   it.each([
     null,

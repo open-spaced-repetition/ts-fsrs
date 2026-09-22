@@ -217,6 +217,7 @@ describeIfWasm('initOptimizer', () => {
         wasm: ${JSON.stringify(wasmPath)},
         worker: ${JSON.stringify(workerPath)},
       })
+      await binding.computeParameters([], { enableShortTerm: true })
       await binding[Symbol.for('napi.rs.wasi.dispose')]()
     `
 

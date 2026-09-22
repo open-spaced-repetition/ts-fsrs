@@ -9,7 +9,7 @@ import {
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares/monotonic-interval/middleware'
 import { FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6/constants'
 import { FSRS6Model } from 'ts-fsrs/models/fsrs-6/model'
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 
 let sink = 0
 
@@ -20,24 +20,34 @@ function consume(value: number): void {
 const maximumInterval = 36_500
 
 describe('monotonic interval core', () => {
-  bench('calculate one-rating chain', () => {
-    consume(calculateScheduleDays([4], maximumInterval)[0])
+  test('calculate one-rating chain', async ({ bench }) => {
+    await bench('calculate one-rating chain', () => {
+      consume(calculateScheduleDays([4], maximumInterval)[0])
+    }).run()
   })
 
-  bench('calculate two-rating chain', () => {
-    consume(calculateScheduleDays([4, 2], maximumInterval)[1])
+  test('calculate two-rating chain', async ({ bench }) => {
+    await bench('calculate two-rating chain', () => {
+      consume(calculateScheduleDays([4, 2], maximumInterval)[1])
+    }).run()
   })
 
-  bench('calculate three-rating chain', () => {
-    consume(calculateScheduleDays([4, 2, 7], maximumInterval)[2])
+  test('calculate three-rating chain', async ({ bench }) => {
+    await bench('calculate three-rating chain', () => {
+      consume(calculateScheduleDays([4, 2, 7], maximumInterval)[2])
+    }).run()
   })
 
-  bench('calculate four-rating chain', () => {
-    consume(calculateScheduleDays([4, 2, 7, 6], maximumInterval)[3])
+  test('calculate four-rating chain', async ({ bench }) => {
+    await bench('calculate four-rating chain', () => {
+      consume(calculateScheduleDays([4, 2, 7, 6], maximumInterval)[3])
+    }).run()
   })
 
-  bench('calculate current four-rating interval', () => {
-    consume(calculateScheduleDay([4, 2, 7, 6], maximumInterval))
+  test('calculate current four-rating interval', async ({ bench }) => {
+    await bench('calculate current four-rating interval', () => {
+      consume(calculateScheduleDay([4, 2, 7, 6], maximumInterval))
+    }).run()
   })
 })
 
@@ -68,41 +78,51 @@ const legacyShortTermReviewCard = legacyShortTerm.next(
 ).card
 
 describe('legacy FSRS', () => {
-  bench('long-term next new card', () => {
-    consume(
-      legacyLongTerm.next(legacyLongTermNewCard, now, Rating.Good).card
-        .scheduled_days
-    )
+  test('long-term next new card', async ({ bench }) => {
+    await bench('long-term next new card', () => {
+      consume(
+        legacyLongTerm.next(legacyLongTermNewCard, now, Rating.Good).card
+          .scheduled_days
+      )
+    }).run()
   })
 
-  bench('long-term next review card', () => {
-    consume(
-      legacyLongTerm.next(legacyLongTermReviewCard, later, Rating.Easy).card
-        .scheduled_days
-    )
+  test('long-term next review card', async ({ bench }) => {
+    await bench('long-term next review card', () => {
+      consume(
+        legacyLongTerm.next(legacyLongTermReviewCard, later, Rating.Easy).card
+          .scheduled_days
+      )
+    }).run()
   })
 
-  bench('long-term repeat review card', () => {
-    for (const item of Array.from(
-      legacyLongTerm.repeat(legacyLongTermReviewCard, later)
-    )) {
-      consume(item.card.scheduled_days)
-    }
+  test('long-term repeat review card', async ({ bench }) => {
+    await bench('long-term repeat review card', () => {
+      for (const item of Array.from(
+        legacyLongTerm.repeat(legacyLongTermReviewCard, later)
+      )) {
+        consume(item.card.scheduled_days)
+      }
+    }).run()
   })
 
-  bench('short-term next review card', () => {
-    consume(
-      legacyShortTerm.next(legacyShortTermReviewCard, later, Rating.Easy).card
-        .scheduled_days
-    )
+  test('short-term next review card', async ({ bench }) => {
+    await bench('short-term next review card', () => {
+      consume(
+        legacyShortTerm.next(legacyShortTermReviewCard, later, Rating.Easy).card
+          .scheduled_days
+      )
+    }).run()
   })
 
-  bench('short-term repeat review card', () => {
-    for (const item of Array.from(
-      legacyShortTerm.repeat(legacyShortTermReviewCard, later)
-    )) {
-      consume(item.card.scheduled_days)
-    }
+  test('short-term repeat review card', async ({ bench }) => {
+    await bench('short-term repeat review card', () => {
+      for (const item of Array.from(
+        legacyShortTerm.repeat(legacyShortTermReviewCard, later)
+      )) {
+        consume(item.card.scheduled_days)
+      }
+    }).run()
   })
 })
 
@@ -166,91 +186,107 @@ const shortTermMonotonicCard = shortTermMonotonicCore.review({
 }).card
 
 describe('srs-kit long-term review card', () => {
-  bench('base review', () => {
-    consume(
-      longTermBaseCore
-        .review({
-          card: longTermBaseCard,
-          grade: Rating.Easy,
-          now: later,
-        })
-        .card.dueAt.getTime()
-    )
+  test('base review', async ({ bench }) => {
+    await bench('base review', () => {
+      consume(
+        longTermBaseCore
+          .review({
+            card: longTermBaseCard,
+            grade: Rating.Easy,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('monotonic middleware review', () => {
-    consume(
-      longTermMonotonicCore
-        .review({
+  test('monotonic middleware review', async ({ bench }) => {
+    await bench('monotonic middleware review', () => {
+      consume(
+        longTermMonotonicCore
+          .review({
+            card: longTermMonotonicCard,
+            grade: Rating.Easy,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
+  })
+
+  test('base preview', async ({ bench }) => {
+    await bench('base preview', () => {
+      for (const item of Array.from(
+        longTermBaseCore.preview({ card: longTermBaseCard, now: later })
+      )) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
+  })
+
+  test('monotonic middleware preview', async ({ bench }) => {
+    await bench('monotonic middleware preview', () => {
+      for (const item of Array.from(
+        longTermMonotonicCore.preview({
           card: longTermMonotonicCard,
-          grade: Rating.Easy,
           now: later,
         })
-        .card.dueAt.getTime()
-    )
-  })
-
-  bench('base preview', () => {
-    for (const item of Array.from(
-      longTermBaseCore.preview({ card: longTermBaseCard, now: later })
-    )) {
-      consume(item.card.dueAt.getTime())
-    }
-  })
-
-  bench('monotonic middleware preview', () => {
-    for (const item of Array.from(
-      longTermMonotonicCore.preview({
-        card: longTermMonotonicCard,
-        now: later,
-      })
-    )) {
-      consume(item.card.dueAt.getTime())
-    }
+      )) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
   })
 })
 
 describe('srs-kit short-term review card', () => {
-  bench('base review', () => {
-    consume(
-      shortTermBaseCore
-        .review({
-          card: shortTermBaseCard,
-          grade: Rating.Easy,
-          now: later,
-        })
-        .card.dueAt.getTime()
-    )
+  test('base review', async ({ bench }) => {
+    await bench('base review', () => {
+      consume(
+        shortTermBaseCore
+          .review({
+            card: shortTermBaseCard,
+            grade: Rating.Easy,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
   })
 
-  bench('monotonic middleware review', () => {
-    consume(
-      shortTermMonotonicCore
-        .review({
+  test('monotonic middleware review', async ({ bench }) => {
+    await bench('monotonic middleware review', () => {
+      consume(
+        shortTermMonotonicCore
+          .review({
+            card: shortTermMonotonicCard,
+            grade: Rating.Easy,
+            now: later,
+          })
+          .card.dueAt.getTime()
+      )
+    }).run()
+  })
+
+  test('base preview', async ({ bench }) => {
+    await bench('base preview', () => {
+      for (const item of Array.from(
+        shortTermBaseCore.preview({ card: shortTermBaseCard, now: later })
+      )) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
+  })
+
+  test('monotonic middleware preview', async ({ bench }) => {
+    await bench('monotonic middleware preview', () => {
+      for (const item of Array.from(
+        shortTermMonotonicCore.preview({
           card: shortTermMonotonicCard,
-          grade: Rating.Easy,
           now: later,
         })
-        .card.dueAt.getTime()
-    )
-  })
-
-  bench('base preview', () => {
-    for (const item of Array.from(
-      shortTermBaseCore.preview({ card: shortTermBaseCard, now: later })
-    )) {
-      consume(item.card.dueAt.getTime())
-    }
-  })
-
-  bench('monotonic middleware preview', () => {
-    for (const item of Array.from(
-      shortTermMonotonicCore.preview({
-        card: shortTermMonotonicCard,
-        now: later,
-      })
-    )) {
-      consume(item.card.dueAt.getTime())
-    }
+      )) {
+        consume(item.card.dueAt.getTime())
+      }
+    }).run()
   })
 })

@@ -48,8 +48,9 @@ const highlightedExportNames = collectHighlightedExportNames(
 // chunk references. Monaco's icon font is a data URI, so no asset rewriting is
 // needed. See src/playground/editor/styles-stub.css for the other half.
 const monacoEditorStyles = readFileSync(
-  createRequire(import.meta.url).resolve(
-    'monaco-editor/min/vs/editor/editor.main.css'
+  path.resolve(
+    path.dirname(createRequire(import.meta.url).resolve('monaco-editor')),
+    'editor/editor.main.css'
   ),
   'utf8'
 )

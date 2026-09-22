@@ -3,7 +3,7 @@
 import {
   initialize,
   TypeScriptWorker,
-} from 'monaco-editor/esm/vs/language/typescript/ts.worker'
+} from 'monaco-editor/language/typescript/ts.worker'
 import { COMPLETION_PREFERENCES } from './completion-preferences'
 
 // Required, not optional: building an auto-import code action runs the change

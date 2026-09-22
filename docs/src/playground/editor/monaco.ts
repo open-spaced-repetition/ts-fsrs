@@ -1,7 +1,7 @@
 import type { typescript as MonacoTypeScript } from 'monaco-editor'
-import 'monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution.js'
-import * as monaco from 'monaco-editor/esm/vs/editor/editor.api.js'
-import * as typeScriptRuntime from 'monaco-editor/esm/vs/language/typescript/monaco.contribution.js'
+import 'monaco-editor/languages/definitions/typescript/register.js'
+import * as monaco from 'monaco-editor/editor/editor.api.js'
+import * as typeScriptRuntime from 'monaco-editor/languages/features/typescript/register.js'
 import { registerPlaygroundCompletions } from './completions'
 import type { PlaygroundDeclaration } from './declarations'
 

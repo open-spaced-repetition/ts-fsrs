@@ -1,4 +1,4 @@
-import { bench, describe } from 'vitest'
+import { describe, test } from 'vitest'
 import { withCache } from '@/schema/index.js'
 
 let cacheSink = 0
@@ -24,22 +24,30 @@ describe('withCache', () => {
     cycleCache(key)
   }
 
-  bench('cache hit', () => {
-    consume(hitCache(1))
+  test('cache hit', async ({ bench }) => {
+    await bench('cache hit', () => {
+      consume(hitCache(1))
+    }).run()
   })
 
-  bench('cached undefined hit', () => {
-    consume(undefinedCache(0))
+  test('cached undefined hit', async ({ bench }) => {
+    await bench('cached undefined hit', () => {
+      consume(undefinedCache(0))
+    }).run()
   })
 
-  bench('cache miss', () => {
-    missKey += 1
-    consume(missCache(missKey))
+  test('cache miss', async ({ bench }) => {
+    await bench('cache miss', () => {
+      missKey += 1
+      consume(missCache(missKey))
+    }).run()
   })
 
-  bench('4-key cycle', () => {
-    const key = keys[cycleIndex & 3]
-    cycleIndex += 1
-    consume(cycleCache(key))
+  test('4-key cycle', async ({ bench }) => {
+    await bench('4-key cycle', () => {
+      const key = keys[cycleIndex & 3]
+      cycleIndex += 1
+      consume(cycleCache(key))
+    }).run()
   })
 })

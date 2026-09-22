@@ -144,51 +144,53 @@ describe('DefaultScheduler FSRS-7', () => {
     expect(forgotten.stabilityFast).toBe(0)
   })
 
-  it.each([
-    false,
-    true,
-  ])('replays fractional histories with enableShortTerm=%s', async (enableShortTerm) => {
-    const scheduler = await DefaultScheduler({
-      version: 'FSRS-7',
-      enableShortTerm,
-      learningSteps: [],
-      relearningSteps: [],
-    })
-    for (const test of referenceHistories) {
-      let time = now
-      let card = scheduler.newCard({ now: time, cardId: 'history' })
-      const results = []
-      for (const [index, review] of test.history.entries()) {
-        time = new Date(time.getTime() + Math.round(review.deltaT * MS_PER_DAY))
-        const result = scheduler.review({
-          card,
-          now: time,
-          grade: review.rating as Grade,
-        })
-        for (const key of [
-          'stability',
-          'stabilityFast',
-          'difficulty',
-        ] as const) {
-          const expected = test.states[index][key]
-          expect(Math.abs(result.card[key] - expected)).toBeLessThanOrEqual(
-            Math.max(1e-7, expected * 1e-4)
+  it.each([false, true])(
+    'replays fractional histories with enableShortTerm=%s',
+    async (enableShortTerm) => {
+      const scheduler = await DefaultScheduler({
+        version: 'FSRS-7',
+        enableShortTerm,
+        learningSteps: [],
+        relearningSteps: [],
+      })
+      for (const test of referenceHistories) {
+        let time = now
+        let card = scheduler.newCard({ now: time, cardId: 'history' })
+        const results = []
+        for (const [index, review] of test.history.entries()) {
+          time = new Date(
+            time.getTime() + Math.round(review.deltaT * MS_PER_DAY)
           )
+          const result = scheduler.review({
+            card,
+            now: time,
+            grade: review.rating as Grade,
+          })
+          for (const key of [
+            'stability',
+            'stabilityFast',
+            'difficulty',
+          ] as const) {
+            const expected = test.states[index][key]
+            expect(Math.abs(result.card[key] - expected)).toBeLessThanOrEqual(
+              Math.max(1e-7, expected * 1e-4)
+            )
+          }
+          expect(result.revlog.stabilityFast).toBe(card.stabilityFast)
+          expect(result.revlog.scheduledDays).toBe(card.scheduledDays)
+          // Rollback restores the pre-review card exactly, due date included.
+          expect(scheduler.rollback(result)).toEqual(card)
+          results.push(result)
+          card = result.card
         }
-        expect(result.revlog.stabilityFast).toBe(card.stabilityFast)
-        expect(result.revlog.scheduledDays).toBe(card.scheduledDays)
-        // Rollback restores the pre-review card exactly, due date included.
-        expect(scheduler.rollback(result)).toEqual(card)
-        results.push(result)
-        card = result.card
+        // Revlog before-images restore the sequence's memory state, including both traces.
+        for (const result of results.reverse()) {
+          card = scheduler.rollback({ card, revlog: result.revlog })
+        }
+        expect(card).toEqual(scheduler.newCard({ now, cardId: 'history' }))
       }
-      // Revlog before-images restore the sequence's memory state, including both traces.
-      for (const result of results.reverse()) {
-        card = scheduler.rollback({ card, revlog: result.revlog })
-      }
-      expect(card).toEqual(scheduler.newCard({ now, cardId: 'history' }))
     }
-  })
+  )
 
   it('uses fractional elapsed days across midnight and distinguishes reviews within one day', async () => {
     const scheduler = await DefaultScheduler({
@@ -222,65 +224,62 @@ describe('DefaultScheduler FSRS-7', () => {
     )
   })
 
-  it.each([
-    false,
-    true,
-  ])('keeps model sub-day intervals positive with enableFuzz=%s', async (enableFuzz) => {
-    const scheduler = await DefaultScheduler({
-      version: 'FSRS-7',
-      enableShortTerm: false,
-      enableFuzz,
-    })
-    const card = scheduler.newCard({ now, cardId: 'fractional' })
-    const result = scheduler.review({ card, now, grade: Rating.Again })
-    const interval = scheduler.model.nextInterval(result.card, 0.9)
-    expect(interval).toBeGreaterThan(0)
-    expect(interval).toBeLessThan(1)
-    expect(result.card.scheduledDays).toBe(interval)
-    expect(result.card.dueAt.getTime() - now.getTime()).toBe(
-      Math.trunc(interval * MS_PER_DAY)
-    )
-    expect(result.card.state).toBe(State.Review)
-    const previews = Array.from(scheduler.preview({ card, now }))
-    for (const preview of previews) {
-      expect(preview.card).toEqual(
-        scheduler.review({ card, now, grade: preview.grade }).card
-      )
-    }
-  })
-
-  it.each([
-    '0m',
-    '0.001m',
-    '0.01m',
-    '1439.6m',
-    '1440m',
-  ] as const)('only a positive second-rounded explicit step overrides the model (%s)', async (step) => {
-    const scheduler = await DefaultScheduler({
-      version: 'FSRS-7',
-      learningSteps: [step],
-      enableFuzz: true,
-    })
-    const card = scheduler.newCard({ now })
-    const result = scheduler.review({ card, now, grade: Rating.Again })
-    const minutes = Math.round(Number.parseFloat(step) * 60) / 60
-    if (minutes > 0) {
-      expect(result.card.scheduledDays).toBe(minutes / 1440)
+  it.each([false, true])(
+    'keeps model sub-day intervals positive with enableFuzz=%s',
+    async (enableFuzz) => {
+      const scheduler = await DefaultScheduler({
+        version: 'FSRS-7',
+        enableShortTerm: false,
+        enableFuzz,
+      })
+      const card = scheduler.newCard({ now, cardId: 'fractional' })
+      const result = scheduler.review({ card, now, grade: Rating.Again })
+      const interval = scheduler.model.nextInterval(result.card, 0.9)
+      expect(interval).toBeGreaterThan(0)
+      expect(interval).toBeLessThan(1)
+      expect(result.card.scheduledDays).toBe(interval)
       expect(result.card.dueAt.getTime() - now.getTime()).toBe(
-        Math.round(minutes * 60000)
-      )
-      expect(result.card.state).toBe(
-        minutes < 1440 ? State.Learning : State.Review
-      )
-    } else {
-      expect(result.card.scheduledDays).toBe(
-        scheduler.model.nextInterval(result.card, 0.9)
+        Math.trunc(interval * MS_PER_DAY)
       )
       expect(result.card.state).toBe(State.Review)
+      const previews = Array.from(scheduler.preview({ card, now }))
+      for (const preview of previews) {
+        expect(preview.card).toEqual(
+          scheduler.review({ card, now, grade: preview.grade }).card
+        )
+      }
     }
-    expect(result.card.learningStep).toBe(0)
-    expect(scheduler.rollback(result)).toEqual(card)
-  })
+  )
+
+  it.each(['0m', '0.001m', '0.01m', '1439.6m', '1440m'] as const)(
+    'only a positive second-rounded explicit step overrides the model (%s)',
+    async (step) => {
+      const scheduler = await DefaultScheduler({
+        version: 'FSRS-7',
+        learningSteps: [step],
+        enableFuzz: true,
+      })
+      const card = scheduler.newCard({ now })
+      const result = scheduler.review({ card, now, grade: Rating.Again })
+      const minutes = Math.round(Number.parseFloat(step) * 60) / 60
+      if (minutes > 0) {
+        expect(result.card.scheduledDays).toBe(minutes / 1440)
+        expect(result.card.dueAt.getTime() - now.getTime()).toBe(
+          Math.round(minutes * 60000)
+        )
+        expect(result.card.state).toBe(
+          minutes < 1440 ? State.Learning : State.Review
+        )
+      } else {
+        expect(result.card.scheduledDays).toBe(
+          scheduler.model.nextInterval(result.card, 0.9)
+        )
+        expect(result.card.state).toBe(State.Review)
+      }
+      expect(result.card.learningStep).toBe(0)
+      expect(scheduler.rollback(result)).toEqual(card)
+    }
+  )
 
   it('graduates a completed step even when the model interval is below one day', async () => {
     const scheduler = await DefaultScheduler({

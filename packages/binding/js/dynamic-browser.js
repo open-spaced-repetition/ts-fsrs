@@ -13,6 +13,7 @@ import {
 
 const WASI_DISPOSE_SYMBOL = Symbol.for('napi.rs.wasi.dispose')
 
+/** @param {Response} response @param {string} source */
 async function readResponse(response, source) {
   if (!response.ok) {
     throw new Error(
@@ -22,6 +23,7 @@ async function readResponse(response, source) {
   return response.arrayBuffer()
 }
 
+/** @param {import('./dynamic.js').InitOptimizerOptions['wasm']} wasm */
 async function resolveWasm(wasm) {
   if (wasm instanceof ArrayBuffer || ArrayBuffer.isView(wasm)) {
     return wasm
@@ -38,6 +40,7 @@ async function resolveWasm(wasm) {
   )
 }
 
+/** @param {import('./dynamic.js').InitOptimizerOptions['worker']} worker */
 function resolveWorker(worker) {
   if (typeof worker === 'function') {
     return worker
@@ -50,19 +53,20 @@ function resolveWorker(worker) {
   )
 }
 
+/** @param {unknown[]} errors @param {string} message */
 function createCleanupError(errors, message) {
   return errors.length === 1 ? errors[0] : new AggregateError(errors, message)
 }
 
+/** @param {unknown} error @param {unknown} cleanupError */
 function attachCleanupError(error, cleanupError) {
   try {
     if (
       error &&
       (typeof error === 'object' || typeof error === 'function') &&
-      error.cause === undefined
+      Reflect.get(error, 'cause') === undefined
     ) {
-      error.cause = cleanupError
-      return error
+      return Object.assign(error, { cause: cleanupError })
     }
   } catch {}
   return new AggregateError(
@@ -71,9 +75,11 @@ function attachCleanupError(error, cleanupError) {
   )
 }
 
+/** @param {import('./dynamic.js').InitOptimizerOptions} options */
 export async function initOptimizer(options) {
   const wasm = await resolveWasm(options.wasm)
   const workerFactory = resolveWorker(options.worker)
+  /** @type {Set<Worker>} */
   const workers = new Set()
   const wasi = new WASI({ version: 'preview1' })
   const memory = new WebAssembly.Memory({
@@ -81,11 +87,16 @@ export async function initOptimizer(options) {
     maximum: 65536,
     shared: true,
   })
+  /** @type {import('@emnapi/runtime').Context | undefined} */
   let context
+  /** @type {WebAssembly.Instance | undefined} */
   let instance
+  /** @type {import('@emnapi/core').ThreadManager | undefined} */
+  let threadManager
   let contextDestroyed = false
   let cleanupPrepared = false
   let disposed = false
+  /** @type {Promise<void> | undefined} */
   let disposePromise
 
   async function destroyContext() {
@@ -105,10 +116,13 @@ export async function initOptimizer(options) {
   }
 
   async function terminateWorkers() {
+    /** @type {unknown[]} */
     const errors = []
     await Promise.all(
       [...workers].map(async (worker) => {
         try {
+          threadManager?.terminateWorker(worker)
+          worker.onmessage = null
           await worker.terminate()
           workers.delete(worker)
         } catch (error) {
@@ -122,6 +136,7 @@ export async function initOptimizer(options) {
   }
 
   async function cleanup() {
+    /** @type {unknown[]} */
     const errors = []
     try {
       await destroyContext()
@@ -158,12 +173,19 @@ export async function initOptimizer(options) {
   }
 
   try {
-    context = createContext({ autoDestroy: false })
+    context = createContext()
     context.suppressDestroy()
     const { napiModule } = await instantiateNapiModule(wasm, {
       context,
       asyncWorkPoolSize: 4,
-      plugins: [emnapiAsyncWorkPlugin, emnapiTSFNPlugin],
+      plugins: [
+        (runtime) => {
+          threadManager = runtime.PThread
+          return {}
+        },
+        emnapiAsyncWorkPlugin,
+        emnapiTSFNPlugin,
+      ],
       wasi,
       onCreateWorker() {
         const worker = workerFactory()
@@ -204,7 +226,11 @@ export async function initOptimizer(options) {
         instance = initializedInstance
         for (const name of Object.keys(initializedInstance.exports)) {
           if (name.startsWith('__napi_register__')) {
-            initializedInstance.exports[name]()
+            const register = initializedInstance.exports[name]
+            if (typeof register !== 'function') {
+              throw new TypeError(`Invalid N-API registration export: ${name}`)
+            }
+            register()
           }
         }
       },

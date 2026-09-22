@@ -77,11 +77,11 @@ jobs:
           curl -L https://github.com/open-spaced-repetition/fsrs-rs/files/15046782/revlog.csv -o packages/binding-test/src/revlog.csv
 
       - name: Run tests
-        run: pnpm run test:coverage
+        run: pnpm run test:coverage:ci
 
       - name: Publish Preview Packages
         run: |
-          pnpm dlx pkg-pr-new@0.0.79 publish \
+          pnpm dlx pkg-pr-new@0.0.88 publish \
             './packages/fsrs' \
             './packages/srs-kit' \
             './packages/binding' \
