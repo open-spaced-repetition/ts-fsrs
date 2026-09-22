@@ -1,36 +1,80 @@
 ---
 title: FSRS-7
-description: "FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace."
+description: Reference for ts-fsrs/models/fsrs-7 — model methods, weights, parameter helpers, schemas, and types
 ---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-7.ts?raw'
 
 # FSRS-7
 
-FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace.
+FSRS-7 is the default model used by [DefaultScheduler](../default-scheduler). It uses 34 weights and two stability traces for fractional-day reviews. The model config contains only `weights`; learning steps are middleware policy and do not disable the fast trace.
 
 ```ts
-import {
-  FSRS7Model,
-  FSRS7Algorithm,
-  FSRS7_DEFAULT_WEIGHTS,
-  FSRS7_MODEL_BOUNDS,
-  FSRS7MemoryStateSchema,
-  fsrs7ConfigSchema,
-  migrateFSRS7Parameters,
-  clipFSRS7Parameters,
-  checkFSRS7Parameters,
-  type FSRS7State,
-  type FSRS7Config,
-} from 'ts-fsrs/models/fsrs-7'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 ```
+
+## Model
+
+| Export | Kind | Description |
+| --- | --- | --- |
+| `FSRS7Model` | Model definition | Pass to `defineScheduler({ model: FSRS7Model, chrono })`, or call `.create({ config })` to obtain an `FSRS7ModelCore`. |
+| `FSRS7Algorithm` | Class | Dual-trace algorithm created by the model; direct construction is usually unnecessary. |
+
+## Constants
+
+| Export | Value | Description |
+| --- | --- | --- |
+| `FSRS7_DEFAULT_WEIGHTS` | 34 numbers | Default weights. |
+| `FSRS7_MODEL_BOUNDS` | `{ sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax }` | Bounds for slow stability, fast stability, and difficulty. |
+
+## Parameters
+
+| Export | Signature | Behavior |
+| --- | --- | --- |
+| `clipFSRS7Parameters` | `(weights: readonly number[]) => number[]` | Copies and clips the first 34 weights to their bounds, enforcing `w0 ≤ w1 ≤ w2 ≤ w3` and `w25 ≤ w26`. Arrays shorter than 34 are copied without clipping or padding; extra entries are preserved. |
+| `checkFSRS7Parameters` | `(weights: readonly number[]) => readonly number[]` | Returns the original input if it contains exactly 34 valid weights satisfying the clipping constraints; otherwise throws `FSRSValidationError`. |
+| `migrateFSRS7Parameters` | `(weights?: readonly number[]) => number[]` | Returns defaults for absent or empty input; copies a 34-weight input and rejects every other nonempty length. Does not convert FSRS-3–6 weights or validate weight ranges. |
+
+## Schemas
+
+| Export | Validates |
+| --- | --- |
+| `fsrs7ConfigSchema` | `{ weights }`, with exactly 34 finite numbers; parameter bounds are checked separately by `checkFSRS7Parameters`. |
+| `FSRS7MemoryStateSchema` | `{ stability, stabilityFast, difficulty }`, all finite numbers. |
+| `decaySchema` | A finite decay value in `[0.01, 0.95]`. |
+
+## Types
 
 ```ts
-const model = FSRS7Model.create({
-  config: { weights: FSRS7_DEFAULT_WEIGHTS },
-})
-const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
-const interval = model.nextInterval(state, 0.9)
+import type { FSRS7Config, FSRS7State, FSRS7ModelCore, CurveParameters } from 'ts-fsrs/models/fsrs-7'
 ```
 
-`FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.
+| Export | Description |
+| --- | --- |
+| `FSRS7Config` | `{ readonly weights: readonly number[] }`. |
+| `FSRS7State` | `{ stability: number, stabilityFast: number, difficulty: number }`. |
+| `FSRS7ModelCore` | Model core exposing `config`, `bounds`, `algorithm`, and the methods below. |
+| `CurveParameters` | Curve coefficient structure: `fast: { decay, scale }`, plus numeric `decay`, `scale`, `weight1`, `weight2`, and `total`. |
 
-[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)
+## Model methods
+
+`FSRS7Model.create({ config, migrate?, clip?, check?, bypass? })` returns the core. Migration, clipping, and checks default to `true`; `bypass` defaults to `false` and is reserved for already prepared config. See [defineModel](../define/define-model) for the shared contract.
+
+| Method | Signature | Behavior |
+| --- | --- | --- |
+| `step` | `({ memoryState, rating, elapsedDays, retrievability? }) => FSRS7State` | Computes the post-rating memory state; `null` starts a new state. `elapsedDays` supports fractional days. |
+| `nextInterval` | `(state, desiredRetention) => number` | Returns a fractional-day interval. Retention must be finite and in `(0, 1)`; the solver clamps it to `[0.0001, 0.9999]` and returns zero at the upper bound. |
+| `forgettingCurve` | `(state, elapsedDays) => number` | Returns the combined recall probability from both traces. |
+| `forward` | `({ history, initialState? }) => readonly FSRS7State[]` | Returns one state per `{ rating, deltaT }` history item, in input order. `deltaT` is elapsed days. |
+
+## Example
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-7.ts"
+```
+
+<RunCode code={code} />
+
+FSRS-3–6 states contain only `stability` and `difficulty`. Rebuild FSRS-7 states, including `stabilityFast`, by replaying history with [Reschedule](../reschedule); migrating weights does not reconstruct the fast trace.
+
+**See** — [defineModel](../define/define-model), [FSRS-7](../../../guide/model/fsrs-7), [DefaultScheduler](../default-scheduler).

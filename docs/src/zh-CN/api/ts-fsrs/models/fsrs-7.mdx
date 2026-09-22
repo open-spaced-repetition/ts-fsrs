@@ -1,36 +1,80 @@
 ---
 title: FSRS-7
-description: "FSRS-7 是默认模型，用 34 个权重和双稳定性轨迹处理小数天数的复习。配置仅包含 `weights`；显式学习步骤属于中间件策略，不能用于关闭快速轨迹。"
+description: ts-fsrs/models/fsrs-7 参考——模型方法、权重、参数辅助函数、Schema 与类型
 ---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-7.ts?raw'
 
 # FSRS-7
 
-FSRS-7 是默认模型，用 34 个权重和双稳定性轨迹处理小数天数的复习。配置仅包含 `weights`；显式学习步骤属于中间件策略，不能用于关闭快速轨迹。
+FSRS-7 是 [DefaultScheduler](../default-scheduler) 使用的默认模型，用 34 个权重与双稳定性轨迹处理小数天数的复习。模型配置仅包含 `weights`；学习步骤属于中间件策略，不会关闭快速轨迹。
 
 ```ts
-import {
-  FSRS7Model,
-  FSRS7Algorithm,
-  FSRS7_DEFAULT_WEIGHTS,
-  FSRS7_MODEL_BOUNDS,
-  FSRS7MemoryStateSchema,
-  fsrs7ConfigSchema,
-  migrateFSRS7Parameters,
-  clipFSRS7Parameters,
-  checkFSRS7Parameters,
-  type FSRS7State,
-  type FSRS7Config,
-} from 'ts-fsrs/models/fsrs-7'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 ```
+
+## 模型
+
+| 导出 | 种类 | 说明 |
+| --- | --- | --- |
+| `FSRS7Model` | 模型定义 | 传给 `defineScheduler({ model: FSRS7Model, chrono })`，或调用 `.create({ config })` 获得 `FSRS7ModelCore`。 |
+| `FSRS7Algorithm` | 类 | 模型内部创建的双轨迹算法，通常无需直接实例化。 |
+
+## 常量
+
+| 导出 | 取值 | 说明 |
+| --- | --- | --- |
+| `FSRS7_DEFAULT_WEIGHTS` | 34 个数值 | 默认权重。 |
+| `FSRS7_MODEL_BOUNDS` | `{ sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax }` | 慢速稳定性、快速稳定性与难度的上下限。 |
+
+## 参数
+
+| 导出 | 签名 | 行为 |
+| --- | --- | --- |
+| `clipFSRS7Parameters` | `(weights: readonly number[]) => number[]` | 复制数组并限制前 34 个权重的范围，同时保证 `w0 ≤ w1 ≤ w2 ≤ w3`、`w25 ≤ w26`。不足 34 项时仅复制，不裁剪或补齐；多余项保留。 |
+| `checkFSRS7Parameters` | `(weights: readonly number[]) => readonly number[]` | 输入必须恰好包含 34 个有效权重并满足裁剪约束，校验通过后原样返回，否则抛出 `FSRSValidationError`。 |
+| `migrateFSRS7Parameters` | `(weights?: readonly number[]) => number[]` | 未提供参数或空数组时返回默认值；34 项输入返回副本，其他非空长度均报错。不转换 FSRS-3–6 权重，也不校验权重范围。 |
+
+## 数据校验规则（Schema）
+
+| 导出 | 校验 |
+| --- | --- |
+| `fsrs7ConfigSchema` | `{ weights }`，恰好包含 34 个有限数值；参数范围由 `checkFSRS7Parameters` 单独检查。 |
+| `FSRS7MemoryStateSchema` | `{ stability, stabilityFast, difficulty }`，均为有限数值。 |
+| `decaySchema` | `[0.01, 0.95]` 范围内的有限衰减值。 |
+
+## 类型
 
 ```ts
-const model = FSRS7Model.create({
-  config: { weights: FSRS7_DEFAULT_WEIGHTS },
-})
-const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
-const interval = model.nextInterval(state, 0.9)
+import type { FSRS7Config, FSRS7State, FSRS7ModelCore, CurveParameters } from 'ts-fsrs/models/fsrs-7'
 ```
 
-`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。旧状态需要通过 `Reschedule` 重放历史重建；迁移权重不会重建快速轨迹。
+| 导出 | 说明 |
+| --- | --- |
+| `FSRS7Config` | `{ readonly weights: readonly number[] }`。 |
+| `FSRS7State` | `{ stability: number, stabilityFast: number, difficulty: number }`。 |
+| `FSRS7ModelCore` | 模型核心，提供 `config`、`bounds`、`algorithm` 和下列方法。 |
+| `CurveParameters` | 曲线系数结构：`fast: { decay, scale }`，以及数值字段 `decay`、`scale`、`weight1`、`weight2`、`total`。 |
 
-[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)
+## 模型方法
+
+`FSRS7Model.create({ config, migrate?, clip?, check?, bypass? })` 返回模型核心。迁移、裁剪与检查默认均为 `true`；`bypass` 默认为 `false`，仅用于已处理的配置。共同契约见 [defineModel](../define/define-model)。
+
+| 方法 | 签名 | 行为 |
+| --- | --- | --- |
+| `step` | `({ memoryState, rating, elapsedDays, retrievability? }) => FSRS7State` | 计算评分后的记忆状态；`null` 表示新状态。`elapsedDays` 支持小数天数。 |
+| `nextInterval` | `(state, desiredRetention) => number` | 返回小数天数间隔。保留率必须为 `(0, 1)` 内的有限数值；求解器将其限制在 `[0.0001, 0.9999]`，达到上界时返回零。 |
+| `forgettingCurve` | `(state, elapsedDays) => number` | 返回双轨迹组合后的回忆概率。 |
+| `forward` | `({ history, initialState? }) => readonly FSRS7State[]` | 按输入顺序，为每个 `{ rating, deltaT }` 历史项返回一个状态。`deltaT` 是经过的天数。 |
+
+## 示例
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-7.ts"
+```
+
+<RunCode code={code} />
+
+FSRS-3–6 状态只有 `stability` 与 `difficulty`。请通过 [Reschedule](../reschedule) 重放历史，重建包含 `stabilityFast` 的 FSRS-7 状态；迁移权重不会重建快速轨迹。
+
+**参见** — [defineModel](../define/define-model), [FSRS-7](../../../guide/model/fsrs-7), [DefaultScheduler](../default-scheduler).

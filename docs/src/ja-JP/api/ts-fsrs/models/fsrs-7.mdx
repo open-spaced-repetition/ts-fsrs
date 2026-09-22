@@ -1,36 +1,80 @@
 ---
 title: FSRS-7
-description: "FSRS-7 は既定のモデルです。34 個の重みと 2 つの安定性トレースで小数日の復習を扱います。設定は `weights` のみです。明示的な学習ステップはミドルウェアのポリシーであり、高速トレースを無効にするものではありません。"
+description: ts-fsrs/models/fsrs-7 のリファレンス——モデルのメソッド、重み、パラメータ関数、スキーマと型
 ---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-7.ts?raw'
 
 # FSRS-7
 
-FSRS-7 は既定のモデルです。34 個の重みと 2 つの安定性トレースで小数日の復習を扱います。設定は `weights` のみです。明示的な学習ステップはミドルウェアのポリシーであり、高速トレースを無効にするものではありません。
+FSRS-7 は [DefaultScheduler](../default-scheduler) の既定モデルです。34 個の重みと二つの安定度トレースで小数日数の復習を扱います。モデル設定は `weights` のみで、学習ステップはミドルウェアの方針であり、高速トレースを無効にはしません。
 
 ```ts
-import {
-  FSRS7Model,
-  FSRS7Algorithm,
-  FSRS7_DEFAULT_WEIGHTS,
-  FSRS7_MODEL_BOUNDS,
-  FSRS7MemoryStateSchema,
-  fsrs7ConfigSchema,
-  migrateFSRS7Parameters,
-  clipFSRS7Parameters,
-  checkFSRS7Parameters,
-  type FSRS7State,
-  type FSRS7Config,
-} from 'ts-fsrs/models/fsrs-7'
+import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 ```
+
+## モデル
+
+| エクスポート | 種類 | 説明 |
+| --- | --- | --- |
+| `FSRS7Model` | モデル定義 | `defineScheduler({ model: FSRS7Model, chrono })` に渡すか、`.create({ config })` で `FSRS7ModelCore` を作成します。 |
+| `FSRS7Algorithm` | クラス | モデルが内部で生成する二重トレースのアルゴリズムです。通常は直接生成する必要はありません。 |
+
+## 定数
+
+| エクスポート | 値 | 説明 |
+| --- | --- | --- |
+| `FSRS7_DEFAULT_WEIGHTS` | 34 個の数値 | 既定の重み。 |
+| `FSRS7_MODEL_BOUNDS` | `{ sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax }` | 低速・高速の安定度と難易度の上下限。 |
+
+## パラメータ
+
+| エクスポート | シグネチャ | 動作 |
+| --- | --- | --- |
+| `clipFSRS7Parameters` | `(weights: readonly number[]) => number[]` | 配列をコピーし、先頭 34 個の重みを範囲内に制限して `w0 ≤ w1 ≤ w2 ≤ w3` と `w25 ≤ w26` を満たします。34 個未満なら補完もクリップもせずコピーし、余分な要素は保持します。 |
+| `checkFSRS7Parameters` | `(weights: readonly number[]) => readonly number[]` | クリップ制約を満たす有効な重みがちょうど 34 個あれば元の入力を返し、それ以外は `FSRSValidationError` を投げます。 |
+| `migrateFSRS7Parameters` | `(weights?: readonly number[]) => number[]` | 省略または空配列なら既定値、34 個ならコピーを返します。それ以外の空でない配列は拒否します。FSRS-3–6 の重みの変換や範囲検証は行いません。 |
+
+## スキーマ
+
+| エクスポート | 検証対象 |
+| --- | --- |
+| `fsrs7ConfigSchema` | `{ weights }`。有限数値がちょうど 34 個必要です。重みの範囲は `checkFSRS7Parameters` が別途検証します。 |
+| `FSRS7MemoryStateSchema` | `{ stability, stabilityFast, difficulty }`。すべて有限数値です。 |
+| `decaySchema` | `[0.01, 0.95]` の有限な減衰値。 |
+
+## 型
 
 ```ts
-const model = FSRS7Model.create({
-  config: { weights: FSRS7_DEFAULT_WEIGHTS },
-})
-const state = model.step({ memoryState: null, elapsedDays: 0, rating: 3 })
-const interval = model.nextInterval(state, 0.9)
+import type { FSRS7Config, FSRS7State, FSRS7ModelCore, CurveParameters } from 'ts-fsrs/models/fsrs-7'
 ```
 
-`ts-fsrs` の `FSRSMemoryStateSchema` は FSRS-3–6 の `{ stability, difficulty }` を表します。FSRS-7 は `ts-fsrs/models/fsrs-7` の `FSRS7MemoryStateSchema` を使い、`stabilityFast` を追加します。旧状態は `Reschedule` で履歴を再生して再構築します。重みの移行だけでは高速トレースは復元できません。
+| エクスポート | 説明 |
+| --- | --- |
+| `FSRS7Config` | `{ readonly weights: readonly number[] }`。 |
+| `FSRS7State` | `{ stability: number, stabilityFast: number, difficulty: number }`。 |
+| `FSRS7ModelCore` | `config`、`bounds`、`algorithm` と下記メソッドを公開するモデルコア。 |
+| `CurveParameters` | 曲線係数の構造体。`fast: { decay, scale }` と数値フィールド `decay`、`scale`、`weight1`、`weight2`、`total` を持ちます。 |
 
-[FSRS-7](../../../guide/model/fsrs-7) · [DefaultScheduler](../default-scheduler)
+## モデルのメソッド
+
+`FSRS7Model.create({ config, migrate?, clip?, check?, bypass? })` がコアを返します。移行・クリップ・検証は既定で `true`、`bypass` は既定で `false` で、処理済み設定専用です。共通の契約は [defineModel](../define/define-model) を参照してください。
+
+| メソッド | シグネチャ | 動作 |
+| --- | --- | --- |
+| `step` | `({ memoryState, rating, elapsedDays, retrievability? }) => FSRS7State` | 評価後の記憶状態を計算します。`null` は新規状態を表し、`elapsedDays` は小数日数を扱えます。 |
+| `nextInterval` | `(state, desiredRetention) => number` | 小数日数の間隔を返します。保持率は `(0, 1)` の有限数値である必要があります。計算時は `[0.0001, 0.9999]` に制限し、上限ではゼロを返します。 |
+| `forgettingCurve` | `(state, elapsedDays) => number` | 二つのトレースを組み合わせた想起確率を返します。 |
+| `forward` | `({ history, initialState? }) => readonly FSRS7State[]` | 入力順に各 `{ rating, deltaT }` の履歴項目に対応する状態を返します。`deltaT` は経過日数です。 |
+
+## 実行例
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-7.ts"
+```
+
+<RunCode code={code} />
+
+FSRS-3–6 の状態には `stability` と `difficulty` しかありません。[Reschedule](../reschedule) で履歴を再生し、`stabilityFast` を含む FSRS-7 の状態を再構築してください。重みの移行だけでは高速トレースは復元されません。
+
+**参照** — [defineModel](../define/define-model), [FSRS-7](../../../guide/model/fsrs-7), [DefaultScheduler](../default-scheduler).
