@@ -1,4 +1,5 @@
 import { useI18n } from '@rspress/core/runtime'
+import CopyOutputButton from '@/components/CopyOutputButton'
 import WorkerLogLine from '@/components/WorkerLogLine'
 import { usePlaygroundRunner } from '@/playground/runner/use-playground-runner'
 import { sourceId } from '@/playground/shared/source-id'
@@ -44,6 +45,14 @@ export default function RunCode({ code, test = true }: Props) {
           className="mt-3 overflow-auto rounded-[10px] border border-line bg-output"
           data-testid="run-code-output"
         >
+          <div className="sticky top-0 z-10 flex items-center justify-between border-b border-line bg-surface-soft px-3.5 py-2 text-xs text-muted">
+            <span>{t('playground.output')}</span>
+            <CopyOutputButton
+              disabled={runner.state !== 'idle'}
+              logs={runner.logs}
+              error={runner.error}
+            />
+          </div>
           {runner.logs.map((line, index) => (
             <WorkerLogLine
               className={cn(styles.logLine, index > 0 && styles.logDivider)}
