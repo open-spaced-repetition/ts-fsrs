@@ -1,0 +1,53 @@
+---
+title: Train and evaluate
+description: Follow the review-log pipeline with the binding — convert CSV to items, train weights, evaluate fit, and tune steps
+---
+
+import RunCode from '../../../components/RunCode'
+import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+
+# Train and evaluate
+
+Training runs review history through the binding in a few calls. The input is a review-log CSV; the output is a weight array you can hand to `DefaultScheduler` or a custom `defineScheduler`.
+
+The examples import `@open-spaced-repetition/binding`. In Node that is the native napi module; in a browser it resolves to the WASI Preview 1 wasm build (see the [Optimizer overview](./index) for threading).
+
+## Convert review logs to items
+
+`convertCsvToFsrsItems` reads CSV text and groups rows by card into `FSRSItem`s. The columns are:
+
+| Column | Meaning |
+| --- | --- |
+| `card_id` | Stable identifier for the card. |
+| `review_time` | Review time as epoch milliseconds. |
+| `review_rating` | Rating, 1 Again through 4 Easy. |
+| `review_duration` | Time spent on the review, in milliseconds. |
+| `review_state` | Card state at review time. |
+
+Pass `nextDayStartsAt` (the hour of day the next day begins) and either an IANA timezone such as `'UTC'` or a fixed UTC offset in minutes. For a `Uint8Array` input the call returns items synchronously:
+
+```ts file="../../../snippets/run-code/optimizer-csv.ts"
+```
+
+<RunCode code={optimizerCsvCode} />
+
+Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conversion, training, evaluation, and scheduling. Pass it as the fourth argument to `convertCsvToFsrsItems` and in the training/evaluation options, then call `DefaultScheduler({ version: modelVersion, weights })`. FSRS-7 produces 34 weights and preserves fractional and same-day intervals normalized by the actual local study-day duration; FSRS-6 produces 21 weights and uses whole study days. Same-day follow-up reviews can therefore contribute to FSRS-7 training.
+
+## Train weights
+
+`computeParameters(items, options)` is asynchronous and returns the trained weights. `enableShortTerm` is required; `numRelearningSteps` and `trainingConfig` are optional, and `progress` reports `(current, total)` while training runs:
+
+```ts
+const weights = await computeParameters(items, {
+  modelVersion: 'FSRS-7',
+  enableShortTerm: true,
+})
+```
+
+`trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. `computeParameters` runs the real training loop, so call it in a Worker rather than on the main thread. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ version: modelVersion, weights })` or a `defineScheduler` config, replacing the model defaults.
+
+## Evaluate fit
+
+`evaluateWithTimeSeriesSplits(items, options)` splits the review history by time and returns a `ModelEvaluation` with `logLoss` and `rmseBins`, letting you judge whether the trained weights predict held-out reviews. `computeOptimalSteps` goes further: given the reviews and a target retention, it recommends learning and relearning step durations.
+
+See the [Optimizer overview](./index) for the two runtimes and install commands.
