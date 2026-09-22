@@ -211,6 +211,14 @@ describe('published release updates', () => {
     )
     expect(pages.every((p) => p.routePath.startsWith('/updates/'))).toBe(true)
     expect(pages[4].content).toContain('published_at: "2026-09-11T07:30:00Z"')
+    for (const locale of ['en-US', 'ja-JP', 'zh-CN', 'zh-TW']) {
+      const localized = updatePages(updates, '/ts-fsrs/', locale)
+      expect(
+        localized.every((page) =>
+          page.content.includes('\nlink-rss: updates\n')
+        )
+      ).toBe(true)
+    }
     const japanese = updatePages(updates, '/ts-fsrs/', 'ja-JP')
     expect(
       japanese.every((page) => page.routePath.startsWith('/ja-JP/updates/'))
