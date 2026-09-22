@@ -19,7 +19,8 @@ console.log(
   })
 )
 
-// migrate fills a shorter or absent weight list with the defaults.
+// migrate uses defaults for absent or empty input; otherwise it copies at most
+// 17 weights without padding shorter lists.
 console.log(JSON.stringify({ migrated: migrateFSRS4Parameters().length }))
 
 const scheduler = defineScheduler({

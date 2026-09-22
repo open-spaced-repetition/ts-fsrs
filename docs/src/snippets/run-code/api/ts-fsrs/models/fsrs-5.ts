@@ -21,7 +21,8 @@ console.log(
   })
 )
 
-// migrate fills a shorter or absent weight list with the defaults.
+// migrate uses defaults for absent or empty input, converts 17 weights to 19,
+// copies 19 or truncates longer lists, and rejects other nonempty lengths.
 console.log(JSON.stringify({ migrated: migrateFSRS5Parameters().length }))
 
 // Curve terms for this version.

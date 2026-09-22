@@ -20,7 +20,8 @@ console.log(
   })
 )
 
-// migrate fills a shorter or absent weight list with the defaults.
+// migrate uses defaults for absent or empty input; otherwise it copies at most
+// 13 weights without padding shorter lists.
 console.log(JSON.stringify({ migrated: migrateFSRS3Parameters().length }))
 
 // The raw [min, max] pairs the clip helper uses.
