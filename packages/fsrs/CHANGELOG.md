@@ -1,5 +1,28 @@
 # ts-fsrs
 
+## 6.0.0-beta.10
+
+### Major Changes
+
+- [#525](https://github.com/open-spaced-repetition/ts-fsrs/pull/525) [`b553cf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b553cf94cb4594b928cd6dec12cd467a30b1bb22) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): rename `projection` to `normalize` and `ChronoProjection` to `ChronoTimeNormalizer`.
+
+### Minor Changes
+
+- [#528](https://github.com/open-spaced-repetition/ts-fsrs/pull/528) [`915e684`](https://github.com/open-spaced-repetition/ts-fsrs/commit/915e684f8b1900a1877026d39dea62880cacf19d) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): add Cost ADR scheduling with state-dependent desired retention.
+
+- [#526](https://github.com/open-spaced-repetition/ts-fsrs/pull/526) [`36b37d2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/36b37d27e2371f517482c30725667bf18c95d0f0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(scheduler): add `nextInterval` queries with shared interval middleware.
+
+- [#509](https://github.com/open-spaced-repetition/ts-fsrs/pull/509) [`2a1d430`](https://github.com/open-spaced-repetition/ts-fsrs/commit/2a1d4301f8f01f9e25a8f5bc181b5fd4c906caa6) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineModel` from the root package entry.
+
+- [#520](https://github.com/open-spaced-repetition/ts-fsrs/pull/520) [`e5af3b9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e5af3b9f1e1eb25d7965e08dab2ef46903f92949) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add FSRS-7.
+
+- [#527](https://github.com/open-spaced-repetition/ts-fsrs/pull/527) [`368b15c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/368b15c5a1b36e376ee649c9ae384542ca5a1f0b) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(middleware): support per-grade desired retention on scheduler candidates.
+
+### Patch Changes
+
+- Updated dependencies [[`36b37d2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/36b37d27e2371f517482c30725667bf18c95d0f0), [`e5af3b9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e5af3b9f1e1eb25d7965e08dab2ef46903f92949), [`368b15c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/368b15c5a1b36e376ee649c9ae384542ca5a1f0b), [`b553cf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b553cf94cb4594b928cd6dec12cd467a30b1bb22)]:
+  - @open-spaced-repetition/srs-kit@1.0.0-beta.8
+
 ## 6.0.0-beta.9
 
 ### Minor Changes
