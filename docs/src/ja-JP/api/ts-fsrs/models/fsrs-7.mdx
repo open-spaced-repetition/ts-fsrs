@@ -8,7 +8,7 @@ import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-7.ts?raw'
 
 # FSRS-7
 
-FSRS-7 は [DefaultScheduler](../default-scheduler) の既定モデルです。34 個の重みと二つの安定度トレースで小数日数の復習を扱います。モデル設定は `weights` のみで、学習ステップはミドルウェアの方針であり、高速トレースを無効にはしません。
+FSRS-7 は [DefaultScheduler](../default-scheduler) のデフォルトモデルです。34 個の重みと二つの安定度トレースで小数日数の復習を扱います。モデル設定は `weights` のみで、学習ステップはミドルウェアの方針であり、高速トレースを無効にはしません。
 
 ```ts
 import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
@@ -25,7 +25,7 @@ import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 
 | エクスポート | 値 | 説明 |
 | --- | --- | --- |
-| `FSRS7_DEFAULT_WEIGHTS` | 34 個の数値 | 既定の重み。 |
+| `FSRS7_DEFAULT_WEIGHTS` | 34 個の数値 | デフォルトの重み。 |
 | `FSRS7_MODEL_BOUNDS` | `{ sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax }` | 低速・高速の安定度と難易度の上下限。 |
 
 ## パラメータ
@@ -34,7 +34,7 @@ import { FSRS7Model, FSRS7_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-7'
 | --- | --- | --- |
 | `clipFSRS7Parameters` | `(weights: readonly number[]) => number[]` | 配列をコピーし、先頭 34 個の重みを範囲内に制限して `w0 ≤ w1 ≤ w2 ≤ w3` と `w25 ≤ w26` を満たします。34 個未満なら補完もクリップもせずコピーし、余分な要素は保持します。 |
 | `checkFSRS7Parameters` | `(weights: readonly number[]) => readonly number[]` | クリップ制約を満たす有効な重みがちょうど 34 個あれば元の入力を返し、それ以外は `FSRSValidationError` を投げます。 |
-| `migrateFSRS7Parameters` | `(weights?: readonly number[]) => number[]` | 省略または空配列なら既定値、34 個ならコピーを返します。それ以外の空でない配列は拒否します。FSRS-3–6 の重みの変換や範囲検証は行いません。 |
+| `migrateFSRS7Parameters` | `(weights?: readonly number[]) => number[]` | 省略または空配列ならデフォルト値、34 個ならコピーを返します。それ以外の空でない配列は拒否します。FSRS-3–6 の重みの変換や範囲検証は行いません。 |
 
 ## スキーマ
 
@@ -59,7 +59,7 @@ import type { FSRS7Config, FSRS7State, FSRS7ModelCore, CurveParameters } from 't
 
 ## モデルのメソッド
 
-`FSRS7Model.create({ config, migrate?, clip?, check?, bypass? })` がコアを返します。移行・クリップ・検証は既定で `true`、`bypass` は既定で `false` で、処理済み設定専用です。共通の契約は [defineModel](../define/define-model) を参照してください。
+`FSRS7Model.create({ config, migrate?, clip?, check?, bypass? })` がコアを返します。移行・クリップ・検証はデフォルトで `true`、`bypass` はデフォルトで `false` で、処理済み設定専用です。共通の契約は [defineModel](../define/define-model) を参照してください。
 
 | メソッド | シグネチャ | 動作 |
 | --- | --- | --- |

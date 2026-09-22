@@ -1,6 +1,6 @@
 ---
 title: ミドルウェア
-description: ts-fsrs/middlewares の索引 — 組み込みポリシーと、併せてエクスポートされる既定値・補助関数・スキーマ
+description: ts-fsrs/middlewares の索引 — 組み込みポリシーと、併せてエクスポートされるデフォルト値・補助関数・スキーマ
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -30,11 +30,11 @@ import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 
 ## 併せてエクスポートされるもの
 
-各ポリシーの挙動はそれぞれのページを参照してください。このエントリポイントは、関連する既定値・補助関数・スキーマもエクスポートします。
+各ポリシーの挙動はそれぞれのページを参照してください。このエントリポイントは、関連するデフォルト値・補助関数・スキーマもエクスポートします。
 
 | グループ | エクスポート |
 | --- | --- |
-| 既定値 | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
+| デフォルト値 | `defaultLearningSteps`, `defaultRelearningSteps`, `DEFAULT_MAXIMUM_INTERVAL`, `DEFAULT_LEECH_THRESHOLD` |
 | 補助関数 | `calculateLearningSteps`, `calculateScheduleDay`, `fnv1aMulberry32Rng` |
 | 設定スキーマ | `desiredRetentionConfigSchema`, `learningStepsConfigSchema`, `fuzzingConfigSchema`, `statsConfigSchema`, `monotonicIntervalConfigSchema`, `leechConfigSchema` |
 | フィールドスキーマ | `learningStepFieldsSchema`, `fuzzingCardFieldsSchema`, `fuzzingCardInitInputSchema`, `fuzzingRevlogFieldsSchema`, `statsFieldsSchema`, `scheduledDaysFieldsSchema`, `leechCardFieldsSchema` |

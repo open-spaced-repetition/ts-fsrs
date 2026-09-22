@@ -23,7 +23,7 @@ import { FSRS5Model, FSRS5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-5'
 
 | エクスポート | 値 | 説明 |
 | --- | --- | --- |
-| `FSRS5_DEFAULT_WEIGHTS` | 19 個の数値 | 既定の重み配列。その長さが必要なパラメータ数です。 |
+| `FSRS5_DEFAULT_WEIGHTS` | 19 個の数値 | デフォルトの重み配列。その長さが必要なパラメータ数です。 |
 | `FSRS5_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | モデルで許容される安定度と難易度の範囲。 |
 | `FSRS5_DECAY` | `0.5` | 忘却曲線の形状を決める減衰パラメータ。 |
 | `FSRS5_FACTOR` | — | 減衰パラメータに対応するスケーリング係数。 |
@@ -35,7 +35,7 @@ import { FSRS5Model, FSRS5_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-5'
 | --- | --- | --- |
 | `clipFSRS5Parameters` | `(weights) => number[]` | 範囲外の重みを対応する許容範囲に収めます。範囲内の値は変更しません。 |
 | `checkFSRS5Parameters` | `(weights) => weights` | 入力をそのまま返します。範囲外の重みや長さの不一致があれば `FSRSValidationError` を投げます。 |
-| `migrateFSRS5Parameters` | `(weights?) => number[]` | バージョン固有の移行規則で重みを変換します。未指定または空配列なら既定値を使います。 |
+| `migrateFSRS5Parameters` | `(weights?) => number[]` | バージョン固有の移行規則で重みを変換します。未指定または空配列ならデフォルト値を使います。 |
 
 
 ## スキーマ

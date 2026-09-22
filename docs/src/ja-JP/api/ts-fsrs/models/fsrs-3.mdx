@@ -23,7 +23,7 @@ import { FSRS3Model, FSRS3_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-3'
 
 | エクスポート | 値 | 説明 |
 | --- | --- | --- |
-| `FSRS3_DEFAULT_WEIGHTS` | 13 個の数値 | 既定の重み配列。その長さが必要なパラメータ数です。 |
+| `FSRS3_DEFAULT_WEIGHTS` | 13 個の数値 | デフォルトの重み配列。その長さが必要なパラメータ数です。 |
 | `FSRS3_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | モデルで許容される安定度と難易度の範囲。 |
 
 
@@ -33,7 +33,7 @@ import { FSRS3Model, FSRS3_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-3'
 | --- | --- | --- |
 | `clipFSRS3Parameters` | `(weights) => number[]` | 範囲外の重みを対応する許容範囲に収めます。範囲内の値は変更しません。 |
 | `checkFSRS3Parameters` | `(weights) => weights` | 入力をそのまま返します。範囲外の重みや長さの不一致があれば `FSRSValidationError` を投げます。 |
-| `migrateFSRS3Parameters` | `(weights?) => number[]` | 未指定または空配列なら既定の重みを返します。それ以外は先頭から最大 13 個をコピーし、短い配列は補完しません。 |
+| `migrateFSRS3Parameters` | `(weights?) => number[]` | 未指定または空配列ならデフォルトの重みを返します。それ以外は先頭から最大 13 個をコピーし、短い配列は補完しません。 |
 | `FSRS3ParameterBounds` | `() => [number, number][]` | 重みのクリッピングに使う各パラメータの下限と上限を `[min, max]` の配列で返します。 |
 
 ## スキーマ

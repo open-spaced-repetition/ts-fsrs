@@ -23,7 +23,7 @@ import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
 
 | エクスポート | 値 | 説明 |
 | --- | --- | --- |
-| `FSRS6_DEFAULT_WEIGHTS` | 21 個の数値 | 既定の重み配列。その長さが必要なパラメータ数です。 |
+| `FSRS6_DEFAULT_WEIGHTS` | 21 個の数値 | デフォルトの重み配列。その長さが必要なパラメータ数です。 |
 | `FSRS6_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | モデルで許容される安定度と難易度の範囲。 |
 | `FSRS6_DECAY` | `0.1542` | 忘却曲線の形状を決める減衰パラメータ。 |
 | `FSRS6_W17_W18_CEILING` | `2` | `w17` と `w18` の上限。 |
@@ -34,7 +34,7 @@ import { FSRS6Model, FSRS6_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-6'
 | --- | --- | --- |
 | `clipFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => number[]` | 範囲外の重みを対応する許容範囲に収めます。範囲内の値は変更しません。 |
 | `checkFSRS6Parameters` | `(weights, numRelearningSteps?, enableShortTerm?) => weights` | 入力をそのまま返します。範囲外の重みや長さの不一致があれば `FSRSValidationError` を投げます。 |
-| `migrateFSRS6Parameters` | `(weights?) => number[]` | バージョン固有の移行規則で重みを変換します。未指定または空配列なら既定値を使います。 |
+| `migrateFSRS6Parameters` | `(weights?) => number[]` | バージョン固有の移行規則で重みを変換します。未指定または空配列ならデフォルト値を使います。 |
 | `computeDecayFactor` | `(decayOrWeights) => { decay, factor }` | 忘却曲線の減衰指数とスケーリング係数を計算します。返される `decay` は符号が反転します: `0.1542` を渡すと `-0.1542` になります。 |
 
 ## スキーマ
