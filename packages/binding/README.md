@@ -85,10 +85,7 @@ console.log(stepStats.recommendedLearningSteps)
 console.log(stepStats.recommendedRelearningSteps)
 ```
 
-The third argument can be either:
-
-- a decay value between `0.1` and `0.8`
-- a full FSRS parameter array
+The third argument must be a numeric decay in `[0.1, 1]`: FSRS-4 uses `1`, FSRS-4.5/5 use `0.5`, and FSRS-6 uses `weights[20]`. Parameter arrays are not accepted. This estimator is not applicable to FSRS-3 (exponential curve) or FSRS-7 (dual-trace curve).
 
 Due to technical limitations, at most two learning steps and one relearning step can be recommended. This does not mean you need that many steps, and it does not mean they are always sufficient. It is also possible that no steps are recommended when the data is not suitable.
 
