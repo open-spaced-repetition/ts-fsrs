@@ -55,6 +55,7 @@
     "fsrs-7-model",
     "fsrs5-model",
     "fsrs6-model-migration",
+    "fsrs7-binding-training",
     "fuzzing-middleware",
     "immutable-scheduler",
     "lazy-preview-map",

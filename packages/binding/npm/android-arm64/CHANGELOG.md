@@ -1,5 +1,7 @@
 # @open-spaced-repetition/binding-android-arm64
 
+## 0.6.0-beta.3
+
 ## 0.6.0-beta.2
 
 ## 0.6.0-beta.1
