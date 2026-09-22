@@ -1,5 +1,19 @@
 # @open-spaced-repetition/srs-kit
 
+## 1.0.0-beta.8
+
+### Major Changes
+
+- [#525](https://github.com/open-spaced-repetition/ts-fsrs/pull/525) [`b553cf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b553cf94cb4594b928cd6dec12cd467a30b1bb22) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): rename `projection` to `normalize` and `ChronoProjection` to `ChronoTimeNormalizer`.
+
+### Minor Changes
+
+- [#526](https://github.com/open-spaced-repetition/ts-fsrs/pull/526) [`36b37d2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/36b37d27e2371f517482c30725667bf18c95d0f0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(scheduler): add `nextInterval` queries with shared interval middleware.
+
+- [#520](https://github.com/open-spaced-repetition/ts-fsrs/pull/520) [`e5af3b9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e5af3b9f1e1eb25d7965e08dab2ef46903f92949) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add FSRS-7.
+
+- [#527](https://github.com/open-spaced-repetition/ts-fsrs/pull/527) [`368b15c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/368b15c5a1b36e376ee649c9ae384542ca5a1f0b) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(middleware): support per-grade desired retention on scheduler candidates.
+
 ## 0.1.0-beta.7
 
 ### Minor Changes
