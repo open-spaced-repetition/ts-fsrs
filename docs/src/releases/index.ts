@@ -11,6 +11,7 @@ import type { RspressPlugin } from '@rspress/core'
 import type { FeedOutputTransformer } from '@rspress/plugin-rss'
 import { visit } from 'unist-util-visit'
 import { z } from 'zod'
+import { I18N_LOCALES } from '../i18n/locales.ts'
 
 export const repository = 'open-spaced-repetition/ts-fsrs'
 export const releaseSchema = z.object({
@@ -90,8 +91,10 @@ const generatedDirectory = (workspaceRoot: string) =>
 
 export function updatePages(
   updates: ReturnType<typeof publishedUpdates>,
-  base: string
+  base: string,
+  locale = 'en-US'
 ) {
+  const prefix = locale === 'en-US' ? '' : `/${locale}`
   const description =
     'Published package releases, changelogs, and npm downloads.'
   const template = readFileSync(
@@ -118,11 +121,13 @@ export function updatePages(
     )
   }
   const packageRoute = (directory: string) =>
-    directory === 'fsrs' ? '/updates/' : `/updates/${directory}/`
+    directory === 'fsrs'
+      ? `${prefix}/updates/`
+      : `${prefix}/updates/${directory}/`
   const releaseLinks = (update: (typeof updates)[number]) =>
     `[npmx](${update.npmUrl}) · [GitHub Release](${update.url})`
   const pages = updates.map((update) => ({
-    routePath: `/updates/${update.slug}`,
+    routePath: `${prefix}/updates/${update.slug}`,
     extension: 'md' as const,
     content: renderPage(
       update.title,
@@ -220,7 +225,9 @@ export function prepareReleases(
     ])
   )
   const updates = publishedUpdates(releases, changelogs)
-  const pages = updatePages(updates, base)
+  const pages = I18N_LOCALES.flatMap((locale) =>
+    updatePages(updates, base, locale)
+  )
   const generated = generatedDirectory(workspaceRoot)
   const total = updates.length + pages.length + 1
   let completed = 0
@@ -340,7 +347,7 @@ export function pluginReleaseUpdates(workspaceRoot: string): RspressPlugin {
     },
     markdown: { rehypePlugins: [releaseBodyAnchors] },
     extendPageData(page) {
-      if (!page.routePath.startsWith('/updates/')) return
+      if (!/^\/(?:[a-z]{2}-[A-Z]{2}\/)?updates\//.test(page.routePath)) return
       const directory = page.routePath.match(/\/updates\/(fsrs|binding)\//)?.[1]
       page._relativePath = directory
         ? `../../packages/${directory}/CHANGELOG.md`

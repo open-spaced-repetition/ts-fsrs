@@ -109,14 +109,28 @@ describe('published release updates', () => {
         prepareReleases(root, config.base, (done, total) =>
           progress.push([done, total])
         )
-      ).toBe(3)
+      ).toBe(12)
       expect(progress).toEqual(
-        Array.from({ length: 6 }, (_, done) => [done, 5])
+        Array.from({ length: 15 }, (_, done) => [done, 14])
       )
       const manifest = path.join(generated, 'pages.json')
       const timestamp = statSync(manifest).mtimeMs
       const pages = await plugin.addPages?.(config, false)
-      expect(pages).toHaveLength(3)
+      expect(pages).toHaveLength(12)
+      for (const lang of ['ja-JP', 'zh-CN', 'zh-TW']) {
+        const localized = pages?.find(
+          (page) => page.routePath === `/${lang}/updates/`
+        )
+        expect(localized).toBeDefined()
+        const content = readFileSync(localized!.filepath!, 'utf8')
+        expect(content).toContain('Published package releases')
+        expect(content).toContain(`href="/ts-fsrs/${lang}/updates/binding/"`)
+        expect(
+          pages?.some(
+            (page) => page.routePath === `/${lang}/updates/fsrs/5.4.2`
+          )
+        ).toBe(true)
+      }
       expect(statSync(manifest).mtimeMs).toBe(timestamp)
       expect(
         readFileSync(path.join(generated, 'body_fsrs_5.4.2.md'), 'utf8')
@@ -133,7 +147,7 @@ describe('published release updates', () => {
       writeFileSync(snapshot, '[]')
       prepareReleases(root, config.base)
       expect(existsSync(path.join(generated, 'body_fsrs_5.4.2.md'))).toBe(false)
-      expect(await plugin.addPages?.(config, true)).toHaveLength(2)
+      expect(await plugin.addPages?.(config, true)).toHaveLength(8)
     } finally {
       rmSync(root, { recursive: true, force: true })
     }
@@ -197,6 +211,15 @@ describe('published release updates', () => {
     )
     expect(pages.every((p) => p.routePath.startsWith('/updates/'))).toBe(true)
     expect(pages[4].content).toContain('published_at: "2026-09-11T07:30:00Z"')
+    const japanese = updatePages(updates, '/ts-fsrs/', 'ja-JP')
+    expect(
+      japanese.every((page) => page.routePath.startsWith('/ja-JP/updates/'))
+    ).toBe(true)
+    expect(japanese[0].content).toContain('[Older →](/ja-JP/updates/page/2)')
+    expect(
+      japanese.find((page) => page.routePath === '/ja-JP/updates/fsrs/5.4.0')
+        ?.content
+    ).toContain('[All updates](/ja-JP/updates/)')
   })
 
   it('separates package lists and keeps pagination within the selected package', () => {
