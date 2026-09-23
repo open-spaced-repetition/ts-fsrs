@@ -4,11 +4,14 @@ export {
   defineMiddleware,
   defineModel,
   defineScheduler,
+  desiredRetentionSchema,
+  elapsedDaysSchema,
   type Grade,
   gradeSchema,
   Rating,
   ratingSchema,
   State,
+  scheduledDaysSchema,
   stateSchema,
 } from '@open-spaced-repetition/srs-kit'
 export { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
