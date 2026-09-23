@@ -2,7 +2,7 @@ import path from 'node:path'
 import { Rating } from 'ts-fsrs'
 import { describe, expect, it } from 'vitest'
 import { collectLandingPreviews } from './preview'
-import { formatInterval, intervalFrom } from './preview-data'
+import { formatInterval } from './preview-data'
 import { readLandingSnippetFiles } from './snippets'
 
 const docsRoot = path.resolve(import.meta.dirname, '../..')
@@ -41,18 +41,25 @@ describe('landing preview data', () => {
     )
   })
 
-  it('splits the interval into parts Intl can word', () => {
-    const parts = Object.values(previews).flatMap((preview) =>
-      Object.values(preview.grades).map((row) =>
-        intervalFrom(preview.now, row.dueAt)
-      )
-    )
+  it.each([
+    [0, '0 分'],
+    [1, '1 分'],
+    [5.5, '5.50 分'],
+    [59, '59 分'],
+    [60, '1 時間'],
+    [90, '1.50 時間'],
+    [1440, '1 日'],
+    [53 * 1440 + 20 * 60 + 52, '53.87 日'],
+  ])(
+    'formats %s minutes with one unit and two decimals only for non-integers',
+    (minutes, expected) => {
+      const now = '2026-01-01T00:00:00.000Z'
+      const dueAt = new Date(Date.parse(now) + minutes * 60_000).toISOString()
+      expect(formatInterval('ja-JP', now, dueAt)).toBe(expected)
+    }
+  )
 
-    expect(parts.every((part) => Number.isFinite(part.days))).toBe(true)
-    expect(parts.some((part) => part.minutes !== 0)).toBe(true)
-  })
-
-  it('renders the parts through Intl in every site locale', () => {
+  it('localizes the interval in every site locale', () => {
     const format = (locale: string) =>
       Object.values(previews.default.grades).map((row) =>
         formatInterval(locale, previews.default.now, row.dueAt)
