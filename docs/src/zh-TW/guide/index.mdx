@@ -25,7 +25,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
   description="複製這段提示詞並傳送給 AI Agent，讓它安裝 ts-fsrs 並建立可執行的 FSRS-7 排程器。"
   prompt={`在我的 TypeScript 應用程式中整合 ts-fsrs。
 
-1. 閱讀文件索引 ${withSiteOrigin(withBase('/zh-TW/llms.txt'))}，並跟進其中與排程器 API 有關的頁面。
+1. 閱讀文件索引 ${withSiteOrigin(withBase('/zh-TW/llms.txt'))} 與快速開始 ${withSiteOrigin(withBase('/zh-TW/guide/quick-start.md'))}。先檢查專案是否已使用 ts-fsrs：若涉及 v5 → v6 或 FSRS-6 → FSRS-7 升級，必須閱讀遷移指南 ${withSiteOrigin(withBase('/zh-TW/guide/migration.md'))}，依其步驟與驗收要求完成遷移，保留既有卡片與紀錄，遷移時不重新安排卡片的下次複習時間；以下安裝與新卡範例僅用於首次整合。
 2. 安裝 \`ts-fsrs\` package。
 3. 使用 \`defineScheduler\`、\`FSRS7Model\` 與 \`dateChrono\` 建立 FSRS-7 排程器。
 4. 建立一張新卡片，並使用 \`Rating.Good\` 完成一次複習。

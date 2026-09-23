@@ -25,7 +25,7 @@ A **chronology** decides how time is represented. `dateChrono` works with `Date`
   description="Copy this prompt and send it to your AI agent to install ts-fsrs and create a working FSRS-7 scheduler."
   prompt={`Integrate ts-fsrs into my TypeScript application.
 
-1. Read the documentation index at ${withSiteOrigin(withBase('/llms.txt'))} and follow the pages that cover the scheduler API.
+1. Read the documentation index ${withSiteOrigin(withBase('/llms.txt'))} and quick start ${withSiteOrigin(withBase('/guide/quick-start.md'))}. First check whether the project already uses ts-fsrs. For a v5 → v6 or FSRS-6 → FSRS-7 upgrade, read the migration guide ${withSiteOrigin(withBase('/guide/migration.md'))} and follow its implementation and verification steps, keeping existing cards and logs without rescheduling their next review during migration. The installation and new-card example below apply only to a new integration.
 2. Install the \`ts-fsrs\` package.
 3. Create an FSRS-7 scheduler with \`defineScheduler\`, \`FSRS7Model\`, and \`dateChrono\`.
 4. Create a new card and review it with \`Rating.Good\`.
