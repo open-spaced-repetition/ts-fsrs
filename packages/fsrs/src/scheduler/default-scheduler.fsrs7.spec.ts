@@ -38,6 +38,49 @@ describe('DefaultScheduler FSRS-7', () => {
     )
   })
 
+  it.each([undefined, 'FSRS-7'] as const)(
+    'uses model intervals when steps are unspecified for version %s',
+    async (version) => {
+      for (const steps of [
+        {},
+        { learningSteps: undefined, relearningSteps: undefined },
+      ]) {
+        const scheduler = await DefaultScheduler({ version, ...steps })
+        expect(scheduler.config.learningSteps).toEqual([])
+        expect(scheduler.config.relearningSteps).toEqual([])
+        expect(scheduler.config.enableShortTerm).toBe(true)
+        const result = scheduler.review({
+          card: scheduler.newCard({ now }),
+          now,
+          grade: Rating.Again,
+        })
+        expect(result.card.scheduledDays).toBe(
+          scheduler.model.nextInterval(result.card, 0.9)
+        )
+        expect(result.card.state).toBe(State.Learning)
+        expect(result.card.learningStep).toBe(0)
+      }
+    }
+  )
+
+  it('preserves explicitly configured FSRS-7 steps independently', async () => {
+    const learning = await DefaultScheduler({ learningSteps: ['2m'] })
+    expect(learning.config.learningSteps).toEqual(['2m'])
+    expect(learning.config.relearningSteps).toEqual([])
+    const relearning = await DefaultScheduler({ relearningSteps: ['3m'] })
+    expect(relearning.config.learningSteps).toEqual([])
+    expect(relearning.config.relearningSteps).toEqual(['3m'])
+  })
+
+  it.each(['FSRS-3', 'FSRS-4', 'FSRS-4.5', 'FSRS-5', 'FSRS-6'] as const)(
+    'preserves default steps for %s',
+    async (version) => {
+      const scheduler = await DefaultScheduler({ version })
+      expect(scheduler.config.learningSteps).toEqual(['1m', '10m'])
+      expect(scheduler.config.relearningSteps).toEqual(['10m'])
+    }
+  )
+
   it('exposes the FSRS-7 model config without legacy model fields', async () => {
     const scheduler = await DefaultScheduler()
     expectTypeOf(scheduler.model.config).toEqualTypeOf<FSRS7Config>()
@@ -123,7 +166,10 @@ describe('DefaultScheduler FSRS-7', () => {
     }
   })
   it('preserves all three memory fields in cards, revlogs, schemas, and rollback', async () => {
-    const scheduler = await DefaultScheduler({ version: 'FSRS-7' })
+    const scheduler = await DefaultScheduler({
+      version: 'FSRS-7',
+      learningSteps: ['1m', '10m'],
+    })
     const card = scheduler.newCard({ now, cardId: 'fsrs7' })
     expectTypeOf(card.stabilityFast).toEqualTypeOf<number>()
     expectTypeOf(card).toEqualTypeOf<DefaultSchedulerCard<'FSRS-7'>>()

@@ -24,7 +24,9 @@ export interface DefaultSchedulerOptions<
   /** Enable explicit learning steps. FSRS-7 always retains its intrinsic fast trace. */
   readonly enableShortTerm?: boolean
   readonly desiredRetention?: number
+  /** Defaults to [] for FSRS-7, or ['1m', '10m'] for earlier versions. */
   readonly learningSteps?: readonly StepUnit[]
+  /** Defaults to [] for FSRS-7, or ['10m'] for earlier versions. */
   readonly relearningSteps?: readonly StepUnit[]
   readonly enableFuzz?: boolean
   readonly maximumInterval?: number
@@ -111,13 +113,14 @@ export async function DefaultScheduler<
   options: DefaultSchedulerOptions<Version> = {}
 ): Promise<DefaultScheduler<Version>> {
   const version = options.version ?? 'FSRS-7'
+  const isFSRS7 = version === 'FSRS-7'
   const preset = await getSchedulerPreset(version)
   const {
     weights,
     enableShortTerm = true,
     desiredRetention = 0.9,
-    learningSteps = defaultLearningSteps,
-    relearningSteps = defaultRelearningSteps,
+    learningSteps = isFSRS7 ? [] : defaultLearningSteps,
+    relearningSteps = isFSRS7 ? [] : defaultRelearningSteps,
     enableFuzz = false,
     maximumInterval = DEFAULT_MAXIMUM_INTERVAL,
   } = options
@@ -129,7 +132,7 @@ export async function DefaultScheduler<
 
   return preset.definition.create({
     config: {
-      fractionalDays: version === 'FSRS-7',
+      fractionalDays: isFSRS7,
       weights: migratedWeights,
       enableShortTerm,
       numRelearningSteps: relearningSteps.length,

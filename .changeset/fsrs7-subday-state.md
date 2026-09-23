@@ -2,4 +2,4 @@
 "ts-fsrs": patch
 ---
 
-fix(fsrs): correct Learning/Relearning states for FSRS-7 sub-day intervals.
+fix(fsrs): correct FSRS-7 sub-day states and default its learning and relearning steps to empty arrays.
