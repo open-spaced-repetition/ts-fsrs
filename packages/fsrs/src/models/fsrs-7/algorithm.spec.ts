@@ -1,7 +1,7 @@
 import { type Grade, Rating } from '@open-spaced-repetition/srs-kit'
-import { describe, expect, it } from 'vitest'
-import { FSRS7Algorithm } from './algorithm.js'
+import { describe, expect, it, vi } from 'vitest'
 import { FSRS7_DEFAULT_WEIGHTS, FSRS7_MODEL_BOUNDS } from './constants.js'
+import { curve, FSRS7Algorithm } from './index.js'
 import type { FSRS7State } from './schema.js'
 
 describe('FSRS7Algorithm', () => {
@@ -222,11 +222,76 @@ describe('FSRS7Algorithm', () => {
       const c = algorithm.curve(t, state)
       expect(c.fastWeight).toBe(fastWeight)
       expect(c.slowWeight).toBe(slowWeight)
+      expect(c.total).toBe(fastWeight + slowWeight)
       // Undo the epsilon rescale and the blend reproduces retrievability.
-      const blended =
-        (c.fastWeight * c.fast + c.slowWeight * c.slow) /
-        (c.fastWeight + c.slowWeight)
+      const blended = (c.fastWeight * c.fast + c.slowWeight * c.slow) / c.total
       expect(blended * (1 - 2e-5) + 1e-5).toBeCloseTo(c.retrievability, 12)
+    }
+  })
+})
+
+describe('public FSRS-7 curve', () => {
+  it('evaluates independently of the algorithm instance method', () => {
+    const method = vi
+      .spyOn(FSRS7Algorithm.prototype, 'curve')
+      .mockImplementation(() => {
+        throw new Error('Unexpected algorithm instance call')
+      })
+    try {
+      expect(
+        curve(FSRS7_DEFAULT_WEIGHTS, 1, {
+          stability: 10,
+          stabilityFast: 8,
+          difficulty: 5,
+        }).retrievability
+      ).toBeGreaterThan(0)
+      expect(method).not.toHaveBeenCalled()
+    } finally {
+      method.mockRestore()
+    }
+  })
+  const state = Object.freeze({
+    stability: 10,
+    stabilityFast: 8,
+    difficulty: 5,
+  })
+  it.each([-1, 0, 0.01, 1, 10, 36500])(
+    'matches the algorithm at %s days',
+    (days) => {
+      const algorithm = new FSRS7Algorithm(
+        FSRS7_DEFAULT_WEIGHTS,
+        FSRS7_MODEL_BOUNDS
+      )
+      expect(curve(FSRS7_DEFAULT_WEIGHTS, days, state)).toEqual(
+        algorithm.curve(days, state)
+      )
+    }
+  )
+  it('honors custom weights and exposes a consistent derivative and mixture', () => {
+    const weights = Object.freeze(
+      FSRS7_DEFAULT_WEIGHTS.map((w, i) => (i === 27 ? w * 2 : w))
+    )
+    const result = curve(weights, 1, state)
+    expect(result).not.toEqual(curve(FSRS7_DEFAULT_WEIGHTS, 1, state))
+    const dt = 0.0001
+    expect(result.derivative).toBeCloseTo(
+      (curve(weights, 1 + dt, state).retrievability -
+        curve(weights, 1 - dt, state).retrievability) /
+        (2 * dt),
+      8
+    )
+    expect(result.retrievability).toBeCloseTo(
+      ((result.fastWeight * result.fast + result.slowWeight * result.slow) /
+        (result.fastWeight + result.slowWeight)) *
+        (1 - 2e-5) +
+        1e-5,
+      12
+    )
+    expect(curve(weights, -1, state)).toEqual(curve(weights, 0, state))
+  })
+  it('leaves weight validation to the caller', () => {
+    for (const weights of [[], Array(34).fill(Number.NaN)]) {
+      expect(() => curve(weights, 1, state)).not.toThrow()
     }
   })
 })

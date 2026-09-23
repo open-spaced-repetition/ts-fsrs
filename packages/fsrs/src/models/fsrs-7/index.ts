@@ -1,4 +1,4 @@
-export { type CurveParameters, FSRS7Algorithm } from './algorithm.js'
+export { type CurveParameters, curve, FSRS7Algorithm } from './algorithm.js'
 export { FSRS7_DEFAULT_WEIGHTS, FSRS7_MODEL_BOUNDS } from './constants.js'
 export { FSRS7Model, type FSRS7ModelCore } from './model.js'
 export {
