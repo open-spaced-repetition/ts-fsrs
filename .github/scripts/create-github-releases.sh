@@ -7,7 +7,7 @@
 # Input (pick one):
 #   $1                       JSON array, e.g. [{"name":"ts-fsrs","version":"5.3.3"}, ...]
 #   env PUBLISHED_PACKAGES   same JSON, used when $1 is empty
-# In CI: `${{ steps.changesets.outputs.publishedPackages }}`.
+# In CI: `${{ steps.changesets.outputs['published-packages'] }}`.
 #
 # --dry-run prints tags/notes/assets without touching git or gh.
 # (Skips the GITHUB_TOKEN and gh CLI checks too — safe to run locally.)
