@@ -3,11 +3,6 @@ import { computeOptimalSteps } from '@open-spaced-repetition/binding'
 
 describe('computeOptimalSteps', () => {
   const csvBuffer = fs.readFileSync(new URL('./revlog.csv', import.meta.url))
-  const defaultParams = [
-    0.212, 1.2931, 2.3065, 8.2956, 6.4133, 0.8334, 3.0194, 0.001, 1.8722,
-    0.1666, 0.796, 1.4835, 0.0614, 0.2629, 1.6483, 0.6014, 1.8729, 0.5425,
-    0.0912, 0.0658, 0.1542,
-  ]
 
   const buildCsvBuffer = (rows: string[]) =>
     Buffer.from(
@@ -44,14 +39,16 @@ describe('computeOptimalSteps', () => {
       console.debug('Step stats result:', JSON.stringify(result, null, 2))
     })
 
-    test('should compute step stats with parameters array', () => {
-      const params = [...defaultParams]
-      const result = computeOptimalSteps(csvBuffer, 0.9, params)
+    test('should compute step stats with FSRS-6 decay', () => {
+      const result = computeOptimalSteps(csvBuffer, 0.9, 0.1542)
 
       expect(result).toBeDefined()
       expect(result.recommendedLearningSteps).toEqual([80, 5806])
       expect(result.recommendedRelearningSteps).toEqual([1049])
-      console.debug('Step stats with params:', JSON.stringify(result, null, 2))
+      console.debug(
+        'Step stats with FSRS-6 decay:',
+        JSON.stringify(result, null, 2)
+      )
     })
 
     test('recommended steps should be reasonable', () => {
@@ -66,7 +63,10 @@ describe('computeOptimalSteps', () => {
         expect(step).toBeLessThan(43200)
       }
 
-      console.debug('Learning steps (seconds):', result.recommendedLearningSteps)
+      console.debug(
+        'Learning steps (seconds):',
+        result.recommendedLearningSteps
+      )
       console.debug(
         'Relearning steps (seconds):',
         result.recommendedRelearningSteps
@@ -93,8 +93,14 @@ describe('computeOptimalSteps', () => {
         result09.recommendedRelearningSteps.length > 0 &&
         result08.recommendedRelearningSteps.length > 0
       ) {
-        console.debug('0.9 retention relearning steps:', result09.recommendedRelearningSteps)
-        console.debug('0.8 retention relearning steps:', result08.recommendedRelearningSteps)
+        console.debug(
+          '0.9 retention relearning steps:',
+          result09.recommendedRelearningSteps
+        )
+        console.debug(
+          '0.8 retention relearning steps:',
+          result08.recommendedRelearningSteps
+        )
         expect(result08.recommendedRelearningSteps[0]).toBeGreaterThan(
           result09.recommendedRelearningSteps[0]
         )
@@ -103,39 +109,40 @@ describe('computeOptimalSteps', () => {
   })
 
   describe('input validation', () => {
-    test('should reject invalid parameters array', () => {
-      expect(() => {
-        computeOptimalSteps(csvBuffer, 0.9, [1.0, 2.0]) // too short
-      }).toThrow('at least 21 elements')
-    })
+    test.each([13, 17, 19, 21, 34])(
+      'rejects a model parameter array of length %s',
+      (length) => {
+        expect(() => {
+          // @ts-expect-error Model parameters are no longer accepted.
+          computeOptimalSteps(csvBuffer, 0.9, Array(length).fill(0.5))
+        }).toThrow()
+      }
+    )
 
     test('should reject invalid desired_retention', () => {
-      expect(() => computeOptimalSteps(csvBuffer, 0.0, 0.5)).toThrow('desired_retention')
-      expect(() => computeOptimalSteps(csvBuffer, 1.0, 0.5)).toThrow('desired_retention')
-      expect(() => computeOptimalSteps(csvBuffer, -0.1, 0.5)).toThrow('desired_retention')
+      expect(() => computeOptimalSteps(csvBuffer, 0.0, 0.5)).toThrow(
+        'desired_retention'
+      )
+      expect(() => computeOptimalSteps(csvBuffer, 1.0, 0.5)).toThrow(
+        'desired_retention'
+      )
+      expect(() => computeOptimalSteps(csvBuffer, -0.1, 0.5)).toThrow(
+        'desired_retention'
+      )
     })
 
     test('should reject invalid decay value', () => {
       expect(() => computeOptimalSteps(csvBuffer, 0.9, 0)).toThrow(
-        'between 0.1 and 0.8'
+        'between 0.1 and 1'
       )
       expect(() => computeOptimalSteps(csvBuffer, 0.9, -0.5)).toThrow(
-        'between 0.1 and 0.8'
+        'between 0.1 and 1'
       )
-      expect(() => computeOptimalSteps(csvBuffer, 0.9, 0.81)).toThrow(
-        'between 0.1 and 0.8'
+      expect(() => computeOptimalSteps(csvBuffer, 0.9, 1.01)).toThrow(
+        'between 0.1 and 1'
       )
       expect(() => computeOptimalSteps(csvBuffer, 0.9, Number.NaN)).toThrow(
-        'between 0.1 and 0.8'
-      )
-    })
-
-    test('should reject invalid decay in parameters array', () => {
-      const params = [...defaultParams]
-      params[20] = 0.09
-
-      expect(() => computeOptimalSteps(csvBuffer, 0.9, params)).toThrow(
-        'between 0.1 and 0.8'
+        'between 0.1 and 1'
       )
     })
 
@@ -148,18 +155,19 @@ describe('computeOptimalSteps', () => {
     })
   })
 
+  test.each([0.5, 1])('inverts the fitted curve with decay %s', (decay) => {
+    const result = computeOptimalSteps(csvBuffer, 0.8, decay)
+    const stability = result.again!.stability
+    const factor = 0.9 ** (-1 / decay) - 1
+    const expected = (stability * (0.8 ** (-1 / decay) - 1)) / factor
+    expect(result.recommendedLearningSteps[0]).toBe(Math.round(expected))
+  })
+
   describe('boundary behavior', () => {
-    test.each([0.1, 0.8])('should accept boundary decay value %s', (decay) => {
-      expect(() => computeOptimalSteps(csvBuffer, 0.9, decay)).not.toThrow()
-    })
-
-    test.each([0.1, 0.8])(
-      'should accept boundary decay in parameters array %s',
+    test.each([0.1, 0.5, 0.8, 1])(
+      'should accept boundary decay value %s',
       (decay) => {
-        const params = [...defaultParams]
-        params[20] = decay
-
-        expect(() => computeOptimalSteps(csvBuffer, 0.9, params)).not.toThrow()
+        expect(() => computeOptimalSteps(csvBuffer, 0.9, decay)).not.toThrow()
       }
     )
 

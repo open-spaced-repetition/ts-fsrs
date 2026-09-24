@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use csv::ReaderBuilder;
 use itertools::Itertools;
-use napi::bindgen_prelude::{Either, Result};
+use napi::bindgen_prelude::Result;
 use napi_derive::napi;
 
 use crate::convert::RevlogEntry;
@@ -29,24 +29,12 @@ const DEFAULT_STABILITY: f64 = 86400.0;
 const MAX_SEARCH_STABILITY: f64 = 86400.0 * 30.0; // 30 days in seconds
 const INV_PHI: f64 = 0.6180339887498949; // (sqrt(5) - 1) / 2
 const MIN_DECAY: f64 = 0.1;
-const MAX_DECAY: f64 = 0.8;
+const MAX_DECAY: f64 = 1.0;
 
-fn resolve_decay(decay_or_params: &Either<f64, Vec<f64>>) -> Result<f64> {
-  let (source, raw_decay) = match decay_or_params {
-    Either::A(val) => ("decay", *val),
-    Either::B(params) => {
-      if params.len() < 21 {
-        return Err(napi::Error::from_reason(
-          "Parameters array must have at least 21 elements (w[0]..w[20])".to_string(),
-        ));
-      }
-      ("Parameters array w[20] (decay)", params[20])
-    }
-  };
-
+fn resolve_decay(raw_decay: f64) -> Result<f64> {
   if !raw_decay.is_finite() || !(MIN_DECAY..=MAX_DECAY).contains(&raw_decay) {
     return Err(napi::Error::from_reason(format!(
-      "{source} must be finite and between {MIN_DECAY} and {MAX_DECAY} (inclusive)"
+      "decay must be finite and between {MIN_DECAY} and {MAX_DECAY} (inclusive)"
     )));
   }
 
@@ -275,8 +263,8 @@ fn extract_step_data(revlogs: &[RevlogEntry]) -> HashMap<u32, Vec<(f64, f64)>> {
 }
 
 fn calculate_step(stability: f64, decay: f64, desired_retention: f64) -> Option<i64> {
-  let base_factor = 0.9_f64.powf(1.0 / -decay) - 1.0;
-  let factor = (1.0 / base_factor) * (desired_retention.powf(1.0 / -decay) - 1.0);
+  let base_factor = 0.9_f64.powf(1.0 / decay) - 1.0;
+  let factor = (1.0 / base_factor) * (desired_retention.powf(1.0 / decay) - 1.0);
   let step = stability * factor;
   if step >= STEP_CUTOFF || step.is_nan() {
     None
@@ -285,13 +273,16 @@ fn calculate_step(stability: f64, decay: f64, desired_retention: f64) -> Option<
   }
 }
 
+/// Recommend steps using a single power-law forgetting curve.
+/// Pass positive decay: FSRS-4 = 1, FSRS-4.5/5 = 0.5, FSRS-6 = weights[20].
+/// Not applicable to FSRS-3 (exponential) or FSRS-7 (dual-trace).
 #[napi]
 pub fn compute_optimal_steps(
   data: &[u8],
   desired_retention: f64,
-  #[napi(ts_arg_type = "number | number[]")] decay_or_params: Either<f64, Vec<f64>>,
+  decay: f64,
 ) -> Result<StepStatsResult> {
-  let decay = resolve_decay(&decay_or_params)?;
+  let decay = resolve_decay(decay)?;
 
   if desired_retention <= 0.0 || desired_retention >= 1.0 {
     return Err(napi::Error::from_reason(

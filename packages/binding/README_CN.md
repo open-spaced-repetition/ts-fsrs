@@ -85,10 +85,7 @@ console.log(stepStats.recommendedLearningSteps)
 console.log(stepStats.recommendedRelearningSteps)
 ```
 
-第三个参数可以是：
-
-- `0.1` 到 `0.8` 之间的 decay 值
-- 完整的 FSRS 参数数组
+第三个参数必须是 `[0.1, 1]` 范围内的数值 decay：FSRS-4 使用 `1`，FSRS-4.5/5 使用 `0.5`，FSRS-6 使用 `weights[20]`。不再接受参数数组。此估算器不适用于 FSRS-3（指数曲线）或 FSRS-7（双曲线）。
 
 由于技术限制，至多只能推荐两个初学间隔和一个重学间隔，这并不意味着你一定需要这么多间隔，也不意味着它们总是足够的。在某些数据量不足或数据不适合的情况下，也可能不会推荐任何步骤。
 
