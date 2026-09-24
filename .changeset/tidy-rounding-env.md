@@ -2,4 +2,4 @@
 'ts-fsrs': patch
 ---
 
-feat(fsrs): add an import.meta flag and disable rounding in builds.
+feat(fsrs): add a build-time flag to disable rounding while preserving rounding by default.
