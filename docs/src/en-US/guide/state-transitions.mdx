@@ -12,9 +12,9 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler state transition flowchart](../../assets/state-transitions.svg)
 
-The diagram and table classify the final scheduled interval, after explicit steps and interval middleware. Ratings affect that interval; they do not alone determine the next state.
+The diagram and table show the final scheduled interval, after explicit steps and interval middleware. Ratings affect that interval; they do not alone determine the next state.
 
-Zero-length steps (such as `0m`, or durations that round to zero seconds) fall back to the model interval. Negative durations are not supported.
+Zero-length steps (such as `0m`, or durations that round to zero seconds) fall back to the model interval. Negative durations are not supported. The step descriptions below assume non-zero durations.
 
 An interval below one day enters or retains `Learning`/`Relearning`; an interval of one day or longer enters `Review`. This also applies when the model supplies the interval because steps are disabled, empty, or completed.
 
@@ -53,8 +53,10 @@ After the interval is resolved, `schedulerLearningStepsMiddleware` maps it to th
 
 When an explicit step applies, the scheduler preserves its configured duration. When no step applies, it uses the model interval. Completing a step does not guarantee graduation: FSRS-7 can still return a sub-day interval.
 
-:::warning Learning states require the middleware
-`DefaultScheduler` registers `schedulerLearningStepsMiddleware` and defaults `enableShortTerm` to `true`, including for FSRS-7. For FSRS-7, this flag controls explicit `learningSteps` and `relearningSteps`, not its intrinsic fast trace or the interval-based state mapping. With `enableShortTerm: false`, a model interval below one day still enters `Learning` or `Relearning`. When composing with `defineScheduler`, register `.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the core review result remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory state and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
+:::warning Learning states require the `schedulerLearningStepsMiddleware` middleware
+`DefaultScheduler` registers a `schedulerLearningStepsMiddleware` and defaults `enableShortTerm` to `true` including for FSRS-7. For FSRS-7, this flag controls explicit `learningSteps` and `relearningSteps`, not its intrinsic fast trace or the interval-based state mapping. With `enableShortTerm: false`, an interval below one day still enters the `Learning` or `Relearning` phase.
+
+If you compose with `defineScheduler`, register the middleware with`.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the default behaviour remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory states and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
 :::
 
 `Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
@@ -63,7 +65,7 @@ When an explicit step applies, the scheduler preserves its configured duration. 
 
 The example uses default FSRS-7 with fixed options. After the explicit learning and relearning steps finish, the model still returns sub-day intervals, so the cards remain in their learning states. Its helper uses the public `DefaultSchedulerCard`, `Grade`, and `State` types directly.
 
-`learningStep` is a zero-based step index, not a review count. The `Hard`, `Again`, and final `Good` examples branch from the same card at step `1`: `Hard` keeps index `1` (the default Hard interval is `5.5m`), `Again` resets it to `0` (`1m`), and `Good` falls back to the model interval when there is no next step. The result then resets `learningStep` to `0`, but a sub-day model interval keeps the card in `Learning`. The relearning example shows the same distinction. Intervals are displayed in minutes rounded to two decimals.
+`learningStep` is a zero-based step index, not a review count. The `Hard`, `Again`, and final `Good` examples branch from the same card. If a card is at step `1`: `Hard` would keep its index at `1` (the default Hard interval is `5.5m`), `Again` resets it to `0` (`1m`), and `Good` will use the model interval when there is no next step. The result then resets `learningStep` to `0`, but a sub-day model interval keeps the card in `Learning`. The relearning example shows the same distinction. Intervals are displayed in minutes rounded to two decimals.
 
 :::note dueAt is not now
 `dueAt` is when the card becomes due, while `now` is the actual review time and should be equal to or later than `dueAt`. To keep the example deterministic without conflating them, the helper reviews each card 30 seconds after `dueAt`.
