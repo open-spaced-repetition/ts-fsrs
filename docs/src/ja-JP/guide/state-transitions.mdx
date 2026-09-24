@@ -12,43 +12,58 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler の状態遷移図](../../assets/state-transitions.ja-JP.svg)
 
-図と表は既定のステップでの遷移を示します。矢印のラベルは評価を表し、アスタリスクは適用されるステップとその長さによって遷移が変わることを示します。
+図と表は、明示的なステップと間隔ミドルウェアの処理後の最終間隔に基づく遷移を示します。評価は間隔に影響しますが、評価だけでは次の状態は決まりません。
 
-長さがゼロのステップ（`0m` など）は、現在モデルの間隔にフォールバックします。負の長さは指定できません。以下のステップの説明では、長さがゼロでないことを前提とします。
+長さがゼロのステップ（`0m` や秒単位の四捨五入でゼロになる長さ）はモデルの間隔にフォールバックします。負の長さは指定できません。
 
-アスタリスク付きの遷移では、その評価に対して計算されたステップの長さがゼロまたは 1 日以上の場合、あるいは適用できるステップがない場合、`Again`、`Hard`、`Good` の遷移先が `Learning` や `Relearning` ではなく `Review` になることがあります。
+最終間隔が 1 日未満なら `Learning`/`Relearning` に入り、または留まります。1 日以上なら `Review` に移ります。ステップが無効、空、または完了済みでモデルの間隔を使う場合も同じです。
 
 ## 4 つの状態
 
 | 状態 | 意味 | 既定のキュー |
 | --- | --- | --- |
 | `New` | 新規カード、または `scheduler.forget()` でリセットされたカードです。 | `new` |
-| `Learning` | 初回の短期学習ステップを進めているカードです。 | `learning` |
+| `Learning` | 明示的なステップまたはモデルにより、1 日以内に初回学習の復習が必要なカードです。 | `learning` |
 | `Review` | 短期学習段階ではないカードです。間隔はモデル、または 1 日以上のステップによって決まります。 | `review` |
-| `Relearning` | `Review` で `Again` と評価され、短期の再学習ステップを進めているカードです。 | `learning` |
+| `Relearning` | 明示的なステップまたはモデルにより、1 日以内に再度復習が必要な既習カードです。 | `learning` |
 
 ## 評価による状態遷移
 
-既定の学習ステップ（`1m`、`10m`）と再学習ステップ（`10m`）では、次のように遷移します。
+評価によって、明示的なステップの間隔を使うかどうかが決まります。`enableShortTerm: true` で適用できるステップがある場合、学習ステップのポリシーは次のように動作します。
 
-| 現在の状態 | Again | Hard | Good | Easy |
-| --- | --- | --- | --- | --- |
-| `New` | `Learning` | `Learning` | `Learning` | `Review` |
-| `Learning` | 最初のステップに戻る | 現在のステップを繰り返す | 次のステップまたは `Review` | `Review` |
-| `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | 最初のステップに戻る | 現在のステップを繰り返す | `Review` | `Review` |
+| 評価 | `New` / `Learning` / `Relearning` | `Review` |
+| --- | --- | --- |
+| `Again` | 最初のステップに戻り、`learningStep` を `0` に戻します。 | 適用される再学習ステップを使い、`learningStep` を `0` に戻します。 |
+| `Hard` | 現在の `learningStep` を維持し、Hard 用のステップ間隔を使います。 | モデルの間隔を使います。 |
+| `Good` | 適用できる次のステップがある場合だけ進めます。それ以外はモデルの間隔を使います。 | モデルの間隔を使います。 |
+| `Easy` | 明示的なステップを飛ばし、モデルの間隔を使います。 | モデルの間隔を使います。 |
 
-1 日未満のステップでは、カードは `Learning` または `Relearning` に留まります。1 日以上のステップでは正確な次回予定時刻を保ったまま、カードを `Review` に移します。短期スケジューリングが無効な場合は、モデルの間隔が使われます。適用できるステップがない場合にも、現在はモデルの間隔へフォールバックしますが、これは本来の学習ステップ動作ではなく既知の問題です。
+Hard 用の間隔は最初の 2 ステップの平均で、ステップが 1 つならその 1.5 倍です。ステップが空、完了済み、長さがゼロ、または `enableShortTerm: false` の場合は、前述の規則に従ってモデルの間隔を使います。明示的なステップの間隔を使わない場合、結果の `learningStep` は `0` に戻ります。
 
-:::warning Learning 状態には学習ステップのポリシーが必要です
-`DefaultScheduler` は `schedulerLearningStepsMiddleware` を自動で登録しますが、短期の状態遷移が作られるのは `enableShortTerm` が `true` の場合だけです。`defineScheduler` でスケジューラーを組み立てる場合は、`.use(schedulerLearningStepsMiddleware)` を追加して学習または再学習ステップを設定してください。短期スケジューリングが有効でない場合、または middleware が登録されていない場合、復習にはモデルの長期の間隔が使われ、`Learning` や `Relearning` には入りません。
+**Easy は明示的なステップを進めません。Good は適用できる次のステップがある場合だけ進めます。** モデルの間隔は、他の間隔ミドルウェアで調整されることがあります。ステップを飛ばしても `Review` への移行は保証されず、FSRS-7 の最終間隔は 1 日未満になることがあります。
+
+間隔が決まった後、`schedulerLearningStepsMiddleware` が次の表に従って状態を決めます。この表は状態の割り当てを示すもので、各評価の間隔選択ルールが同じという意味ではありません。
+
+| 現在の状態 | 最終間隔 < 1 日 | 最終間隔 ≥ 1 日 |
+| --- | --- | --- |
+| `New` | `Learning` | `Review` |
+| `Learning` | `Learning` | `Review` |
+| `Review` | `Relearning` | `Review` |
+| `Relearning` | `Relearning` | `Review` |
+
+適用される明示的なステップがある場合は、そのステップに設定された間隔を保ちます。適用されるステップがない場合は、モデルの間隔を使います。ステップの完了だけでは `Review` への移行は保証されません。FSRS-7 は引き続き 1 日未満の間隔を返すことがあります。
+
+:::warning Learning 状態にはミドルウェアが必要です
+`DefaultScheduler` は `schedulerLearningStepsMiddleware` を登録し、FSRS-7 を含め `enableShortTerm` の既定値は `true` です。FSRS-7 では、この設定は明示的な `learningSteps` と `relearningSteps` を制御し、モデル固有の短期記憶や間隔による状態の割り当てを無効にはしません。`enableShortTerm: false` でも、モデルの間隔が 1 日未満なら `Learning` または `Relearning` に入ります。`defineScheduler` でこの状態遷移を使うには `.use(schedulerLearningStepsMiddleware)` を登録してください。FSRS-7 モデルだけを組み合わせ、このミドルウェアを登録しない場合、間隔が 1 日未満でも `state` は `Review`、`scheduleStatus` は `review` のままです。モデルは記憶状態と間隔を計算し、学習状態への遷移はミドルウェアが担当します。FSRS-7 のスケジューリング後に `Learning`/`Relearning` にするには、`schedulerLearningStepsMiddleware` を登録するか、状態遷移を担う独自のミドルウェアを実装してください。
 :::
 
 `Rating.Manual` は復習の評価ではありません。`review()` には `Again`、`Hard`、`Good`、`Easy` のいずれかを渡します。
 
 ## 状態遷移を実行する
 
-この例は固定した設定で学習と再学習の両方の経路をたどるため、出力を再現できます。ヘルパーは公開されている `DefaultSchedulerCard`、`Grade`、`State` 型を直接使います。
+この例は既定の FSRS-7 と固定した設定を使います。明示的な学習・再学習ステップが完了しても、モデルが 1 日未満の間隔を返すため、カードは学習状態に留まります。ヘルパーは公開の `DefaultSchedulerCard`、`Grade`、`State` 型を直接使います。
+
+`learningStep` はゼロ始まりのステップ番号で、復習回数ではありません。`Hard`、`Again`、最後の `Good` はステップ `1` の同じカードから分岐します。`Hard` は番号 `1` を維持し（既定の Hard 間隔は `5.5m`）、`Again` は `0` に戻し（`1m`）、`Good` は次のステップがないためモデルの間隔を使います。この結果では `learningStep` が `0` に戻りますが、モデルの間隔が 1 日未満なら `Learning` に留まります。再学習の例でも同じ違いを示します。間隔は分単位で小数点以下 2 桁に丸めて表示します。
 
 :::note dueAt と now は別の時刻です
 `dueAt` はカードの復習予定時刻、`now` は実際の復習時刻です。通常、`now` は `dueAt` 以降である必要があります。この例では両者を混同せずに出力を再現できるよう、各カードを `dueAt` の 30 秒後に復習します。
@@ -62,7 +77,7 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 ## Card、revlog、記憶状態
 
 - 入力 `card` は復習前の状態です。`review()` は入力を変更しません。
-- `result.card` には次の `state`、次の FSRS 記憶状態（`stability` と `difficulty`）、新しい `dueAt` が入ります。
+- `result.card` には次の `state`、次の FSRS 記憶状態（FSRS-7 では `stability`、`stabilityFast`、`difficulty`）、新しい `dueAt` が入ります。
 - `result.revlog` は、選んだ評価と復習時刻に加えて、以前の状態と記憶状態を記録します。rollback もこのスナップショットからカードを復元します。
 - `scheduleStatus` はカードが属するスケジューリングキューを決めます。既定では `New` が `new`、2 つの学習状態が `learning`、`Review` が `review` に対応します。middleware は 4 つの FSRS 状態を変えずに `suspended` などを追加できます。
 

@@ -12,43 +12,60 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler state transition flowchart](../../assets/state-transitions.svg)
 
-The diagram and table show the default steps. Arrow labels are ratings; an asterisk marks transitions affected by the applicable step and its duration.
+The diagram and table show the final scheduled interval, after explicit steps and interval middleware. Ratings affect that interval; they do not alone determine the next state.
 
-Zero-length steps (such as `0m`) currently fall back to the model interval. Negative durations are not supported. The step descriptions below assume non-zero durations.
+Zero-length steps (such as `0m`, or durations that round to zero seconds) fall back to the model interval. Negative durations are not supported. The step descriptions below assume non-zero durations.
 
-For the starred transitions, `Again`, `Hard`, or `Good` can lead to `Review` instead of `Learning` or `Relearning` when the duration calculated for that rating is zero or at least one day, or no step applies.
+An interval below one day enters or retains `Learning`/`Relearning`; an interval of one day or longer enters `Review`. This also applies when the model supplies the interval because steps are disabled, empty, or completed.
 
 ## What each state means
 
 | State | Meaning | Default queue |
 | --- | --- | --- |
 | `New` | The card is new or has been reset with `scheduler.forget()`. | `new` |
-| `Learning` | The card is progressing through its initial short-term learning steps. | `learning` |
+| `Learning` | The card needs another initial learning review within one day, from an explicit step or the model. | `learning` |
 | `Review` | The card is outside short-term learning; its interval may come from the model or a step of one day or longer. | `review` |
-| `Relearning` | A card rated `Again` in `Review` is progressing through short-term relearning steps. | `learning` |
+| `Relearning` | A previously reviewed card needs another review within one day, from an explicit step or the model. | `learning` |
 
 ## How ratings move a card
 
-With the default learning steps (`1m`, `10m`) and relearning step (`10m`), transitions are:
+Ratings first determine whether an explicit step supplies the interval. With `enableShortTerm: true` and applicable steps, the learning-step policy behaves as follows:
 
-| Current state | Again | Hard | Good | Easy |
-| --- | --- | --- | --- | --- |
-| `New` | `Learning` | `Learning` | `Learning` | `Review` |
-| `Learning` | Return to the first step | Repeat the current step | Next step or `Review` | `Review` |
-| `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | Return to the first step | Repeat the current step | `Review` | `Review` |
+| Rating | `New` / `Learning` / `Relearning` | `Review` |
+| --- | --- | --- |
+| `Again` | Return to the first step; reset `learningStep` to `0`. | Use the applicable relearning step; reset `learningStep` to `0`. |
+| `Hard` | Keep the current `learningStep`; use the Hard step interval. | Use the model interval. |
+| `Good` | Advance only when an applicable next step exists; otherwise use the model interval. | Use the model interval. |
+| `Easy` | Skip explicit steps and use the model interval. | Use the model interval. |
 
-A step shorter than one day keeps the card in `Learning` or `Relearning`. A step of one day or longer uses the exact due time but moves the card to `Review`. When short-term scheduling is disabled, the scheduler uses the model interval. It currently also falls back to the model interval when no step applies; this is a known issue, not the intended learning-step behavior.
+The Hard step interval is the average of the first two steps, or 1.5 times the only step. Empty or completed steps, zero-length steps, and `enableShortTerm: false` fall back to the model interval as described above. When no explicit step supplies the interval, the result resets `learningStep` to `0`.
 
-:::warning Learning states require learning-step policy
-`DefaultScheduler` registers `schedulerLearningStepsMiddleware` for you, but it only creates short-term transitions when `enableShortTerm` is `true`. When composing a scheduler with `defineScheduler`, add `.use(schedulerLearningStepsMiddleware)` and configure learning or relearning steps. If short-term scheduling is not enabled, or the middleware is not registered, reviews use the model's long-term interval and do not enter `Learning` or `Relearning`.
+**Easy never advances an explicit step; Good does so only when a next step applies.** Interval middleware can still adjust model intervals. Skipping steps does not guarantee `Review`: with FSRS-7, the resulting interval may still be below one day.
+
+After the interval is resolved, `schedulerLearningStepsMiddleware` maps it to the next state using the table below. This table describes state mapping, not how each rating selects an interval:
+
+| Current state | Final interval < 1 day | Final interval ≥ 1 day |
+| --- | --- | --- |
+| `New` | `Learning` | `Review` |
+| `Learning` | `Learning` | `Review` |
+| `Review` | `Relearning` | `Review` |
+| `Relearning` | `Relearning` | `Review` |
+
+When an explicit step applies, the scheduler preserves its configured duration. When no step applies, it uses the model interval. Completing a step does not guarantee graduation: FSRS-7 can still return a sub-day interval.
+
+:::warning Learning states require the `schedulerLearningStepsMiddleware` middleware
+`DefaultScheduler` registers a `schedulerLearningStepsMiddleware` and defaults `enableShortTerm` to `true` including for FSRS-7. For FSRS-7, this flag controls explicit `learningSteps` and `relearningSteps`, not its intrinsic fast trace or the interval-based state mapping. With `enableShortTerm: false`, an interval below one day still enters the `Learning` or `Relearning` phase.
+
+If you compose with `defineScheduler`, register the middleware with`.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the default behaviour remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory states and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
 :::
 
 `Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
 
 ## Run the transitions
 
-The example follows both the learning and relearning paths with fixed options, so its output is reproducible. Its helper uses the public `DefaultSchedulerCard`, `Grade`, and `State` types directly.
+The example uses default FSRS-7 with fixed options. After the explicit learning and relearning steps finish, the model still returns sub-day intervals, so the cards remain in their learning states. Its helper uses the public `DefaultSchedulerCard`, `Grade`, and `State` types directly.
+
+`learningStep` is a zero-based step index, not a review count. The `Hard`, `Again`, and final `Good` examples branch from the same card. If a card is at step `1`: `Hard` would keep its index at `1` (the default Hard interval is `5.5m`), `Again` resets it to `0` (`1m`), and `Good` will use the model interval when there is no next step. The result then resets `learningStep` to `0`, but a sub-day model interval keeps the card in `Learning`. The relearning example shows the same distinction. Intervals are displayed in minutes rounded to two decimals.
 
 :::note dueAt is not now
 `dueAt` is when the card becomes due, while `now` is the actual review time and should be equal to or later than `dueAt`. To keep the example deterministic without conflating them, the helper reviews each card 30 seconds after `dueAt`.
@@ -62,7 +79,7 @@ The example follows both the learning and relearning paths with fixed options, s
 ## Card, revlog, and memory state
 
 - The input `card` is the state before a review; `review()` does not mutate it.
-- `result.card` contains the next `state`, next FSRS memory state (`stability` and `difficulty`), and next `dueAt`.
+- `result.card` contains the next `state`, next FSRS memory state (`stability`, `stabilityFast`, and `difficulty` for FSRS-7), and next `dueAt`.
 - `result.revlog` records the previous state and memory state together with the selected rating and review timing. That snapshot is also what rollback uses to restore the card.
 - `scheduleStatus` controls queue membership. By default it maps `New` to `new`, both learning states to `learning`, and `Review` to `review`; middleware may add statuses such as `suspended` without changing the four FSRS states.
 

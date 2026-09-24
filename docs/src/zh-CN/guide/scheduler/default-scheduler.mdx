@@ -26,8 +26,8 @@ FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧
 | `weights` | 预设权重 | 可选的训练权重；省略时使用所选版本的预设默认值。FSRS-7 需要恰好 34 个 FSRS-7 权重；传入旧版权重会在构造调度器时抛出异常。 |
 | `desiredRetention` | `0.9` | 在计算间隔前应用的目标保留率。 |
 | `enableShortTerm` | `true` | 启用学习与再学习步骤。 |
-| `learningSteps` | 预设步骤 | `enableShortTerm` 开启时应用的学习步骤。 |
-| `relearningSteps` | 预设步骤 | `enableShortTerm` 开启时应用的再学习步骤。 |
+| `learningSteps` | FSRS-7: `[]`; 其他版本: `['1m', '10m']` | `enableShortTerm` 开启时应用的学习步骤。 |
+| `relearningSteps` | FSRS-7: `[]`; 其他版本: `['10m']` | `enableShortTerm` 开启时应用的再学习步骤。 |
 | `enableFuzz` | `false` | 开启时分散间隔以增加变化。 |
 | `maximumInterval` | `36500` | 间隔的天数上限。 |
 | `clearStatsOnForget` | `true` | `forget` 是否清空 `reps` 与 `lapses`。 |

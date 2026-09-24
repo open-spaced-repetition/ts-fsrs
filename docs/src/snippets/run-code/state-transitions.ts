@@ -28,20 +28,26 @@ const newCard = scheduler.newCard({
 })
 const learning = reviewAfterDue(newCard, Rating.Again)
 const nextLearningStep = reviewAfterDue(learning, Rating.Good)
-const graduated = reviewAfterDue(nextLearningStep, Rating.Good)
+const afterLearningSteps = reviewAfterDue(nextLearningStep, Rating.Good)
+const repeated = reviewAfterDue(nextLearningStep, Rating.Hard)
+const restarted = reviewAfterDue(nextLearningStep, Rating.Again)
 const reviewed = reviewAfterDue(newCard, Rating.Easy)
 const relearning = reviewAfterDue(reviewed, Rating.Again)
-const relearned = reviewAfterDue(relearning, Rating.Good)
+const afterRelearningSteps = reviewAfterDue(relearning, Rating.Good)
 
 for (const [from, rating, to] of [
   [newCard, 'Again', learning],
   [learning, 'Good', nextLearningStep],
-  [nextLearningStep, 'Good', graduated],
+  [nextLearningStep, 'Hard', repeated],
+  [nextLearningStep, 'Again', restarted],
+  [nextLearningStep, 'Good', afterLearningSteps],
   [newCard, 'Easy', reviewed],
   [reviewed, 'Again', relearning],
-  [relearning, 'Good', relearned],
+  [relearning, 'Good', afterRelearningSteps],
 ] as const) {
   console.log(
-    `${stateNames[from.state]} --${rating}--> ${stateNames[to.state]}`
+    `${stateNames[from.state]} --${rating}--> ${stateNames[to.state]}; ` +
+      `learningStep: ${from.learningStep} -> ${to.learningStep}; ` +
+      `interval: ${(to.scheduledDays * 1440).toFixed(2)}m`
   )
 }

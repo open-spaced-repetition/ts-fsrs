@@ -12,43 +12,58 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 ![DefaultScheduler 状态转换流程图](../../assets/state-transitions.zh-CN.svg)
 
-图表展示默认步骤下的转换。箭头文字表示评分；星号表示转换受适用步骤及其时长影响。
+图表按显式步骤和间隔中间件处理后的最终调度间隔分类。评分会影响间隔，但不能单独决定下一个状态。
 
-零时长步骤（如 `0m`）目前会回退到模型间隔，不支持负数时长。下文的步骤描述均假定时长非零。
+零时长步骤（如 `0m`，或按秒四舍五入后为零的时长）会回退到模型间隔，不支持负数时长。
 
-对于带星号的转换，如果该评分算出的步骤时长为零、达到一天或更长，或没有适用步骤，`Again`、`Hard` 或 `Good` 都可能改为进入 `Review`，而不是 `Learning` 或 `Relearning`。
+最终间隔小于一天时进入或保持 `Learning`/`Relearning`；达到一天时进入 `Review`。步骤被关闭、为空或已完成而使用模型间隔时，也适用这一规则。
 
 ## 四种状态
 
 | 状态 | 含义 | 默认队列 |
 | --- | --- | --- |
 | `New` | 卡片是新卡，或已通过 `scheduler.forget()` 重置。 | `new` |
-| `Learning` | 卡片正在进行初始的短期学习步骤。 | `learning` |
+| `Learning` | 卡片需要在一天内再次进行初始学习，间隔来自显式步骤或模型。 | `learning` |
 | `Review` | 卡片不处于短期学习阶段；间隔可能来自模型，也可能来自一天或更长的步骤。 | `review` |
-| `Relearning` | 处于 `Review` 的卡片被评为 `Again` 后，正在进行短期重新学习步骤。 | `learning` |
+| `Relearning` | 已复习过的卡片需要在一天内再次复习，间隔来自显式步骤或模型。 | `learning` |
 
 ## 评分如何改变状态
 
-使用默认学习步骤（`1m`、`10m`）和重新学习步骤（`10m`）时，转换如下：
+评分首先决定是否使用显式步骤间隔。当 `enableShortTerm: true` 且有适用步骤时，学习步骤策略如下：
 
-| 当前状态 | Again | Hard | Good | Easy |
-| --- | --- | --- | --- | --- |
-| `New` | `Learning` | `Learning` | `Learning` | `Review` |
-| `Learning` | 回到第一个步骤 | 重复当前步骤 | 下一步骤或 `Review` | `Review` |
-| `Review` | `Relearning` | `Review` | `Review` | `Review` |
-| `Relearning` | 回到第一个步骤 | 重复当前步骤 | `Review` | `Review` |
+| 评分 | `New` / `Learning` / `Relearning` | `Review` |
+| --- | --- | --- |
+| `Again` | 回到第一个步骤，`learningStep` 重置为 `0`。 | 使用适用的重新学习步骤，`learningStep` 重置为 `0`。 |
+| `Hard` | 保持当前 `learningStep`，使用 Hard 步骤间隔。 | 使用模型间隔。 |
+| `Good` | 只有存在适用的下一步时才推进；否则使用模型间隔。 | 使用模型间隔。 |
+| `Easy` | 跳过显式步骤，使用模型间隔。 | 使用模型间隔。 |
 
-小于一天的步骤会让卡片停留在 `Learning` 或 `Relearning`。一天或更长的步骤仍保留精确到期时间，但会把卡片转为 `Review`。关闭短期调度时，调度器会使用模型间隔。目前，没有适用的步骤时也会回退到模型间隔；这是已知问题，并非学习步骤的预期行为。
+Hard 步骤间隔为前两个步骤时长的平均值；只有一个步骤时，为该步骤时长的 1.5 倍。步骤为空、已完成、时长为零或 `enableShortTerm: false` 时，按前述规则使用模型间隔。没有显式步骤提供间隔时，结果中的 `learningStep` 重置为 `0`。
 
-:::warning Learning 状态依赖学习步骤策略
-`DefaultScheduler` 已自动注册 `schedulerLearningStepsMiddleware`，但只有 `enableShortTerm` 为 `true` 时才会产生短期状态转换。使用 `defineScheduler` 组合调度器时，需要添加 `.use(schedulerLearningStepsMiddleware)` 并配置学习或重新学习步骤。未启用短期调度或未注册该 middleware 时，复习会使用模型的长期间隔，不会进入 `Learning` 或 `Relearning`。
+**Easy 不会推进显式步骤；Good 仅在有适用的下一步时推进。** 模型间隔仍可能被其他间隔中间件调整。跳过步骤不保证进入 `Review`：FSRS-7 的最终间隔仍可能小于一天。
+
+间隔确定后，`schedulerLearningStepsMiddleware` 再按下表决定状态。下表描述状态映射，不代表各评分使用相同的间隔选择规则：
+
+| 当前状态 | 最终间隔 < 1 天 | 最终间隔 ≥ 1 天 |
+| --- | --- | --- |
+| `New` | `Learning` | `Review` |
+| `Learning` | `Learning` | `Review` |
+| `Review` | `Relearning` | `Review` |
+| `Relearning` | `Relearning` | `Review` |
+
+有适用的显式步骤时，调度器保留该步骤配置的时长；没有适用步骤时，使用模型间隔。完成步骤不保证进入 `Review`：FSRS-7 仍可能给出小于一天的间隔。
+
+:::warning Learning 状态依赖中间件
+`DefaultScheduler` 自动注册 `schedulerLearningStepsMiddleware`，且 `enableShortTerm` 默认为 `true`，FSRS-7 也一样。对于 FSRS-7，该开关控制显式 `learningSteps` 和 `relearningSteps`，不关闭模型内在的短期记忆，也不控制按间隔进行的状态映射。即使 `enableShortTerm: false`，模型间隔小于一天时仍会进入 `Learning` 或 `Relearning`。使用 `defineScheduler` 时，需注册 `.use(schedulerLearningStepsMiddleware)` 才会应用此状态映射；只组合 FSRS-7 模型而未注册该中间件时，即使调度间隔小于一天，`state` 仍为 `Review`，`scheduleStatus` 仍为 `review`。模型负责记忆状态和间隔计算，学习状态转换由中间件负责。如果要让 FSRS-7 调度后显示 `Learning`/`Relearning`，请挂载 `schedulerLearningStepsMiddleware`，或自行实现负责状态转换的 middleware。
 :::
 
 `Rating.Manual` 不是复习评分。调用 `review()` 时应传入 `Again`、`Hard`、`Good` 或 `Easy`。
 
 ## 运行状态转换
 
-示例使用固定配置分别走完学习和重新学习路径，因此输出可重复验证。辅助函数直接使用公开的 `DefaultSchedulerCard`、`Grade` 和 `State` 类型。
+示例使用默认 FSRS-7 和固定配置。显式学习及重新学习步骤完成后，模型仍给出小于一天的间隔，因此卡片保持在学习状态。辅助函数直接使用公开的 `DefaultSchedulerCard`、`Grade` 和 `State` 类型。
+
+`learningStep` 是从零开始的步骤索引，不是复习次数。`Hard`、`Again` 和最后一个 `Good` 示例从同一张处于步骤 `1` 的卡片分别出发：`Hard` 保持索引 `1`（默认 Hard 间隔为 `5.5m`），`Again` 重置为 `0`（`1m`），而 `Good` 因没有下一步骤而使用模型间隔。此时结果的 `learningStep` 重置为 `0`，但模型间隔小于一天仍会使卡片保持 `Learning`。重新学习示例也展示了这一区别。间隔以分钟显示，保留两位小数。
 
 :::note dueAt 不是 now
 `dueAt` 表示卡片应从何时起复习，`now` 是实际复习时间，通常应满足 `now >= dueAt`。为了让输出可重复且不混淆两者，本例在每张卡片的 `dueAt` 后 30 秒进行复习。
@@ -62,7 +77,7 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 ## Card、revlog 与记忆状态
 
 - 输入 `card` 表示复习前的状态；`review()` 不会修改它。
-- `result.card` 包含下一个 `state`、下一组 FSRS 记忆状态（`stability` 与 `difficulty`）以及新的 `dueAt`。
+- `result.card` 包含下一个 `state`、下一组 FSRS 记忆状态（FSRS-7 的 `stability`、`stabilityFast` 与 `difficulty`）以及新的 `dueAt`。
 - `result.revlog` 会连同评分和复习时间记录之前的状态与记忆状态；rollback 也使用这份快照恢复卡片。
 - `scheduleStatus` 决定卡片进入哪个调度队列。默认情况下，`New` 对应 `new`，两个学习状态对应 `learning`，`Review` 对应 `review`；middleware 可以增加 `suspended` 等队列状态，而不会改变四种 FSRS 状态。
 

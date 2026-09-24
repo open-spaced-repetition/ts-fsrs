@@ -17,66 +17,30 @@ export type LandingPreview = {
 
 export type LandingPreviews = Readonly<Record<string, LandingPreview>>
 
-export function intervalFrom(
-  from: string,
-  dueAt: string
-): Partial<Record<Intl.DurationFormatUnit, number>> {
-  const minutes = Math.round((Date.parse(dueAt) - Date.parse(from)) / 60_000)
-  return {
-    days: Math.floor(minutes / (60 * 24)),
-    hours: Math.floor(minutes / 60) % 24,
-    minutes: minutes % 60,
-  }
-}
-
-type IntervalFormatter = (
-  parts: Partial<Record<Intl.DurationFormatUnit, number>>
-) => string
-
-const UNITS = ['days', 'hours', 'minutes'] as const
-
-// This runs in the browser, and `Intl.DurationFormat` is not Baseline widely
-// available yet, so the units are worded and joined by hand where it is missing.
-function buildFormatter(lang: string): IntervalFormatter {
-  if (typeof Intl.DurationFormat === 'function') {
-    const format = new Intl.DurationFormat(lang, { style: 'long' })
-    return (parts) => format.format(parts)
-  }
-
-  const units = UNITS.map(
-    (unit) =>
-      [
-        unit,
-        new Intl.NumberFormat(lang, {
-          style: 'unit',
-          unit: unit.slice(0, -1),
-          unitDisplay: 'long',
-        }),
-      ] as const
-  )
-  const list = new Intl.ListFormat(lang, { type: 'unit' })
-  return (parts) => {
-    const values: string[] = []
-    for (const [unit, number] of units) {
-      const value = parts[unit]
-      if (value) values.push(number.format(value))
-    }
-    return list.format(values.length > 0 ? values : ['0'])
-  }
-}
-
-// Intl formatter construction is expensive; the cache is bounded by site locales.
-const intervalFormatters = new Map<string, IntervalFormatter>()
+// Intl formatter construction is expensive; the cache is bounded by locales and units.
+const intervalFormatters = new Map<string, Intl.NumberFormat>()
 
 export function formatInterval(
   lang: string,
   from: string,
   dueAt: string
 ): string {
-  let format = intervalFormatters.get(lang)
+  const minutes = (Date.parse(dueAt) - Date.parse(from)) / 60_000
+  const unit = minutes >= 1440 ? 'day' : minutes >= 60 ? 'hour' : 'minute'
+  const value =
+    unit === 'day' ? minutes / 1440 : unit === 'hour' ? minutes / 60 : minutes
+  const key = `${lang}:${unit}`
+  let format = intervalFormatters.get(key)
   if (!format) {
-    format = buildFormatter(lang)
-    intervalFormatters.set(lang, format)
+    format = new Intl.NumberFormat(lang, {
+      style: 'unit',
+      unit,
+      unitDisplay: 'long',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+      trailingZeroDisplay: 'stripIfInteger',
+    })
+    intervalFormatters.set(key, format)
   }
-  return format(intervalFrom(from, dueAt))
+  return format.format(value)
 }

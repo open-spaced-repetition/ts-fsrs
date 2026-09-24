@@ -26,8 +26,8 @@ FSRS-7 のカードは `stability` と `difficulty` に加え `stabilityFast` �
 | `weights` | プリセットの重み | 任意の学習済み重み。省略すると選択したバージョンの既定値を使います。FSRS-7 には FSRS-7 用の重みがちょうど 34 個必要です。旧版の重みを渡すと、スケジューラの構築時に例外が発生します。 |
 | `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
 | `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
-| `learningSteps` | プリセットのステップ | `enableShortTerm` 有効時に適用する学習ステップ。 |
-| `relearningSteps` | プリセットのステップ | `enableShortTerm` 有効時に適用する再学習ステップ。 |
+| `learningSteps` | FSRS-7: `[]`; その他のバージョン: `['1m', '10m']` | `enableShortTerm` 有効時に適用する学習ステップ。 |
+| `relearningSteps` | FSRS-7: `[]`; その他のバージョン: `['10m']` | `enableShortTerm` 有効時に適用する再学習ステップ。 |
 | `enableFuzz` | `false` | 有効にすると間隔を分散して変化を付けます。 |
 | `maximumInterval` | `36500` | 間隔の日数上限。 |
 | `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |

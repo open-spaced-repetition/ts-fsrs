@@ -5,7 +5,7 @@ import {
   State,
 } from '@open-spaced-repetition/srs-kit'
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
-import { describe, expect, expectTypeOf, it } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import {
   FSRS7_DEFAULT_WEIGHTS,
   type FSRS7Config,
@@ -37,6 +37,49 @@ describe('DefaultScheduler FSRS-7', () => {
       await getSchedulerPreset('FSRS-7')
     )
   })
+
+  it.each([undefined, 'FSRS-7'] as const)(
+    'uses model intervals when steps are unspecified for version %s',
+    async (version) => {
+      for (const steps of [
+        {},
+        { learningSteps: undefined, relearningSteps: undefined },
+      ]) {
+        const scheduler = await DefaultScheduler({ version, ...steps })
+        expect(scheduler.config.learningSteps).toEqual([])
+        expect(scheduler.config.relearningSteps).toEqual([])
+        expect(scheduler.config.enableShortTerm).toBe(true)
+        const result = scheduler.review({
+          card: scheduler.newCard({ now }),
+          now,
+          grade: Rating.Again,
+        })
+        expect(result.card.scheduledDays).toBe(
+          scheduler.model.nextInterval(result.card, 0.9)
+        )
+        expect(result.card.state).toBe(State.Learning)
+        expect(result.card.learningStep).toBe(0)
+      }
+    }
+  )
+
+  it('preserves explicitly configured FSRS-7 steps independently', async () => {
+    const learning = await DefaultScheduler({ learningSteps: ['2m'] })
+    expect(learning.config.learningSteps).toEqual(['2m'])
+    expect(learning.config.relearningSteps).toEqual([])
+    const relearning = await DefaultScheduler({ relearningSteps: ['3m'] })
+    expect(relearning.config.learningSteps).toEqual([])
+    expect(relearning.config.relearningSteps).toEqual(['3m'])
+  })
+
+  it.each(['FSRS-3', 'FSRS-4', 'FSRS-4.5', 'FSRS-5', 'FSRS-6'] as const)(
+    'preserves default steps for %s',
+    async (version) => {
+      const scheduler = await DefaultScheduler({ version })
+      expect(scheduler.config.learningSteps).toEqual(['1m', '10m'])
+      expect(scheduler.config.relearningSteps).toEqual(['10m'])
+    }
+  )
 
   it('exposes the FSRS-7 model config without legacy model fields', async () => {
     const scheduler = await DefaultScheduler()
@@ -123,7 +166,10 @@ describe('DefaultScheduler FSRS-7', () => {
     }
   })
   it('preserves all three memory fields in cards, revlogs, schemas, and rollback', async () => {
-    const scheduler = await DefaultScheduler({ version: 'FSRS-7' })
+    const scheduler = await DefaultScheduler({
+      version: 'FSRS-7',
+      learningSteps: ['1m', '10m'],
+    })
     const card = scheduler.newCard({ now, cardId: 'fsrs7' })
     expectTypeOf(card.stabilityFast).toEqualTypeOf<number>()
     expectTypeOf(card).toEqualTypeOf<DefaultSchedulerCard<'FSRS-7'>>()
@@ -241,7 +287,7 @@ describe('DefaultScheduler FSRS-7', () => {
       expect(result.card.dueAt.getTime() - now.getTime()).toBe(
         Math.trunc(interval * MS_PER_DAY)
       )
-      expect(result.card.state).toBe(State.Review)
+      expect(result.card.state).toBe(State.Learning)
       const previews = Array.from(scheduler.preview({ card, now }))
       for (const preview of previews) {
         expect(preview.card).toEqual(
@@ -274,14 +320,14 @@ describe('DefaultScheduler FSRS-7', () => {
         expect(result.card.scheduledDays).toBe(
           scheduler.model.nextInterval(result.card, 0.9)
         )
-        expect(result.card.state).toBe(State.Review)
+        expect(result.card.state).toBe(State.Learning)
       }
       expect(result.card.learningStep).toBe(0)
       expect(scheduler.rollback(result)).toEqual(card)
     }
   )
 
-  it('graduates a completed step even when the model interval is below one day', async () => {
+  it('keeps a completed step in learning when the model interval is below one day', async () => {
     const scheduler = await DefaultScheduler({
       version: 'FSRS-7',
       desiredRetention: 0.99,
@@ -299,8 +345,8 @@ describe('DefaultScheduler FSRS-7', () => {
     })
     expect(result.card.scheduledDays).toBeGreaterThan(0)
     expect(result.card.scheduledDays).toBeLessThan(1)
-    expect(result.card.state).toBe(State.Review)
-    expect(result.card.scheduleStatus).toBe('review')
+    expect(result.card.state).toBe(State.Learning)
+    expect(result.card.scheduleStatus).toBe('learning')
     expect(result.card.learningStep).toBe(0)
   })
 
@@ -349,4 +395,60 @@ describe('DefaultScheduler FSRS-7', () => {
     expect(withSteps.model.step(input)).toEqual(model.step(input))
     expect(withoutSteps.model.step(input)).toEqual(model.step(input))
   })
+})
+
+describe('FSRS-7 model interval state transitions', () => {
+  it.each([true, false])(
+    'maps final intervals for every state with enableShortTerm=%s',
+    async (enableShortTerm) => {
+      const scheduler = await DefaultScheduler({
+        enableShortTerm,
+        learningSteps: [],
+        relearningSteps: [],
+      })
+      const interval = vi.spyOn(scheduler.model, 'nextInterval')
+      for (const state of [
+        State.New,
+        State.Learning,
+        State.Review,
+        State.Relearning,
+      ]) {
+        const card = {
+          ...scheduler.newCard({ now }),
+          stability: 1,
+          stabilityFast: 0.8,
+          difficulty: 5,
+          state,
+          scheduleStatus:
+            state === State.New
+              ? 'new'
+              : state === State.Review
+                ? 'review'
+                : 'learning',
+          lastReviewAt: state === State.New ? null : now,
+        } as const
+        for (const days of [0, 0.5, 1, 2]) {
+          interval.mockReturnValue(days)
+          for (const result of scheduler.preview({ card, now })) {
+            const expected =
+              days < 1
+                ? state === State.New || state === State.Learning
+                  ? State.Learning
+                  : State.Relearning
+                : State.Review
+            expect(result.card.state).toBe(expected)
+            expect(result.card.scheduleStatus).toBe(
+              days < 1 ? 'learning' : 'review'
+            )
+            expect(result.card.learningStep).toBe(0)
+            expect(result.card).toEqual(
+              scheduler.review({ card, now, grade: result.grade }).card
+            )
+            expect(scheduler.rollback(result)).toEqual(card)
+          }
+        }
+      }
+      interval.mockRestore()
+    }
+  )
 })

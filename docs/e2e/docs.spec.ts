@@ -137,7 +137,7 @@ for (const route of [
 ]) {
   test(`State transition diagram loads on ${route}`, async ({ page }) => {
     await page.goto(route)
-    const diagram = page.locator('img[src*="state-transitions"]')
+    const diagram = page.getByRole('img', { name: /^DefaultScheduler/ })
     await expect(diagram).toBeVisible()
     expect(
       await diagram.evaluate(

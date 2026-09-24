@@ -10,7 +10,7 @@ description: ts-fsrs に同梱されるミドルウェアポリシーと、Defau
 | ミドルウェア | 動作 |
 | --- | --- |
 | `schedulerDesiredRetentionMiddleware` | 間隔の計算前に設定の `desiredRetention` を適用します。範囲は `(0, 1)` です。 |
-| `schedulerLearningStepsMiddleware` | `enableShortTerm` が有効な場合に `learningSteps` と `relearningSteps` を適用し、`learningStep` と学習状態を管理します。 |
+| `schedulerLearningStepsMiddleware` | `enableShortTerm` が有効な場合に明示的な `learningSteps` と `relearningSteps` を適用し、`learningStep` を管理します。この設定にかかわらず、モデルによる間隔も含め、最終間隔が 1 日未満なら `Learning`/`Relearning` に割り当てます。 |
 | `schedulerFuzzingMiddleware` | `enableFuzz` が有効な場合に間隔を分散します。`cardId` と復習回数を使うため結果を再現できます。`createSchedulerFuzzingMiddleware()` で範囲や乱数生成器を指定できます。 |
 | `schedulerMaximumIntervalMiddleware` | 日単位の間隔を `maximumInterval` 以下に制限します。呼び出しから戻る際、明示的な学習ステップはこの上限を上書きできます。 |
 | `schedulerStatsMiddleware` | `reps` と `lapses` を管理します。リセット時に消去するかは `clearStatsOnForget` で指定します。Review 状態のカードを Again と評価した場合に忘却を一回と数えます。 |

@@ -105,7 +105,7 @@ describe('fuzzing with explicit learning steps', () => {
           fractionalDays ? Math.trunc(interval * DAY) : 0
         )
         expect(result.card.scheduledDays).toBe(fractionalDays ? interval : 0)
-        expect(result.card.state).toBe(State.Review)
+        expect(result.card.state).toBe(State.Learning)
         expect(result.card.learningStep).toBe(0)
       }
     }
