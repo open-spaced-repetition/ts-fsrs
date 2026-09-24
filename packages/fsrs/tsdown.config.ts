@@ -2,10 +2,14 @@ import path from 'node:path'
 import { defineConfig } from 'tsdown'
 
 const alias = { '@': path.resolve(import.meta.dirname, 'src') }
+const env = {
+  TS_FSRS_DISABLE_ROUNDING: true,
+}
 
 export default defineConfig([
   {
     alias,
+    env,
     entry: {
       index: 'src/index.ts',
       error: 'src/error.ts',
@@ -38,6 +42,7 @@ export default defineConfig([
   },
   {
     alias,
+    env,
     entry: { index: 'src/index.ts' },
     format: ['umd'],
     outDir: 'dist',
