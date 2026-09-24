@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { runInNewContext } from 'node:vm'
 import { build } from 'tsdown'
-import { expect, it } from 'vitest'
+import { expect, it, vi } from 'vitest'
 import { roundTo } from './help'
 
 async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
@@ -18,6 +18,20 @@ async function withTempDir<T>(fn: (dir: string) => Promise<T>): Promise<T> {
 it('rounds by default', () => {
   expect(roundTo(1.23456789, 3)).toBe(1.235)
   expect(roundTo(1.23456789, 0)).toBe(1)
+})
+
+it('returns the input when rounding is disabled', () => {
+  // Vitest proxies import.meta.env to process.env; stubEnv coerces custom flags to strings.
+  vi.stubGlobal('process', {
+    ...process,
+    env: { ...process.env, TS_FSRS_DISABLE_ROUNDING: true },
+  })
+  try {
+    expect(roundTo(1.23456789, 3)).toBe(1.23456789)
+    expect(roundTo(-0, 3)).toBe(-0)
+  } finally {
+    vi.unstubAllGlobals()
+  }
 })
 
 it.each([false, true])(
