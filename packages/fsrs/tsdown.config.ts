@@ -3,7 +3,7 @@ import { defineConfig } from 'tsdown'
 
 const alias = { '@': path.resolve(import.meta.dirname, 'src') }
 const env = {
-  TS_FSRS_DISABLE_ROUNDING: true,
+  TS_FSRS_DISABLE_ROUNDING: false,
 }
 
 export default defineConfig([
