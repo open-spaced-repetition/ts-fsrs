@@ -55,16 +55,13 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       ctx.result.revlog.learningStep = card.learningStep
       ctx.result.card.learningStep = 0
 
-      if (step && scheduledMinutes !== undefined) {
-        if (scheduledMinutes > 0 && scheduledMinutes < MINUTES_PER_DAY) {
-          ctx.result.card.learningStep = Math.max(0, step.nextStep)
-          ctx.result.card.state = nextLearningState(card.state)
-          ctx.result.card.scheduleStatus = 'learning'
-        } else if (scheduledMinutes >= MINUTES_PER_DAY) {
-          ctx.result.card.learningStep = Math.max(0, step.nextStep)
-          ctx.result.card.state = State.Review
-          ctx.result.card.scheduleStatus = 'review'
-        }
+      if (step && scheduledMinutes !== undefined && scheduledMinutes > 0) {
+        ctx.result.card.learningStep = Math.max(0, step.nextStep)
+      }
+      // Model-generated intervals can also require another review within a day.
+      if (ctx.scheduledDays !== undefined && ctx.scheduledDays < 1) {
+        ctx.result.card.state = nextLearningState(card.state)
+        ctx.result.card.scheduleStatus = 'learning'
       }
     },
 

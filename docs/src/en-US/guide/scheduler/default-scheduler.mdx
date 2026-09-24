@@ -26,8 +26,8 @@ For cost-adaptive retention, compose a custom definition with `schedulerCostAdrM
 | `weights` | preset weights | Optional trained weights; omit to use the preset's defaults for the selected version. FSRS-7 requires exactly 34 FSRS-7 weights; supplying legacy weights throws during scheduler construction. |
 | `desiredRetention` | `0.9` | Target retention applied before interval calculation. |
 | `enableShortTerm` | `true` | Enables learning and relearning steps. |
-| `learningSteps` | preset steps | Learning steps applied when `enableShortTerm` is on. |
-| `relearningSteps` | preset steps | Relearning steps applied when `enableShortTerm` is on. |
+| `learningSteps` | FSRS-7: `[]`; other versions: `['1m', '10m']` | Learning steps applied when `enableShortTerm` is on. |
+| `relearningSteps` | FSRS-7: `[]`; other versions: `['10m']` | Relearning steps applied when `enableShortTerm` is on. |
 | `enableFuzz` | `false` | Spreads intervals for variety when enabled. |
 | `maximumInterval` | `36500` | Upper bound on the interval in days. |
 | `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |
