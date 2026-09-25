@@ -162,14 +162,78 @@ export function assert(
   }
 }
 
-export function assignObjectFields(
-  target: Record<PropertyKey, unknown>,
-  source: object
-) {
+// Only for fresh records kept private until all fields have been copied.
+// An empty frozen prototype prevents inherited setters during native assignment.
+export const emptyRecordPrototype: object = Object.freeze(Object.create(null))
+
+/**
+ * Write an own data property without invoking a target setter.
+ * The target must be a library-owned mutable ordinary record.
+ */
+function defineOwnDataField(
+  target: object,
+  key: PropertyKey,
+  value: unknown
+): void {
+  const record = target as Record<PropertyKey, unknown>
+  // Direct writes are safe only for absent or own data keys on plain records.
+  const prototype = Object.getPrototypeOf(target)
+  if (prototype === Object.prototype || prototype === null) {
+    if (!(key in target)) {
+      record[key] = value
+      return
+    }
+    const existing = Object.getOwnPropertyDescriptor(target, key)
+    if (
+      existing &&
+      'value' in existing &&
+      existing.writable &&
+      existing.enumerable &&
+      existing.configurable
+    ) {
+      record[key] = value
+      return
+    }
+  }
+  Object.defineProperty(target, key, {
+    value,
+    writable: true,
+    enumerable: true,
+    configurable: true,
+  })
+}
+
+export function assignObjectFields(target: object, source: object) {
   const fields = source as Record<string, unknown>
   for (const key in fields) {
     if (Object.hasOwn(fields, key)) {
-      target[key] = fields[key]
+      defineOwnDataField(target, key, fields[key])
     }
   }
+}
+
+/**
+ * Shallow-copy own enumerable string and symbol values.
+ * Later sources override earlier sources.
+ *
+ * This is a record merge, not a general-purpose Object.assign replacement.
+ */
+export function assignEnumerableDataFields<T extends object>(
+  target: T,
+  ...sources: readonly unknown[]
+): T {
+  for (const source of sources) {
+    if (source == null) continue
+    const fields = Object(source)
+    assignObjectFields(target, fields)
+
+    for (const key of Object.getOwnPropertySymbols(fields)) {
+      const descriptor = Object.getOwnPropertyDescriptor(fields, key)
+      if (!descriptor?.enumerable) continue
+
+      defineOwnDataField(target, key, fields[key])
+    }
+  }
+
+  return target
 }

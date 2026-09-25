@@ -1,6 +1,7 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
 import {
   assert,
+  assignEnumerableDataFields,
   assignObjectFields,
   isFiniteNumber,
   isFunction,
@@ -98,10 +99,12 @@ describe('assert', () => {
 describe('assignObjectFields', () => {
   it('assigns own enumerable fields', () => {
     const target: Record<PropertyKey, unknown> = {}
+    const symbol = Symbol('ignored')
 
-    assignObjectFields(target, { source: 'test', count: 1 })
+    assignObjectFields(target, { source: 'test', count: 1, [symbol]: true })
 
     expect(target).toEqual({ source: 'test', count: 1 })
+    expect(target[symbol]).toBeUndefined()
   })
 
   it('skips inherited fields', () => {
@@ -112,5 +115,99 @@ describe('assignObjectFields', () => {
     assignObjectFields(target, source)
 
     expect(target).toEqual({ own: 'keep' })
+  })
+
+  it('keeps an own __proto__ field without changing the target prototype', () => {
+    const target: Record<PropertyKey, unknown> = {}
+    const source = JSON.parse('{"__proto__":{"polluted":true}}')
+
+    assignObjectFields(target, source)
+
+    expect(Object.getPrototypeOf(target)).toBe(Object.prototype)
+    expect(Object.hasOwn(target, '__proto__')).toBe(true)
+    expect(target.polluted).toBeUndefined()
+  })
+})
+
+describe('assignEnumerableDataFields', () => {
+  it('replaces an own setter with a data property', () => {
+    const target: Record<PropertyKey, unknown> = {}
+    let setterCalls = 0
+    Object.defineProperty(target, 'value', {
+      set(_value: unknown) {
+        setterCalls += 1
+      },
+      configurable: true,
+    })
+
+    assignEnumerableDataFields(target, { value: 1 })
+
+    expect(setterCalls).toBe(0)
+    expect(target.value).toBe(1)
+  })
+
+  it('does not invoke a setter trap on a custom prototype', () => {
+    let setterCalls = 0
+    const prototype = new Proxy(
+      {},
+      {
+        has: () => false,
+        set: () => {
+          setterCalls += 1
+          return true
+        },
+      }
+    )
+    const target = Object.create(prototype) as Record<PropertyKey, unknown>
+
+    assignEnumerableDataFields(target, { value: 1 })
+
+    expect(setterCalls).toBe(0)
+    expect(Object.hasOwn(target, 'value')).toBe(true)
+    expect(target.value).toBe(1)
+  })
+
+  it('keeps the enumerable data-property output for existing keys', () => {
+    const target: Record<PropertyKey, unknown> = {}
+    Object.defineProperty(target, 'value', {
+      value: 0,
+      writable: true,
+      enumerable: false,
+      configurable: true,
+    })
+
+    assignEnumerableDataFields(target, { value: 1 })
+
+    expect(Object.getOwnPropertyDescriptor(target, 'value')).toMatchObject({
+      value: 1,
+      writable: true,
+      enumerable: true,
+      configurable: true,
+    })
+  })
+
+  it('copies enumerable symbols and values without invoking target setters', () => {
+    const symbol = Symbol('field')
+    const source = JSON.parse('{"__proto__":{"polluted":true},"value":1}')
+    Object.defineProperty(source, 'hidden', { value: 'skip' })
+    source[symbol] = 'symbol'
+    let setterCalls = 0
+    const inherited = {
+      set value(_value: unknown) {
+        setterCalls += 1
+      },
+    }
+    const target = Object.create(inherited) as Record<PropertyKey, unknown>
+
+    expect(assignEnumerableDataFields(target, source, { value: 2 })).toBe(
+      target
+    )
+    expect(Object.getPrototypeOf(target)).toBe(inherited)
+    expect(Object.hasOwn(target, '__proto__')).toBe(true)
+    expect(target.polluted).toBeUndefined()
+    expect(target.value).toBe(2)
+    expect(target[symbol]).toBe('symbol')
+    expect(Object.hasOwn(target, 'hidden')).toBe(false)
+    expect(setterCalls).toBe(0)
   })
 })

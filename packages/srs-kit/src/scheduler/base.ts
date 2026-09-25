@@ -16,6 +16,7 @@ import {
 import { getAttachedValue } from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import {
+  assignEnumerableDataFields,
   composeMiddleware,
   createLazyIterable,
   desiredRetentionSchema,
@@ -489,10 +490,11 @@ export class BaseScheduler<
       }
     ) as PreparedReview<Env>['time']
 
-    const elapsedDays =
+    const _elapsedDays =
       card.state === State.New
         ? 0
         : this.chrono.difference(time.previous ?? time.current, now)
+    const elapsedDays = elapsedDaysSchema.parse(_elapsedDays)
 
     const retrievability = this.model.forgettingCurve(memoryState, elapsedDays)
     return {
@@ -626,11 +628,11 @@ export class BaseScheduler<
     const { grade } = ctx.input
     const result = ctx.result
 
-    Object.assign(result.card, newMemoryState, {
+    assignEnumerableDataFields(result.card, newMemoryState, {
       state: State.Review,
       scheduleStatus: 'review',
     })
-    Object.assign(result.revlog, memoryState, {
+    assignEnumerableDataFields(result.revlog, memoryState, {
       rating: grade,
       state: prepared.card.state,
       scheduleStatus: prepared.card.scheduleStatus,
@@ -644,7 +646,7 @@ export class BaseScheduler<
     const result = ctx.result
     const revlog = ctx.input.revlog
 
-    Object.assign(
+    assignEnumerableDataFields(
       result.card,
       parse(this.schedulerDefinition.model.schema.memoryState, revlog)
     )
@@ -668,7 +670,7 @@ export class BaseScheduler<
     }
     const chronoCardDefault = this.schedulerDefinition.chrono.defaultValue?.card
     if (chronoCardDefault) {
-      Object.assign(
+      assignEnumerableDataFields(
         result.card,
         chronoCardDefault({
           config: this.config,
@@ -681,7 +683,7 @@ export class BaseScheduler<
     const chronoRevlogDefault =
       this.schedulerDefinition.chrono.defaultValue?.revlog
     if (chronoRevlogDefault) {
-      Object.assign(
+      assignEnumerableDataFields(
         result.revlog,
         chronoRevlogDefault({
           config: this.config,
@@ -713,7 +715,7 @@ export class BaseScheduler<
       time: normalizedTime.current,
     })
     if (cardFields) {
-      Object.assign(result.card, cardFields)
+      assignEnumerableDataFields(result.card, cardFields)
     }
   }
 
