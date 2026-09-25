@@ -177,6 +177,11 @@
       "outputs": [],
       "passThroughEnv": ["CARGO_BUILD_RUSTC_WRAPPER", "RUSTC_WRAPPER"]
     },
+    "ts-fsrs#check": {
+      "dependsOn": ["typecheck"],
+      "outputs": [],
+      "env": ["TURBO_PLATFORM"]
+    },
     "ts-fsrs#typecheck": {
       "dependsOn": ["^build"],
       "outputs": []
