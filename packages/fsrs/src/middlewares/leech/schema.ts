@@ -26,7 +26,7 @@ export const leechConfigSchema = defineSchema<LeechConfigInput, LeechConfig>(
         : value.leechThreshold
     if (
       typeof leechThreshold !== 'number' ||
-      !Number.isInteger(leechThreshold) ||
+      !Number.isSafeInteger(leechThreshold) ||
       leechThreshold < 0
     ) {
       return {
@@ -44,7 +44,11 @@ export const leechCardFieldsSchema = defineSchema<LeechCardFields>((value) => {
   }
 
   const { lapses } = value
-  if (typeof lapses !== 'number' || !Number.isInteger(lapses) || lapses < 0) {
+  if (
+    typeof lapses !== 'number' ||
+    !Number.isSafeInteger(lapses) ||
+    lapses < 0
+  ) {
     return { issues: [{ message: 'Expected non-negative integer lapses' }] }
   }
 

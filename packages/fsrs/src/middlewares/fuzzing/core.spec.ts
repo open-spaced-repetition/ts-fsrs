@@ -43,7 +43,7 @@ describe('fuzzing core', () => {
         'boundary-seed'
       )
       expect(fractional).toBe(integer)
-      expect(Number.isInteger(fractional)).toBe(true)
+      expect(Number.isSafeInteger(fractional)).toBe(true)
     }
   })
 

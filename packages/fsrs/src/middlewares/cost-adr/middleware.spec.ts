@@ -633,7 +633,7 @@ describe('schedulerCostAdrMiddleware', () => {
     const elapsedDays =
       (second.dueAt.getTime() - first.dueAt.getTime()) / 86400000
     expect(elapsedDays).toBeGreaterThan(0)
-    expect(Number.isInteger(elapsedDays)).toBe(false)
+    expect(Number.isSafeInteger(elapsedDays)).toBe(false)
     const preview = Array.from(
       core.preview({ card: second, now: second.dueAt })
     )

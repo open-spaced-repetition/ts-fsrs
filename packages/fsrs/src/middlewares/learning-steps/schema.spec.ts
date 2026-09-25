@@ -36,6 +36,29 @@ describe('learningStepsConfigSchema', () => {
     })
   })
 
+  it('does not cap a finite step at the model maximum interval', () => {
+    expect(
+      learningStepsConfigSchema.parse({
+        enableShortTerm: true,
+        learningSteps: ['1000000d'],
+        relearningSteps: [],
+      }).learningSteps
+    ).toEqual(['1000000d'])
+  })
+
+  it('accepts a dense array with a non-enumerable step', () => {
+    const learningSteps = ['1m']
+    Object.defineProperty(learningSteps, 0, { enumerable: false })
+
+    expect(
+      learningStepsConfigSchema.parse({
+        enableShortTerm: true,
+        learningSteps,
+        relearningSteps: [],
+      }).learningSteps
+    ).toBe(learningSteps)
+  })
+
   it('rejects non-object config', () => {
     expect(() => learningStepsConfigSchema.parse(null)).toThrow(
       'Expected learning steps config object'
@@ -55,7 +78,17 @@ describe('learningStepsConfigSchema', () => {
   })
 
   it('rejects invalid learning step lists', () => {
-    for (const learningSteps of ['1m', [1], ['1x'], ['1e999m']]) {
+    for (const learningSteps of [
+      '1m',
+      [1],
+      ['1x'],
+      ['1e999m'],
+      ['1e308d'],
+      ['1e308m'],
+      ['1e304m'],
+      new Array<StepUnit>(1),
+      new Array<StepUnit>(1_000_000),
+    ]) {
       expect(() =>
         learningStepsConfigSchema.parse({
           enableShortTerm: true,
@@ -67,7 +100,13 @@ describe('learningStepsConfigSchema', () => {
   })
 
   it('rejects invalid relearning step lists', () => {
-    for (const relearningSteps of ['1m', ['-1m']]) {
+    for (const relearningSteps of [
+      '1m',
+      ['-1m'],
+      ['1e308d'],
+      ['1e308m'],
+      new Array<StepUnit>(1),
+    ]) {
       expect(() =>
         learningStepsConfigSchema.parse({
           enableShortTerm: true,

@@ -114,7 +114,8 @@ export const fsrs6ConfigSchema = defineSchema<FSRS6Config>((value) => {
     isNumberArray(value.weights) &&
     typeof value.enableShortTerm === 'boolean' &&
     typeof value.numRelearningSteps === 'number' &&
-    Number.isFinite(value.numRelearningSteps)
+    Number.isSafeInteger(value.numRelearningSteps) &&
+    value.numRelearningSteps >= 0
   ) {
     return {
       value: {
