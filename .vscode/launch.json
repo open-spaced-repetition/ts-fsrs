@@ -3,24 +3,6 @@
   "configurations": [
     {
       "type": "node",
-      "request": "launch",
-      "name": "ts-fsrs debug",
-      "skipFiles": [
-        "<node_internals>/**",
-        "${workspaceFolder}/node_modules/**"
-      ],
-      "env": {
-        // "DEBUG": "*",
-      },
-      "outputCapture": "std",
-      "runtimeExecutable": "tsx",
-      "restart": true,
-      "console": "integratedTerminal",
-      "cwd": "${workspaceFolder}",
-      "args": ["watch", "${workspaceFolder}/debug/index.ts"]
-    },
-    {
-      "type": "node",
       "request": "attach",
       "name": "Node: Nodemon",
       "processId": "${command:PickProcess}",
