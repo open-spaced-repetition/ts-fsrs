@@ -9,6 +9,22 @@ import {
 } from '@open-spaced-repetition/binding'
 
 describe('FSRS model', () => {
+  test('rejects invalid review ratings before creating native items', () => {
+    for (const rating of [0, 5, 4294967295]) {
+      const review = new FSRSBindingReview(rating, 0)
+      for (const reviews of [[review], [new FSRSBindingReview(3, 0), review]]) {
+        expect(() => new FSRSBindingItem(reviews)).toThrow(
+          'rating must be between 1 and 4'
+        )
+      }
+    }
+    for (const rating of [1, 2, 3, 4]) {
+      expect(
+        new FSRSBindingItem([new FSRSBindingReview(rating, 0)]).reviews[0]
+          .rating
+      ).toBe(rating)
+    }
+  })
   test('model', () => {
     const f = new FSRSBinding()
     expect(f).toBeInstanceOf(FSRSBinding)

@@ -144,6 +144,8 @@ fn convert_to_fsrs_items_internal(
   skipped_dates: &[Date],
 ) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
+  // Match fsrs-rs's internal training default: omit longer prefixes, not their initial reviews.
+  entries.truncate(1024);
 
   let position = |timestamp, boundaries: &mut HashMap<Date, (i64, i64)>| {
     study_day_position(
@@ -206,6 +208,7 @@ pub(crate) fn convert_csv_bytes(
     .deserialize::<RevlogEntry>()
     .collect::<std::result::Result<Vec<RevlogEntry>, _>>()
     .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
+  revlogs.retain(|entry| (1..=4).contains(&entry.review_rating));
   // Sort by review_time first to ensure ordering
   revlogs.sort_by_cached_key(|r| (r.card_id.clone(), r.review_time));
 
@@ -264,6 +267,8 @@ pub(crate) fn convert_csv_bytes(
 /// FSRS-7 (the default) normalizes elapsed time by each local study day’s actual
 /// duration between rollover boundaries, including fractional and same-day
 /// intervals. FSRS-6 uses whole study days. Pass the same modelVersion to training.
+/// Only prefixes of up to 1024 reviews after the last learning block are emitted,
+/// matching fsrs-rs's internal training default sequence limit.
 ///
 /// @param timezoneOrOffset Pass an IANA timezone name, such as `Asia/Shanghai`,
 /// when daylight saving rules should be resolved for each review timestamp.
@@ -277,12 +282,20 @@ pub(crate) fn convert_csv_bytes(
 pub fn convert_csv_to_fsrs_items<'env>(
   env: &'env Env,
   data: Either<&[u8], ReadableStream<'env, Uint8Array>>,
-  next_day_starts_at: i64,
+  next_day_starts_at: f64,
   // Accepts an IANA timezone name or a fixed UTC offset in minutes.
   // IANA names resolve DST per review timestamp; numeric offsets stay fixed.
   timezone_or_offset: TimezoneOrOffset,
   model_version: Option<ModelVersion>,
 ) -> Result<Either<Vec<FSRSBindingItem>, PromiseRaw<'env, Object<'env>>>> {
+  if !(0.0..=23.0).contains(&next_day_starts_at) || next_day_starts_at.fract() != 0.0 {
+    let error = napi::Error::from_reason("nextDayStartsAt must be an integer between 0 and 23");
+    return match data {
+      Either::A(_) => Err(error),
+      Either::B(_) => Ok(Either::B(PromiseRaw::reject(env, error)?)),
+    };
+  }
+  let next_day_starts_at = next_day_starts_at as i64;
   let timezone_offset = resolve_timezone_offset(timezone_or_offset);
   let use_fractional_days = !matches!(model_version, Some(ModelVersion::Fsrs6));
 
