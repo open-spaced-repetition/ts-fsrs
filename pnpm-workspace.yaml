@@ -5,6 +5,7 @@ packages:
   # - examples/*
 
 overrides:
+  monaco-editor>dompurify: ^3.4.13
   # Vitest 5 pins tinybench 6.1.4, whose types require the DOM lib.
   vitest>tinybench: 6.2.0
   is-core-module: npm:@nolyfill/is-core-module@^1
