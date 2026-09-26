@@ -45,10 +45,14 @@ export const statsFieldsSchema = defineSchema<StatsCardFields>((value) => {
   }
 
   const { reps, lapses } = value
-  if (typeof reps !== 'number' || !Number.isInteger(reps) || reps < 0) {
+  if (typeof reps !== 'number' || !Number.isSafeInteger(reps) || reps < 0) {
     return { issues: [{ message: 'Expected non-negative integer reps' }] }
   }
-  if (typeof lapses !== 'number' || !Number.isInteger(lapses) || lapses < 0) {
+  if (
+    typeof lapses !== 'number' ||
+    !Number.isSafeInteger(lapses) ||
+    lapses < 0
+  ) {
     return { issues: [{ message: 'Expected non-negative integer lapses' }] }
   }
 

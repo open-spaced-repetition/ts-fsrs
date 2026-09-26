@@ -56,6 +56,67 @@ const usedCore = usedScheduler.create({
 })
 
 describe('SchedulerCore.create', () => {
+  it('copies model defaults before merging middleware fields without invoking setters', () => {
+    const setter = vi.fn()
+    const model = {
+      ...SM2Model,
+      defaultValue: {
+        memoryState: () => {
+          const state = { interval: 0, easeFactor: 2.5, reviewStep: 0 }
+          Object.defineProperty(state, 'reps', {
+            set: setter,
+            enumerable: true,
+            configurable: true,
+          })
+          return state
+        },
+      },
+    }
+    const core = defineScheduler({ model, chrono: numericChrono })
+      .use(schedulerStatsMiddleware)
+      .create({ config })
+    const card = core.newCard({ now: 0 })
+    expect(setter).not.toHaveBeenCalled()
+    expect(card.reps).toBe(0)
+    expect(Object.getPrototypeOf(card)).toBe(Object.prototype)
+  })
+
+  it('keeps __proto__ fields as data through defaults and review', () => {
+    const fields = JSON.parse('{"__proto__":{"polluted":true}}') as Record<
+      string,
+      unknown
+    >
+    const passthrough = defineSchema<Record<string, unknown>>(() => ({
+      value: fields,
+    }))
+    const middleware = defineMiddleware({
+      name: 'proto-field',
+      schema: { config: passthrough, card: passthrough, revlog: passthrough },
+      defaultValue: { card: () => fields },
+    })
+    const guardedScheduler = createSM2NumericScheduler().use(middleware)
+    const guardedCore = guardedScheduler.create({ config })
+    const card = guardedCore.newCard({ now: 0 })
+    const result = guardedCore.review({
+      card,
+      grade: Rating.Good,
+      now: 0,
+    })
+
+    for (const value of [
+      guardedCore.config,
+      card,
+      guardedScheduler.schema.card.parse(card),
+      result.card,
+      result.revlog,
+      guardedScheduler.schema.revlog.parse(result.revlog),
+    ]) {
+      expect(Object.getPrototypeOf(value)).toBe(Object.prototype)
+      expect(Object.hasOwn(value, '__proto__')).toBe(true)
+      expect(value.polluted).toBeUndefined()
+    }
+  })
+
   it('validates config and returns core', () => {
     expect(core.config).toEqual({
       ...config,
