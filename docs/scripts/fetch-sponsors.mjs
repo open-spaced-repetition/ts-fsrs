@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { fetchGitHubSponsors } from 'sponsorkit'
 
@@ -9,7 +9,11 @@ const type =
     ? 'organization'
     : 'user'
 
-const target = fileURLToPath(new URL('../.sponsors.json', import.meta.url))
+mkdirSync(new URL('../.generated/', import.meta.url), { recursive: true })
+
+const target = fileURLToPath(
+  new URL('../.generated/sponsors.json', import.meta.url)
+)
 
 if (!token) {
   console.warn(
