@@ -1,0 +1,24 @@
+---
+title: Cost ADR
+description: "Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`."
+---
+
+import RunCode from '../../../../components/RunCode'
+import costAdrCode from '@/snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts?raw'
+
+# Cost ADR
+
+Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts"
+```
+
+<RunCode code={costAdrCode} />
+
+Runs interval policies for review and direct `scheduler.nextInterval()` queries; update `ctx.candidate.desiredRetention[ctx.input.grade]` before `next()` or `ctx.scheduledDays` afterward.
+
+`goalCostWeight`: [0, 1024]. `costAdrPolicy.coefficients`: 15 × [-64, 64].
+
+`costAdrConfigSchema`, `costAdrPolicySchema`, `CostAdrConfig`, `CostAdrPolicy` — `ts-fsrs/middlewares`.
+
+[DesiredRetention](./desired-retention) · [Middleware](../../../guide/middleware/built-in)

@@ -1,0 +1,52 @@
+---
+title: Reschedule
+description: ts-fsrs/reschedule 入口点 —— 在常规复习流程之外重放复习历史并重排卡片
+---
+
+import RunCode from '../../../components/RunCode'
+import rescheduleCode from '@/snippets/run-code/api/ts-fsrs/reschedule.ts?raw'
+
+# Reschedule
+
+`ts-fsrs/reschedule` 子路径暴露在调度器上重放或重排复习的辅助工具，同时保留其具体类型：
+
+```ts
+import { Reschedule } from 'ts-fsrs/reschedule'
+```
+
+`Reschedule<Scheduler>` 包装一个调度器实例，并从中推断调度器的卡片、记忆状态、复习与结果类型。
+
+## Replay
+
+`reschedule.replay({ history })` 从复习历史重建模型的记忆状态，而不触碰任何卡片：
+
+```ts
+const replay = reschedule.replay({ history })
+// replay.memoryState      — 最后一次复习后的记忆
+// replay.memoryStates     — 每次复习后的记忆
+```
+
+每条历史项都是一个 `{ rating, reviewTime }` 对。从已有记忆状态继续时，在第一个参数中传入 `initialState`。两个方法都接受第二个参数 `{ sortHistory: false }`。默认的 `sortHistory: true` 仅在 chrono 提供 `compare` 时排序。`numericChrono` 或未提供 `compare` 的自定义 chrono 会保留输入顺序，因此必须自行按时间排列历史。手动评分会被跳过；历史至少需要一条非手动复习。
+
+## Reschedule
+
+`reschedule.reschedule({ history, initialCard })` 通过调度器重放复习，并返回每次复习产生的卡片与 revlog：
+
+```ts
+const result = reschedule.reschedule({ history, initialCard: card })
+// result.results  — 每次复习后的卡片与 revlog
+// result.card     — 最后一次复习后的卡片
+```
+
+```ts twoslash file="../../../snippets/run-code/api/ts-fsrs/reschedule.ts"
+```
+
+<RunCode code={rescheduleCode} />
+
+`replay` 仅凭历史重建稳定性（`2.3065`）；`reschedule` 通过调度器重新计算卡片及其到期时间。
+
+**相关类型** —— `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`，以及推断类型 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
+
+**另见** —— [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。
+
+`ts-fsrs` 的 `FSRSMemoryStateSchema` 描述 FSRS-3–6 的 `{ stability, difficulty }`。FSRS-7 使用 `ts-fsrs/models/fsrs-7` 的 `FSRS7MemoryStateSchema`，增加 `stabilityFast`。旧状态需要通过 `Reschedule` 重放历史重建；迁移权重不会重建快速轨迹。

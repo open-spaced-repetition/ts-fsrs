@@ -1,0 +1,30 @@
+---
+title: DesiredRetention
+description: 內建中介軟體 schedulerDesiredRetentionMiddleware——在間隔計算前套用目標保留率
+---
+
+import RunCode from '../../../../components/RunCode'
+import desiredRetentionCode from '@/snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts?raw'
+
+# DesiredRetention
+
+`ts-fsrs/middlewares` 匯出 `schedulerDesiredRetentionMiddleware`：
+
+```ts
+import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
+```
+
+它把 `desiredRetention` 加入排程器設定，並在模型計算間隔之前套用，因此保留率越低，間隔就越長。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/desired-retention.ts"
+```
+
+<RunCode code={desiredRetentionCode} />
+
+以 `0.9` 與 `0.8` 的保留率執行相同的複習，到期時間會相隔三天，而穩定性保持不變。
+
+**另見** — [內建策略](../../../guide/middleware/built-in)。
+
+`desiredRetention` 接受 `(0, 1)` 內的有限數字，或包含全部四種評分的紀錄。`nextInterval` 處理函式寫入候選保留率映射；獨立查詢明確傳入的保留率優先。
+
+Cost ADR 依記憶狀態與複習成本調整保留率。組合時以 `schedulerCostAdrMiddleware` 取代 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。間隔上限仍由 `schedulerMaximumIntervalMiddleware` 負責。

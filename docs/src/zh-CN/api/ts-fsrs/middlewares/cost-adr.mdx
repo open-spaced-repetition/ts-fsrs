@@ -1,0 +1,24 @@
+---
+title: Cost ADR
+description: "Cost ADR 根据记忆状态和复习成本调整保留率。组合时用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。间隔上限仍由 `schedulerMaximumIntervalMiddleware` 负责。"
+---
+
+import RunCode from '../../../../components/RunCode'
+import costAdrCode from '@/snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts?raw'
+
+# Cost ADR
+
+Cost ADR 根据记忆状态和复习成本调整保留率。组合时用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。间隔上限仍由 `schedulerMaximumIntervalMiddleware` 负责。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/cost-adr.ts"
+```
+
+<RunCode code={costAdrCode} />
+
+在复习及直接调用 `scheduler.nextInterval()` 时执行间隔策略；在 `next()` 前设置 `ctx.candidate.desiredRetention[ctx.input.grade]`，或在其后调整 `ctx.scheduledDays`。
+
+`goalCostWeight`: [0, 1024]. `costAdrPolicy.coefficients`: 15 × [-64, 64].
+
+`costAdrConfigSchema`, `costAdrPolicySchema`, `CostAdrConfig`, `CostAdrPolicy` — `ts-fsrs/middlewares`.
+
+[DesiredRetention](./desired-retention) · [Middleware](../../../guide/middleware/built-in)

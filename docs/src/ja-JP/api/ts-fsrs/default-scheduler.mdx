@@ -1,0 +1,42 @@
+---
+title: DefaultScheduler
+description: DefaultScheduler のリファレンス——すぐ使えるスケジューラプリセットを返す非同期ファクトリ
+---
+
+# DefaultScheduler
+
+**インポート：** `import { DefaultScheduler } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+DefaultScheduler(options?): Promise<DefaultScheduler>
+```
+
+**オプション**（`DefaultSchedulerOptions`）
+
+| オプション | デフォルト値 | 備考 |
+| --- | --- | --- |
+| `version` | `'FSRS-7'` | `'FSRS-3'` … `'FSRS-7'`。バージョンごとにパラメータが移行されます。 |
+| `weights` | プリセットの重み | 任意の学習済み重み。 |
+| `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
+| `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
+| `learningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
+| `relearningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
+| `enableFuzz` | `false` | 有効にすると間隔を分散させます。 |
+| `maximumInterval` | `36500` | 間隔の日数上限。 |
+| `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |
+
+**挙動** — デフォルトでは FSRS-7 を `dateChrono` と組み込みポリシーに組み合わせ、`newCard`、`review`、`rollback`、`preview`、`forget` を公開するインスタンスを返します。
+
+**関連型** — `DefaultSchedulerCard`、`DefaultSchedulerCardInput`、`DefaultSchedulerRevlog`、`DefaultSchedulerOptions`。
+
+**参照** — [DefaultScheduler プリセット](../../guide/scheduler/default-scheduler)、[組み込みポリシー](../../guide/middleware/built-in)。
+
+FSRS-7 はデフォルトモデルです。34 個の重みと 2 つの安定性トレースで小数日の復習を扱います。設定は `weights` のみです。明示的な学習ステップはミドルウェアのポリシーであり、高速トレースを無効にするものではありません。
+
+`ts-fsrs` の `FSRSMemoryStateSchema` は FSRS-3–6 の `{ stability, difficulty }` を表します。FSRS-7 は `ts-fsrs/models/fsrs-7` の `FSRS7MemoryStateSchema` を使い、`stabilityFast` を追加します。旧状態は `Reschedule` で履歴を再生して再構築します。重みの移行だけでは高速トレースは復元できません。
+
+Cost ADR は記憶状態と復習コストから保持率を調整します。`schedulerDesiredRetentionMiddleware` の代わりに `schedulerCostAdrMiddleware` を組み合わせます。`DefaultScheduler` には含まれません。間隔の上限は引き続き `schedulerMaximumIntervalMiddleware` が担当します。
+
+計算済みの評価後の記憶状態から `handlers.nextInterval` を通して日数を返します。review ハンドラを実行せず、カードや chrono を進めません。

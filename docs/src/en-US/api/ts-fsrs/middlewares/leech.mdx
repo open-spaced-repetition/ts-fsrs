@@ -1,0 +1,26 @@
+---
+title: Leech
+description: Built-in middleware schedulerLeechMiddleware — suspends cards that lapse past a threshold
+---
+
+import RunCode from '../../../../components/RunCode'
+import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
+
+# Leech
+
+`ts-fsrs/middlewares` export `schedulerLeechMiddleware`:
+
+```ts
+import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
+```
+
+It reads lapses from the stats middleware and sets `scheduleStatus` to `suspended` whenever lapses reach a positive integer multiple of `leechThreshold`. The default threshold `0` disables suspension; your application must respect the status when selecting cards.
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
+```
+
+<RunCode code={leechCode} />
+
+With `leechThreshold: 1`, two lapses suspend the card.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

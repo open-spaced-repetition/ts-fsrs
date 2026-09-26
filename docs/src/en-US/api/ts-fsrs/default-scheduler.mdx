@@ -1,0 +1,42 @@
+---
+title: DefaultScheduler
+description: Reference for DefaultScheduler — async factory returning a ready scheduler preset
+---
+
+# DefaultScheduler
+
+**Import:** `import { DefaultScheduler } from 'ts-fsrs'`
+
+**Signature**
+
+```ts
+DefaultScheduler(options?): Promise<DefaultScheduler>
+```
+
+**Options** (`DefaultSchedulerOptions`)
+
+| Option | Default | Notes |
+| --- | --- | --- |
+| `version` | `'FSRS-7'` | `'FSRS-3'` … `'FSRS-7'`; parameters migrate per version. |
+| `weights` | preset weights | Optional trained weights. |
+| `desiredRetention` | `0.9` | Target retention before interval calculation. |
+| `enableShortTerm` | `true` | Enables learning and relearning steps. |
+| `learningSteps` | preset steps | Applied when short-term scheduling is on. |
+| `relearningSteps` | preset steps | Applied when short-term scheduling is on. |
+| `enableFuzz` | `false` | Spreads intervals when enabled. |
+| `maximumInterval` | `36500` | Upper bound on the interval in days. |
+| `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |
+
+**Behavior** — composes FSRS-7 (by default) with `dateChrono` and the built-in policies; returns an instance exposing `newCard`, `review`, `rollback`, `preview`, and `forget`.
+
+**Related types** — `DefaultSchedulerCard`, `DefaultSchedulerCardInput`, `DefaultSchedulerRevlog`, `DefaultSchedulerOptions`.
+
+**See** — [DefaultScheduler preset](../../guide/scheduler/default-scheduler), [Built-in policies](../../guide/middleware/built-in).
+
+FSRS-7 is the default model. Its 34 weights and dual stability traces model fractional-day reviews. Config contains only `weights`; explicit learning steps are middleware policy, not a switch that disables the fast trace.
+
+`FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.
+
+Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
+
+Uses an already computed post-rating memory state and returns days through `handlers.nextInterval`. It does not run review handlers or advance the card or chrono.
