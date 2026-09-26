@@ -130,6 +130,28 @@ describe('assignObjectFields', () => {
 })
 
 describe('assignEnumerableDataFields', () => {
+  it('skips nullish sources while copying boxed primitive fields', () => {
+    const target = {}
+
+    expect(assignEnumerableDataFields(target, null, 'ab', undefined, 1)).toBe(
+      target
+    )
+    expect(target).toEqual({ 0: 'a', 1: 'b' })
+  })
+
+  it('skips non-enumerable symbols without reading their values', () => {
+    const symbol = Symbol('hidden')
+    const source = Object.defineProperty({ visible: 1 }, symbol, {
+      get() {
+        throw new Error('Non-enumerable values must not be read')
+      },
+    })
+    const target = assignEnumerableDataFields({}, source)
+
+    expect(target).toEqual({ visible: 1 })
+    expect(Object.hasOwn(target, symbol)).toBe(false)
+  })
+
   it('replaces an own setter with a data property', () => {
     const target: Record<PropertyKey, unknown> = {}
     let setterCalls = 0
