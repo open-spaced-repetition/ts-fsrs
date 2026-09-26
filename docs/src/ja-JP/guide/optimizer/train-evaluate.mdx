@@ -5,6 +5,7 @@ description: binding で復習ログのパイプラインを追う——CSV を�
 
 import RunCode from '../../../components/RunCode'
 import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+import optimizerCardIdsCode from '@/snippets/run-code/optimizer-card-ids.ts?raw'
 
 # 学習と評価
 
@@ -30,6 +31,15 @@ import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
 ```
 
 <RunCode code={optimizerCsvCode} />
+
+既存の変換関数は引き続き配列を返します。CSV の任意のカード識別子を一度だけ数値化するには、`convertCsvToFsrsItemsWithCardIds` を使います。戻り値は `{ items, cardIds }`（ストリーム入力では Promise）です。数値 ID は今回の変換で残ったカードごとに割り当てられ、ソート後の items と添字で対応します。元の識別子ではありません。同じ IDs を学習と直接評価に再利用し、別々の変換結果の IDs を混在させないでください。
+
+`computeParameters` と `evaluateWithTimeSeriesSplits` は任意の `options.cardIds` を受け取ります。
+
+```ts file="../../../snippets/run-code/optimizer-card-ids.ts"
+```
+
+<RunCode code={optimizerCardIdsCode} />
 
 CSV 変換・学習・評価・スケジューリングでは同じ `modelVersion`（既定は `'FSRS-7'`、または `'FSRS-6'`）を使います。`convertCsvToFsrsItems` の第 4 引数と学習・評価のオプションに渡し、`DefaultScheduler({ version: modelVersion, weights })` で利用します。FSRS-7 は 34 個の重みを返し、現地の学習日の実際の長さで正規化した小数・同日間隔を保持します。FSRS-6 は 21 個の重みと整数の学習日を使います。同日の追加復習も FSRS-7 の学習に利用できます。
 
