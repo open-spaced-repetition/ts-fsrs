@@ -1,4 +1,4 @@
-import { mkdtempSync, writeFileSync } from 'node:fs'
+import { mkdirSync, mkdtempSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { describe, expect, it } from 'vitest'
@@ -7,8 +7,9 @@ import { readLandingContributors, readLandingSponsors } from './community'
 describe('landing community data', () => {
   it('accepts GitHub web URLs', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    mkdirSync(path.join(dir, '.generated'))
     writeFileSync(
-      path.join(dir, '.contributors.json'),
+      path.join(dir, '.generated/contributors.json'),
       JSON.stringify([
         {
           login: 'octocat',
@@ -23,20 +24,23 @@ describe('landing community data', () => {
 
   it('treats a missing file as the offline case', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    mkdirSync(path.join(dir, '.generated'))
     expect(readLandingContributors(dir)).toEqual([])
     expect(readLandingSponsors(dir)).toEqual([])
   })
 
   it('reports a file it cannot parse', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
-    writeFileSync(path.join(dir, '.sponsors.json'), '{ not json')
+    mkdirSync(path.join(dir, '.generated'))
+    writeFileSync(path.join(dir, '.generated/sponsors.json'), '{ not json')
     expect(() => readLandingSponsors(dir)).toThrow('is not valid JSON')
   })
 
   it('rejects non-web links', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    mkdirSync(path.join(dir, '.generated'))
     writeFileSync(
-      path.join(dir, '.contributors.json'),
+      path.join(dir, '.generated/contributors.json'),
       JSON.stringify([
         {
           login: 'bad',
@@ -51,8 +55,9 @@ describe('landing community data', () => {
 
   it('keeps current and past sponsors without exposing amounts', () => {
     const dir = mkdtempSync(path.join(tmpdir(), 'ts-fsrs-community-'))
+    mkdirSync(path.join(dir, '.generated'))
     writeFileSync(
-      path.join(dir, '.sponsors.json'),
+      path.join(dir, '.generated/sponsors.json'),
       JSON.stringify([
         {
           login: 'current',

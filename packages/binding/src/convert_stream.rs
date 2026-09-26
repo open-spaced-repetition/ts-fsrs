@@ -2,10 +2,10 @@ use std::rc::Rc;
 
 use napi::bindgen_prelude::{
   Either, Env, Function, FunctionRef, JsObjectValue, JsValue, Object, PromiseRaw, ReadableStream,
-  Result, Uint8Array,
+  Result, ToNapiValue, Uint8Array,
 };
 
-use crate::{convert::convert_csv_bytes, timezone::TimezoneOffset};
+use crate::{convert::CsvConverter, timezone::TimezoneOffset};
 
 type ReadFunction<'env> = FunctionRef<(), PromiseRaw<'env, Object<'env>>>;
 type ReleaseLockFunction = FunctionRef<(), ()>;
@@ -24,17 +24,18 @@ fn bind_stream_reader<'env>(
   ))
 }
 
-fn read_csv_stream<'env>(
+fn read_csv_stream<'env, T: ToNapiValue + 'static>(
   env: &Env,
   read: ReadFunction<'env>,
   mut data: Vec<u8>,
   next_day_starts_at: i64,
   timezone_offset: TimezoneOffset,
   use_fractional_days: bool,
+  converter: CsvConverter<T>,
 ) -> Result<PromiseRaw<'env, Object<'env>>> {
   let chained = read.borrow_back(env)?.call(())?.then(move |context| {
     if context.value.get_named_property("done")? {
-      return Ok(Either::A(convert_csv_bytes(
+      return Ok(Either::A(converter(
         &data,
         next_day_starts_at,
         &timezone_offset,
@@ -52,19 +53,21 @@ fn read_csv_stream<'env>(
       next_day_starts_at,
       timezone_offset,
       use_fractional_days,
+      converter,
     )?))
   })?;
 
-  // Returning the next read Promise lets JavaScript flatten the chain until the final array.
+  // Returning the next read Promise lets JavaScript flatten the chain until the final converted result.
   Ok(PromiseRaw::new(env.raw(), chained.raw()))
 }
 
-pub(crate) fn convert_csv_stream<'env>(
+pub(crate) fn convert_csv_stream<'env, T: ToNapiValue + 'static>(
   env: &'env Env,
   stream: ReadableStream<'env, Uint8Array>,
   next_day_starts_at: i64,
   timezone_offset: TimezoneOffset,
   use_fractional_days: bool,
+  converter: CsvConverter<T>,
 ) -> Result<PromiseRaw<'env, Object<'env>>> {
   if stream.locked()? {
     return PromiseRaw::reject(env, napi::Error::from_reason("ReadableStream is locked"));
@@ -83,6 +86,7 @@ pub(crate) fn convert_csv_stream<'env>(
     next_day_starts_at,
     timezone_offset,
     use_fractional_days,
+    converter,
   ) {
     Ok(promise) => promise,
     Err(error) => {

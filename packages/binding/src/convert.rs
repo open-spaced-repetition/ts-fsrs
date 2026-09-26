@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, VecDeque};
 
 use csv::ReaderBuilder;
 use fsrs::filter_outlier;
@@ -6,11 +6,14 @@ use itertools::Itertools;
 use napi_derive::napi;
 
 use jiff::{SignedDuration, Timestamp, civil::Date};
-use napi::bindgen_prelude::{Either, Env, Object, PromiseRaw, ReadableStream, Result, Uint8Array};
+use napi::bindgen_prelude::{
+  Either, Env, Object, PromiseRaw, ReadableStream, Result, ToNapiValue, Uint8Array,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::{
   FSRSItem as FSRSBindingItem, ModelVersion,
+  card_id_generator::card_id_generator,
   convert_stream::convert_csv_stream,
   timezone::{TimezoneOffset, TimezoneOrOffset, resolve_timezone_offset},
 };
@@ -194,12 +197,13 @@ fn convert_to_fsrs_items_internal(
   )
 }
 
-pub(crate) fn convert_csv_bytes(
+fn convert_csv_bytes_impl<Id: Copy>(
   data: &[u8],
   next_day_starts_at: i64,
   timezone_offset: &TimezoneOffset,
   use_fractional_days: bool,
-) -> Result<Vec<FSRSBindingItem>> {
+  mut next_card_id: impl FnMut() -> Result<Id>,
+) -> Result<(Vec<FSRSBindingItem>, Vec<Id>)> {
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
 
   let mut revlogs = rdr
@@ -240,13 +244,23 @@ pub(crate) fn convert_csv_bytes(
     .chunk_by(|r| r.card_id.clone())
     .into_iter()
     .map(|(_card_id, entries)| {
-      convert_to_fsrs_items_internal(
+      let items = convert_to_fsrs_items_internal(
         entries.collect(),
         next_day_starts_at,
         timezone_offset,
         use_fractional_days,
         &mut boundaries,
         &skipped_dates,
+      )?;
+      if items.is_empty() {
+        return Ok(Vec::new());
+      }
+      let card_id = next_card_id()?;
+      Ok(
+        items
+          .into_iter()
+          .map(|(item, time)| (item, time, card_id))
+          .collect_vec(),
       )
     })
     .collect::<Result<Vec<_>>>()?
@@ -255,9 +269,57 @@ pub(crate) fn convert_csv_bytes(
     .collect_vec();
 
   // Sort by review_time to maintain correct order across groups
-  revlogs.sort_by_cached_key(|(_, review_time)| *review_time);
+  revlogs.sort_by_cached_key(|(_, review_time, _)| *review_time);
 
-  Ok(revlogs.into_iter().map(|(item, _)| item).collect())
+  Ok(
+    revlogs
+      .into_iter()
+      .map(|(item, _, card_id)| (item, card_id))
+      .unzip(),
+  )
+}
+
+pub(crate) type CsvConverter<T> = fn(&[u8], i64, &TimezoneOffset, bool) -> Result<T>;
+
+fn convert_csv_bytes(
+  data: &[u8],
+  next_day_starts_at: i64,
+  timezone_offset: &TimezoneOffset,
+  use_fractional_days: bool,
+) -> Result<Vec<FSRSBindingItem>> {
+  // Unit IDs are zero-sized: the legacy array path does not allocate an ID vector.
+  convert_csv_bytes_impl(
+    data,
+    next_day_starts_at,
+    timezone_offset,
+    use_fractional_days,
+    || Ok(()),
+  )
+  .map(|(items, _)| items)
+}
+
+/// Items and batch-local numeric group IDs, aligned by index.
+#[napi(object, object_from_js = false, js_name = "FSRSItemsWithCardIds")]
+pub struct FSRSItemsWithCardIds {
+  pub items: Vec<FSRSBindingItem>,
+  /// Opaque IDs assigned once per retained CSV card; not the original CSV identifiers.
+  pub card_ids: Vec<i64>,
+}
+
+fn convert_csv_bytes_with_card_ids(
+  data: &[u8],
+  next_day_starts_at: i64,
+  timezone_offset: &TimezoneOffset,
+  use_fractional_days: bool,
+) -> Result<FSRSItemsWithCardIds> {
+  let (items, card_ids) = convert_csv_bytes_impl(
+    data,
+    next_day_starts_at,
+    timezone_offset,
+    use_fractional_days,
+    card_id_generator(),
+  )?;
+  Ok(FSRSItemsWithCardIds { items, card_ids })
 }
 
 /// Convert CSV review logs to FSRS training items.
@@ -286,6 +348,51 @@ pub fn convert_csv_to_fsrs_items<'env>(
   timezone_or_offset: TimezoneOrOffset,
   model_version: Option<ModelVersion>,
 ) -> Result<Either<Vec<FSRSBindingItem>, PromiseRaw<'env, Object<'env>>>> {
+  convert_csv(
+    env,
+    data,
+    next_day_starts_at,
+    timezone_or_offset,
+    model_version,
+    convert_csv_bytes,
+  )
+}
+
+/// Convert CSV logs and assign batch-local numeric card IDs for windowed training/evaluation.
+/// Original string or numeric CSV identifiers are grouped as exact strings, never parsed as i64.
+/// IDs stay aligned with items after filtering and chronological sorting. Do not combine IDs
+/// from separate conversions without reassigning groups across the combined dataset.
+#[napi(
+  ts_generic_types = "T extends Uint8Array | ReadableStream<Uint8Array>",
+  ts_args_type = "data: T, nextDayStartsAt: number, timezoneOrOffset: TimezoneOrOffset, modelVersion?: `${ModelVersion}`",
+  ts_return_type = "T extends ReadableStream<Uint8Array> ? Promise<FSRSItemsWithCardIds> : FSRSItemsWithCardIds"
+)]
+pub fn convert_csv_to_fsrs_items_with_card_ids<'env>(
+  env: &'env Env,
+  data: Either<&[u8], ReadableStream<'env, Uint8Array>>,
+  next_day_starts_at: i64,
+  timezone_or_offset: TimezoneOrOffset,
+  model_version: Option<ModelVersion>,
+) -> Result<Either<FSRSItemsWithCardIds, PromiseRaw<'env, Object<'env>>>> {
+  convert_csv(
+    env,
+    data,
+    next_day_starts_at,
+    timezone_or_offset,
+    model_version,
+    convert_csv_bytes_with_card_ids,
+  )
+}
+
+#[inline]
+fn convert_csv<'env, T: ToNapiValue + 'static>(
+  env: &'env Env,
+  data: Either<&[u8], ReadableStream<'env, Uint8Array>>,
+  next_day_starts_at: i64,
+  timezone_or_offset: TimezoneOrOffset,
+  model_version: Option<ModelVersion>,
+  converter: CsvConverter<T>,
+) -> Result<Either<T, PromiseRaw<'env, Object<'env>>>> {
   if !(0..=23).contains(&next_day_starts_at) {
     let error = napi::Error::from_reason("nextDayStartsAt must be between 0 and 23");
     return match data {
@@ -299,7 +406,7 @@ pub fn convert_csv_to_fsrs_items<'env>(
   match data {
     Either::A(data) => {
       let timezone_offset = timezone_offset?;
-      Ok(Either::A(convert_csv_bytes(
+      Ok(Either::A(converter(
         data,
         next_day_starts_at,
         &timezone_offset,
@@ -313,24 +420,72 @@ pub fn convert_csv_to_fsrs_items<'env>(
         next_day_starts_at,
         timezone_offset,
         use_fractional_days,
+        converter,
       )?,
       Err(error) => PromiseRaw::reject(env, error)?,
     })),
   }
 }
 
-pub(crate) fn prepare_items(train_set: Vec<&FSRSBindingItem>) -> Vec<fsrs::FSRSItem> {
+pub(crate) fn validate_card_ids(
+  item_count: usize,
+  card_ids: Option<Vec<i64>>,
+) -> Result<Option<Vec<i64>>> {
+  if card_ids.as_ref().is_some_and(|ids| ids.len() != item_count) {
+    return Err(napi::Error::from_reason(
+      "cardIds length must match items length",
+    ));
+  }
+  Ok(card_ids)
+}
+
+pub(crate) fn prepare_items(
+  train_set: Vec<&FSRSBindingItem>,
+  card_ids: Option<Vec<i64>>,
+) -> Result<(Vec<fsrs::FSRSItem>, Option<Vec<i64>>)> {
+  let card_ids = validate_card_ids(train_set.len(), card_ids)?;
   let train_data: Vec<fsrs::FSRSItem> = train_set
     .into_iter()
     .map(|item| item.inner.clone())
     .collect();
+  let id_lookup = card_ids.map(|ids| {
+    let mut ids_by_reviews = HashMap::new();
+    let mut empty_ids = VecDeque::new();
+    for (item, id) in train_data.iter().zip(ids) {
+      if item.reviews.is_empty() {
+        empty_ids.push_back(id);
+      } else {
+        ids_by_reviews.insert(item.reviews.as_ptr(), id);
+      }
+    }
+    (ids_by_reviews, empty_ids)
+  });
   let (mut dataset_for_initialization, mut trainset): (Vec<fsrs::FSRSItem>, Vec<fsrs::FSRSItem>) =
     train_data
       .into_iter()
       .partition(|item| item.long_term_review_cnt() == 1);
+  // The locked fsrs filter moves records without rebuilding review Vecs. Track their
+  // allocations through its reordering; empty histories remain in trainset order.
+  // The regression test also guards this contract when upgrading fsrs.
   (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
-  dataset_for_initialization
+  let items: Vec<_> = dataset_for_initialization
     .into_iter()
     .chain(trainset)
-    .collect()
+    .collect();
+  let card_ids = id_lookup
+    .map(|(mut ids_by_reviews, mut empty_ids)| {
+      items
+        .iter()
+        .map(|item| {
+          let id = if item.reviews.is_empty() {
+            empty_ids.pop_front()
+          } else {
+            ids_by_reviews.remove(&item.reviews.as_ptr())
+          };
+          id.ok_or_else(|| napi::Error::from_reason("Outlier filtering lost card ID alignment"))
+        })
+        .collect::<Result<Vec<_>>>()
+    })
+    .transpose()?;
+  Ok((items, card_ids))
 }
