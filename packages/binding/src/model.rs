@@ -58,12 +58,20 @@ pub struct FSRSItem {
 #[napi]
 impl FSRSItem {
   #[napi(constructor)]
-  pub fn new(reviews: Vec<&FSRSReview>) -> Self {
-    Self {
+  pub fn new(reviews: Vec<&FSRSReview>) -> napi::Result<Self> {
+    Ok(Self {
       inner: fsrs::FSRSItem {
-        reviews: reviews.iter().map(|x| x.inner).collect(),
+        reviews: reviews
+          .iter()
+          .map(|review| {
+            if !(1..=4).contains(&review.inner.rating) {
+              return Err(napi::Error::from_reason("rating must be between 1 and 4"));
+            }
+            Ok(review.inner)
+          })
+          .collect::<napi::Result<_>>()?,
       },
-    }
+    })
   }
 
   #[napi(getter)]

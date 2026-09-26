@@ -129,7 +129,8 @@ fn remove_revlog_before_last_first_learn(entries: Vec<RevlogEntry>) -> Vec<Revlo
   }
 
   if let Some(start) = last_learning_block_start {
-    entries[start..].to_vec()
+    // Match fsrs-rs's internal training default: omit longer prefixes, not their initial reviews.
+    entries.into_iter().skip(start).take(1024).collect()
   } else {
     vec![]
   }
@@ -142,7 +143,7 @@ fn convert_to_fsrs_items_internal(
   use_fractional_days: bool,
   boundaries: &mut HashMap<Date, (i64, i64)>,
   skipped_dates: &[Date],
-) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
+) -> Result<Vec<(FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
 
   let position = |timestamp, boundaries: &mut HashMap<Date, (i64, i64)>| {
@@ -182,14 +183,13 @@ fn convert_to_fsrs_items_internal(
           })
           .collect();
         (
-          entry.card_id.clone(),
           FSRSBindingItem {
             inner: fsrs::FSRSItem { reviews },
           },
           entry.review_time,
         )
       })
-      .filter(|(_, item, _)| item.current().is_some_and(|r| r.inner.delta_t > 0.0))
+      .filter(|(item, _)| item.current().is_some_and(|r| r.inner.delta_t > 0.0))
       .collect(),
   )
 }
@@ -206,6 +206,7 @@ pub(crate) fn convert_csv_bytes(
     .deserialize::<RevlogEntry>()
     .collect::<std::result::Result<Vec<RevlogEntry>, _>>()
     .map_err(|e| napi::Error::from_reason(format!("CSV deserialization error: {}", e)))?;
+  revlogs.retain(|entry| (1..=4).contains(&entry.review_rating));
   // Sort by review_time first to ensure ordering
   revlogs.sort_by_cached_key(|r| (r.card_id.clone(), r.review_time));
 
@@ -254,9 +255,9 @@ pub(crate) fn convert_csv_bytes(
     .collect_vec();
 
   // Sort by review_time to maintain correct order across groups
-  revlogs.sort_by_cached_key(|(_, _, review_time)| *review_time);
+  revlogs.sort_by_cached_key(|(_, review_time)| *review_time);
 
-  Ok(revlogs.into_iter().map(|(_, item, _)| item).collect())
+  Ok(revlogs.into_iter().map(|(item, _)| item).collect())
 }
 
 /// Convert CSV review logs to FSRS training items.
@@ -264,6 +265,8 @@ pub(crate) fn convert_csv_bytes(
 /// FSRS-7 (the default) normalizes elapsed time by each local study day’s actual
 /// duration between rollover boundaries, including fractional and same-day
 /// intervals. FSRS-6 uses whole study days. Pass the same modelVersion to training.
+/// Only prefixes of up to 1024 reviews after the last learning block are emitted,
+/// matching fsrs-rs's internal training default sequence limit.
 ///
 /// @param timezoneOrOffset Pass an IANA timezone name, such as `Asia/Shanghai`,
 /// when daylight saving rules should be resolved for each review timestamp.
@@ -283,6 +286,13 @@ pub fn convert_csv_to_fsrs_items<'env>(
   timezone_or_offset: TimezoneOrOffset,
   model_version: Option<ModelVersion>,
 ) -> Result<Either<Vec<FSRSBindingItem>, PromiseRaw<'env, Object<'env>>>> {
+  if !(0..=23).contains(&next_day_starts_at) {
+    let error = napi::Error::from_reason("nextDayStartsAt must be between 0 and 23");
+    return match data {
+      Either::A(_) => Err(error),
+      Either::B(_) => Ok(Either::B(PromiseRaw::reject(env, error)?)),
+    };
+  }
   let timezone_offset = resolve_timezone_offset(timezone_or_offset);
   let use_fractional_days = !matches!(model_version, Some(ModelVersion::Fsrs6));
 
@@ -319,5 +329,8 @@ pub(crate) fn prepare_items(train_set: Vec<&FSRSBindingItem>) -> Vec<fsrs::FSRSI
       .into_iter()
       .partition(|item| item.long_term_review_cnt() == 1);
   (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
-  [dataset_for_initialization, trainset].concat()
+  dataset_for_initialization
+    .into_iter()
+    .chain(trainset)
+    .collect()
 }

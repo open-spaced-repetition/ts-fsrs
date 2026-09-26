@@ -13,6 +13,154 @@ describe('CSV Parser', () => {
   const nextDayStartsAt = 4
   const timezone = 'Asia/Shanghai'
 
+  test('ignores invalid CSV ratings for bytes and streams', async () => {
+    const header =
+      'card_id,review_time,review_rating,review_state,review_duration'
+    const validRows = ['1,1704067200000,3,0,1000', '1,1704240000000,3,2,1000']
+    const expected = convertCsvToFsrsItems(
+      Buffer.from([header, ...validRows].join('\n')),
+      4,
+      timezone
+    ).map((item) => item.toString())
+    expect(expected.length).toBeGreaterThan(0)
+    for (const rating of [0, 5, 4294967295]) {
+      const data = Buffer.from(
+        [
+          header,
+          validRows[0],
+          `1,1704153600000,${rating},0,1000`,
+          validRows[1],
+        ].join('\n')
+      )
+      expect(
+        convertCsvToFsrsItems(data, 4, timezone).map((item) => item.toString())
+      ).toEqual(expected)
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(data)
+          controller.close()
+        },
+      })
+      const items = await convertCsvToFsrsItems(stream, 4, timezone)
+      expect(items.map((item) => item.toString())).toEqual(expected)
+      expect(stream.locked).toBe(false)
+      expect(
+        convertCsvToFsrsItems(
+          Buffer.from(`${header}\n1,1704067200000,${rating},0,1000`),
+          4,
+          timezone
+        )
+      ).toEqual([])
+    }
+  })
+
+  test('limits expanded histories to the first 1024 reviews after the last learning block', async () => {
+    for (const version of ['FSRS-6', 'FSRS-7'] as const) {
+      for (const count of [1023, 1024, 1025, 4000]) {
+        const rows = [
+          'card_id,review_time,review_rating,review_state,review_duration',
+        ]
+        // A previous learning block must not consume the new block's budget.
+        rows.push('1,1600000000000,1,0,1000', '1,1600086400000,3,2,1000')
+        for (let i = 0; i < count; i++) {
+          rows.push(
+            `1,${1700000000000 + i * 86400000},3,${i === 0 ? 0 : 2},1000`
+          )
+        }
+        const data = Buffer.from(rows.join('\n'))
+        const items = convertCsvToFsrsItems(data, 4, timezone, version)
+        expect(items.length).toBe(Math.min(count, 1024) - 1)
+        expect(items.at(-1)?.reviews.length).toBe(Math.min(count, 1024))
+        expect(items.at(-1)?.reviews[0].rating).toBe(3)
+        expect(items.at(-1)?.reviews[0].deltaT).toBe(0)
+        const stream = new ReadableStream<Uint8Array>({
+          start(controller) {
+            controller.enqueue(data)
+            controller.close()
+          },
+        })
+        const streamed = await convertCsvToFsrsItems(
+          stream,
+          4,
+          timezone,
+          version
+        )
+        expect(streamed.map((item) => item.toString())).toEqual(
+          items.map((item) => item.toString())
+        )
+      }
+    }
+  })
+
+  test('keeps cross-card timestamp ties and the last learning prefix in order', () => {
+    const day = 86400000
+    const start = 1700000000000
+    const rows = [
+      'card_id,review_time,review_rating,review_state,review_duration',
+      ['b', start, 1, 0, 1000],
+      ['a', start - 3 * day, 1, 0, 1000],
+      ['a', start - 2 * day, 1, 2, 1000],
+      ['a', start, 2, 0, 1000],
+      ['b', start + day, 4, 2, 1000],
+      ['a', start + day, 3, 2, 1000],
+      ['a', start + day, 4, 2, 1000],
+      ['a', start + 2 * day, 2, 2, 1000],
+      ['no-learning', start, 3, 2, 1000],
+      ['no-learning', start + day, 3, 2, 1000],
+    ]
+    const data = Buffer.from(
+      rows
+        .map((row) => (typeof row === 'string' ? row : row.join(',')))
+        .join('\n')
+    )
+    for (const version of ['FSRS-6', 'FSRS-7'] as const) {
+      const items = convertCsvToFsrsItems(data, 4, 0, version)
+      expect(
+        items.map((item) => item.reviews.map((review) => review.rating))
+      ).toEqual([
+        [2, 3],
+        [1, 4],
+        [2, 3, 4, 2],
+      ])
+      expect(items.at(-1)?.reviews.map((review) => review.deltaT)).toEqual([
+        0, 1, 0, 1,
+      ])
+    }
+  })
+
+  test('validates rollover hours before converting bytes or reading streams', async () => {
+    const data = Buffer.from(
+      'card_id,review_time,review_rating,review_state,review_duration\n' +
+        '1,1704067200000,3,0,1000\n1,1704240000000,3,2,1000\n'
+    )
+    for (const hour of [-1, 24, Number.MAX_SAFE_INTEGER]) {
+      expect(() => convertCsvToFsrsItems(data, hour, timezone)).toThrow(
+        'nextDayStartsAt must be between 0 and 23'
+      )
+      const stream = new ReadableStream<Uint8Array>()
+      const result = convertCsvToFsrsItems(stream, hour, timezone)
+      expect(result).toBeInstanceOf(Promise)
+      await expect(result).rejects.toThrow(
+        'nextDayStartsAt must be between 0 and 23'
+      )
+      expect(stream.locked).toBe(false)
+    }
+    for (const hour of [0, 23]) {
+      const expected = convertCsvToFsrsItems(data, hour, timezone)
+      expect(expected.length).toBeGreaterThan(0)
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(data)
+          controller.close()
+        },
+      })
+      const actual = await convertCsvToFsrsItems(stream, hour, timezone)
+      expect(actual.map((item) => item.toString())).toEqual(
+        expected.map((item) => item.toString())
+      )
+    }
+  })
+
   test('FSRS7 preserves same-day fractions for bytes and streams', async () => {
     const base = Date.parse('2024-03-11T06:30:00Z')
     const data = Buffer.from(
