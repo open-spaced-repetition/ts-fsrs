@@ -49,7 +49,7 @@ export const fuzzingConfigSchema = defineSchema<
   }
   if (
     typeof maximumInterval !== 'number' ||
-    !Number.isInteger(maximumInterval) ||
+    !Number.isSafeInteger(maximumInterval) ||
     maximumInterval <= 0
   ) {
     return {
@@ -94,7 +94,7 @@ export const fuzzingCardFieldsSchema = defineSchema<FuzzingCardFields>(
       return { issues: [{ message: 'Expected card cardId' }] }
     }
     const { reps } = value
-    if (typeof reps !== 'number' || !Number.isInteger(reps) || reps < 0) {
+    if (typeof reps !== 'number' || !Number.isSafeInteger(reps) || reps < 0) {
       return { issues: [{ message: 'Expected non-negative integer reps' }] }
     }
     return { value: { cardId, reps } }

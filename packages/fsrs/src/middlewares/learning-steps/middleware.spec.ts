@@ -33,6 +33,38 @@ function createCore({
 }
 
 describe('schedulerLearningStepsMiddleware integration', () => {
+  it('rejects unsafe relearning-step counts at create', () => {
+    const definition = defineScheduler({
+      model: FSRS6Model,
+      chrono: dateChrono,
+    }).use(schedulerLearningStepsMiddleware)
+    for (const numRelearningSteps of [0.5, 2 ** 53]) {
+      expect(() =>
+        definition.create({
+          config: {
+            weights: [...FSRS6_DEFAULT_WEIGHTS],
+            enableShortTerm: true,
+            numRelearningSteps,
+            learningSteps: ['1m'],
+            relearningSteps: ['10m'],
+          },
+        })
+      ).toThrow()
+    }
+  })
+
+  it('rejects sparse and overflowing steps when creating a scheduler', () => {
+    for (const learningSteps of [
+      new Array<StepUnit>(1),
+      ['1e308m' as StepUnit],
+      ['1e308d' as StepUnit],
+    ]) {
+      expect(() => createCore({ learningSteps })).toThrow(
+        'Expected valid learningSteps array'
+      )
+    }
+  })
+
   it('accepts card input without learningStep', () => {
     const core = createCore()
     const now = new Date(2022, 11, 29, 12, 30)

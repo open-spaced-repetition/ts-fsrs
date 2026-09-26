@@ -25,18 +25,27 @@ export const ConvertStepUnitToMinutes = (step: StepUnit): number => {
     throw new FSRSValidationError(`Invalid step value: ${step}`)
   }
 
+  let minutes: number
   switch (unit) {
     case 'm':
-      return value
+      minutes = value
+      break
     case 'h':
-      return value * 60
+      minutes = value * 60
+      break
     case 'd':
-      return value * 1440
+      minutes = value * 1440
+      break
     default:
       throw new FSRSValidationError(
         `Invalid step unit: ${step}, expected m/h/d`
       )
   }
+
+  if (!Number.isFinite(minutes) || !Number.isFinite(minutes * 60)) {
+    throw new FSRSValidationError(`Invalid step value: ${step}`)
+  }
+  return minutes
 }
 
 /**

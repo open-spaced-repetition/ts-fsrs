@@ -4,10 +4,25 @@ import {
   checkFSRS6Parameters,
   clipFSRS6Parameters,
   decaySchema,
+  fsrs6ConfigSchema,
   migrateFSRS6Parameters,
 } from './parameters.js'
 
 describe('FSRS-6 parameters', () => {
+  it('requires a non-negative safe integer relearning-step count', () => {
+    const config = {
+      weights: [...FSRS6_DEFAULT_WEIGHTS],
+      enableShortTerm: true,
+      numRelearningSteps: 2,
+    }
+    expect(fsrs6ConfigSchema.parse(config)).toEqual(config)
+    for (const numRelearningSteps of [-0.5, 0.5, 2 ** 53]) {
+      expect(() =>
+        fsrs6ConfigSchema.parse({ ...config, numRelearningSteps })
+      ).toThrow('Expected FSRS6 config')
+    }
+  })
+
   it('validates decay', () => {
     expect(decaySchema.parse(FSRS6_DECAY)).toBe(FSRS6_DECAY)
     expect(decaySchema.parse(0.1)).toBe(0.1)

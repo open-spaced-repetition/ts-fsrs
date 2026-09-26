@@ -1,4 +1,8 @@
-import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
+import {
+  defineSchema,
+  isObject,
+  scheduledDaysSchema,
+} from '@open-spaced-repetition/srs-kit'
 
 export type ScheduledDaysFields = {
   readonly scheduledDays: number
@@ -6,16 +10,17 @@ export type ScheduledDaysFields = {
 
 export const scheduledDaysFieldsSchema = defineSchema<ScheduledDaysFields>(
   (value) => {
-    if (
-      !isObject(value) ||
-      typeof value.scheduledDays !== 'number' ||
-      !Number.isFinite(value.scheduledDays)
-    ) {
+    if (!isObject(value)) {
       return {
-        issues: [{ message: 'Expected finite scheduledDays' }],
+        issues: [{ message: 'Expected object with scheduledDays' }],
       }
     }
 
-    return { value: { scheduledDays: value.scheduledDays } }
+    const scheduledDays = scheduledDaysSchema.safeParse(value.scheduledDays)
+    if (!scheduledDays.success) {
+      return scheduledDays
+    }
+
+    return { value: { scheduledDays: scheduledDays.data } }
   }
 )

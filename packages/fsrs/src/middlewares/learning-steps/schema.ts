@@ -1,12 +1,11 @@
 import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
+import { ConvertStepUnitToMinutes } from './core.js'
 import type {
   LearningStepFields,
   LearningStepFieldsInput,
   LearningStepsMiddlewareConfig,
   StepUnit,
 } from './types.js'
-
-const STEP_UNIT_PATTERN = /^(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?[mhd]$/
 
 export const defaultLearningSteps: readonly StepUnit[] = Object.freeze([
   '1m',
@@ -18,15 +17,29 @@ export const defaultRelearningSteps: readonly StepUnit[] = Object.freeze([
 ]) // Relearning->Relearning
 
 function isStepUnit(value: unknown): value is StepUnit {
-  return (
-    typeof value === 'string' &&
-    STEP_UNIT_PATTERN.test(value) &&
-    Number.isFinite(Number(value.slice(0, -1)))
-  )
+  if (typeof value !== 'string') return false
+  try {
+    const minutes = ConvertStepUnitToMinutes(value as StepUnit)
+    // A single step can yield Hard at 1.5x; Chrono converts minutes to ms.
+    return Number.isFinite(minutes * 90_000)
+  } catch {
+    return false
+  }
 }
 
 function isStepList(value: unknown): value is readonly StepUnit[] {
-  return Array.isArray(value) && value.every(isStepUnit)
+  if (
+    !Array.isArray(value) ||
+    Object.getOwnPropertyNames(value).length - 1 < value.length
+  ) {
+    return false
+  }
+  for (let index = 0; index < value.length; index++) {
+    if (!Object.hasOwn(value, index) || !isStepUnit(value[index])) {
+      return false
+    }
+  }
+  return true
 }
 
 export const learningStepsConfigSchema =
@@ -63,7 +76,7 @@ export const learningStepFieldsSchema = defineSchema<
   }
   if (
     typeof learningStep !== 'number' ||
-    !Number.isInteger(learningStep) ||
+    !Number.isSafeInteger(learningStep) ||
     learningStep < 0
   ) {
     return {

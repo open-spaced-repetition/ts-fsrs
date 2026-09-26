@@ -327,7 +327,7 @@ describe('DefaultScheduler legacy parity', () => {
   })
 
   describe('legacy card compatibility', () => {
-    it.each([2.5, -1])(
+    it.each([2.5, 0])(
       'consumes legacy scheduledDays=%s without losing rollback parity',
       async (scheduledDays) => {
         const options = { enableShortTerm: true }
@@ -352,6 +352,22 @@ describe('DefaultScheduler legacy parity', () => {
         expect(scheduler.rollback(actual).scheduledDays).toBe(scheduledDays)
       }
     )
+
+    it('rejects a negative legacy scheduledDays', async () => {
+      const scheduler = await DefaultScheduler({
+        enableShortTerm: true,
+        version: 'FSRS-6',
+      })
+      const card = {
+        ...createStateCard(State.Review),
+        cardId: 'legacy-scheduled-negative',
+        scheduledDays: -1,
+      }
+
+      expect(() =>
+        scheduler.review({ card, grade: Rating.Good, now: NOW })
+      ).toThrow('scheduledDays must be finite and non-negative')
+    })
 
     it('keeps scheduledDays aligned with the second-precision learning-step due', async () => {
       const options = {

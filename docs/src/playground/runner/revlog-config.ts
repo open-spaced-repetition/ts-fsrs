@@ -22,7 +22,7 @@ export function validateRevlogTrainingConfig(
   nextDayStartsAt: number
 ): RevlogTrainingConfigValidation {
   if (
-    !Number.isInteger(nextDayStartsAt) ||
+    !Number.isSafeInteger(nextDayStartsAt) ||
     nextDayStartsAt < 0 ||
     nextDayStartsAt > 23
   ) {

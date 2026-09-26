@@ -24,7 +24,7 @@ export const monotonicIntervalConfigSchema = defineSchema<
       : value.maximumInterval
   if (
     typeof maximumInterval !== 'number' ||
-    !Number.isInteger(maximumInterval) ||
+    !Number.isSafeInteger(maximumInterval) ||
     maximumInterval <= 0
   ) {
     return {

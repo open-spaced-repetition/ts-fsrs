@@ -154,10 +154,10 @@ describe('schedulerScheduledDaysMiddleware', () => {
 
   it('restores scheduledDays during rollback', () => {
     const core = createCore()
-    const card = { ...core.newCard({ now }), scheduledDays: -1.5 }
+    const card = { ...core.newCard({ now }), scheduledDays: 1.5 }
     const result = core.review({ card, grade: Rating.Easy, now })
 
-    expect(result.revlog.scheduledDays).toBe(-1.5)
-    expect(core.rollback(result).scheduledDays).toBe(-1.5)
+    expect(result.revlog.scheduledDays).toBe(1.5)
+    expect(core.rollback(result).scheduledDays).toBe(1.5)
   })
 })

@@ -218,7 +218,7 @@ export class FSRS7Algorithm {
     const { sMin, sMax, stabilityFastMin, stabilityFastMax, dMin, dMax } =
       this.bounds
     if (
-      !Number.isInteger(rating) ||
+      !Number.isSafeInteger(rating) ||
       rating < Rating.Manual ||
       rating > Rating.Easy
     ) {
