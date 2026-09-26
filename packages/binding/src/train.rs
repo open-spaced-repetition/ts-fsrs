@@ -1,26 +1,20 @@
-#[cfg(threadless_wasm)]
-use napi::bindgen_prelude::PromiseRaw;
 #[cfg(not(threadless_wasm))]
-use napi::bindgen_prelude::{AsyncTask, Task};
-use napi::bindgen_prelude::{Env, Result};
+use napi::bindgen_prelude::Task;
+use napi::bindgen_prelude::{Env, PromiseRaw, Result};
 use napi_derive::napi;
 #[cfg(not(threadless_wasm))]
 use std::sync::{Arc, Mutex};
 
+use crate::{ComputeParametersOptions, FSRSItem, validate_card_ids};
 #[cfg(not(threadless_wasm))]
-use crate::progress;
-use crate::{ComputeParametersOptions, FSRSItem};
+use crate::{model::ResolvedOptions, progress};
 
 #[cfg(not(threadless_wasm))]
 pub struct ComputeParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
+  pub(crate) card_ids: Option<Vec<i64>>,
   pub(crate) state: Arc<Mutex<fsrs::CombinedProgressState>>,
-  pub(crate) enable_short_term: bool,
-  pub(crate) num_relearning_steps: Option<usize>,
-  pub(crate) training_config: Option<fsrs::TrainingConfig>,
-  pub(crate) model_version: fsrs::ComputeParametersVersion,
-  #[cfg(not(target_arch = "wasm32"))]
-  pub(crate) timeout_ms: u32,
+  pub(crate) options: ResolvedOptions,
   #[cfg(not(target_arch = "wasm32"))]
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
   #[cfg(threaded_wasm)]
@@ -29,8 +23,9 @@ pub struct ComputeParametersTask {
 
 #[cfg(not(threadless_wasm))]
 impl ComputeParametersTask {
-  fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Self {
+  fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Result<Self> {
     let resolved = ComputeParametersOptions::resolve(options);
+    let card_ids = validate_card_ids(train_set.len(), ComputeParametersOptions::card_ids(options))?;
     let state = fsrs::CombinedProgressState::new_shared();
 
     // wasm: start polling here, because the task itself cannot spawn threads
@@ -41,24 +36,20 @@ impl ComputeParametersTask {
       progress::build_callback(options),
     ));
 
-    Self {
+    Ok(Self {
       train: train_set
         .into_iter()
         .map(|item| item.inner.clone())
         .collect(),
+      card_ids,
       state,
-      enable_short_term: resolved.enable_short_term,
-      num_relearning_steps: resolved.num_relearning_steps,
-      training_config: resolved.training_config,
-      model_version: resolved.model_version,
+      options: resolved,
       // non-wasm reuses the TSFN in the task; wasm already consumed it above
-      #[cfg(not(target_arch = "wasm32"))]
-      timeout_ms: resolved.timeout_ms,
       #[cfg(not(target_arch = "wasm32"))]
       progress_cb: progress::build_callback(options),
       #[cfg(threaded_wasm)]
       progress_thread,
-    }
+    })
   }
 }
 
@@ -71,18 +62,18 @@ impl Task for ComputeParametersTask {
     #[cfg(not(target_arch = "wasm32"))]
     let progress_thread = progress::spawn_progress_poller(
       Arc::clone(&self.state),
-      self.timeout_ms,
+      self.options.timeout_ms,
       self.progress_cb.take(),
     );
 
     let out = fsrs::compute_parameters(fsrs::ComputeParametersInput {
-      card_ids: None,
+      card_ids: self.card_ids.take(),
       train_set: std::mem::take(&mut self.train),
       progress: Some(Arc::clone(&self.state)),
-      enable_short_term: self.enable_short_term,
-      num_relearning_steps: self.num_relearning_steps,
-      training_config: self.training_config,
-      model_version: self.model_version,
+      enable_short_term: self.options.enable_short_term,
+      num_relearning_steps: self.options.num_relearning_steps,
+      training_config: self.options.training_config,
+      model_version: self.options.model_version,
       ..Default::default()
     })
     .map_err(|e| napi::Error::from_reason(format!("compute_parameters failed: {e}")))?;
@@ -107,11 +98,15 @@ impl Task for ComputeParametersTask {
 /// Calculate appropriate parameters for the provided review history.
 #[cfg(not(threadless_wasm))]
 #[napi(ts_return_type = "Promise<number[]>", catch_unwind)]
-pub fn compute_parameters(
+pub fn compute_parameters<'env>(
+  env: &'env Env,
   train_set: Vec<&FSRSItem>,
   #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
-) -> AsyncTask<ComputeParametersTask> {
-  AsyncTask::new(ComputeParametersTask::new(train_set, options.as_ref()))
+) -> Result<PromiseRaw<'env, Vec<f64>>> {
+  match ComputeParametersTask::new(train_set, options.as_ref()) {
+    Ok(task) => Ok(env.spawn(task)?.promise_object()),
+    Err(error) => PromiseRaw::reject(env, error),
+  }
 }
 
 /// Calculate appropriate parameters on the current thread inside a threadless WASM worker.
@@ -123,13 +118,20 @@ pub fn compute_parameters<'env>(
   #[napi(ts_arg_type = "ComputeParametersOptions")] options: Option<ComputeParametersOptions>,
 ) -> Result<PromiseRaw<'env, Vec<f64>>> {
   let resolved = ComputeParametersOptions::resolve(options.as_ref());
+  let card_ids = match validate_card_ids(
+    train_set.len(),
+    ComputeParametersOptions::card_ids(options.as_ref()),
+  ) {
+    Ok(ids) => ids,
+    Err(error) => return PromiseRaw::reject(env, error),
+  };
   let callback = options
     .as_ref()
     .and_then(|options| options.progress.as_ref());
   let mut callback_error = None;
   let result = fsrs::compute_parameters_with_progress(
     fsrs::ComputeParametersInput {
-      card_ids: None,
+      card_ids,
       train_set: train_set
         .into_iter()
         .map(|item| item.inner.clone())

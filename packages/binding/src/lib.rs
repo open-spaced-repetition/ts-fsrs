@@ -2,6 +2,7 @@
 
 use napi::bindgen_prelude::Result;
 use napi_derive::napi;
+mod card_id_generator;
 mod convert;
 mod convert_stream;
 mod evaluate;
@@ -64,15 +65,20 @@ impl FSRS {
   }
 
   #[napi]
-  pub fn evaluate(&self, train_set: Vec<&FSRSItem>) -> Result<ModelEvaluation> {
-    let items = prepare_items(train_set);
+  pub fn evaluate(
+    &self,
+    train_set: Vec<&FSRSItem>,
+    card_ids: Option<Vec<i64>>,
+  ) -> Result<ModelEvaluation> {
+    let (items, card_ids) = prepare_items(train_set, card_ids)?;
 
     // Because the computation finishes very quickly, progress reporting is not supported here
-    self
-      .inner
-      .evaluate(items, |_| true)
-      .map(ModelEvaluation::from)
-      .map_err(|e| napi::Error::from_reason(format!("Evaluation failed: {}", e)))
+    match card_ids {
+      Some(ids) => self.inner.evaluate_with_card_ids(items, ids, |_| true),
+      None => self.inner.evaluate(items, |_| true),
+    }
+    .map(ModelEvaluation::from)
+    .map_err(|e| napi::Error::from_reason(format!("Evaluation failed: {}", e)))
   }
 
   #[napi(js_name = "memoryStateFromSM2")]
@@ -97,7 +103,7 @@ impl FSRS {
     train_set: Vec<&FSRSItem>,
     parameter: Option<Vec<f64>>,
   ) -> Result<(f32, f32)> {
-    let items = prepare_items(train_set);
+    let (items, _) = prepare_items(train_set, None)?;
 
     let params: Vec<f32> = match parameter {
       Some(p) if !p.is_empty() => p.iter().map(|&x| x as f32).collect(),

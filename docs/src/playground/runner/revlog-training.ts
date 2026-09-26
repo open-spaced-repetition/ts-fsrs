@@ -1,6 +1,6 @@
 import {
   computeParameters,
-  convertCsvToFsrsItems,
+  convertCsvToFsrsItemsWithCardIds,
 } from '@open-spaced-repetition/binding-wasm32-wasip1'
 
 export type RevlogTrainingOptions = {
@@ -20,7 +20,7 @@ export async function trainRevlogCsv(
   csvText: string,
   options: RevlogTrainingOptions
 ): Promise<RevlogTrainingResult> {
-  const items = convertCsvToFsrsItems(
+  const { items, cardIds } = convertCsvToFsrsItemsWithCardIds(
     new TextEncoder().encode(csvText),
     options.nextDayStartsAt,
     options.timezone,
@@ -36,6 +36,7 @@ export async function trainRevlogCsv(
 
   let reportedPercent = -1
   const weights = await computeParameters(items, {
+    cardIds,
     enableShortTerm: options.enableShortTerm,
     modelVersion: options.modelVersion,
     progress(current, total) {

@@ -1,6 +1,6 @@
 import {
   computeParameters,
-  convertCsvToFsrsItems,
+  convertCsvToFsrsItemsWithCardIds,
 } from '@open-spaced-repetition/binding'
 
 console.log('Downloading revlog.csv…')
@@ -10,7 +10,7 @@ if (!response.body) throw new Error('revlog.csv: empty response body')
 
 const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone
 const modelVersion = 'FSRS-7' // Use 'FSRS-6' for FSRS6 with whole study days.
-const items = await convertCsvToFsrsItems(
+const { items, cardIds } = await convertCsvToFsrsItemsWithCardIds(
   response.body,
   4,
   timezone,
@@ -25,6 +25,7 @@ console.log(`Optimising ${items.length} reviews (${timezone})…`)
 const STEP_PERCENT = 10
 let reportedStep = -1
 const weights = await computeParameters(items, {
+  cardIds,
   enableShortTerm: true,
   modelVersion,
   progress(current, total) {
