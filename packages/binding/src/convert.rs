@@ -280,20 +280,19 @@ pub(crate) fn convert_csv_bytes(
 pub fn convert_csv_to_fsrs_items<'env>(
   env: &'env Env,
   data: Either<&[u8], ReadableStream<'env, Uint8Array>>,
-  next_day_starts_at: f64,
+  next_day_starts_at: i64,
   // Accepts an IANA timezone name or a fixed UTC offset in minutes.
   // IANA names resolve DST per review timestamp; numeric offsets stay fixed.
   timezone_or_offset: TimezoneOrOffset,
   model_version: Option<ModelVersion>,
 ) -> Result<Either<Vec<FSRSBindingItem>, PromiseRaw<'env, Object<'env>>>> {
-  if !(0.0..=23.0).contains(&next_day_starts_at) || next_day_starts_at.fract() != 0.0 {
-    let error = napi::Error::from_reason("nextDayStartsAt must be an integer between 0 and 23");
+  if !(0..=23).contains(&next_day_starts_at) {
+    let error = napi::Error::from_reason("nextDayStartsAt must be between 0 and 23");
     return match data {
       Either::A(_) => Err(error),
       Either::B(_) => Ok(Either::B(PromiseRaw::reject(env, error)?)),
     };
   }
-  let next_day_starts_at = next_day_starts_at as i64;
   let timezone_offset = resolve_timezone_offset(timezone_or_offset);
   let use_fractional_days = !matches!(model_version, Some(ModelVersion::Fsrs6));
 

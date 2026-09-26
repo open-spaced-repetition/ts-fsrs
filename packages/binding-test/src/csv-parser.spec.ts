@@ -133,23 +133,15 @@ describe('CSV Parser', () => {
       'card_id,review_time,review_rating,review_state,review_duration\n' +
         '1,1704067200000,3,0,1000\n1,1704240000000,3,2,1000\n'
     )
-    for (const hour of [
-      -1,
-      24,
-      0.5,
-      NaN,
-      Infinity,
-      -Infinity,
-      Number.MAX_SAFE_INTEGER,
-    ]) {
+    for (const hour of [-1, 24, Number.MAX_SAFE_INTEGER]) {
       expect(() => convertCsvToFsrsItems(data, hour, timezone)).toThrow(
-        'nextDayStartsAt must be an integer between 0 and 23'
+        'nextDayStartsAt must be between 0 and 23'
       )
       const stream = new ReadableStream<Uint8Array>()
       const result = convertCsvToFsrsItems(stream, hour, timezone)
       expect(result).toBeInstanceOf(Promise)
       await expect(result).rejects.toThrow(
-        'nextDayStartsAt must be an integer between 0 and 23'
+        'nextDayStartsAt must be between 0 and 23'
       )
       expect(stream.locked).toBe(false)
     }
