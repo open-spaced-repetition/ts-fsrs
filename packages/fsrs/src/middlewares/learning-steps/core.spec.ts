@@ -38,6 +38,13 @@ describe('ConvertStepUnitToMinutes', () => {
       ConvertStepUnitToMinutes(`${'9'.repeat(400)}m` as StepUnit)
     ).toThrow()
   })
+
+  it.each(['1e308d', '1e308m'] as const)(
+    'rejects arithmetic overflow for %s',
+    (step) => {
+      expect(() => ConvertStepUnitToMinutes(step)).toThrow()
+    }
+  )
 })
 
 describe('calculateLearningSteps', () => {
