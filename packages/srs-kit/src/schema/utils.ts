@@ -176,21 +176,16 @@ function defineOwnDataField(
   value: unknown
 ): void {
   const record = target as Record<PropertyKey, unknown>
-  // Direct writes are safe only for absent or own data keys on plain records.
-  const prototype = Object.getPrototypeOf(target)
-  if (prototype === Object.prototype || prototype === null) {
-    if (!(key in target)) {
+  // Own writable data properties cannot invoke inherited setters.
+  if (key in target) {
+    const existing = Object.getOwnPropertyDescriptor(target, key)
+    if (existing && 'value' in existing && existing.writable) {
       record[key] = value
       return
     }
-    const existing = Object.getOwnPropertyDescriptor(target, key)
-    if (
-      existing &&
-      'value' in existing &&
-      existing.writable &&
-      existing.enumerable &&
-      existing.configurable
-    ) {
+  } else {
+    const prototype = Object.getPrototypeOf(target)
+    if (prototype === Object.prototype || prototype === null) {
       record[key] = value
       return
     }

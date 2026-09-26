@@ -167,7 +167,7 @@ describe('assignEnumerableDataFields', () => {
     expect(target.value).toBe(1)
   })
 
-  it('keeps the enumerable data-property output for existing keys', () => {
+  it('preserves the descriptor of an existing writable data property', () => {
     const target: Record<PropertyKey, unknown> = {}
     Object.defineProperty(target, 'value', {
       value: 0,
@@ -181,8 +181,43 @@ describe('assignEnumerableDataFields', () => {
     expect(Object.getOwnPropertyDescriptor(target, 'value')).toMatchObject({
       value: 1,
       writable: true,
-      enumerable: true,
+      enumerable: false,
       configurable: true,
+    })
+  })
+
+  it('updates writable non-configurable fields without changing their descriptors', () => {
+    for (const assign of [assignObjectFields, assignEnumerableDataFields]) {
+      for (const prototype of [Object.prototype, null, { inherited: true }]) {
+        for (const enumerable of [false, true]) {
+          const target = Object.create(prototype)
+          Object.defineProperty(target, 'value', {
+            value: 0,
+            writable: true,
+            enumerable,
+            configurable: false,
+          })
+          assign(target, { value: 1 })
+          expect(Object.getOwnPropertyDescriptor(target, 'value')).toEqual({
+            value: 1,
+            writable: true,
+            enumerable,
+            configurable: false,
+          })
+        }
+      }
+    }
+    const symbol = Symbol('locked-field')
+    const target = Object.defineProperty({}, symbol, {
+      value: 0,
+      writable: true,
+    })
+    assignEnumerableDataFields(target, { [symbol]: 1 })
+    expect(Object.getOwnPropertyDescriptor(target, symbol)).toEqual({
+      value: 1,
+      writable: true,
+      enumerable: false,
+      configurable: false,
     })
   })
 
