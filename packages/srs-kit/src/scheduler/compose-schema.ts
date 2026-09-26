@@ -9,6 +9,7 @@ import { scheduleStatuses } from '@/primitives/status.js'
 import { rememberAttachedValue } from '@/schema/attached-value.js'
 import {
   type AnySchema,
+  assignEnumerableDataFields,
   assignObjectFields,
   defineSchema,
   isObject,
@@ -156,7 +157,7 @@ export function composeSchema(ctx: {
         firstMiddlewareFields = fields
         continue
       }
-      combinedFields ??= Object.assign({}, firstMiddlewareFields)
+      combinedFields ??= { ...firstMiddlewareFields }
       assignObjectFields(combinedFields, fields)
     }
 
@@ -174,12 +175,12 @@ export function composeSchema(ctx: {
     if (modelResult.issues) return modelResult
 
     const memoryState = modelResult.value as Record<string, unknown>
-    const card: Record<string, unknown> = Object.assign({}, memoryState)
+    const card: Record<string, unknown> = { ...memoryState }
 
     if (chronoCardSchema) {
       const chronoCard = validateSync(chronoCardSchema, value)
       if (chronoCard.issues) return chronoCard
-      Object.assign(card, chronoCard.value)
+      assignEnumerableDataFields(card, chronoCard.value)
     }
 
     const coreFields = parseCoreFields(value)
@@ -191,7 +192,7 @@ export function composeSchema(ctx: {
     for (const schema of middlewareCardSchemas) {
       const middlewareCard = validateSync(schema, value)
       if (middlewareCard.issues) return middlewareCard
-      Object.assign(card, middlewareCard.value)
+      assignEnumerableDataFields(card, middlewareCard.value)
     }
 
     return {
@@ -217,7 +218,7 @@ export function composeSchema(ctx: {
     if (chronoRevlogSchema) {
       const chronoRevlog = validateSync(chronoRevlogSchema, value)
       if (chronoRevlog.issues) return chronoRevlog
-      Object.assign(result, chronoRevlog.value)
+      assignEnumerableDataFields(result, chronoRevlog.value)
     }
 
     const coreFields = parseCoreFields(value, {
@@ -232,7 +233,7 @@ export function composeSchema(ctx: {
     for (const schema of middlewareRevlogSchemas) {
       const middlewareRevlog = validateSync(schema, value)
       if (middlewareRevlog.issues) return middlewareRevlog
-      Object.assign(result, middlewareRevlog.value)
+      assignEnumerableDataFields(result, middlewareRevlog.value)
     }
 
     return { value: result }
