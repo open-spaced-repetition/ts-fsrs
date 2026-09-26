@@ -22,6 +22,7 @@ import {
   collectHighlightedExportNames,
   keepTsFsrsTypeHover,
 } from './src/playground/highlight/twoslash'
+import { prepareExampleSource } from './src/playground/shared/example-source'
 import { pluginReleaseUpdates, releaseFeedOutput } from './src/releases'
 import { pluginRobotsTxt } from './src/seo/robots'
 
@@ -156,7 +157,22 @@ export default defineConfig({
   ],
   llms: true,
   builderConfig: {
-    plugins: [pluginTailwindcss()],
+    plugins: [
+      pluginTailwindcss(),
+      {
+        name: 'example-base-url',
+        setup(api) {
+          api.transform(
+            {
+              test: /[\\/](?:playground[\\/]examples|snippets[\\/]run-code)[\\/].*\.ts$/,
+              resourceQuery: /^\?raw$/,
+              order: 'pre',
+            },
+            ({ code }: { code: string }) => prepareExampleSource(code, base)
+          )
+        },
+      },
+    ],
     dev: {
       // Only files this config reads at evaluation time belong here, because a
       // restart is the sole way to pick them up: otherwise the dev server keeps

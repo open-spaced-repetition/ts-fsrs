@@ -1,7 +1,9 @@
 import { readdirSync, readFileSync } from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
+import optimizerCardIdsSource from '../../snippets/run-code/optimizer-card-ids.ts?raw'
+import { prepareExampleSource } from '../shared/example-source'
 import { PLAYGROUND_SCENARIOS } from '../shared/scenarios'
 
 const examplesDir = import.meta.dirname
@@ -10,6 +12,42 @@ const exampleFiles = readdirSync(examplesDir)
   .sort()
 
 describe('playground examples', () => {
+  it.each([
+    ['binding', '/'],
+    ['binding', '/ts-fsrs/'],
+    ['cardIds', '/'],
+    ['cardIds', '/ts-fsrs/'],
+  ])('%s fetches the sample under base %s', async (example, base) => {
+    const source =
+      example === 'binding'
+        ? PLAYGROUND_SCENARIOS.find(({ id }) => id === 'binding')!.code
+        : optimizerCardIdsSource
+    const prepared = prepareExampleSource(source, base)
+    expect(prepared).not.toContain('import.meta.env.BASE_URL')
+    const { outputText } = ts.transpileModule(prepared, {
+      compilerOptions: {
+        module: ts.ModuleKind.CommonJS,
+        target: ts.ScriptTarget.ES2023,
+      },
+    })
+    // Capture the actual request without running the WASM training.
+    const fetch = vi.fn().mockRejectedValue(new Error('stop before training'))
+    const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor
+    const execute = new AsyncFunction(
+      'require',
+      'console',
+      'exports',
+      'fetch',
+      outputText
+    )
+    await expect(
+      execute(() => ({}), { log: vi.fn() }, {}, fetch)
+    ).rejects.toThrow('stop before training')
+    expect(fetch).toHaveBeenCalledExactlyOnceWith(`${base}revlog.csv`, {
+      cache: 'force-cache',
+    })
+  })
+
   it('backs every scenario the playground offers', () => {
     // A scenario whose source failed to load would render an empty editor
     // without failing the build.
