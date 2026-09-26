@@ -1,5 +1,15 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.4
+
+### Minor Changes
+
+- [#538](https://github.com/open-spaced-repetition/ts-fsrs/pull/538) [`e1daad6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e1daad61c5f26c4cd418888e998a44f2718289f2) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(binding): require numeric decay in `computeOptimalSteps`, support FSRS-4–6, and correct the decay sign.
+
+### Patch Changes
+
+- [#536](https://github.com/open-spaced-repetition/ts-fsrs/pull/536) [`a0cf92a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a0cf92a63c45adb248439fd2e298307d0e3ad7e7) Thanks [@ishiko732](https://github.com/ishiko732)! - Update native and WASI dependencies and fix dynamic loader cleanup after asynchronous work.
+
 ## 0.6.0-beta.3
 
 ### Minor Changes
