@@ -1,5 +1,9 @@
 # @open-spaced-repetition/binding-win32-x64-msvc
 
+## 0.6.0-beta.5
+
+No changes in this release.
+
 ## 0.6.0-beta.4
 
 No changes in this release.
