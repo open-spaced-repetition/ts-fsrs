@@ -5,6 +5,10 @@ description: FSRS-7 dual-trace formulas for recall, mixture weights, stability, 
 
 # FSRS-7
 
+:::tip Migration guide
+For steps that rebuild memory without rescheduling existing cards, see the [v6 and FSRS-7 migration guide](../migration).
+:::
+
 FSRS-7 uses 34 weights and two stability components. Its state contains `stability` (slow component), `stabilityFast` (fast component), and `difficulty`. The two stability components produce the slow and fast recall components used by the forgetting curve.
 
 ## Memory state and notation

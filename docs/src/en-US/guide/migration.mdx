@@ -1,0 +1,191 @@
+---
+title: Migrating to v6 and FSRS-7
+description: Migrate ts-fsrs v5 to defineScheduler in v6, then rebuild FSRS-7 memory from review history without rescheduling existing cards or using legacy APIs.
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../components/RunCode'
+import v6Code from '@/snippets/run-code/migration-v6.ts?raw'
+import fsrs7Code from '@/snippets/run-code/migration-fsrs7.ts?raw'
+
+# Migrating to v6 and FSRS-7
+
+Package versions and model versions are separate: **ts-fsrs v5 already uses FSRS-6**. First move application code and stored records to the v6 API while keeping FSRS-6. Then migrate the model separately. This guide targets the v6 API in these docs; pin a v6 version that provides the documented interfaces.
+
+:::warning Do not use legacy APIs after migration
+Use `defineScheduler` and the explicit model entry points. Do not use `fsrs()`, `FSRS`, `createEmptyCard`, `generatorParameters`, old scheduler classes/strategies, or legacy types such as the root-exported `Card`, `CardInput`, `ReviewLog` and `FSRSParameters` in migrated code. Some remain exported for compatibility; their presence does not make them the v6 integration path. Old names below are comparison references only. The runnable examples use no legacy API or type.
+:::
+
+<Prompt
+  title="Let an Agent complete the migration"
+  description="Copy to an Agent with repository access. Confirm the migration target, then review its change TODO List. Implementation starts only after you approve the list."
+  prompt={`Help me migrate the current application to ts-fsrs v6 (defineScheduler). First ask which target I want and wait for my explicit answer. Do not assume a model upgrade or change code or data before I answer:
+
+A. Upgrade only to ts-fsrs v6, keeping FSRS-6 and its existing weights and memory states.
+B. Upgrade to ts-fsrs v6 and upgrade the model from FSRS-6 to FSRS-7.
+
+After the user selects a target, perform step 1 read-only and identify the actual changes required for that target. Present an ordered TODO List using - [ ] checkboxes. For each item, identify the affected files or modules, current behavior and proposed change, data impact, and verification method. Ask the user to confirm the list and wait for an explicit reply. Selecting a migration target does not approve the implementation list. Before list approval, do not modify code, configuration or data, or run migration commands with write side effects.
+
+Only after the user approves the TODO List, implement its code changes, necessary data migration scripts and tests, checking off each completed item. If additional scope is discovered, update the list and obtain confirmation before executing that additional work. For A, skip steps 6–8 and the FSRS-7-only checks in step 9; do not add stabilityFast or replay history to rebuild FSRS-7 states. For B, complete all applicable steps.
+
+1. Read the migration guide: ${withSiteOrigin(withBase('/guide/migration.md'))}, scheduler guide: ${withSiteOrigin(withBase('/guide/scheduler/index.md'))}, and FSRS-7 guide: ${withSiteOrigin(withBase('/guide/model/fsrs-7.md'))}. Inspect repository instructions, pinned dependencies, all scheduling call sites, configuration, and card/log storage. Establish the actual starting point, skip completed stages, and do not downgrade existing v6/FSRS-7 code.
+2. Migrate the v6 API first; only for B, upgrade the model afterward and verify each stage separately. Use defineScheduler({ model: FSRS6Model, chrono }), .use(...) and .create({ config }), preserving actual FSRS-6 weights, time policy, learning steps, fuzzing and statistics. A bare definition lacks the full old policy; compose the required middleware as documented. Infer types from the new scheduler.
+3. Use no legacy APIs or types in migrated code: fsrs(), FSRS, createEmptyCard, generatorParameters, old scheduler classes/strategies, or legacy Card, CardInput, ReviewLog and FSRSParameters imported from the root. Do not add a permanent compatibility layer. Keep the changes focused and preserve unrelated work.
+4. Migrate cards, configuration and method calls, preserving stable cardId and application metadata and validating deserialized timestamps. Handle scheduleStatus, lastReviewAt: null for State.New, field renames, the { card, revlog } result, and the clearStatsOnForget default change explicitly.
+5. Keep log timestamps distinct: v6 revlog.lastReviewAt is the pre-review previous review time, dueAt is the pre-review due date, and reviewTime is the actual current review time (not reviewAt). Ordinary v5 logs derive due from last_review || due; never universally rename it to dueAt. Without the original snapshot, do not fabricate v6 logs claiming exact rollback support.
+6. Only for B: Then switch to FSRS7Model with its own 34 default weights or newly trained FSRS-7 weights and fractionalDays: true. Never reuse FSRS-6 weights or invent stabilityFast as 0.8 * stability. enableShortTerm controls explicit learning steps, not the intrinsic FSRS-7 fast trace. Preserve existing learning steps explicitly instead of losing them to FSRS-7 empty-step defaults. Verify final intervals below/at least one day, disabled/empty/completed steps, and the no-middleware boundary. Import standalone curve(weights, elapsedDays, state) from ts-fsrs/models/fsrs-7; validate weights first and read retrievability, not total (the sum of mixture weights). model.forgettingCurve also returns numeric retrievability.
+7. Only for B: For learned cards, select complete history since creation or the latest memory reset, map rating and actual reviewTime, and rebuild stability, stabilityFast and difficulty with Reschedule.replay(), without an old-model initialState. Apply the rebuilt memoryState only to the current card. Treat historical revlogs as read-only input; do not modify, overwrite or backfill any historical data. Only update the current card’s memory during migration; do not change when existing cards are next due for review (dueAt). FSRS-7 will calculate a new due date when the card is next reviewed. Keep lastReviewAt, cardId, learning progress and statistics unchanged. Filtering Manual does not interpret resets, and row counts or the last timestamp alone do not prove completeness.
+8. Only for B: Initialize new cards with FSRS-7 memory defaults. Explicitly reject/skip learned cards with missing, truncated, empty, Manual-only or inconsistent history; retain their FSRS-6 state/config and route by model version instead of silently clearing memory. Preserve original logs, persist model version, weights/config and memory together, and establish a cross-model undo boundary.
+9. If persisted data needs changing, provide backup, dry-run and recovery procedures and follow the repository's existing production workflow. Add and run focused checks for old-data conversion, all four card states, review/preview/rollback/forget, three distinct timestamps for early and overdue reviews, fractional same-day intervals, Manual/reset boundaries, missing history, and preservation of due dates, IDs, learning progress and counters.
+10. Run type checks, relevant tests and the build. Report changed files, commands actually executed and their results, and any unmigrated data with reasons. Distinguish verified results from unexecuted steps. Both the migration target and the TODO List require explicit user confirmation. For other questions, inspect the repository before asking for other missing information; ask only when unresolved facts affect data correctness.`}
+/>
+
+## 1. Move to the v6 API, keeping FSRS-6
+
+### Define the scheduling policy
+
+`defineScheduler({ model, chrono })` creates a reusable definition. `.use(...)` composes middleware into a new definition; `.create({ config })` validates configuration and creates an independent scheduler instance. Keep the definition at application scope and create instances for user or deck configuration.
+
+A bare definition does **not** include all v5 scheduling policies. This example uses the same middleware order as the current standard preset: desired retention, fuzzing, statistics, scheduled days, learning steps, maximum interval, and monotonic intervals. Preserve your actual settings and FSRS-6 weights. With `dateChrono`, `fractionalDays: false` uses UTC calendar-day differences; do not change the time policy during this API-only step without checking the effect.
+
+```ts twoslash file="../../snippets/run-code/migration-v6.ts" fold height=520
+```
+
+<RunCode code={v6Code} />
+
+The local `StoredV5Card` describes application storage; it is not imported from the legacy library. Pass an existing stable database ID as `cardId`, and keep application-specific fields separately. The composed card schema validates the converted dates and fields. Validate any additional application fields at the storage boundary as well.
+
+### Configuration mapping
+
+| v5 configuration | v6 configuration | Migration note |
+| --- | --- | --- |
+| `w` | `weights` | Keep the user's FSRS-6 weights for this stage; the example uses defaults only to be runnable. |
+| `request_retention` | `desiredRetention` | Requires the desired-retention middleware. |
+| `maximum_interval` | `maximumInterval` | Requires the maximum-interval middleware; the monotonic policy also uses this limit. |
+| `enable_fuzz` | `enableFuzz` | Requires the fuzzing middleware; keep the old setting. |
+| `enable_short_term` | `enableShortTerm` | In FSRS-6, affects both model short-term behavior and explicit learning steps. |
+| `learning_steps` / `relearning_steps` | `learningSteps` / `relearningSteps` | Keep the configured step arrays and learning progress. |
+| Relearning step count | `numRelearningSteps` | For FSRS-6, set to `relearningSteps.length`. |
+| `forget(..., reset_count)` | `clearStatsOnForget` | Now instance configuration. v5 default: `false`; v6 stats middleware default: `true`. |
+
+### Cards, logs and operations
+
+| Stored v5 field | v6 field or handling |
+| --- | --- |
+| `due` | Card `dueAt`; deserialize to `Date`. |
+| `elapsed_days` / log `last_elapsed_days` | Removed. Compute elapsed time from timestamps with the selected chrono; do not use these old rounded values for FSRS-7 replay. |
+| `last_review` | `lastReviewAt`; missing/null becomes `null`. |
+| `scheduled_days` | `scheduledDays`, supplied by middleware. |
+| `learning_steps` | `learningStep`, supplied by middleware. |
+| `stability`, `difficulty`, `state`, `reps`, `lapses` | Preserve during the API migration; statistics require middleware. |
+| Application record ID | `cardId`, reused across the card and its logs. |
+| No corresponding field | `scheduleStatus`: New → `new`, Learning/Relearning → `learning`, Review → `review`. |
+| Review log `review` | `reviewTime`, the actual review timestamp, not the card's due date. |
+| Result `{ card, log }` | `{ card, revlog }`. |
+
+Derive types from your scheduler, as the example does. Card and log fields depend on the selected model, chrono and middleware. Custom v5 strategies need to be expressed through the relevant [middleware](./middleware) hooks; renaming a strategy or subclass is not sufficient.
+
+| v5 operation (reference only) | v6 operation |
+| --- | --- |
+| `createEmptyCard(now)` | `scheduler.newCard({ now, cardId })` |
+| `f.next(card, now, grade)` | `scheduler.review({ card, now, grade })` |
+| `f.repeat(card, now)` | `scheduler.preview({ card, now })` returns an iterable with an iterator provided by `Symbol.iterator`; use `for...of` to iterate. Each candidate contains `{ grade, card, revlog }`. Select by `candidate.grade` rather than indexing a rating-keyed object. |
+| `f.rollback(card, log)` | `scheduler.rollback({ card, revlog })`, using the returned v6 log. |
+| `f.forget(card, now, reset_count)` | `scheduler.forget({ card, now })`; returns a card, not `{ card, log }`. Record manual actions in your application. |
+| `f.get_retrievability(card, now, false)` | For a learned card with `lastReviewAt`, call `scheduler.model.forgettingCurve(card, scheduler.chrono.difference(card.lastReviewAt, now))`; the result is numeric. Handle new cards separately and format percentages in the application. |
+
+`review()` returns new data; persist both `result.card` and `result.revlog`. New logs preserve pre-review fields needed for rollback, including `dueAt` and `lastReviewAt`. Do not merely rename an old log's `due` into a v6 rollback log: old logs may lack the required pre-review snapshot. Keep historical records unchanged; convert their rating and actual review time for model replay. Cross-version undo needs a separate application snapshot or undo boundary.
+
+Even with the same model and settings, this is not a promise of identical v5 intervals for every learning-step or fuzzing case. Check representative New, Learning, Review and Relearning cards before switching writes. [DefaultScheduler](./scheduler/default-scheduler) is an alternative preset, but its default model is FSRS-7; explicitly choose FSRS-6 if using it during this stage.
+
+### Why the three log timestamps are not a rename
+
+For `dateChrono`, the field is **`reviewTime`, not `reviewAt`**. Consider an overdue review: the card was last reviewed on January 1, was due on January 3, and is actually reviewed on January 4.
+
+| Meaning | v5 ordinary review log | v6 `revlog` |
+| --- | --- | --- |
+| Previous review time: January 1 | `due` (the old implementation writes `card.last_review \|\| card.due`) | `lastReviewAt` |
+| Original due date: January 3 | Not separately recorded for this learned card | `dueAt` |
+| Actual review time: January 4 | `review` | `reviewTime` |
+
+`lastReviewAt` is the **previous review time before the current review**. Its input and output types differ:
+
+- `DateRevlogInputFields` accepts optional `lastReviewAt?: Date | null`. If omitted or `undefined`, the schema normalizes it to `null`; `dueAt` and `reviewTime` must still be valid `Date` values.
+- `DateRevlogFields` always contains `lastReviewAt: Date | null`. A normal learned-card log records the pre-review `card.lastReviewAt`; the first review log for a new card with no previous review contains `null`.
+- `null` does not reconstruct a missing previous review time. If an old log lacks that information, passing schema validation does not guarantee exact rollback. Do not substitute `dueAt` or `reviewTime` for it.
+
+The card returned by the review has `lastReviewAt = January 4` and a newly computed `dueAt`; the log holds the **pre-review** timestamps. Rolling back with that card and its v6 log restores January 3 as `dueAt` and January 1 as `lastReviewAt`, even when the review was early or overdue. This is why chrono separates the time used to compute elapsed days from the due date saved for undo. The runnable example above prints all three values.
+
+Do not use a universal `oldLog.due → revlog.dueAt` conversion. For ordinary v5 learned-card reviews, that value normally represents the previous review. For a first review with no `last_review`, it instead contains the original due date; Manual/forget logs have their own semantics. A previously reset v5 New card can also carry an old `last_review`: the card converter normalizes `State.New` to `lastReviewAt: null` for v6.
+
+For memory replay, only map `rating` and `review → reviewTime`. For exact cross-version undo, you need the original pre-review card snapshot (including both time fields and middleware fields), or must establish an undo boundary. Neither `review` nor a recomputed interval can reliably recover a due date that was never recorded, especially after early reviews, learning steps, fuzzing or manual adjustments.
+
+## 2. Move from FSRS-6 to FSRS-7
+
+### Weights and state are model-specific
+
+FSRS-6 uses 21 weights; FSRS-7 requires its own **34 weights**. Use `FSRS7_DEFAULT_WEIGHTS` or [train FSRS-7 weights](./optimizer). Do not append values to an FSRS-6 vector or reuse its trained weights. `migrateFSRS7Parameters` supplies defaults for empty input; it does not convert older parameter layouts.
+
+FSRS-7 state has `stability`, `stabilityFast` and `difficulty`. Rebuild all three from history. **Apply the rebuilt memoryState only to the current card. Historical revlogs are read-only input: do not modify, overwrite or backfill any of their data, including the memory states recorded at the time.** **Do not invent `stabilityFast = 0.8 * stability` for an existing learned card**, or retain FSRS-6 stability/difficulty while adding a fast component. The factor used by model initialization is not a migration formula for an evolved memory state.
+
+Use `fractionalDays: true` so reviews ten minutes apart retain that interval. FSRS-7 has an intrinsic fast trace: `enableShortTerm: false` only disables explicit learning steps when that middleware is installed; it does not disable the model's fast trace. There is no FSRS-7 model setting corresponding to FSRS-6's `numRelearningSteps`.
+
+### FSRS-7 default steps and learning states
+
+For FSRS-7, `DefaultScheduler` defaults to `learningSteps: []` and `relearningSteps: []`, letting the model determine intervals. FSRS-3–6 retain learning steps `['1m', '10m']` and relearning steps `['10m']`. Explicit settings are not overwritten by defaults. `enableShortTerm` still defaults to `true`; it controls explicit steps, not the FSRS-7 fast trace or interval-based state mapping.
+
+With `schedulerLearningStepsMiddleware` registered, the **final scheduled interval** determines the state, even if steps are disabled, empty or completed:
+
+| Pre-review state | Final interval below one day | Final interval at least one day |
+| --- | --- | --- |
+| New / Learning | Learning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
+| Review / Relearning | Relearning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
+
+Do not assume disabling steps eliminates Learning, only Again can produce Relearning, or Easy guarantees Review. Easy skips explicit steps; Good advances only when an applicable next step exists. When no explicit step supplies the interval, `learningStep` resets to `0`, but the card can remain Learning/Relearning. It is a step index, not a review count.
+
+These transitions belong to middleware, not `FSRS7Model`. A bare scheduler combining only model and chrono still returns Review, even for a sub-day interval. Update queues, state filters and statistics that rely on the old behavior.
+
+The [complete migration example in “Replay memory and preserve the schedule”](#replay-memory-and-preserve-the-schedule) **explicitly preserves existing learning steps** instead of silently adopting FSRS-7's empty preset steps by omitting options. If the product chooses model-driven steps, explicitly configure `learningSteps: []` and `relearningSteps: []`; this does not mean removing the learning-steps middleware. Verify that policy change separately from the card-field migration.
+
+### Migrate retrievability calls
+
+Use `scheduler.model.forgettingCurve(state, elapsedDays)` for numeric retrievability, or `scheduler.model.algorithm.curve(elapsedDays, state)` to inspect both components. Both require the complete FSRS-7 state: `stability`, `stabilityFast` and `difficulty`, not just an FSRS-6 stability value.
+
+Alternatively, import standalone `curve` from `ts-fsrs/models/fsrs-7` and call `curve(weights, elapsedDays, state)` without constructing an algorithm instance. Supply 34 valid FSRS-7 weights. **The function does not validate weights**: validate stored or user-provided inputs through the appropriate schema/parameter checks first; a call to `curve` is not a validity test. Use the rebuilt memory state and the same FSRS-7 weights, preserving fractional `elapsedDays`.
+
+Curve results include `retrievability`, `derivative`, `fast`, `slow`, `fastWeight`, `slowWeight` and `total`. Here `total = fastWeight + slowWeight` is the sum of mixture coefficients, not the total recall probability. Read `retrievability` when replacing an old probability call, and format percentages in the application. The algorithm instance's curve result also includes `total`. These APIs calculate probabilities and components; they do not migrate cards, generate logs or schedule due dates.
+
+### Replay memory and preserve the schedule
+
+The following example is standalone. It uses a v6-shaped FSRS-6 card, maps stored log `review` timestamps to `reviewTime`, and calls `Reschedule.replay()` without an old-model `initialState`. **Migration only rebuilds memory; it does not change when an existing card is next due for review (`dueAt`).** When the user next reviews the card, FSRS-7 calculates its new due date. The ID, last review time, learning progress and counters also stay unchanged.
+
+```ts twoslash file="../../snippets/run-code/migration-fsrs7.ts" fold height=520
+```
+
+<RunCode code={fsrs7Code} />
+
+| Card/history condition | Action |
+| --- | --- |
+| New card (`State.New`), including a deliberately reset card | Initialize FSRS-7 memory defaults; preserve its schedule and counters. |
+| Learned card with complete history since creation or the latest memory reset | Replay with FSRS-7 weights; persist the rebuilt state while preserving the schedule. |
+| Missing or truncated history | Keep the card and its matching configuration on FSRS-6. Do not silently reset it or mark history complete based on row count alone. |
+| Empty or Manual-only history for a learned card | Replay throws; keep the card on FSRS-6. |
+| Invalid dates/ratings or latest review does not match `lastReviewAt` | Stop migration for that card and reconcile its records. |
+
+`replay()` sorts valid reviews chronologically and filters `Rating.Manual`. It does not interpret manual forget/reset events. The application must select the complete history **after the latest memory reset**, excluding earlier reviews; a manual due-date adjustment alone is not a memory reset. Preserve the recorded order of equal-time reviews. With `dateChrono`, timestamps must be valid `Date` objects after deserialization. The first retained review starts from an uninitialized memory state, with zero elapsed days.
+
+The example's completeness flag is an application decision; matching the last timestamp does not prove that earlier reviews are present. Retain FSRS-6 scheduling for cards that fail migration, and route them by the persisted model version rather than passing them into FSRS-7.
+
+### If you intentionally want to reschedule
+
+`new Reschedule(scheduler).reschedule({ history, initialCard })` replays through the whole scheduling policy and returns `{ card, results }`; it may change due dates, learning progress and statistics. Use a **new FSRS-7 card** as `initialCard`, with the existing `cardId` and the first review's time, rather than replaying full history on top of the already learned card. Its generated logs are recalculated results, not replacements for the original history. This guide defaults to `replay()` so migration does not reschedule existing cards.
+
+## Persist and verify the migration
+
+1. Back up cards, original logs and configuration. Store the model version with each card or a reliably associated configuration, including the exact weights used for replay.
+2. Add persistence for `stabilityFast` and the v6 fields. Commit the rebuilt memory, model version and matching weight/config reference together; do not mix FSRS-6 state and FSRS-7 weights. Preserve application IDs and metadata.
+3. Keep original logs unchanged. Establish an undo boundary: old-model logs must not be passed directly to FSRS-7 `rollback()`. New FSRS-7 logs must include `stabilityFast` and the pre-review fields.
+4. On representative cards, verify review/preview/rollback, same-day reviews, learning steps and configured fuzzing. For memory-only migration, assert that due dates, IDs, learning progress and counters are unchanged. Resolve failures before switching those cards to FSRS-7.
+
+For the model details, see [FSRS-7](./model/fsrs-7); for the API building blocks, see [scheduler definitions](./scheduler), [Chrono](./chrono) and [middleware](./middleware).

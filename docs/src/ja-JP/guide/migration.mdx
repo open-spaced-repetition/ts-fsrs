@@ -1,0 +1,193 @@
+---
+title: v6 と FSRS-7 への移行
+description: ts-fsrs v5 を v6 の defineScheduler に移行し、復習履歴から FSRS-7 の記憶状態を再構築します。既存カードの次回復習日時を変更せず、legacy API を使わない手順を説明します。
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../components/RunCode'
+import v6Code from '@/snippets/run-code/migration-v6.ts?raw'
+import fsrs7Code from '@/snippets/run-code/migration-fsrs7.ts?raw'
+
+# v6 と FSRS-7 への移行
+
+パッケージとモデルのバージョンは別です。**ts-fsrs v5 は既に FSRS-6 を使用しています**。まず FSRS-6 を維持したままアプリケーションと保存データを v6 API に移行し、その後モデルを移行します。このガイドは本サイトの v6 API に対応しています。記載されたインターフェースを提供する v6 バージョンを指定してください。
+
+:::warning 移行後は legacy API を使用しないでください
+`defineScheduler` と明示的なモデルのエントリポイントを使用してください。移行後のコードでは `fsrs()`、`FSRS`、`createEmptyCard`、`generatorParameters`、旧スケジューラーのクラスや strategy、ルートから export される旧 `Card`、`CardInput`、`ReviewLog`、`FSRSParameters` などの legacy 型を使わないでください。互換性のために export が残っていても、v6 の推奨インターフェースではありません。以下の旧名称は比較用です。実行可能なサンプルは legacy API や型を使用しません。
+:::
+
+<Prompt
+  title="Agent に移行を実装してもらう"
+  description="リポジトリにアクセスできる Agent にコピーします。移行先を確認し、変更の TODO List を作成します。ユーザーがリストを承認してから実装・検証します。"
+  prompt={`現在のアプリケーションを ts-fsrs v6（defineScheduler）へ移行してください。まず希望する移行先を質問し、明確な回答を待ってください。モデル更新を既定とせず、回答前にコードやデータを変更しないでください。
+
+A. ts-fsrs v6 への更新のみ行い、FSRS-6 と既存の重み・記憶状態を維持する。
+B. ts-fsrs v6 に更新し、モデルも FSRS-6 から FSRS-7 に更新する。
+
+ユーザーが移行先を選んだら、まず手順 1 を読み取り専用で実行し、その移行先に必要な変更点を整理してください。実行順の TODO List を - [ ] 形式で提示し、各項目に対象ファイル・モジュール、現在の動作と変更内容、データへの影響、検証方法を記載してください。ユーザーにリストの承認を求め、明確な回答を待ってください。移行先の選択だけでは実行リストの承認になりません。リスト承認前にコード・設定・データを変更したり、書き込みを伴う移行コマンドを実行したりしないでください。
+
+TODO List の承認後に、その範囲のコード、必要なデータ移行スクリプト、テストを実装し、完了した項目にチェックを付けてください。リスト外の変更が必要になった場合は、リストを更新して再度確認を得てから追加部分を実行してください。A の場合は手順 6–8 と手順 9 の FSRS-7 専用検証を省略し、stabilityFast の追加や履歴リプレイによる FSRS-7 状態の再構築をしないでください。B の場合は該当するすべての手順を実行してください。
+
+1. 移行ガイド：${withSiteOrigin(withBase('/ja-JP/guide/migration.md'))}、スケジューラーガイド：${withSiteOrigin(withBase('/ja-JP/guide/scheduler/index.md'))}、FSRS-7 ガイド：${withSiteOrigin(withBase('/ja-JP/guide/model/fsrs-7.md'))} を読んでください。リポジトリの規則、固定された依存バージョン、すべてのスケジュール呼び出し、設定、カードとログの保存形式を調べ、実際の開始地点を確認してください。完了済みの段階は省略し、既存の v6/FSRS-7 実装をダウングレードしないでください。
+2. まず v6 API を移行し、B の場合のみ続けてモデルを更新して、各段階を検証してください。 defineScheduler({ model: FSRS6Model, chrono })、.use(...)、.create({ config }) で API を移行し、実際の FSRS-6 の重み、時間方針、学習ステップ、ファジング、統計を維持してください。定義だけでは旧方針を網羅しないため、ガイドに沿って必要な middleware を組み合わせ、型は新スケジューラーから推論してください。
+3. 移行後のコードでは legacy API・型を使わないでください。fsrs()、FSRS、createEmptyCard、generatorParameters、旧スケジューラー/strategy、ルートから import する旧 Card、CardInput、ReviewLog、FSRSParameters が対象です。恒久的な互換レイヤーを追加せず、変更を絞り、無関係な作業を保持してください。
+4. カード、設定、メソッド呼び出しを移行し、固定 cardId とアプリケーションのメタデータを維持して、デシリアライズした時刻を検証してください。scheduleStatus、State.New の lastReviewAt: null、フィールド名、{ card, revlog } の戻り値、clearStatsOnForget のデフォルト値の違いを明示的に扱ってください。
+5. ログの時刻を区別してください。v6 の revlog.lastReviewAt は復習前の前回復習時刻、dueAt は復習前の期日、reviewTime は今回の実際の復習時刻です（reviewAt ではありません）。通常の v5 ログの due は last_review || due に由来するため、一律に dueAt へ改名してはいけません。元のスナップショットがなければ、正確な取り消しを保証する v6 ログを捏造しないでください。
+6. B の場合のみ：次に FSRS7Model と、独立した 34 個のデフォルト重みまたは再学習した FSRS-7 の重みを使用し、fractionalDays: true にしてください。FSRS-6 の重みを流用したり、0.8 * stability で stabilityFast を補ったりしてはいけません。enableShortTerm が制御するのは明示的な学習ステップであり、FSRS-7 の高速トレースではありません。 FSRS-7 の空ステップのデフォルトで既存設定を失わず、学習ステップを明示して維持してください。最終間隔が 1 日未満/以上、ステップ無効/空/完了、middleware なしの状態境界を検証してください。独立した curve(weights, elapsedDays, state) は ts-fsrs/models/fsrs-7 から import し、重みを事前検証して retrievability を読んでください。total は混合係数の和です。model.forgettingCurve でも数値の想起確率を取得できます。
+7. B の場合のみ：学習済みカードでは作成時または最新の記憶リセット以降の完全な履歴を選び、rating と実際の reviewTime を対応付け、旧モデルの initialState を渡さず Reschedule.replay() で stability、stabilityFast、difficulty を再構築してください。再構築した memoryState は現在の card だけに適用してください。過去の revlog は読み取り専用の入力とし、履歴データの変更・上書き・後付けをしないでください。移行時は現在のカードの記憶状態だけを更新し、既存カードの次回復習日時（dueAt）は変更しないでください。そのカードを次に復習した時点で、FSRS-7 が新しい次回復習日時を計算します。lastReviewAt、cardId、学習進捗、統計は維持してください。Manual の除外はリセットの解釈ではなく、行数や最後の時刻だけでは完全性を証明できません。
+8. B の場合のみ：新規カードは FSRS-7 の記憶デフォルト値で初期化してください。学習済みカードの履歴が欠落、切り詰め、空、Manual のみ、または不整合なら明示的にエラー/スキップとし、FSRS-6 の状態と設定を維持してモデルバージョンで振り分けてください。暗黙に記憶を初期化しないでください。元のログを保持し、モデル、重み/設定、記憶状態を一緒に保存し、モデル間の取り消し境界を設けてください。
+9. 保存データを変更する場合はバックアップ、ドライラン、復旧手順を用意し、本番データの変更は既存の運用手順に従ってください。旧データ変換、4 種類のカード状態、復習/プレビュー/取り消し/忘却、前倒し・延滞復習の 3 時刻、小数の同日間隔、Manual/リセット境界、履歴不足、期日/ID/学習進捗/統計の維持を対象としたテストを追加して実行してください。
+10. 型チェック、関連テスト、ビルドを実行し、変更ファイル、実行したコマンドと結果、未移行データと理由を報告してください。検証済みと未実行を区別し、移行先と TODO List の両方について、ユーザーの明確な承認が必須です。その他の不足情報はまずリポジトリで調べ、データの正確性に関わる未解決事項だけをユーザーに質問してください。`}
+/>
+
+## 1. FSRS-6 を維持して v6 API に移行する
+
+### スケジュール方針を定義する
+
+`defineScheduler({ model, chrono })` は再利用可能な定義を作成します。`.use(...)` は middleware を組み合わせた新しい定義を返し、`.create({ config })` は設定を検証して独立したスケジューラーを作成します。定義はアプリケーション全体で保持し、ユーザーやデッキの設定に応じてインスタンスを作成してください。
+
+定義だけでは **v5 のすべてのスケジュール方針は含まれません**。以下は現在の標準プリセットと同じ順序で middleware を組み合わせます。目標保持率、ファジング、統計、予定日数、学習ステップ、最大間隔、単調間隔の順です。実際の設定と FSRS-6 の重みを引き継いでください。`dateChrono` の `fractionalDays: false` は UTC 暦日の差を使います。API だけを移行する段階では、影響を検証せずに時間の計算方針まで変えないでください。
+
+```ts twoslash file="../../snippets/run-code/migration-v6.ts" fold height=520
+```
+
+<RunCode code={v6Code} />
+
+ローカルの `StoredV5Card` 型はアプリケーションの保存形式を表し、legacy ライブラリからの import ではありません。データベースの既存の固定 ID を `cardId` に渡し、アプリケーション固有のフィールドは別途保持してください。合成されたカード schema が変換後の日付とフィールドを検証します。その他のアプリケーション固有のフィールドも、保存データを読み込む境界で検証してください。
+
+### 設定の対応表
+
+| v5 の設定 | v6 の設定 | 移行時の注意 |
+| --- | --- | --- |
+| `w` | `weights` | この段階ではユーザーの FSRS-6 の重みを維持します。サンプルは実行できるようにデフォルト値を使用します。 |
+| `request_retention` | `desiredRetention` | 目標保持率の middleware が必要です。 |
+| `maximum_interval` | `maximumInterval` | 最大間隔の middleware が必要です。単調間隔の方針もこの上限を使います。 |
+| `enable_fuzz` | `enableFuzz` | ファジングの middleware が必要です。既存の設定を維持します。 |
+| `enable_short_term` | `enableShortTerm` | FSRS-6 ではモデルの短期動作と明示的な学習ステップの両方に影響します。 |
+| `learning_steps` / `relearning_steps` | `learningSteps` / `relearningSteps` | 設定済みのステップ配列と学習進捗を維持します。 |
+| 再学習ステップ数 | `numRelearningSteps` | FSRS-6 では `relearningSteps.length` に設定します。 |
+| `forget(..., reset_count)` | `clearStatsOnForget` | インスタンスの設定になりました。v5 のデフォルトは `false`、v6 の統計 middleware は `true` です。 |
+
+### カード、ログ、操作
+
+| v5 の保存フィールド | v6 のフィールドまたは処理 |
+| --- | --- |
+| `due` | カードの `dueAt`。`Date` にデシリアライズします。 |
+| `elapsed_days` / ログの `last_elapsed_days` | 削除されました。選択した chrono とタイムスタンプから経過日数を計算し、FSRS-7 のリプレイに古い丸め済みの値を使わないでください。 |
+| `last_review` | `lastReviewAt`。未設定と null は `null` に統一します。 |
+| `scheduled_days` | middleware が提供する `scheduledDays`。 |
+| `learning_steps` | middleware が提供する `learningStep`。 |
+| `stability`、`difficulty`、`state`、`reps`、`lapses` | API 移行時に維持します。統計には middleware が必要です。 |
+| アプリケーションのレコード ID | `cardId`。カードとログで同じ ID を使います。 |
+| 対応するフィールドなし | `scheduleStatus`：New → `new`、Learning/Relearning → `learning`、Review → `review`。 |
+| 復習ログの `review` | `reviewTime`。カードの期日ではなく実際の復習時刻です。 |
+| 結果 `{ card, log }` | `{ card, revlog }`。 |
+
+サンプルのようにスケジューラーから型を推論してください。カードとログのフィールドはモデル、chrono、middleware によって変わります。独自の v5 strategy は対応する [middleware](./middleware) の hook に書き換える必要があります。名前の変更や旧スケジューラーの継承だけでは移行できません。
+
+| v5 の操作（比較用） | v6 の操作 |
+| --- | --- |
+| `createEmptyCard(now)` | `scheduler.newCard({ now, cardId })` |
+| `f.next(card, now, grade)` | `scheduler.review({ card, now, grade })` |
+| `f.repeat(card, now)` | `scheduler.preview({ card, now })` は `Symbol.iterator` で iterator を提供する iterable を返し、`for...of` で走査できます。各候補には `{ grade, card, revlog }` が含まれます。評点をキーにしたオブジェクトへのアクセスではなく、`candidate.grade` で選択します。 |
+| `f.rollback(card, log)` | 返された v6 ログを使って `scheduler.rollback({ card, revlog })`。 |
+| `f.forget(card, now, reset_count)` | `scheduler.forget({ card, now })`。`{ card, log }` ではなくカードを返します。手動操作はアプリケーションで記録します。 |
+| `f.get_retrievability(card, now, false)` | `lastReviewAt` のある学習済みカードでは `scheduler.model.forgettingCurve(card, scheduler.chrono.difference(card.lastReviewAt, now))`。戻り値は数値です。新規カードは別途処理し、パーセント表示はアプリケーションで整形します。 |
+
+`review()` は新しいデータを返します。`result.card` と `result.revlog` の両方を保存してください。新しいログは `dueAt`、`lastReviewAt` など、取り消しに必要な復習前のフィールドを保持します。旧ログの `due` を改名するだけで v6 の取り消しに使わないでください。旧ログには復習前のスナップショットが不足している場合があります。元の履歴は維持し、モデルのリプレイ用には評点と実際の復習時刻だけを変換します。バージョンをまたぐ取り消しには、アプリケーションの独立したスナップショットか取り消し境界が必要です。
+
+モデルと設定が同じでも、すべての学習ステップやファジングで v5 と同一の間隔になる保証はありません。書き込みを切り替える前に New、Learning、Review、Relearning の代表カードを検証してください。[DefaultScheduler](./scheduler/default-scheduler) も利用できますが、デフォルトモデルは FSRS-7 です。この段階で使う場合は FSRS-6 を明示してください。
+
+### ログの 3 つの時刻は単なる改名ではない
+
+`dateChrono` のフィールド名は **`reviewTime` であり、`reviewAt` ではありません**。前回の復習が 1 月 1 日、元の期日が 1 月 3 日、実際の復習が 1 月 4 日という延滞の例を考えます。
+
+| 意味 | v5 の通常の復習ログ | v6 の `revlog` |
+| --- | --- | --- |
+| 前回の復習時刻：1 月 1 日 | `due`（旧実装は `card.last_review \|\| card.due` を記録） | `lastReviewAt` |
+| 元の期日：1 月 3 日 | この学習済みカードでは独立した記録なし | `dueAt` |
+| 今回の実際の復習時刻：1 月 4 日 | `review` | `reviewTime` |
+
+`lastReviewAt` は**今回の復習より前の、前回の復習時刻**です。入力と出力で型が異なります。
+
+- 入力の `DateRevlogInputFields` では `lastReviewAt?: Date | null` と省略可能です。省略または `undefined` の場合、schema は `null` に正規化します。`dueAt` と `reviewTime` は有効な `Date` が必須です。
+- 出力の `DateRevlogFields` には `lastReviewAt: Date | null` が必ず存在します。通常の学習済みカードのログには復習前の `card.lastReviewAt` を記録し、前回の復習がない新規カードの初回ログでは `null` になります。
+- `null` から欠落した前回復習時刻を復元することはできません。旧ログにその情報がなければ、schema の検証に通っても正確な取り消しは保証されません。`dueAt` や `reviewTime` で代用しないでください。
+
+復習が返すカードの `lastReviewAt` は 1 月 4 日になり、`dueAt` は新たな期日になります。一方、ログは**復習前**の時刻を保持します。そのカードと v6 ログで取り消すと、`dueAt` は 1 月 3 日、`lastReviewAt` は 1 月 1 日に戻ります。前倒しや延滞でも同様です。経過日数の計算に使う時刻と、取り消しのために保存する期日を分離したのが chrono リファクタリングの理由です。上のサンプルは 3 フィールドを出力します。
+
+一律に `oldLog.due → revlog.dueAt` と変換してはいけません。通常の v5 学習済みカードの `due` は前回の復習時刻です。`last_review` のない初回復習では元の期日になり、Manual／忘却のログには別の意味があります。リセット済みの v5 New カードにも古い `last_review` が残る場合があるため、カード変換サンプルでは `State.New` の `lastReviewAt` を `null` にします。
+
+モデルの記憶だけを再構築する場合は、`rating` と `review → reviewTime` の変換で十分です。バージョンをまたいで正確に取り消すには、両方の時刻と middleware フィールドを含む元の復習前カードのスナップショットが必要です。それがなければ取り消し境界を設けてください。前倒し復習、学習ステップ、ファジング、手動調整があると、`review` や再計算した間隔から未記録の期日を復元することはできません。
+
+## 2. FSRS-6 から FSRS-7 に移行する
+
+### 重みと状態はモデル固有
+
+FSRS-6 は 21 個、FSRS-7 は独立した **34 個の重み**を使用します。`FSRS7_DEFAULT_WEIGHTS` を使うか、[FSRS-7 の重みを再学習](./optimizer)してください。FSRS-6 のベクトルに値を追加したり、その学習済み重みを流用したりしないでください。`migrateFSRS7Parameters` は空の入力にデフォルト値を提供しますが、旧モデルのパラメーター配置を変換するものではありません。
+
+FSRS-7 の記憶状態は `stability`、`stabilityFast`、`difficulty` です。3 つとも履歴から再構築してください。**再構築した結果は現在の card の記憶状態（memoryState）だけに適用します。過去の revlog は読み取り専用の入力として扱い、記録済みの記憶状態を含め、データの変更・上書き・後付けをしてはいけません。**
+
+**学習済みカードに `stabilityFast = 0.8 * stability` を設定してはいけません**。FSRS-6 の安定性と難易度を維持したまま高速成分だけを追加する方法も使えません。モデル初期化時の係数は、更新を重ねた記憶状態の移行式ではありません。
+
+`fractionalDays: true` にして、10 分間隔の復習などを小数日数のまま保持してください。FSRS-7 の高速トレースはモデル固有です。学習ステップの middleware を使用した場合、`enableShortTerm: false` が無効にするのは明示的な学習ステップだけで、高速トレースは無効になりません。FSRS-7 モデルには FSRS-6 の `numRelearningSteps` に対応する設定はありません。
+
+### FSRS-7 のデフォルトステップと学習状態
+
+`DefaultScheduler` は FSRS-7 で `learningSteps: []` と `relearningSteps: []` をデフォルトとし、モデルが間隔を決定します。FSRS-3～6 は学習ステップ `['1m', '10m']` と再学習ステップ `['10m']` を維持します。明示した設定はデフォルト値で上書きされません。`enableShortTerm` は引き続き `true` がデフォルトで、明示的なステップを制御します。FSRS-7 の高速トレースや間隔による状態分類は無効にしません。
+
+`schedulerLearningStepsMiddleware` が登録されている場合、ステップが無効・空・完了済みでも、**最終スケジュール間隔**で状態が決まります。
+
+| 復習前の状態 | 最終間隔が 1 日未満 | 最終間隔が 1 日以上 |
+| --- | --- | --- |
+| New / Learning | Learning、`scheduleStatus: learning` | Review、`scheduleStatus: review` |
+| Review / Relearning | Relearning、`scheduleStatus: learning` | Review、`scheduleStatus: review` |
+
+ステップを無効にすれば Learning がなくなる、Again だけが Relearning を生む、Easy は必ず Review になる、という前提は使えません。Easy は明示的なステップをスキップし、Good は適用可能な次のステップがある場合のみ進みます。明示的なステップが間隔を提供しない場合、`learningStep` は `0` に戻りますが、Learning/Relearning のままの場合があります。これはステップ番号であり、復習回数ではありません。
+
+状態遷移は middleware の責務で、`FSRS7Model` の責務ではありません。モデルと chrono だけのスケジューラーは、間隔が 1 日未満でも Review を返します。旧動作を前提としたキュー、状態フィルター、統計の処理も更新してください。
+
+[「記憶をリプレイし、スケジュールを維持する」の完全な移行サンプル](#記憶をリプレイしスケジュールを維持する)は、設定省略で FSRS-7 の空ステップのデフォルトを採用せず、**既存の学習ステップを明示して維持**します。製品としてモデル主導のステップを選ぶ場合は `learningSteps: []` と `relearningSteps: []` を明示してください。学習ステップ middleware を削除するという意味ではありません。方針の変更はカードフィールドの移行と分けて検証してください。
+
+### 想起確率の呼び出しを移行する
+
+`scheduler.model.forgettingCurve(state, elapsedDays)` で数値の想起確率を取得し、`scheduler.model.algorithm.curve(elapsedDays, state)` で両成分を確認できます。どちらも `stability`、`stabilityFast`、`difficulty` を含む FSRS-7 の完全な状態が必要で、FSRS-6 の安定性 1 値だけは渡せません。
+
+または `ts-fsrs/models/fsrs-7` から独立した `curve` を import し、`curve(weights, elapsedDays, state)` を呼び出せます。アルゴリズムのインスタンスは不要です。有効な 34 個の FSRS-7 の重みを渡してください。**この関数は重みを検証しません**。保存データやユーザー入力は事前に schema・パラメーターチェックで検証し、`curve` の呼び出しを妥当性チェックに使わないでください。再構築した記憶状態と同じ FSRS-7 の重みを使い、`elapsedDays` の小数部分を保持してください。
+
+曲線の戻り値は `retrievability`、`derivative`、`fast`、`slow`、`fastWeight`、`slowWeight`、`total` を含みます。`total = fastWeight + slowWeight` は混合係数の和であり、全体の想起確率ではありません。旧確率呼び出しの代わりには `retrievability` を使い、パーセント表示はアプリケーションで整形してください。アルゴリズムインスタンスの曲線結果にも `total` が含まれます。これらの API は確率と成分の計算用であり、カード移行、ログ生成、期日の設定は行いません。
+
+### 記憶をリプレイし、スケジュールを維持する
+
+以下は単独で実行できます。v6 形式に変換済みの FSRS-6 カードを受け取り、保存ログの `review` を `reviewTime` に変換して `Reschedule.replay()` を呼びます。旧モデルの `initialState` は渡しません。**移行時は記憶状態だけを再構築し、既存カードの次回復習日時（`dueAt`）は変更しません**。そのカードを次に復習した時点で、FSRS-7 が新しい次回復習日時を計算します。ID、最終復習時刻、学習進捗、統計も維持されます。
+
+```ts twoslash file="../../snippets/run-code/migration-fsrs7.ts" fold height=520
+```
+
+<RunCode code={fsrs7Code} />
+
+| カード・履歴の状態 | 処理 |
+| --- | --- |
+| 新規カード（`State.New`）。意図的にリセットしたカードも含む | FSRS-7 のデフォルト記憶状態を設定し、スケジュールと統計を維持します。 |
+| 作成時または最新の記憶リセット以降の完全な履歴がある学習済みカード | FSRS-7 の重みでリプレイし、スケジュールを維持して再構築した状態を保存します。 |
+| 履歴の欠落・切り詰めがある | カードと対応設定を FSRS-6 に残します。暗黙に初期化したり、行数だけで完全性を判断したりしません。 |
+| 学習済みカードの履歴が空、または Manual のみ | リプレイは例外を投げます。カードは FSRS-6 に残します。 |
+| 不正な日付・評点、または最後の復習が `lastReviewAt` と一致しない | そのカードの移行を止め、記録を確認します。 |
+
+`replay()` は有効な復習を時刻順に並べ、`Rating.Manual` を除外します。ただし手動の忘却・リセットイベントは解釈しません。アプリケーションが**最新の記憶リセット以降**の完全な履歴を選び、それ以前の復習を除外する必要があります。期日を手動調整しただけなら記憶リセットではありません。同時刻の復習は記録順を維持してください。`dateChrono` ではデシリアライズ後の時刻は有効な `Date` である必要があります。最初の復習は未初期化の記憶状態から、経過日数ゼロで開始します。
+
+サンプルの履歴完全性フラグはアプリケーションで判断します。最後の時刻が一致していても、それ以前の復習が欠落していない証明にはなりません。移行できないカードは保存されたモデルバージョンに応じて FSRS-6 に振り分け、FSRS-7 に渡さないでください。
+
+### 意図的に期日も再計算する場合
+
+`new Reschedule(scheduler).reschedule({ history, initialCard })` はスケジュール方針全体を通してリプレイし、`{ card, results }` を返します。期日、学習進捗、統計が変わる場合があります。`initialCard` には、既存の `cardId` と最初の復習時刻を指定した **FSRS-7 の新規カード**を使ってください。学習済みカードに完全な履歴を重ねてリプレイしてはいけません。生成されるログは再計算結果であり、元の履歴の置き換えではありません。このガイドでは `replay()` を標準とし、移行時に既存カードの次回復習日時を変更しません。
+
+## 保存と検証
+
+1. カード、元のログ、設定をバックアップします。モデルバージョンと実際にリプレイに使った重みを、カードまたは確実に関連付けられた設定に保存します。
+2. `stabilityFast` と v6 フィールドを保存できるようにし、再構築した記憶、モデルバージョン、対応する重み・設定の参照を一緒に更新します。FSRS-6 の状態と FSRS-7 の重みを混在させず、アプリケーションの ID とメタデータを維持します。
+3. 元のログを保持し、取り消しの境界を設けます。旧モデルのログを FSRS-7 の `rollback()` に直接渡してはいけません。新しい FSRS-7 ログには `stabilityFast` と復習前のフィールドを保存します。
+4. 代表カードで復習、プレビュー、取り消し、同日復習、学習ステップ、設定したファジングを検証します。記憶だけの移行では期日、ID、学習進捗、統計が変わらないことを確認し、失敗を解消してから該当カードのモデルを切り替えます。
+
+モデルの詳細は [FSRS-7](./model/fsrs-7)、API の構成は[スケジューラー定義](./scheduler)、[Chrono](./chrono)、[middleware](./middleware)を参照してください。

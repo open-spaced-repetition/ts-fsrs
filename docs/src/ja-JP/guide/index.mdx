@@ -25,7 +25,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
   description="このプロンプトをコピーして AI Agent に送り、ts-fsrs のインストールと動作する FSRS-7 スケジューラーの作成を依頼できます。"
   prompt={`私の TypeScript アプリに ts-fsrs を組み込んでください。
 
-1. ドキュメント索引 ${withSiteOrigin(withBase('/ja-JP/llms.txt'))} を読み、スケジューラー API を扱うページをたどる。
+1. ドキュメント索引 ${withSiteOrigin(withBase('/ja-JP/llms.txt'))} とクイックスタート ${withSiteOrigin(withBase('/ja-JP/guide/quick-start.md'))} を読む。まず既に ts-fsrs を使用しているか確認する。v5 → v6 または FSRS-6 → FSRS-7 の更新では、移行ガイド ${withSiteOrigin(withBase('/ja-JP/guide/migration.md'))} を必ず読み、その実装・検証手順に従って既存のカードとログを保持し、移行時にカードの次回復習日時は変更しない。以下のインストールと新規カードの例は新規導入の場合のみ実行する。
 2. \`ts-fsrs\` package をインストールする。
 3. \`defineScheduler\`、\`FSRS7Model\`、\`dateChrono\` で FSRS-7 スケジューラーを作成する。
 4. 新しいカードを作成し、\`Rating.Good\` で復習する。

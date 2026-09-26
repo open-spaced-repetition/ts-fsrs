@@ -86,6 +86,7 @@ for (const route of runCodeRoutes) {
 
     await page.goto(route)
     const runners = page.getByTestId('run-code-test')
+    await expect(runners.first()).toBeVisible()
     const count = await runners.count()
     expect(count).toBeGreaterThan(0)
 
