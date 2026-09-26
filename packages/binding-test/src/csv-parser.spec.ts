@@ -92,6 +92,42 @@ describe('CSV Parser', () => {
     }
   })
 
+  test('keeps cross-card timestamp ties and the last learning prefix in order', () => {
+    const day = 86400000
+    const start = 1700000000000
+    const rows = [
+      'card_id,review_time,review_rating,review_state,review_duration',
+      ['b', start, 1, 0, 1000],
+      ['a', start - 3 * day, 1, 0, 1000],
+      ['a', start - 2 * day, 1, 2, 1000],
+      ['a', start, 2, 0, 1000],
+      ['b', start + day, 4, 2, 1000],
+      ['a', start + day, 3, 2, 1000],
+      ['a', start + day, 4, 2, 1000],
+      ['a', start + 2 * day, 2, 2, 1000],
+      ['no-learning', start, 3, 2, 1000],
+      ['no-learning', start + day, 3, 2, 1000],
+    ]
+    const data = Buffer.from(
+      rows
+        .map((row) => (typeof row === 'string' ? row : row.join(',')))
+        .join('\n')
+    )
+    for (const version of ['FSRS-6', 'FSRS-7'] as const) {
+      const items = convertCsvToFsrsItems(data, 4, 0, version)
+      expect(
+        items.map((item) => item.reviews.map((review) => review.rating))
+      ).toEqual([
+        [2, 3],
+        [1, 4],
+        [2, 3, 4, 2],
+      ])
+      expect(items.at(-1)?.reviews.map((review) => review.deltaT)).toEqual([
+        0, 1, 0, 1,
+      ])
+    }
+  })
+
   test('validates rollover hours before converting bytes or reading streams', async () => {
     const data = Buffer.from(
       'card_id,review_time,review_rating,review_state,review_duration\n' +

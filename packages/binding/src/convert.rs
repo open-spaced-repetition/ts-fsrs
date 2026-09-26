@@ -129,7 +129,8 @@ fn remove_revlog_before_last_first_learn(entries: Vec<RevlogEntry>) -> Vec<Revlo
   }
 
   if let Some(start) = last_learning_block_start {
-    entries[start..].to_vec()
+    // Match fsrs-rs's internal training default: omit longer prefixes, not their initial reviews.
+    entries.into_iter().skip(start).take(1024).collect()
   } else {
     vec![]
   }
@@ -142,10 +143,8 @@ fn convert_to_fsrs_items_internal(
   use_fractional_days: bool,
   boundaries: &mut HashMap<Date, (i64, i64)>,
   skipped_dates: &[Date],
-) -> Result<Vec<(String, FSRSBindingItem, i64)>> {
+) -> Result<Vec<(FSRSBindingItem, i64)>> {
   entries = remove_revlog_before_last_first_learn(entries);
-  // Match fsrs-rs's internal training default: omit longer prefixes, not their initial reviews.
-  entries.truncate(1024);
 
   let position = |timestamp, boundaries: &mut HashMap<Date, (i64, i64)>| {
     study_day_position(
@@ -184,14 +183,13 @@ fn convert_to_fsrs_items_internal(
           })
           .collect();
         (
-          entry.card_id.clone(),
           FSRSBindingItem {
             inner: fsrs::FSRSItem { reviews },
           },
           entry.review_time,
         )
       })
-      .filter(|(_, item, _)| item.current().is_some_and(|r| r.inner.delta_t > 0.0))
+      .filter(|(item, _)| item.current().is_some_and(|r| r.inner.delta_t > 0.0))
       .collect(),
   )
 }
@@ -257,9 +255,9 @@ pub(crate) fn convert_csv_bytes(
     .collect_vec();
 
   // Sort by review_time to maintain correct order across groups
-  revlogs.sort_by_cached_key(|(_, _, review_time)| *review_time);
+  revlogs.sort_by_cached_key(|(_, review_time)| *review_time);
 
-  Ok(revlogs.into_iter().map(|(_, item, _)| item).collect())
+  Ok(revlogs.into_iter().map(|(item, _)| item).collect())
 }
 
 /// Convert CSV review logs to FSRS training items.
@@ -332,5 +330,8 @@ pub(crate) fn prepare_items(train_set: Vec<&FSRSBindingItem>) -> Vec<fsrs::FSRSI
       .into_iter()
       .partition(|item| item.long_term_review_cnt() == 1);
   (dataset_for_initialization, trainset) = filter_outlier(dataset_for_initialization, trainset);
-  [dataset_for_initialization, trainset].concat()
+  dataset_for_initialization
+    .into_iter()
+    .chain(trainset)
+    .collect()
 }
