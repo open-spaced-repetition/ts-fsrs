@@ -1,5 +1,19 @@
 # ts-fsrs
 
+## 6.0.0-beta.11
+
+### Minor Changes
+
+- [#541](https://github.com/open-spaced-repetition/ts-fsrs/pull/541) [`f9dddd0`](https://github.com/open-spaced-repetition/ts-fsrs/commit/f9dddd0acd10c367a5bc185844d02b13443ce6ea) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export the standalone FSRS-7 curve and its total mixture weight.
+
+- [#539](https://github.com/open-spaced-repetition/ts-fsrs/pull/539) [`ccf14a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ccf14a4709a926ff6bfb6d6b486ff6bdecec8a2b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export desiredRetentionSchema, elapsedDaysSchema, and scheduledDaysSchema.
+
+### Patch Changes
+
+- [#540](https://github.com/open-spaced-repetition/ts-fsrs/pull/540) [`a1ca22f`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a1ca22f89383f3c935039d9a75db6a35af0a8bc8) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): correct FSRS-7 sub-day states and default its learning and relearning steps to empty arrays.
+
+- [#547](https://github.com/open-spaced-repetition/ts-fsrs/pull/547) [`2994891`](https://github.com/open-spaced-repetition/ts-fsrs/commit/29948911a94b37a8174e66f292dd5bdd825be514) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add a build-time flag to disable rounding while preserving rounding by default.
+
 ## 6.0.0-beta.10
 
 ### Major Changes
