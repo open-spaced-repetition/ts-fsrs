@@ -31,6 +31,28 @@ Pass `nextDayStartsAt` (the hour of day the next day begins) and either an IANA 
 
 <RunCode code={optimizerCsvCode} />
 
+The existing converter keeps returning an array. To normalize arbitrary CSV card identifiers once, use `convertCsvToFsrsItemsWithCardIds`. It returns `{ items, cardIds }`, or a Promise for a stream. The numeric IDs are assigned per retained card within this conversion, stay aligned with items after sorting, and are not the original identifiers. Reuse the same IDs for training and direct evaluation; do not combine IDs from separate conversions.
+
+`computeParameters` and `evaluateWithTimeSeriesSplits` accept optional `options.cardIds`.
+
+```ts
+import { computeParameters, convertCsvToFsrsItemsWithCardIds, evaluateWithTimeSeriesSplits } from '@open-spaced-repetition/binding'
+
+const dataset = convertCsvToFsrsItemsWithCardIds(
+  new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7'
+)
+const optimizedWeights = await computeParameters(dataset.items, {
+  modelVersion: 'FSRS-7',
+  enableShortTerm: true,
+  cardIds: dataset.cardIds,
+})
+const metrics = await evaluateWithTimeSeriesSplits(dataset.items, {
+  modelVersion: 'FSRS-7',
+  enableShortTerm: true,
+  cardIds: dataset.cardIds,
+})
+```
+
 Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conversion, training, evaluation, and scheduling. Pass it as the fourth argument to `convertCsvToFsrsItems` and in the training/evaluation options, then call `DefaultScheduler({ version: modelVersion, weights })`. FSRS-7 produces 34 weights and preserves fractional and same-day intervals normalized by the actual local study-day duration; FSRS-6 produces 21 weights and uses whole study days. Same-day follow-up reviews can therefore contribute to FSRS-7 training.
 
 ## Train weights

@@ -31,6 +31,28 @@ import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
 
 <RunCode code={optimizerCsvCode} />
 
+原来的转换函数仍返回数组。需要一次性归一化任意 CSV 卡片标识时，使用 `convertCsvToFsrsItemsWithCardIds`：它返回 `{ items, cardIds }`，流输入则返回 Promise。数值 ID 按本次转换中保留的卡片生成，与排序后的 items 逐项对齐，不是原始卡片标识。训练和直接评估复用同一组 IDs；不要混用不同转换结果中的 IDs。
+
+`computeParameters` 和 `evaluateWithTimeSeriesSplits` 接受可选的 `options.cardIds`。
+
+```ts
+import { computeParameters, convertCsvToFsrsItemsWithCardIds, evaluateWithTimeSeriesSplits } from '@open-spaced-repetition/binding'
+
+const dataset = convertCsvToFsrsItemsWithCardIds(
+  new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7'
+)
+const optimizedWeights = await computeParameters(dataset.items, {
+  modelVersion: 'FSRS-7',
+  enableShortTerm: true,
+  cardIds: dataset.cardIds,
+})
+const metrics = await evaluateWithTimeSeriesSplits(dataset.items, {
+  modelVersion: 'FSRS-7',
+  enableShortTerm: true,
+  cardIds: dataset.cardIds,
+})
+```
+
 CSV 转换、训练、评估和调度必须选择相同的 `modelVersion`（默认 `'FSRS-7'`，也可选 `'FSRS-6'`）。将它作为 `convertCsvToFsrsItems` 的第四个参数，并传入训练和评估选项；调度时使用 `DefaultScheduler({ version: modelVersion, weights })`。FSRS-7 产生 34 个权重，按本地学习日的实际时长归一化并保留小数与同日间隔；FSRS-6 产生 21 个权重，使用整数学习日。因此同日的后续复习也可以参与 FSRS-7 训练。
 
 ## 训练权重
