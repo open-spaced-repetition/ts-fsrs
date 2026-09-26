@@ -5,6 +5,7 @@ description: 沿 binding 走通複習記錄流程——把 CSV 轉成項、訓�
 
 import RunCode from '../../../components/RunCode'
 import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+import optimizerCardIdsCode from '@/snippets/run-code/optimizer-card-ids.ts?raw'
 
 # 訓練與評估
 
@@ -35,23 +36,10 @@ import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
 
 `computeParameters` 與 `evaluateWithTimeSeriesSplits` 接受選填的 `options.cardIds`。
 
-```ts
-import { computeParameters, convertCsvToFsrsItemsWithCardIds, evaluateWithTimeSeriesSplits } from '@open-spaced-repetition/binding'
-
-const dataset = convertCsvToFsrsItemsWithCardIds(
-  new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7'
-)
-const optimizedWeights = await computeParameters(dataset.items, {
-  modelVersion: 'FSRS-7',
-  enableShortTerm: true,
-  cardIds: dataset.cardIds,
-})
-const metrics = await evaluateWithTimeSeriesSplits(dataset.items, {
-  modelVersion: 'FSRS-7',
-  enableShortTerm: true,
-  cardIds: dataset.cardIds,
-})
+```ts file="../../../snippets/run-code/optimizer-card-ids.ts"
 ```
+
+<RunCode code={optimizerCardIdsCode} />
 
 CSV 轉換、訓練、評估與排程必須選擇相同的 `modelVersion`（預設 `'FSRS-7'`，也可選 `'FSRS-6'`）。將它作為 `convertCsvToFsrsItems` 的第四個參數，並傳入訓練與評估選項；排程時使用 `DefaultScheduler({ version: modelVersion, weights })`。FSRS-7 產生 34 個權重，依本地學習日的實際時長正規化並保留小數與同日間隔；FSRS-6 產生 21 個權重，使用整數學習日。因此同日的後續複習也能參與 FSRS-7 訓練。
 

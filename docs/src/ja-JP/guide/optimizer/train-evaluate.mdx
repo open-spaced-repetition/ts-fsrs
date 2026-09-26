@@ -5,6 +5,7 @@ description: binding で復習ログのパイプラインを追う——CSV を�
 
 import RunCode from '../../../components/RunCode'
 import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
+import optimizerCardIdsCode from '@/snippets/run-code/optimizer-card-ids.ts?raw'
 
 # 学習と評価
 
@@ -35,23 +36,10 @@ import optimizerCsvCode from '@/snippets/run-code/optimizer-csv.ts?raw'
 
 `computeParameters` と `evaluateWithTimeSeriesSplits` は任意の `options.cardIds` を受け取ります。
 
-```ts
-import { computeParameters, convertCsvToFsrsItemsWithCardIds, evaluateWithTimeSeriesSplits } from '@open-spaced-repetition/binding'
-
-const dataset = convertCsvToFsrsItemsWithCardIds(
-  new TextEncoder().encode(csv), 4, 'UTC', 'FSRS-7'
-)
-const optimizedWeights = await computeParameters(dataset.items, {
-  modelVersion: 'FSRS-7',
-  enableShortTerm: true,
-  cardIds: dataset.cardIds,
-})
-const metrics = await evaluateWithTimeSeriesSplits(dataset.items, {
-  modelVersion: 'FSRS-7',
-  enableShortTerm: true,
-  cardIds: dataset.cardIds,
-})
+```ts file="../../../snippets/run-code/optimizer-card-ids.ts"
 ```
+
+<RunCode code={optimizerCardIdsCode} />
 
 CSV 変換・学習・評価・スケジューリングでは同じ `modelVersion`（既定は `'FSRS-7'`、または `'FSRS-6'`）を使います。`convertCsvToFsrsItems` の第 4 引数と学習・評価のオプションに渡し、`DefaultScheduler({ version: modelVersion, weights })` で利用します。FSRS-7 は 34 個の重みを返し、現地の学習日の実際の長さで正規化した小数・同日間隔を保持します。FSRS-6 は 21 個の重みと整数の学習日を使います。同日の追加復習も FSRS-7 の学習に利用できます。
 
