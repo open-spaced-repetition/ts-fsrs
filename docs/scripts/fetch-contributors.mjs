@@ -1,4 +1,4 @@
-import { writeFileSync } from 'node:fs'
+import { mkdirSync, writeFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
 const repository =
@@ -8,7 +8,11 @@ const token =
   process.env.GITHUB_TOKEN ??
   process.env.SPONSORKIT_GITHUB_TOKEN
 
-const target = fileURLToPath(new URL('../.contributors.json', import.meta.url))
+mkdirSync(new URL('../.generated/', import.meta.url), { recursive: true })
+
+const target = fileURLToPath(
+  new URL('../.generated/contributors.json', import.meta.url)
+)
 
 /**
  * The subset of the REST response this script keeps.

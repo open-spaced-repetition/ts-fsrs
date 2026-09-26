@@ -40,10 +40,8 @@ pnpm-debug.log*
 # Sample review log fetched at build time (see docs/scripts/fetch-revlog.mjs)
 docs/src/public/revlog.csv
 
-# Sponsorships and the contributor list change without a commit, so a copy in
-# git would go stale. Both are fetched by docs/scripts/fetch-*.mjs.
-docs/.sponsors.json
-docs/.contributors.json
+# Prepared releases and community data are regenerated before docs dev/build.
+/docs/.generated/
 
 # Documentation and coverage
 **/coverage/

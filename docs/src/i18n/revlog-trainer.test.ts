@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { adaptI18nSource, I18N_LOCALES, messagesByLocale } from './index'
+import { adaptI18nSource, messagesByLocale } from './index'
+import { I18N_LOCALES } from './locales'
 
 const englishMessages = messagesByLocale['en-US']
 type MessageKey = keyof typeof englishMessages

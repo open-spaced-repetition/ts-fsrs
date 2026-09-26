@@ -1,10 +1,9 @@
 import { readFileSync } from 'node:fs'
 import enUSMessages from './en-US.json'
 import jaJPMessages from './ja-JP.json'
+import { I18N_LOCALES } from './locales'
 import zhCNMessages from './zh-CN.json'
 import zhTWMessages from './zh-TW.json'
-
-export const I18N_LOCALES = ['en-US', 'zh-CN', 'zh-TW', 'ja-JP'] as const
 
 export type I18nLocale = (typeof I18N_LOCALES)[number]
 

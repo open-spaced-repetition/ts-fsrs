@@ -51,8 +51,15 @@
     "@ts-fsrs/website#prepare:revlog": {
       "outputs": ["src/public/revlog.csv"]
     },
+    "@ts-fsrs/website#prepare:releases": {
+      "cache": false,
+      "outputs": [".generated/releases.json", ".generated/releases/**"],
+      "env": ["DOCS_BASE"],
+      "passThroughEnv": ["GITHUB_TOKEN"]
+    },
     "@ts-fsrs/website#prepare:sponsors": {
       "cache": false,
+      "outputs": [".generated/sponsors.json"],
       "env": [
         "SPONSORKIT_GITHUB_TOKEN",
         "SPONSORKIT_GITHUB_LOGIN",
@@ -61,6 +68,7 @@
     },
     "@ts-fsrs/website#prepare:contributors": {
       "cache": false,
+      "outputs": [".generated/contributors.json"],
       "env": [
         "CONTRIBUTORS_REPO",
         "CONTRIBUTORS_GITHUB_TOKEN",
@@ -72,23 +80,31 @@
       "dependsOn": [
         "@ts-fsrs/website#verify:packages",
         "@ts-fsrs/website#prepare:revlog",
+        "@ts-fsrs/website#prepare:releases",
         "@ts-fsrs/website#prepare:sponsors",
         "@ts-fsrs/website#prepare:contributors"
       ],
       "outputs": ["doc_build/**"],
-      "inputs": ["$TURBO_DEFAULT$", ".sponsors.json", ".contributors.json"],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".generated/sponsors.json",
+        ".generated/contributors.json",
+        ".generated/releases/**"
+      ],
       "env": [
         "DOCS_SITE_ORIGIN",
         "DOCS_BASE",
         "DOCS_INDEXABLE",
         "DOCS_REPO_SLUG",
         "DOCS_REPO_REF"
-      ]
+      ],
+      "cache": false
     },
     "@ts-fsrs/website#rspress:dev": {
       "dependsOn": [
         "@ts-fsrs/website#verify:packages",
         "@ts-fsrs/website#prepare:revlog",
+        "@ts-fsrs/website#prepare:releases",
         "@ts-fsrs/website#prepare:sponsors",
         "@ts-fsrs/website#prepare:contributors"
       ],
