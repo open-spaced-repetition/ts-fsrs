@@ -1,0 +1,16 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  "desired-retention",
+  "cost-adr",
+  "learning-steps",
+  "fuzz",
+  "maximum-interval",
+  "stats",
+  "monotonic-interval",
+  "scheduled-days",
+  "leech"
+]

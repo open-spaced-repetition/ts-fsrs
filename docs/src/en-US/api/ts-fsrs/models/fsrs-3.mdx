@@ -1,0 +1,50 @@
+---
+title: FSRS-3
+description: Reference for ts-fsrs/models/fsrs-3 — its weights, bounds, and parameter helpers
+---
+
+import RunCode from '../../../../components/RunCode'
+import code from '@/snippets/run-code/api/ts-fsrs/models/fsrs-3.ts?raw'
+
+# FSRS-3
+
+```ts
+import { FSRS3Model, FSRS3_DEFAULT_WEIGHTS } from 'ts-fsrs/models/fsrs-3'
+```
+
+## Model
+
+| Export | Kind | What it is |
+| --- | --- | --- |
+| `FSRS3Model` | model definition | Pass to `defineScheduler({ model })`. |
+| `FSRS3Algorithm` | class | Algorithm class for stability, difficulty, and retrievability calculations. The model creates the instance; direct construction is usually unnecessary. |
+
+## Constants
+
+| Export | Value | What it is |
+| --- | --- | --- |
+| `FSRS3_DEFAULT_WEIGHTS` | 13 numbers | Default weight array; its length is the required parameter count. |
+| `FSRS3_MODEL_BOUNDS` | `{ sMin, sMax, dMin, dMax }` | Stability and difficulty limits allowed by the model. |
+
+
+## Parameters
+
+| Export | Signature | Behavior |
+| --- | --- | --- |
+| `clipFSRS3Parameters` | `(weights) => number[]` | Clamps out-of-range weights to their allowed ranges, leaving in-range values unchanged. |
+| `checkFSRS3Parameters` | `(weights) => weights` | Returns the input untouched, or throws `FSRSValidationError` if any weight is out of bounds or the length is wrong. |
+| `migrateFSRS3Parameters` | `(weights?) => number[]` | Returns default weights for absent or empty input; otherwise copies at most 13 weights without padding short arrays. |
+| `FSRS3ParameterBounds` | `() => [number, number][]` | Per-parameter `[min, max]` bounds used for weight clipping. |
+
+## Schemas
+
+| Export | Validates |
+| --- | --- |
+| `fsrs3ConfigSchema` | `{ weights }`. |
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/models/fsrs-3.ts"
+```
+
+<RunCode code={code} />
+
+**See** — [Models overview](./), [Model guide](../../../guide/model/fsrs-3).

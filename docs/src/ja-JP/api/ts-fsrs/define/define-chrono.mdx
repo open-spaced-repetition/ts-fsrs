@@ -1,0 +1,33 @@
+---
+title: defineChrono
+description: defineChrono のリファレンス——スケジューラ向けの独自の時間抽象を定義する
+---
+
+# defineChrono
+
+**インポート：** `import { defineChrono } from 'ts-fsrs'`
+
+**シグネチャ**
+
+```ts
+defineChrono(definition): Chrono
+```
+
+定義には `schema`、`normalize`、`defaultValue`、`create` ファクトリが含まれます。
+
+`normalize` は `ChronoTimeNormalizer` 型の Standard Schema で、`ChronoNormalizedTime<Time>`（`{ previous: Time | null, current: Time }`）を出力します。`defineChrono` には互換性のあるスキーマ、または `{ value }` / `{ issues }` を返す検証コールバックを渡せます。生成された定義ではスキーマとして公開されます。
+
+**実行時操作** — Chrono は、スケジューラが呼び出す時間関数を提供します：
+
+| 操作 | 意味 |
+| --- | --- |
+| `now()` | 呼び出し側が `now` を省略したときに時刻を提供します。 |
+| `difference(from, to)` | モデルが使う経過日数を返します。 |
+| `add(from, days)` | 最終間隔を復習日時に変換します。 |
+| `compare(left, right)` | 省略可能な、正確な順序比較。 |
+
+**プリセット** — [`dateChrono`, `numericChrono`, `temporalInstantChrono`](../chrono-presets)。
+
+**参照** — [Chrono の概要](../../../guide/chrono)（normalize と `defineChrono` の例）。
+
+`normalize` は復習時に `{ card, time }`、ロールバック時に `{ revlog }` を受け取り、Standard Schema の検証で `{ previous, current }` を返します。`previous: null` は前のイベントがないことを示します。Date/Temporal の `current` は保存済みの `dueAt` で、操作時刻 `time` とは異なります。関数として呼ばず、`parse(chrono.normalize, input)` を使ってください。

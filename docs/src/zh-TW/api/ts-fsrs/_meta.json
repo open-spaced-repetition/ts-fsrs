@@ -1,0 +1,35 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "概覽"
+  },
+  "default-scheduler",
+  "scheduler",
+  {
+    "type": "dir",
+    "name": "define",
+    "label": "定義",
+    "collapsible": true,
+    "collapsed": true
+  },
+  "chrono-presets",
+  "rating-grade-state",
+  {
+    "type": "dir",
+    "name": "models",
+    "label": "模型",
+    "collapsible": true,
+    "collapsed": true
+  },
+  {
+    "type": "dir",
+    "name": "middlewares",
+    "label": "中介軟體",
+    "collapsible": true,
+    "collapsed": true
+  },
+  "reschedule",
+  "utils",
+  "types"
+]

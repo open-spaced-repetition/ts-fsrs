@@ -3,3 +3,4 @@
 README* @Luc-Mcgrady
 **/README* @Luc-Mcgrady
 CONTRIBUTING.md @Luc-Mcgrady
+docs/src/en-US/**/*.mdx @Luc-Mcgrady

@@ -1,5 +1,6 @@
 [
   { "text": "指南", "link": "/guide/", "activeMatch": "/guide/" },
+  { "text": "API", "link": "/api/ts-fsrs", "activeMatch": "/api/" },
   { "text": "Playground", "link": "/playground" },
   { "text": "更新", "link": "/updates/" }
 ]

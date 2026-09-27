@@ -1,0 +1,24 @@
+---
+title: Utils
+description: Reference for the small numeric helpers exported from the ts-fsrs root — clamp and roundTo
+---
+
+# Utils
+
+The root exports two small numeric helpers:
+
+```ts
+import { clamp, roundTo } from 'ts-fsrs'
+```
+
+| Export | Signature | Behavior |
+| --- | --- | --- |
+| `clamp` | `clamp(value, min, max)` | Clamps `value` into `[min, max]`. |
+| `roundTo` | `roundTo(num, decimals)` | Rounds `num` to `decimals` places. |
+
+```ts
+clamp(15, 0, 10)   // 10
+roundTo(2.3065, 2) // 2.31
+```
+
+These are plain functions with no scheduling state.

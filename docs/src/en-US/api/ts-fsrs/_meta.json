@@ -1,0 +1,35 @@
+[
+  {
+    "type": "file",
+    "name": "index",
+    "label": "Overview"
+  },
+  "default-scheduler",
+  "scheduler",
+  {
+    "type": "dir",
+    "name": "define",
+    "label": "Definitions",
+    "collapsible": true,
+    "collapsed": true
+  },
+  "chrono-presets",
+  "rating-grade-state",
+  {
+    "type": "dir",
+    "name": "models",
+    "label": "Models",
+    "collapsible": true,
+    "collapsed": true
+  },
+  {
+    "type": "dir",
+    "name": "middlewares",
+    "label": "Middlewares",
+    "collapsible": true,
+    "collapsed": true
+  },
+  "reschedule",
+  "utils",
+  "types"
+]
