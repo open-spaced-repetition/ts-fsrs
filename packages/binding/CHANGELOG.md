@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.5
+
+### Minor Changes
+
+- [#553](https://github.com/open-spaced-repetition/ts-fsrs/pull/553) [`6e35592`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6e35592e29c6484f71bfe0c7b9e1fcf1e2d4a5eb) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add card IDs to CSV conversion, training, and evaluation.
+
 ## 0.6.0-beta.4
 
 ### Minor Changes
