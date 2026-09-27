@@ -1,6 +1,7 @@
 import { defineConfig } from '@playwright/test'
 
 export default defineConfig({
+  fullyParallel: true,
   expect: { timeout: 120_000 },
   testDir: './e2e',
   timeout: 120_000,
@@ -14,5 +15,5 @@ export default defineConfig({
     timeout: 120_000,
     url: 'http://127.0.0.1:4173',
   },
-  workers: process.env.CI ? 1 : undefined,
+  workers: process.env.CI ? 4 : undefined,
 })

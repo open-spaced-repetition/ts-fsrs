@@ -1,0 +1,26 @@
+---
+title: MaximumInterval
+description: Built-in middleware schedulerMaximumIntervalMiddleware — caps the day interval at maximumInterval
+---
+
+import RunCode from '../../../../components/RunCode'
+import maximumIntervalCode from '@/snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts?raw'
+
+# MaximumInterval
+
+`ts-fsrs/middlewares` export `schedulerMaximumIntervalMiddleware`:
+
+```ts
+import { schedulerMaximumIntervalMiddleware } from 'ts-fsrs/middlewares'
+```
+
+It caps the final day interval at `maximumInterval` as the middleware chain unwinds.
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/maximum-interval.ts"
+```
+
+<RunCode code={maximumIntervalCode} />
+
+Capping at one day clamps the Good review's due time to the next day even though the model keeps stability at `2.3065`.
+
+**See** — [Built-in policies](../../../guide/middleware/built-in).

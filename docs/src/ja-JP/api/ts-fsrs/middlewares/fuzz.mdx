@@ -1,0 +1,24 @@
+---
+title: Fuzzing
+description: 組み込みミドルウェア schedulerFuzzingMiddleware——enableFuzz が有効なときに間隔を分散する
+---
+
+import RunCode from '../../../../components/RunCode'
+import fuzzCode from '@/snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts?raw'
+
+# Fuzzing
+
+`ts-fsrs/middlewares` は `schedulerFuzzingMiddleware` と `createSchedulerFuzzingMiddleware()` ファクトリをエクスポートします：
+
+```ts
+import { schedulerFuzzingMiddleware } from 'ts-fsrs/middlewares'
+```
+
+`enableFuzz` が有効な場合、これは `cardId` と復習回数を使って間隔を分散します。そのため、同じカードでは結果を再現できます。分散の範囲を制限するには、config に `maximumInterval` が必要です。
+
+```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/fuzz.ts"
+```
+
+<RunCode code={fuzzCode} />
+
+**参照** — [組み込みポリシー](../../../guide/middleware/built-in)。

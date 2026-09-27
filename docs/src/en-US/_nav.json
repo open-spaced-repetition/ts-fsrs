@@ -1,5 +1,6 @@
 [
   { "text": "Guide", "link": "/guide/", "activeMatch": "/guide/" },
+  { "text": "API", "link": "/api/ts-fsrs", "activeMatch": "/api/" },
   { "text": "Playground", "link": "/playground" },
   { "text": "Updates", "link": "/updates/" }
 ]

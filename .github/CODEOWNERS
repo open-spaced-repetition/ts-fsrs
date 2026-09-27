@@ -6,3 +6,4 @@ CONTRIBUTING.md @Luc-Mcgrady
 CODE_OF_CONDUCT.md @Luc-Mcgrady
 .github/ISSUE_TEMPLATE/* @Luc-Mcgrady
 .github/pull_request_template.md @Luc-Mcgrady
+docs/src/en-US/**/*.mdx @Luc-Mcgrady
