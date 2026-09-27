@@ -4,7 +4,9 @@ import {
 } from '@open-spaced-repetition/binding'
 
 console.log('Downloading revlog.csv…')
-const response = await fetch('/revlog.csv', { cache: 'force-cache' })
+const response = await fetch(`${import.meta.env.BASE_URL}/revlog.csv`, {
+  cache: 'force-cache',
+})
 if (!response.ok) throw new Error(`revlog.csv: ${response.status}`)
 if (!response.body) throw new Error('revlog.csv: empty response body')
 

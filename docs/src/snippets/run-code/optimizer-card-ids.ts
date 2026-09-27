@@ -4,7 +4,9 @@ import {
   evaluateWithTimeSeriesSplits,
 } from '@open-spaced-repetition/binding'
 
-const response = await fetch('/revlog.csv', { cache: 'force-cache' })
+const response = await fetch(`${import.meta.env.BASE_URL}/revlog.csv`, {
+  cache: 'force-cache',
+})
 if (!response.ok) throw new Error(`revlog.csv: ${response.status}`)
 if (!response.body) throw new Error('revlog.csv: empty response body')
 console.log('Response received. Converting reviews and training…')

@@ -1,3 +1,8 @@
+// biome-ignore lint/correctness/noUnusedVariables: Env
+interface ImportMeta {
+  readonly env: { readonly BASE_URL: string }
+}
+
 declare module '*.css'
 
 declare module 'monaco-editor/editor/editor.worker'
