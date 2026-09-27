@@ -1,0 +1,28 @@
+name: build-docs
+description: Install dependencies, build docs and run docs tests
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node & pnpm
+      uses: ./.github/actions/setup-node-pnpm
+
+    - name: Install Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        toolchain: 1.98.1
+        targets: wasm32-wasip1
+
+    - name: Cache sample review log
+      uses: actions/cache@v6
+      with:
+        path: docs/src/public/revlog.csv
+        key: revlog-csv-v1
+
+    - name: Build docs and dependencies
+      run: pnpm docs:build
+      shell: bash
+
+    - name: Test docs
+      run: pnpm --filter @ts-fsrs/website test:docs
+      shell: bash

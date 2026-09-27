@@ -60,6 +60,8 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
     needs:
       - test
     steps:
@@ -124,3 +126,13 @@ jobs:
           else
             bash .github/scripts/create-github-releases.sh
           fi
+
+  docs:
+    needs: release
+    if: github.ref == 'refs/heads/main' && needs.release.outputs.published == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs-deploy.yml
+    secrets: inherit

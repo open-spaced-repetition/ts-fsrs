@@ -3,6 +3,7 @@ import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { expect, test } from '@playwright/test'
 import ts from 'typescript'
+import { prepareExampleSource } from '../src/playground/shared/example-source'
 import { sourceId } from '../src/playground/shared/source-id'
 
 const docsRoot = path.resolve(import.meta.dirname, '..')
@@ -50,7 +51,12 @@ const snippets = new Map<
 >()
 for (const file of filesIn(snippetsRoot)) {
   if (!file.endsWith('.ts') || file.endsWith('.output.ts')) continue
-  const id = sourceId(readFileSync(file, 'utf8'))
+  const id = sourceId(
+    prepareExampleSource(
+      readFileSync(file, 'utf8'),
+      process.env.DOCS_BASE ?? '/'
+    )
+  )
   const duplicate = snippets.get(id)
   if (duplicate) {
     throw new Error(
