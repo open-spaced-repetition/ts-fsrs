@@ -14,7 +14,7 @@ import scheduledDaysCode from '@/snippets/run-code/api/ts-fsrs/middlewares/sched
 import { schedulerScheduledDaysMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It stores the final interval as a nonnegative `scheduledDays` on the card and records the previous value in the revlog, so a review can restore it on rollback.
+It stores the final interval as a nonnegative `scheduledDays` in the card and records the previous value in the revlog, so a review can restore it on rollback.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/scheduled-days.ts"
 ```

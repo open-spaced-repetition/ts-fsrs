@@ -27,7 +27,7 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 | `maximumInterval` | `36500` | Upper bound on the interval in days. |
 | `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |
 
-**Behavior** — composes FSRS-7 (by default) with `dateChrono` and the built-in policies; returns an instance exposing `newCard`, `review`, `rollback`, `preview`, and `forget`.
+**Behavior** — uses FSRS-7 (by default) with `dateChrono` and the built-in policies; returns an instance exposing `newCard`, `review`, `rollback`, `preview`, and `forget`.
 
 **Related types** — `DefaultSchedulerCard`, `DefaultSchedulerCardInput`, `DefaultSchedulerRevlog`, `DefaultSchedulerOptions`.
 
@@ -37,6 +37,6 @@ FSRS-7 is the default model. Its 34 weights and dual stability traces model frac
 
 `FSRSMemoryStateSchema` from `ts-fsrs` describes FSRS-3–6 states (`{ stability, difficulty }`). FSRS-7 uses `FSRS7MemoryStateSchema` from `ts-fsrs/models/fsrs-7` and adds `stabilityFast`. Rebuild legacy states by replaying review history with `Reschedule`; migrating weights does not reconstruct the fast trace.
 
-Cost ADR adjusts retention from memory state and review cost. Compose `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
+Cost ADR adjusts retention from memory state and review cost. Use `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
 
 Uses an already computed post-rating memory state and returns days through `handlers.nextInterval`. It does not run review handlers or advance the card or chrono.

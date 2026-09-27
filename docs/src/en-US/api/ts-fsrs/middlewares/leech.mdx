@@ -14,7 +14,7 @@ import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It reads lapses from the stats middleware and sets `scheduleStatus` to `suspended` whenever lapses reach a positive integer multiple of `leechThreshold`. The default threshold `0` disables suspension; your application must respect the status when selecting cards.
+It reads lapses from the stats middleware and sets `scheduleStatus` to `suspended` whenever lapses reach a positive integer multiple of `leechThreshold`. The default threshold `0` disables suspension; your application must respect the suspended status when selecting cards.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```

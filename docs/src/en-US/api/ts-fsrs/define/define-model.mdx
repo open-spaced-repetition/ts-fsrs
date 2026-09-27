@@ -57,6 +57,6 @@ const model = FSRS6Model.create({
 
 <RunCode code={modelCode} />
 
-A first Good review yields stability `2.3065` and difficulty `2.1181`; `nextInterval` returns `2` whole days, and `forgettingCurve` estimates recall near `0.9095` at that interval.
+The initial Good review yields stability `2.3065` and difficulty `2.1181`; `nextInterval` returns `2` whole days, and `forgettingCurve` estimates recall near `0.9095` at that interval.
 
 The model only updates memory and computes intervals — scheduling policy lives in the [middleware](./define-middleware). See [Models](../models) for the versioned entry points and the [Model guide](../../../guide/model) for the contract and formulas.
