@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FSRS7_DEFAULT_WEIGHTS } from './constants.js'
+import { FSRS7_PARAMETER_BOUNDS } from './index.js'
 import {
   checkFSRS7Parameters,
   clipFSRS7Parameters,
@@ -16,6 +17,16 @@ const referenceClips = [
 ]
 
 describe('FSRS-7 parameters', () => {
+  it('exports all 34 box bounds through the model entry point', () => {
+    expect(FSRS7_PARAMETER_BOUNDS).toHaveLength(34)
+    expect(FSRS7_PARAMETER_BOUNDS.map(([min]) => min)).toEqual(
+      referenceClips[0].expected
+    )
+    expect(FSRS7_PARAMETER_BOUNDS.map(([, max]) => max)).toEqual(
+      referenceClips[1].expected
+    )
+  })
+
   it('copies defaults and explicit weights without changing the source', () => {
     expect(migrateFSRS7Parameters()).toEqual(FSRS7_DEFAULT_WEIGHTS)
     expect(migrateFSRS7Parameters([])).toEqual(FSRS7_DEFAULT_WEIGHTS)

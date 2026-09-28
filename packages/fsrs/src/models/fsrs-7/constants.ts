@@ -12,6 +12,50 @@ export const FSRS7_MODEL_BOUNDS = Object.freeze({
   dMax: 10,
 }) satisfies ModelBounds<FSRS7State>
 
+const { sMin, dMin, dMax } = FSRS7_MODEL_BOUNDS
+
+// fsrs-rs parameter_clipper_v7.rs. Cross-parameter bounds are enforced by the clipper.
+/** Box bounds in weight-index order; the clipper also enforces cross-parameter constraints. */
+export const FSRS7_PARAMETER_BOUNDS: readonly (readonly [number, number])[] = [
+  [sMin, INIT_S_MAX / 2],
+  [sMin, INIT_S_MAX],
+  [sMin, INIT_S_MAX],
+  [sMin, INIT_S_MAX],
+  [dMin, dMax],
+  [0.001, 4],
+  [0.1, 4],
+  [0, 4],
+  [0, 1.2],
+  [0.3, 3],
+  [0.01, 1.5],
+  [0.1, 1],
+  [0, 3.5],
+  [0, 1],
+  [1, 7],
+  [0, 4],
+  [0, 2],
+  [0.5, 6],
+  [0.001, 1.5],
+  [0.001, 1],
+  [0, 5],
+  [0, 1],
+  [1, 7],
+  [0.01, 0.25],
+  [0.01, 0.95],
+  [0.2, 0.85],
+  // base2 floor follows srs-benchmark (_CLIP_LO[26] = 0.5); fsrs-rs currently folds
+  // the box clamp into the monotonicity check and loses this floor.
+  // https://github.com/open-spaced-repetition/srs-benchmark/blob/b4b02549fdf21afcbeb5f4098f6c3623c46ca5d2/models/fsrs_v7.py#L37
+  [0.5, 0.99],
+  [0.01, 1],
+  [0.1, 1],
+  [0, 0.9],
+  [0.1, 1.1],
+  [0, 1],
+  [0, 0.6],
+  [0, 0.6],
+]
+
 // fsrs-rs c9562d6: inference_v7.rs (also srs-benchmark FSRS7.init_w).
 export const FSRS7_DEFAULT_WEIGHTS = Object.freeze([
   0.1104, 2.2395, 3.9221, 11.7841, 6.1686, 0.6457, 3.6807, 1.9795, 0, 1.3826,
