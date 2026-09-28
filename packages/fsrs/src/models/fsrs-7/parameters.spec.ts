@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { FSRS7_DEFAULT_WEIGHTS } from './constants.js'
-import { FSRS7_PARAMETER_BOUNDS } from './index.js'
+import { FSRS7ParameterBounds } from './index.js'
 import {
   checkFSRS7Parameters,
   clipFSRS7Parameters,
@@ -18,13 +18,34 @@ const referenceClips = [
 
 describe('FSRS-7 parameters', () => {
   it('exports all 34 box bounds through the model entry point', () => {
-    expect(FSRS7_PARAMETER_BOUNDS).toHaveLength(34)
-    expect(FSRS7_PARAMETER_BOUNDS.map(([min]) => min)).toEqual(
+    expect(FSRS7ParameterBounds()).toHaveLength(34)
+    expect(FSRS7ParameterBounds().map(([min]) => min)).toEqual(
       referenceClips[0].expected
     )
-    expect(FSRS7_PARAMETER_BOUNDS.map(([, max]) => max)).toEqual(
+    expect(FSRS7ParameterBounds().map(([, max]) => max)).toEqual(
       referenceClips[1].expected
     )
+  })
+
+  it('isolates clipping and validation from mutations to returned bounds', () => {
+    const original = FSRS7ParameterBounds()
+    const bounds = FSRS7ParameterBounds()
+    expect(bounds).not.toBe(original)
+    bounds.forEach((pair, index) => {
+      expect(pair).not.toBe(original[index])
+    })
+
+    bounds[0][0] = 50
+    bounds[0][1] = 50
+    bounds[1] = [50, 50]
+    bounds.splice(2)
+
+    expect(FSRS7ParameterBounds()).toEqual(original)
+    for (const { input, expected } of referenceClips) {
+      expect(clipFSRS7Parameters(input)).toEqual(expected)
+      expect(checkFSRS7Parameters(expected)).toBe(expected)
+    }
+    expect(() => checkFSRS7Parameters(Array(34).fill(50))).toThrow()
   })
 
   it('copies defaults and explicit weights without changing the source', () => {

@@ -1,12 +1,12 @@
 import { FSRSValidationError } from '@/error.js'
 import { clamp } from '@/help.js'
-import { FSRS7_DEFAULT_WEIGHTS, FSRS7_PARAMETER_BOUNDS } from './constants.js'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7ParameterBounds } from './constants.js'
 
 /** FSRS-7's fast trace is intrinsic; clipping is independent of learning steps. */
 export function clipFSRS7Parameters(parameters: readonly number[]): number[] {
   const clipped = Array.from(parameters)
   if (clipped.length < FSRS7_DEFAULT_WEIGHTS.length) return clipped
-  for (const [index, [min, max]] of FSRS7_PARAMETER_BOUNDS.entries()) {
+  for (const [index, [min, max]] of FSRS7ParameterBounds().entries()) {
     // Box clamp first, then the cross-parameter monotonicity, matching srs-benchmark.
     const low =
       index > 0 && index < 4

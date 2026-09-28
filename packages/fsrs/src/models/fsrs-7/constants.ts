@@ -15,8 +15,8 @@ export const FSRS7_MODEL_BOUNDS = Object.freeze({
 const { sMin, dMin, dMax } = FSRS7_MODEL_BOUNDS
 
 // fsrs-rs parameter_clipper_v7.rs. Cross-parameter bounds are enforced by the clipper.
-/** Box bounds in weight-index order; the clipper also enforces cross-parameter constraints. */
-export const FSRS7_PARAMETER_BOUNDS: readonly (readonly [number, number])[] = [
+/** Fresh box bounds in weight-index order; the clipper also enforces cross-parameter constraints. */
+export const FSRS7ParameterBounds = (): [number, number][] => [
   [sMin, INIT_S_MAX / 2],
   [sMin, INIT_S_MAX],
   [sMin, INIT_S_MAX],
