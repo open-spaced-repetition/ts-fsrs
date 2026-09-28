@@ -5,6 +5,7 @@ import {
 
 export type RevlogTrainingOptions = {
   readonly enableShortTerm: boolean
+  readonly enableSchedPenalties?: boolean
   readonly modelVersion?: 'FSRS-6' | 'FSRS-7'
   readonly nextDayStartsAt: number
   readonly timezone: string
@@ -38,6 +39,8 @@ export async function trainRevlogCsv(
   const weights = await computeParameters(items, {
     cardIds,
     enableShortTerm: options.enableShortTerm,
+    enableSchedPenalties:
+      options.modelVersion !== 'FSRS-6' && options.enableSchedPenalties,
     modelVersion: options.modelVersion,
     progress(current, total) {
       const percent = Math.floor((current / total) * 100)

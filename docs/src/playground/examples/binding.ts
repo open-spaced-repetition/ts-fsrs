@@ -29,6 +29,7 @@ let reportedStep = -1
 const weights = await computeParameters(items, {
   cardIds,
   enableShortTerm: true,
+  enableSchedPenalties: true, // Optional FSRS7 training penalties; defaults to false.
   modelVersion,
   progress(current, total) {
     const step = Math.floor((current / total) * (100 / STEP_PERCENT))

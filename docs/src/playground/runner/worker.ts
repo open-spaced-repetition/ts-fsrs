@@ -144,6 +144,7 @@ async function handleTraining(request: CsvTrainingRequest): Promise<void> {
     const { trainRevlogCsv } = await import('./revlog-training')
     const result = await trainRevlogCsv(request.csvText, {
       enableShortTerm: request.enableShortTerm,
+      enableSchedPenalties: request.enableSchedPenalties,
       modelVersion: request.modelVersion,
       nextDayStartsAt: request.nextDayStartsAt,
       onProgress(current, total) {

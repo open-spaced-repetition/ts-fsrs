@@ -102,6 +102,44 @@ describe('FSRS compute_parameters', () => {
     expect(Number.isFinite(metrics.rmseBins)).toBe(true)
   })
 
+  test.each(['FSRS-6', 'FSRS-7'] as const)(
+    'forwards scheduling penalties for %s training and evaluation',
+    async (modelVersion) => {
+      const items = allItems.slice(0, 512)
+      const options = {
+        enableShortTerm: true,
+        modelVersion,
+        timeout: 5,
+        trainingConfig: {
+          numEpochs: 1,
+          batchSize: 128,
+          seed: 2023,
+          maxSeqLen: 256,
+          learningRate: 0.04,
+          gamma: 1,
+        },
+      }
+      for (const run of [computeParameters, evaluateWithTimeSeriesSplits]) {
+        const defaults = await run(items, options)
+        const disabled = await run(items, {
+          ...options,
+          enableSchedPenalties: false,
+        })
+        const enabled = await run(items, {
+          ...options,
+          enableSchedPenalties: true,
+        })
+        const values = (
+          result: number[] | { logLoss: number; rmseBins: number }
+        ) => Object.values(result).map((value) => Number(value.toFixed(6)))
+        expect(values(defaults)).toEqual(values(disabled))
+        if (modelVersion === 'FSRS-7')
+          expect(values(enabled)).not.toEqual(values(disabled))
+        else expect(values(enabled)).toEqual(values(disabled))
+      }
+    }
+  )
+
   test('explicit FSRS6 preserves its legacy training defaults', async () => {
     const items = allItems.slice(0, 2048)
     const parameters = await computeParameters(items, {

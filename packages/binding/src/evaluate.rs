@@ -50,10 +50,10 @@ pub fn evaluate_with_time_series_splits<'env>(
       train_set: train,
       progress: None,
       enable_short_term: resolved.enable_short_term,
+      enable_sched_penalties: resolved.enable_sched_penalties,
       num_relearning_steps: resolved.num_relearning_steps,
       training_config: resolved.training_config,
       model_version: resolved.model_version,
-      ..Default::default()
     },
     |progress| match callback {
       Some(callback) => {
@@ -155,10 +155,10 @@ impl EvaluateParametersTask {
       train_set: std::mem::take(&mut self.train),
       progress: None,
       enable_short_term: self.options.enable_short_term,
+      enable_sched_penalties: self.options.enable_sched_penalties,
       num_relearning_steps: self.options.num_relearning_steps,
       training_config: self.options.training_config,
       model_version: self.options.model_version,
-      ..Default::default()
     };
     let result = fsrs::evaluate_with_time_series_splits(input, move |item_progress| {
       if let Ok(mut guard) = state.lock() {
