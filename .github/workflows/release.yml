@@ -109,6 +109,7 @@ jobs:
           version-script: pnpm run version
           publish-script: pnpm run release
           create-github-releases: false
+          push-git-tags: false
           commit-message: 'chore(release): version packages'
           pr-title: 'chore: release new versions'
         env:
