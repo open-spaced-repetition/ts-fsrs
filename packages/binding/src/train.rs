@@ -71,10 +71,10 @@ impl Task for ComputeParametersTask {
       train_set: std::mem::take(&mut self.train),
       progress: Some(Arc::clone(&self.state)),
       enable_short_term: self.options.enable_short_term,
+      enable_sched_penalties: self.options.enable_sched_penalties,
       num_relearning_steps: self.options.num_relearning_steps,
       training_config: self.options.training_config,
       model_version: self.options.model_version,
-      ..Default::default()
     })
     .map_err(|e| napi::Error::from_reason(format!("compute_parameters failed: {e}")))?;
 
@@ -138,10 +138,10 @@ pub fn compute_parameters<'env>(
         .collect(),
       progress: None,
       enable_short_term: resolved.enable_short_term,
+      enable_sched_penalties: resolved.enable_sched_penalties,
       num_relearning_steps: resolved.num_relearning_steps,
       training_config: resolved.training_config,
       model_version: resolved.model_version,
-      ..Default::default()
     },
     |progress| match callback {
       Some(callback) => {

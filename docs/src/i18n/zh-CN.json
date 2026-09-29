@@ -107,6 +107,8 @@
   "revlogTrainer.configFsrs7": "FSRS7 按每个学习日的实际长度计算小数天，保留当天内的间隔。所选时区和换日时间决定学习日边界；夏令时下完整的 23 或 25 小时学习日仍计为 1 天。",
   "revlogTrainer.modelVersion": "模型版本",
   "revlogTrainer.enableShortTerm": "启用短期参数",
+  "revlogTrainer.enableSchedPenalties": "调度惩罚",
+  "revlogTrainer.enableSchedPenaltiesHint": "为 FSRS7 训练添加间隔增长和短间隔惩罚。默认关闭，不改变调度公式。",
   "revlogTrainer.enableShortTermHint": "短期参数用于建模当天内的复习；关闭后只训练长期权重。",
   "revlogTrainer.field": "字段",
   "revlogTrainer.idle": "请选择 CSV 文件。",

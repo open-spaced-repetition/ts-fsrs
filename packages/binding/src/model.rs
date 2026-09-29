@@ -328,6 +328,8 @@ pub struct ComputeParametersOptions<'env> {
   pub card_ids: Option<Vec<i64>>,
   /// Whether to enable short-term memory parameters
   pub enable_short_term: bool,
+  /// Enable FSRS-7 scheduling penalties during training. Defaults to false; ignored by FSRS-6.
+  pub enable_sched_penalties: Option<bool>,
   /// Number of relearning steps
   pub num_relearning_steps: Option<u32>,
   /// Training hyperparameters. Omitted config preserves the selected model defaults.
@@ -343,6 +345,7 @@ pub struct ComputeParametersOptions<'env> {
 pub(crate) struct ResolvedOptions {
   pub(crate) model_version: fsrs::ComputeParametersVersion,
   pub(crate) enable_short_term: bool,
+  pub(crate) enable_sched_penalties: bool,
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) training_config: Option<fsrs::TrainingConfig>,
   /// Progress poll interval; only meaningful where a poller can run.
@@ -367,6 +370,10 @@ impl ComputeParametersOptions<'_> {
     ResolvedOptions {
       model_version,
       enable_short_term: options.map(|x| x.enable_short_term).unwrap_or(true),
+      enable_sched_penalties: model_version == fsrs::ComputeParametersVersion::Fsrs7
+        && options
+          .and_then(|x| x.enable_sched_penalties)
+          .unwrap_or(false),
       num_relearning_steps: options
         .and_then(|x| x.num_relearning_steps)
         .map(|x| x as usize),

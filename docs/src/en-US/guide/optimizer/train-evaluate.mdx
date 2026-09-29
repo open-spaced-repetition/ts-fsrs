@@ -51,8 +51,11 @@ Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conve
 const weights = await computeParameters(items, {
   modelVersion: 'FSRS-7',
   enableShortTerm: true,
+  enableSchedPenalties: true,
 })
 ```
+
+`enableSchedPenalties` is optional and defaults to `false`. Set it to `true` to add FSRS-7 interval-growth and short-interval penalties to the training loss. It also applies to training inside `evaluateWithTimeSeriesSplits`. It is ignored by FSRS-6, and does not change scheduling formulas.
 
 `trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. `computeParameters` runs the real training loop, so call it in a Worker rather than on the main thread. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ version: modelVersion, weights })` or a `defineScheduler` config, replacing the model defaults.
 

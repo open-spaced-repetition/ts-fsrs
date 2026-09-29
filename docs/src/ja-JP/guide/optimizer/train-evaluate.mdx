@@ -51,8 +51,11 @@ CSV 変換・学習・評価・スケジューリングでは同じ `modelVersio
 const weights = await computeParameters(items, {
   modelVersion: 'FSRS-7',
   enableShortTerm: true,
+  enableSchedPenalties: true,
 })
 ```
+
+`enableSchedPenalties` は任意で、既定値は `false` です。`true` にすると、FSRS-7 の間隔の成長と短い間隔へのペナルティを学習損失に追加します。`evaluateWithTimeSeriesSplits` 内部の学習にも適用されますが、FSRS-6 では無視され、スケジューリングの数式は変わりません。
 
 `trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。`computeParameters` は実際の学習ループを実行するため、メインスレッドではなく Worker で呼んでください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ version: modelVersion, weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
 

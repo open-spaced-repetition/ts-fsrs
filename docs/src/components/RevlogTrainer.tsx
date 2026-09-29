@@ -60,6 +60,7 @@ const HOURS = Array.from({ length: 24 }, (_, hour) => hour)
 export default function RevlogTrainer() {
   const t = useI18n<typeof import('i18n')>()
   const enableShortTermId = useId()
+  const enableSchedPenaltiesId = useId()
   const modelVersionId = useId()
   const inputId = useId()
   const nextDayStartsAtId = useId()
@@ -67,6 +68,7 @@ export default function RevlogTrainer() {
   const timezoneOptionsId = useId()
   const runGenerationRef = useRef(0)
   const [enableShortTerm, setEnableShortTerm] = useState(true)
+  const [enableSchedPenalties, setEnableSchedPenalties] = useState(false)
   const [modelVersion, setModelVersion] = useState<'FSRS-6' | 'FSRS-7'>(
     'FSRS-7'
   )
@@ -159,6 +161,7 @@ export default function RevlogTrainer() {
       const response = await trainRevlogCsvInPlaygroundWorker({
         csvText,
         enableShortTerm: modelVersion === 'FSRS-7' || enableShortTerm,
+        enableSchedPenalties: modelVersion === 'FSRS-7' && enableSchedPenalties,
         modelVersion,
         nextDayStartsAt: config.nextDayStartsAt,
         onProgress({ current, total }) {
@@ -390,6 +393,29 @@ export default function RevlogTrainer() {
             />
           </label>
         )}
+        {modelVersion === 'FSRS-7' && (
+          <label
+            className={cn(
+              styles.field,
+              'min-h-9.5 grid-cols-[1fr_auto] items-center'
+            )}
+            htmlFor={enableSchedPenaltiesId}
+          >
+            <span>{t('revlogTrainer.enableSchedPenalties')}</span>
+            <input
+              checked={enableSchedPenalties}
+              className={styles.checkbox}
+              data-testid="revlog-enable-sched-penalties"
+              disabled={busy}
+              id={enableSchedPenaltiesId}
+              onChange={(event) => {
+                setEnableSchedPenalties(event.currentTarget.checked)
+                clearOutput()
+              }}
+              type="checkbox"
+            />
+          </label>
+        )}
       </div>
 
       <p className="mt-2.5 mb-0 text-xs text-muted">
@@ -399,7 +425,9 @@ export default function RevlogTrainer() {
               timezone: timezone || '—',
               nextDayStartsAt: String(nextDayStartsAt).padStart(2, '0'),
             })}{' '}
-        {modelVersion === 'FSRS-6' && t('revlogTrainer.enableShortTermHint')}
+        {modelVersion === 'FSRS-6'
+          ? t('revlogTrainer.enableShortTermHint')
+          : t('revlogTrainer.enableSchedPenaltiesHint')}
       </p>
 
       <div className="mt-3.5 flex flex-wrap items-center gap-2.5 max-md:flex-col max-md:items-stretch">
