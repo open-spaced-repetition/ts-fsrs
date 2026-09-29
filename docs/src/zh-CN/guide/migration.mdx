@@ -1,0 +1,193 @@
+---
+title: 迁移到 v6 与 FSRS-7
+description: 将 ts-fsrs v5 迁移到 v6 的 defineScheduler，再通过复习历史重建 FSRS-7 记忆状态，不改变已有卡片的下次复习时间，并避免使用 legacy API。
+---
+
+import { Prompt } from '@rspress/core/theme'
+import { withBase, withSiteOrigin } from '@rspress/core/runtime'
+import RunCode from '../../components/RunCode'
+import v6Code from '@/snippets/run-code/migration-v6.ts?raw'
+import fsrs7Code from '@/snippets/run-code/migration-fsrs7.ts?raw'
+
+# 迁移到 v6 与 FSRS-7
+
+包版本与模型版本是两件事：**ts-fsrs v5 已使用 FSRS-6**。先将应用代码和存储记录迁移到 v6 API，继续使用 FSRS-6；再单独迁移模型。本文对应本站的 v6 API，安装时应锁定与本文接口一致的 v6 版本。
+
+:::warning 迁移后的代码不得使用 legacy API
+使用 `defineScheduler` 和明确的模型入口。迁移后的代码不得使用 `fsrs()`、`FSRS`、`createEmptyCard`、`generatorParameters`、旧调度器类和策略，或根入口导出的旧 `Card`、`CardInput`、`ReviewLog`、`FSRSParameters` 等 legacy 类型。部分符号仍为兼容而导出，不代表它们是 v6 的接入方式。下文旧名称仅用于静态对照；可运行示例不使用 legacy API 或类型。
+:::
+
+<Prompt
+  title="让 Agent 完成迁移"
+  description="复制给有仓库访问权限的 Agent：先确认迁移目标，再梳理变更 TODO List；用户确认清单后才实施与验证。"
+  prompt={`请帮助我将当前应用迁移到 ts-fsrs v6（defineScheduler）。先询问我选择哪一个目标，并等待我的明确回答，不要默认升级模型，也不要在回答前修改代码或数据：
+
+A. 仅升级到 ts-fsrs v6，继续使用 FSRS-6，保留已有 FSRS-6 权重和记忆状态。
+B. 升级到 ts-fsrs v6，并将模型从 FSRS-6 升级到 FSRS-7。
+
+用户选定目标后，先只读执行第 1 步，结合所选目标梳理实际需要变动的点，用 - [ ] 格式输出按执行顺序排列的 TODO List。每项说明涉及的文件或模块、当前行为与计划变更、数据影响及验证方式。将清单交给用户确认并等待明确回复；确认迁移目标不等于确认执行清单，清单确认前不得修改代码、配置或数据，也不得运行有写入副作用的迁移命令。
+
+用户确认 TODO List 后，才实际完成清单范围内的代码、必要的数据迁移脚本和测试，完成一项勾选一项；若出现清单之外的范围变化，先更新清单并再次确认，再执行新增部分。选择 A 时跳过第 6–8 步及第 9 步中仅适用于 FSRS-7 的验证，不新增 stabilityFast，也不重放历史重建 FSRS-7 状态；选择 B 时完成全部适用步骤。
+
+1. 先阅读迁移指南：${withSiteOrigin(withBase('/zh-CN/guide/migration.md'))}，以及调度器说明：${withSiteOrigin(withBase('/zh-CN/guide/scheduler/index.md'))}、FSRS-7 说明：${withSiteOrigin(withBase('/zh-CN/guide/model/fsrs-7.md'))}。检查仓库规则、锁定的依赖版本、全部调度调用点、配置、卡片和日志存储格式；确认实际起点，跳过已完成的阶段，不要降级已有 v6/FSRS-7 实现。
+2. 先完成 v6 API 迁移；仅选择 B 时再进行模型升级，并分别验证。使用 defineScheduler({ model: FSRS6Model, chrono })、.use(...) 和 .create({ config }) 迁移 API，保留实际 FSRS-6 权重、时间策略、学习步骤、模糊及统计行为；裸定义不包含完整旧策略，按指南组合所需 middleware。类型从新调度器推导。
+3. 迁移后的代码不得使用 legacy API 或类型，包括 fsrs()、FSRS、createEmptyCard、generatorParameters、旧调度器/strategy，以及从根入口导入的旧 Card、CardInput、ReviewLog、FSRSParameters；不要新增长期兼容层。保持改动聚焦，保留无关工作。
+4. 迁移卡片、配置和方法调用，保留稳定 cardId 和应用元数据，校验反序列化后的时间。明确处理 scheduleStatus、State.New 的 lastReviewAt: null、字段改名、{ card, revlog } 返回值，以及 clearStatsOnForget 的默认值差异。
+5. 严格区分日志时间：v6 revlog.lastReviewAt 是复习前上次复习时间，dueAt 是复习前到期时间，reviewTime 是本次实际复习时间（不是 reviewAt）。v5 普通日志的 due 来自 last_review || due，不能统一改名为 dueAt；缺失原快照时不得伪造可精确撤销的 v6 日志。
+6. 仅选择 B 时：再切换 FSRS7Model，使用其独立 34 个默认权重或重新训练的 FSRS-7 权重，设置 fractionalDays: true。不得复用 FSRS-6 权重，也不得用 0.8 * stability 补造 stabilityFast。enableShortTerm 只控制显式学习步骤，不关闭 FSRS-7 快轨迹。 显式保留原学习步骤，不要因 FSRS-7 默认空步骤而丢失原配置；验证最终间隔小于一天/至少一天、关闭/空/完成步骤及无中间件时的状态边界。独立 curve(weights, elapsedDays, state) 从 ts-fsrs/models/fsrs-7 导入，预先校验权重并读取 retrievability；total 是混合权重之和。也可使用 model.forgettingCurve 获取数值回忆概率。
+7. 仅选择 B 时：对已学习卡片选取从创建或最近一次记忆重置以来的完整历史，映射 rating 和实际 reviewTime，用 Reschedule.replay() 重建 stability、stabilityFast、difficulty，不传旧模型 initialState。重建结果只更新当前 card 的 memoryState；历史 revlog 仅作为只读输入，不得修改、覆盖或补写任何历史数据。迁移时只更新当前卡片的记忆状态，不重新安排已有卡片的下次复习时间（dueAt）；之后复习时再由 FSRS-7 计算新的时间。lastReviewAt、cardId、学习进度和统计保持不变。Manual 过滤不等于处理记忆重置，完整性不能仅凭行数或最后时间戳判断。
+8. 仅选择 B 时：新卡使用 FSRS-7 默认记忆状态；缺失、截断、空、仅 Manual 或不一致的已学习卡片历史必须明确报错/跳过，保留 FSRS-6 状态与配置并按模型版本路由，不静默清零。保留原始日志；模型、权重配置与记忆状态一起持久化，设置跨模型撤销边界。
+9. 若需修改持久化数据，提供备份、试运行和回退方式，生产数据变更遵循仓库既有流程。添加并实际运行聚焦测试：旧数据转换、四种卡片状态、复习/预览/撤销/遗忘、提前和逾期复习的三时间字段、同日小数间隔、Manual 与重置边界、缺失历史处理，以及迁移前后到期时间/ID/学习进度/统计不变。
+10. 完成类型检查、相关测试和构建，报告修改文件、实际执行命令与结果、尚未迁移的数据及原因。区分已验证结果与未执行步骤；迁移目标与 TODO List 均必须经用户明确确认。除此之外，遇到其他缺失信息先检查仓库，仅对无法自行确定且影响数据正确性的事项询问用户。`}
+/>
+
+## 1. 迁移到 v6 API，保持 FSRS-6
+
+### 定义调度策略
+
+`defineScheduler({ model, chrono })` 创建可复用的定义；`.use(...)` 组合中间件并返回新定义；`.create({ config })` 校验配置并创建独立调度器实例。将定义保留在程序层级，根据用户或牌组配置创建实例。
+
+裸定义**不包含全部 v5 调度策略**。下面沿用当前标准预设的中间件顺序：目标保留率、模糊、统计、已调度天数、学习步骤、最大间隔、单调间隔。请保留实际配置和 FSRS-6 权重。使用 `dateChrono` 时，`fractionalDays: false` 按 UTC 日历日计算间隔；仅迁移 API 时不要未经验证就同时改变时间策略。
+
+```ts twoslash file="../../snippets/run-code/migration-v6.ts" fold height=520
+```
+
+<RunCode code={v6Code} />
+
+局部类型 `StoredV5Card` 描述应用存储格式，并非从 legacy 库导入。将数据库现有稳定 ID 作为 `cardId`，应用自有字段单独保留。组合后的卡片 schema 会校验转换后的日期和字段；其他应用字段也应在存储读取边界校验。
+
+### 配置对照
+
+| v5 配置 | v6 配置 | 迁移说明 |
+| --- | --- | --- |
+| `w` | `weights` | 此阶段保留用户的 FSRS-6 权重；示例为方便运行才使用默认值。 |
+| `request_retention` | `desiredRetention` | 需要目标保留率中间件。 |
+| `maximum_interval` | `maximumInterval` | 需要最大间隔中间件；单调间隔策略也使用此上限。 |
+| `enable_fuzz` | `enableFuzz` | 需要模糊中间件，保留旧设置。 |
+| `enable_short_term` | `enableShortTerm` | 对 FSRS-6，同时影响模型短期行为和显式学习步骤。 |
+| `learning_steps` / `relearning_steps` | `learningSteps` / `relearningSteps` | 保留配置的步骤数组和已有学习进度。 |
+| 重新学习步骤数量 | `numRelearningSteps` | FSRS-6 需设为 `relearningSteps.length`。 |
+| `forget(..., reset_count)` | `clearStatsOnForget` | 改为实例配置；v5 默认 `false`，v6 统计中间件默认 `true`。 |
+
+### 卡片、日志与操作
+
+| v5 存储字段 | v6 字段或处理方式 |
+| --- | --- |
+| `due` | 卡片 `dueAt`，反序列化为 `Date`。 |
+| `elapsed_days` / 日志 `last_elapsed_days` | 已移除，使用所选 chrono 从时间戳计算经过天数；FSRS-7 重放不要使用这些旧的取整值。 |
+| `last_review` | `lastReviewAt`，缺失或 null 统一为 `null`。 |
+| `scheduled_days` | `scheduledDays`，由中间件提供。 |
+| `learning_steps` | `learningStep`，由中间件提供。 |
+| `stability`、`difficulty`、`state`、`reps`、`lapses` | API 迁移时保留；统计字段需要中间件。 |
+| 应用记录 ID | `cardId`，卡片和日志使用同一 ID。 |
+| 无对应字段 | `scheduleStatus`：New → `new`，Learning/Relearning → `learning`，Review → `review`。 |
+| 复习日志 `review` | `reviewTime`，即实际复习时间，不是卡片到期时间。 |
+| 结果 `{ card, log }` | `{ card, revlog }`。 |
+
+像示例一样从调度器推导类型。卡片和日志字段取决于所选模型、chrono 和中间件。自定义 v5 策略需改写为相应的[中间件](./middleware) hook，不能仅改名或继续继承旧调度器。
+
+| v5 操作（仅供对照） | v6 操作 |
+| --- | --- |
+| `createEmptyCard(now)` | `scheduler.newCard({ now, cardId })` |
+| `f.next(card, now, grade)` | `scheduler.review({ card, now, grade })` |
+| `f.repeat(card, now)` | `scheduler.preview({ card, now })` 返回可迭代对象，通过 `Symbol.iterator` 提供 iterator，可用 `for...of` 遍历。每个候选项包含 `{ grade, card, revlog }`，通过 `candidate.grade` 选择，不再按评分键索引对象。 |
+| `f.rollback(card, log)` | `scheduler.rollback({ card, revlog })`，使用返回的 v6 日志。 |
+| `f.forget(card, now, reset_count)` | `scheduler.forget({ card, now })`；返回卡片，不是 `{ card, log }`，手动操作日志由应用记录。 |
+| `f.get_retrievability(card, now, false)` | 对有 `lastReviewAt` 的已学习卡片，调用 `scheduler.model.forgettingCurve(card, scheduler.chrono.difference(card.lastReviewAt, now))`，返回数值；新卡片单独处理，百分比由应用格式化。 |
+
+`review()` 返回新数据，应同时持久化 `result.card` 和 `result.revlog`。新日志保存撤销所需的复习前字段，包括 `dueAt`、`lastReviewAt`。不能将旧日志的 `due` 简单改名就用于 v6 撤销：旧日志可能缺少必要的复习前快照。保留原始历史记录，仅转换评分和实际复习时间用于模型重放。跨版本撤销需要独立的应用快照或撤销边界。
+
+即使模型和配置相同，也不保证所有学习步骤或模糊场景的间隔与 v5 完全一致。切换写入前应检查 New、Learning、Review、Relearning 的代表卡片。[DefaultScheduler](./scheduler/default-scheduler) 是另一种预设入口，但默认模型为 FSRS-7；若在此阶段采用它，应明确指定 FSRS-6。
+
+### 为什么日志中的三个时间不能直接改名
+
+`dateChrono` 的字段名是 **`reviewTime`，不是 `reviewAt`**。以逾期复习为例：卡片上次在 1 月 1 日复习，原定 1 月 3 日到期，实际在 1 月 4 日复习。
+
+| 含义 | v5 普通复习日志 | v6 `revlog` |
+| --- | --- | --- |
+| 上次复习时间：1 月 1 日 | `due`（旧实现写入 `card.last_review \|\| card.due`） | `lastReviewAt` |
+| 原定到期时间：1 月 3 日 | 对此已学习卡片没有单独记录 | `dueAt` |
+| 本次实际复习时间：1 月 4 日 | `review` | `reviewTime` |
+
+`lastReviewAt` 表示**本次复习之前的上次复习时间**，输入与输出的类型有所区别：
+
+- 输入 `DateRevlogInputFields` 中是可选的 `lastReviewAt?: Date | null`。省略或传入 `undefined` 时，schema 会将其规范化为 `null`；`dueAt` 和 `reviewTime` 仍必须是有效的 `Date`。
+- 输出 `DateRevlogFields` 中始终存在 `lastReviewAt: Date | null`。正常的已学习卡片日志记录复习前的 `card.lastReviewAt`；没有上次复习的新卡片，首次复习日志中的值为 `null`。
+- `null` 不会自动推算出缺失的上次复习时间。旧日志缺少该信息时，能通过 schema 校验不等于能精确撤销；不要用 `dueAt` 或 `reviewTime` 代替它。
+
+复习返回的卡片中，`lastReviewAt` 已变为 1 月 4 日，`dueAt` 是新计算的到期时间；日志保存的是**复习前**的时间。使用这张卡片和 v6 日志撤销后，`dueAt` 恢复为 1 月 3 日，`lastReviewAt` 恢复为 1 月 1 日，提前或逾期复习也一样。这正是 chrono 重构时分离「计算经过天数的时间」与「供撤销恢复的原到期时间」的原因。上面的可运行示例会打印这三个字段。
+
+不能统一执行 `oldLog.due → revlog.dueAt`：普通 v5 已学习卡片日志的 `due` 通常是上次复习时间；无 `last_review` 的首次复习日志才存原到期时间，Manual／遗忘日志又有自己的语义。v5 重置后的 New 卡片还可能携带旧 `last_review`，因此卡片转换示例对 `State.New` 统一输出 `lastReviewAt: null`。
+
+只重建模型记忆时，仅映射 `rating` 和 `review → reviewTime` 即可。若要跨版本精确撤销，需要原始复习前卡片快照（包括两个时间字段及中间件字段），否则应设立撤销边界。不能用 `review` 或重新计算的间隔补造过去未记录的到期时间，尤其是在提前复习、学习步骤、模糊或手动调整之后。
+
+## 2. 从 FSRS-6 迁移到 FSRS-7
+
+### 权重和状态属于各自的模型
+
+FSRS-6 使用 21 个权重，FSRS-7 需要独立的 **34 个权重**。使用 `FSRS7_DEFAULT_WEIGHTS`，或[重新训练 FSRS-7 权重](./optimizer)。不要给 FSRS-6 参数补值，也不要复用其训练权重。`migrateFSRS7Parameters` 仅为空输入提供默认值，不会转换旧模型的参数布局。
+
+FSRS-7 记忆状态包含 `stability`、`stabilityFast` 和 `difficulty`，三个字段都应通过历史重建。**重建结果只用于更新当前 card 的记忆状态（memoryState）；历史 revlog 仅作为只读输入，不得修改、覆盖或补写其中的任何数据，包括过去记录的记忆状态。**
+
+**不得为已有卡片直接设置 `stabilityFast = 0.8 * stability`**，也不能保留 FSRS-6 的稳定性、难度后只追加快分量。模型初始化使用的系数不是已演化记忆状态的迁移公式。
+
+设置 `fractionalDays: true`，保留两次复习相隔十分钟等小数天数。FSRS-7 的快轨迹是模型固有部分：安装学习步骤中间件后，`enableShortTerm: false` 仅关闭显式学习步骤，不会关闭快轨迹。FSRS-7 模型没有与 FSRS-6 的 `numRelearningSteps` 对应的配置项。
+
+### FSRS-7 的默认步骤与学习状态
+
+`DefaultScheduler` 对 FSRS-7 默认使用 `learningSteps: []` 和 `relearningSteps: []`，由模型决定间隔；FSRS-3～6 仍默认使用学习步骤 `['1m', '10m']` 与重新学习步骤 `['10m']`。显式传入的步骤不会被默认值覆盖。`enableShortTerm` 仍默认 `true`，控制显式步骤，不控制 FSRS-7 快轨迹或按间隔划分的学习状态。
+
+注册 `schedulerLearningStepsMiddleware` 后，状态由**最终调度间隔**决定，即使步骤关闭、为空或已完成：
+
+| 复习前状态 | 最终间隔小于一天 | 最终间隔至少一天 |
+| --- | --- | --- |
+| New / Learning | Learning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
+| Review / Relearning | Relearning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
+
+因此不能假定「关闭步骤就没有 Learning」「只有 Again 才进入 Relearning」或「Easy 一定进入 Review」。Easy 跳过显式步骤；Good 仅在存在适用的下一步骤时推进。没有显式步骤提供间隔时，`learningStep` 重置为 `0`，但状态仍可能是 Learning/Relearning；它是步骤索引，不是复习次数。
+
+这些转换属于中间件，不属于 `FSRS7Model`。只组合模型和 chrono 的裸调度器仍返回 Review，即使间隔小于一天。迁移应用队列、状态筛选和统计时，需要同步调整依赖旧行为的判断。
+
+[“重放记忆，保留调度安排”一节的完整迁移示例](#重放记忆保留调度安排)**显式保留已有学习步骤**，没有通过省略选项自动采用 FSRS-7 预设的空步骤。若产品决定采用模型驱动的步骤，可明确配置 `learningSteps: []`、`relearningSteps: []`；这不等于移除学习步骤中间件。改变步骤策略应单独验证，不能当作卡片字段迁移顺便执行。
+
+### 迁移回忆概率调用
+
+使用 `scheduler.model.forgettingCurve(state, elapsedDays)` 获取数值回忆概率，或 `scheduler.model.algorithm.curve(elapsedDays, state)` 检查快慢分量。两者均需完整 FSRS-7 状态：`stability`、`stabilityFast`、`difficulty`，不能只传 FSRS-6 的单个稳定性值。
+
+也可以从 `ts-fsrs/models/fsrs-7` 导入独立函数 `curve`，调用 `curve(weights, elapsedDays, state)`，无需创建算法实例；其中 `weights` 必须是有效的 34 个 FSRS-7 权重。**该函数不执行权重校验**：对存储或用户输入先做 schema/参数校验，不要用它探测权重是否有效。使用已迁移的记忆状态与同一份 FSRS-7 权重，`elapsedDays` 保留小数天数。
+
+曲线结果包括 `retrievability`、`derivative`、`fast`、`slow`、`fastWeight`、`slowWeight` 和 `total`；`total = fastWeight + slowWeight` 是混合系数之和，不是总回忆概率。替代旧回忆概率调用时读取 `retrievability`，百分比由应用格式化。算法实例的曲线结果也包含 `total`。这些曲线接口只计算概率与分量，不迁移卡片、生成日志或安排到期时间。
+
+### 重放记忆，保留调度安排
+
+下面是独立可运行示例。它接收已转换为 v6 结构的 FSRS-6 卡片，将存储日志的 `review` 转成 `reviewTime`，调用 `Reschedule.replay()`，不传入旧模型的 `initialState`。**迁移时只重建记忆状态，不重新安排已有卡片的下次复习时间（`dueAt`）**。之后用户复习该卡片时，再由 FSRS-7 计算新的下次复习时间。ID、上次复习时间、学习进度与统计也保持不变。
+
+```ts twoslash file="../../snippets/run-code/migration-fsrs7.ts" fold height=520
+```
+
+<RunCode code={fsrs7Code} />
+
+| 卡片或历史情况 | 处理方式 |
+| --- | --- |
+| 新卡片（`State.New`），含主动重置后的卡片 | 使用 FSRS-7 默认记忆状态，保留调度安排与统计。 |
+| 已学习卡片，具有从创建或最近一次记忆重置以来的完整历史 | 使用 FSRS-7 权重重放，保存重建状态并保留调度安排。 |
+| 历史缺失或被截断 | 卡片及其匹配配置继续使用 FSRS-6；不得静默清零，也不能仅凭行数宣称历史完整。 |
+| 已学习卡片的历史为空或仅有 Manual | 重放抛错，卡片继续使用 FSRS-6。 |
+| 日期或评分无效，或最后一次复习与 `lastReviewAt` 不匹配 | 停止该卡片迁移，先核对记录。 |
+
+`replay()` 按时间排序有效复习并过滤 `Rating.Manual`，但不会解释手动遗忘或重置事件。应用必须选取**最近一次记忆重置之后**的完整历史，排除更早记录；仅手动调整到期时间不等于重置记忆。同一时间戳的复习应保留记录顺序。使用 `dateChrono` 时，时间需反序列化为有效 `Date`。首条保留的复习从未初始化的记忆状态开始，经过天数为零。
+
+示例的历史完整标志由应用判断，最后时间戳匹配并不能证明更早的复习没有缺失。迁移失败的卡片应按持久化的模型版本继续路由到 FSRS-6，不要将它们传给 FSRS-7。
+
+### 如果确实需要重新安排到期时间
+
+`new Reschedule(scheduler).reschedule({ history, initialCard })` 会通过整套调度策略重放，返回 `{ card, results }`，可能改变到期时间、学习进度和统计。应以保留原 `cardId`、使用首条复习时间的 **FSRS-7 新卡片**作为 `initialCard`，不能在已有已学习卡片上再重放完整历史。生成的日志是重新计算的结果，不应替换原始历史。本文默认使用 `replay()`，迁移时不重新安排已有卡片的下次复习时间。
+
+## 持久化与验收
+
+1. 备份卡片、原始日志和配置。为每张卡片或与之可靠关联的配置保存模型版本，以及重放实际使用的权重。
+2. 增加 `stabilityFast` 和 v6 字段的存储，将重建记忆、模型版本及对应权重/配置引用一并提交，避免混用 FSRS-6 状态和 FSRS-7 权重。保留应用 ID 与元数据。
+3. 保持原始日志不变，并建立撤销边界：旧模型日志不得直接用于 FSRS-7 `rollback()`。新的 FSRS-7 日志应保存 `stabilityFast` 和复习前字段。
+4. 使用代表卡片验证复习、预览、撤销、同日复习、学习步骤及配置的模糊行为。仅迁移记忆时，断言到期时间、ID、学习进度和统计不变。处理失败后再切换相应卡片的模型。
+
+模型细节见 [FSRS-7](./model/fsrs-7)，API 组成见[调度器定义](./scheduler)、[Chrono](./chrono) 与[中间件](./middleware)。
