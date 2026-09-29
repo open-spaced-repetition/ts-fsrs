@@ -107,6 +107,8 @@
   "revlogTrainer.configFsrs7": "FSRS7 normalizes intervals by the actual length of each study day, retaining fractional and same-day intervals. The selected timezone and rollover hour determine these boundaries; a complete study day counts as 1 even when DST makes it 23 or 25 hours long.",
   "revlogTrainer.modelVersion": "Model version",
   "revlogTrainer.enableShortTerm": "Enable short-term",
+  "revlogTrainer.enableSchedPenalties": "Scheduling penalties",
+  "revlogTrainer.enableSchedPenaltiesHint": "Adds FSRS7 training penalties for interval growth and short intervals. Off by default; this does not change scheduling formulas.",
   "revlogTrainer.enableShortTermHint": "Short-term parameters model same-day reviews. Turn this off to train long-term-only weights.",
   "revlogTrainer.field": "Field",
   "revlogTrainer.idle": "Select a CSV file to begin.",

@@ -13,34 +13,42 @@ const options = {
 } as const
 
 describe('revlog.csv training', () => {
-  it('passes aligned card IDs into windowed training', async () => {
-    const rows = [HEADER]
-    for (let card = 0; card < 40; card++) {
-      for (let review = 0; review < 7; review++) {
-        rows.push(
-          `${1700000000000 + review * 86400000 + card * 1000},${card},${review > 1 && (card + review) % 5 === 0 ? 1 : 3},1000,${review === 0 ? 0 : 2}`
-        )
+  it.each([false, true])(
+    'passes card IDs and scheduling penalties=%s into windowed training',
+    async (enableSchedPenalties) => {
+      const rows = [HEADER]
+      for (let card = 0; card < 40; card++) {
+        for (let review = 0; review < 7; review++) {
+          rows.push(
+            `${1700000000000 + review * 86400000 + card * 1000},${card},${review > 1 && (card + review) % 5 === 0 ? 1 : 3},1000,${review === 0 ? 0 : 2}`
+          )
+        }
       }
+      const csv = rows.join('\n')
+      const { items, cardIds } = convertCsvToFsrsItemsWithCardIds(
+        new TextEncoder().encode(csv),
+        4,
+        'UTC',
+        'FSRS-7'
+      )
+      const expected = await computeParameters(items, {
+        enableShortTerm: true,
+        modelVersion: 'FSRS-7',
+        enableSchedPenalties,
+        cardIds,
+      })
+      expect(
+        await trainRevlogCsv(csv, {
+          ...options,
+          modelVersion: 'FSRS-7',
+          enableSchedPenalties,
+        })
+      ).toEqual({
+        itemCount: items.length,
+        weights: expected,
+      })
     }
-    const csv = rows.join('\n')
-    const { items, cardIds } = convertCsvToFsrsItemsWithCardIds(
-      new TextEncoder().encode(csv),
-      4,
-      'UTC',
-      'FSRS-7'
-    )
-    const expected = await computeParameters(items, {
-      enableShortTerm: true,
-      modelVersion: 'FSRS-7',
-      cardIds,
-    })
-    expect(
-      await trainRevlogCsv(csv, { ...options, modelVersion: 'FSRS-7' })
-    ).toEqual({
-      itemCount: items.length,
-      weights: expected,
-    })
-  })
+  )
 
   it.each(['FSRS-6', 'FSRS-7'] as const)(
     'trains %s and returns its complete weights array',

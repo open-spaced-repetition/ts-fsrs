@@ -51,8 +51,11 @@ CSV 轉換、訓練、評估與排程必須選擇相同的 `modelVersion`（預�
 const weights = await computeParameters(items, {
   modelVersion: 'FSRS-7',
   enableShortTerm: true,
+  enableSchedPenalties: true,
 })
 ```
+
+`enableSchedPenalties` 選填，預設為 `false`。設為 `true` 會在訓練損失中加入 FSRS-7 的間隔增長和短間隔懲罰。它也適用於 `evaluateWithTimeSeriesSplits` 內部的訓練，FSRS-6 會忽略此選項；它不改變排程公式。
 
 `trainingConfig`（epochs、batch size、seed、最大序列長度、學習率與 L2 權重）選填，缺省時使用 binding 的預設值。`computeParameters` 執行真正的訓練迴圈，因此應在 Worker 而非主執行緒中呼叫。[Playground](../../playground)頁的訓練器就在 Web Worker 裡執行同一路徑並即時回報進度。回傳的 `weights` 陣列就是傳給 `DefaultScheduler({ version: modelVersion, weights })` 或 `defineScheduler` 設定、用於替換模型預設值的東西。
 

@@ -107,6 +107,8 @@
   "revlogTrainer.configFsrs7": "FSRS7 は各学習日の実際の長さで間隔を正規化し、小数や同日内の間隔も保持します。選択したタイムゾーンと日付の切り替え時刻が学習日の境界を決めます。夏時間で 23 時間または 25 時間になる場合も、学習日全体を 1 日として扱います。",
   "revlogTrainer.modelVersion": "モデルバージョン",
   "revlogTrainer.enableShortTerm": "短期パラメーターを有効化",
+  "revlogTrainer.enableSchedPenalties": "スケジューリングペナルティ",
+  "revlogTrainer.enableSchedPenaltiesHint": "FSRS7 の学習に間隔の成長と短い間隔へのペナルティを追加します。既定は無効で、スケジューリングの数式は変わりません。",
   "revlogTrainer.enableShortTermHint": "短期パラメーターは当日中の復習をモデル化します。無効にすると長期のみの重みを学習します。",
   "revlogTrainer.field": "フィールド",
   "revlogTrainer.idle": "CSV ファイルを選択してください。",
