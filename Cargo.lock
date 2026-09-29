@@ -139,7 +139,7 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 [[package]]
 name = "fsrs"
 version = "6.6.2"
-source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1-progress-fsrs7#f934b888efd81eeed46528093e39820d16a7c785"
+source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1-progress-fsrs7#b6e69904c7af34a91ebc734e9209750cf400305c"
 dependencies = [
  "bytemuck",
  "itertools",
