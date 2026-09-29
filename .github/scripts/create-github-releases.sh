@@ -34,7 +34,7 @@ if [[ -z "$PUBLISHED_JSON" || "$PUBLISHED_JSON" == "[]" ]]; then
   exit 0
 fi
 
-required=(jq git awk find)
+required=(jq git awk find sed)
 (( DRY_RUN )) || required+=(gh)
 for cmd in "${required[@]}"; do
   command -v "$cmd" >/dev/null || { echo "Error: '$cmd' not found in PATH." >&2; exit 1; }
@@ -133,7 +133,9 @@ while IFS= read -r row; do
 
   # Explicit template: bare `mktemp` is GNU-only; BSD/older macOS requires it.
   notes=$(mktemp "${TMPDIR:-/tmp}/cs-release-notes.XXXXXX"); TMP_FILES+=("$notes")
-  extract_section "$changelog" "$version" >"$notes"
+  # GitHub recognizes bare @mentions as release contributors, not profile links.
+  extract_section "$changelog" "$version" |
+    sed 's/\[@\([[:alnum:]-][[:alnum:]-]*\)\](https:\/\/github\.com\/\1)/@\1/g' >"$notes"
   if [[ ! -s "$notes" ]]; then
     echo "Error: no '## $version' section in $changelog" >&2
     exit_code=1; continue
