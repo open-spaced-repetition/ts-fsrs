@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.6
+
+### Patch Changes
+
+- [#558](https://github.com/open-spaced-repetition/ts-fsrs/pull/558) [`7b3257c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7b3257ca343879fde75a8e17ef4291fcdf82ae2b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add `enableSchedPenalties` for FSRS-7 training and evaluation.
+
 ## 0.6.0-beta.5
 
 ### Minor Changes

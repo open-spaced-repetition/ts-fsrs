@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 6.0.0-beta.12
+
+### Patch Changes
+
+- [#556](https://github.com/open-spaced-repetition/ts-fsrs/pull/556) [`6b8f898`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6b8f8989d4340bc2b8990503d7d7c96b2610a12f) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export FSRS7ParameterBounds
+
 ## 6.0.0-beta.11
 
 ### Minor Changes
