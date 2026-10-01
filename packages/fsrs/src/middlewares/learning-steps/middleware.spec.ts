@@ -7,6 +7,7 @@ import {
 import { dateChrono } from '@open-spaced-repetition/srs-kit/chrono/date'
 import { describe, expect, it, vi } from 'vitest'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from '@/models/fsrs-6/index.js'
+import { schedulerMaximumIntervalMiddleware } from '../maximum-interval/middleware.js'
 import { schedulerLearningStepsMiddleware } from './middleware.js'
 import type { StepUnit } from './types.js'
 
@@ -14,10 +15,14 @@ function createCore({
   enableShortTerm = true,
   learningSteps = ['1m', '10m'],
   relearningSteps = ['10m'],
+  graduatingInterval,
+  allowModelOverride,
 }: {
   readonly enableShortTerm?: boolean
   readonly learningSteps?: readonly StepUnit[]
   readonly relearningSteps?: readonly StepUnit[]
+  readonly graduatingInterval?: number
+  readonly allowModelOverride?: boolean
 } = {}) {
   return defineScheduler({ model: FSRS6Model, chrono: dateChrono })
     .use(schedulerLearningStepsMiddleware)
@@ -28,6 +33,8 @@ function createCore({
         numRelearningSteps: relearningSteps.length,
         learningSteps,
         relearningSteps,
+        graduatingInterval,
+        allowModelOverride,
       },
     })
 }
@@ -119,6 +126,224 @@ describe('schedulerLearningStepsMiddleware integration', () => {
 
     core.review({ card, grade: Rating.Easy, now })
     expect(nextInterval).toHaveBeenCalledOnce()
+  })
+
+  it('graduates from learning steps for at least the graduating interval', () => {
+    const now = new Date(2022, 11, 29, 12, 30)
+    for (const [graduatingInterval, expected] of [
+      [undefined, 86_400_000],
+      [0.5, 43_200_000],
+    ] as const) {
+      const core = createCore({ learningSteps: ['1m'], graduatingInterval })
+      const card = core.newCard({ now })
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+
+      for (const grade of [Rating.Good, Rating.Easy]) {
+        const result = core.review({ card, grade, now })
+        expect(result.card.dueAt.getTime() - now.getTime()).toBe(expected)
+        expect(result.card.state).toBe(State.Review)
+        expect(result.card.learningStep).toBe(0)
+      }
+    }
+  })
+
+  it('keeps passing reviews in review for at least the graduating interval', () => {
+    const now = new Date(2022, 11, 29, 12, 30)
+    for (const [relearningSteps, expected, state] of [
+      [['10m'], 86_400_000, State.Review],
+      [[], 21_600_000, State.Relearning],
+    ] as const) {
+      const core = createCore({ relearningSteps })
+      const card = core.review({
+        card: core.newCard({ now }),
+        grade: Rating.Easy,
+        now,
+      }).card
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+      for (const grade of [Rating.Hard, Rating.Good, Rating.Easy]) {
+        const result = core.review({ card, grade, now })
+        expect(result.card.dueAt.getTime() - now.getTime()).toBe(expected)
+        expect(result.card.state).toBe(state)
+      }
+    }
+  })
+
+  it('classifies intervals by the graduating interval', () => {
+    const now = new Date(2022, 11, 29, 12, 30)
+    for (const [modelInterval, state] of [
+      [0.4, State.Learning],
+      [0.6, State.Review],
+    ] as const) {
+      const core = createCore({ learningSteps: [], graduatingInterval: 0.5 })
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(modelInterval)
+      const result = core.review({
+        card: core.newCard({ now }),
+        grade: Rating.Good,
+        now,
+      })
+      expect(result.card.state).toBe(state)
+    }
+  })
+
+  it('does not apply the graduation floor to empty learning steps', () => {
+    const core = createCore({ learningSteps: [] })
+    const now = new Date(2022, 11, 29, 12, 30)
+    vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Good,
+      now,
+    })
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(21_600_000)
+    expect(result.card.state).toBe(State.Learning)
+  })
+
+  it.each([
+    // [model days, Again, Hard, Good] in minutes
+    [0.5 / 1440, 1, 5.5, 10],
+    [30 / 1440, 30, 30, 30],
+    [2, 1440, 2880, 2880],
+  ])(
+    'lets a model interval of %s days override shorter steps',
+    (modelInterval, again, hard, good) => {
+      const core = createCore({ allowModelOverride: true })
+      const now = new Date(2022, 11, 29, 12, 30)
+      const card = core.newCard({ now })
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(modelInterval)
+      const results = [Rating.Again, Rating.Hard, Rating.Good].map((grade) =>
+        core.review({ card, grade, now })
+      )
+
+      expect(
+        results.map(
+          (result) => (result.card.dueAt.getTime() - now.getTime()) / 60_000
+        )
+      ).toEqual([again, hard, good])
+      // Again stays in learning; a day or more graduates Hard and Good early.
+      expect(results[0].card.state).toBe(State.Learning)
+      expect(results[0].card.learningStep).toBe(0)
+      for (const [index, result] of results.slice(1).entries()) {
+        expect(result.card.state).toBe(
+          modelInterval >= 1 ? State.Review : State.Learning
+        )
+        expect(result.card.learningStep).toBe(
+          modelInterval >= 1 ? 0 : index === 0 ? 0 : 1
+        )
+      }
+    }
+  )
+
+  it('graduates grades whose step is zero minutes', () => {
+    const core = createCore({ learningSteps: ['0m'] })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const card = core.newCard({ now })
+    vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+
+    // Hard's 0m step counts as no step; Again keeps the model interval.
+    const hard = core.review({ card, grade: Rating.Hard, now })
+    expect(hard.card.dueAt.getTime() - now.getTime()).toBe(86_400_000)
+    expect(hard.card.state).toBe(State.Review)
+    const again = core.review({ card, grade: Rating.Again, now })
+    expect(again.card.dueAt.getTime() - now.getTime()).toBe(21_600_000)
+    expect(again.card.state).toBe(State.Learning)
+  })
+
+  it('resets learningStep when a step reaches review', () => {
+    const core = createCore({
+      learningSteps: ['1d', '2d'],
+      relearningSteps: ['10m', '20m'],
+    })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const result = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Good,
+      now,
+    })
+
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(2 * 86_400_000)
+    expect(result.card.state).toBe(State.Review)
+    expect(result.card.learningStep).toBe(0)
+    expect(core.rollback(result).learningStep).toBe(0)
+  })
+
+  it.each([
+    [true, 2 * 86_400_000, State.Review, 0],
+    [false, 5.5 * 60_000, State.Learning, 0],
+  ] as const)(
+    'keeps downstream policies on a model override (allowModelOverride=%s)',
+    (allowModelOverride, expectedDelay, state, learningStep) => {
+      const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+        .use(
+          schedulerLearningStepsMiddleware,
+          schedulerMaximumIntervalMiddleware
+        )
+        .create({
+          config: {
+            weights: [...FSRS6_DEFAULT_WEIGHTS],
+            enableShortTerm: true,
+            numRelearningSteps: 1,
+            learningSteps: ['1m', '10m'],
+            relearningSteps: ['10m'],
+            allowModelOverride,
+            maximumInterval: 2,
+          },
+        })
+      const now = new Date(2022, 11, 29, 12, 30)
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(3)
+      const result = core.review({
+        card: core.newCard({ now }),
+        grade: Rating.Hard,
+        now,
+      })
+
+      // An overriding 3d model interval is capped downstream instead of being
+      // replaced by the 5.5m Hard step.
+      expect(result.card.dueAt.getTime() - now.getTime()).toBe(expectedDelay)
+      expect(result.card.state).toBe(state)
+      expect(result.card.learningStep).toBe(learningStep)
+    }
+  )
+
+  it.each([false, true])(
+    'enters review from a one-day Again step (allowModelOverride=%s)',
+    (allowModelOverride) => {
+      const core = createCore({ learningSteps: ['1d'], allowModelOverride })
+      const now = new Date(2022, 11, 29, 12, 30)
+      vi.spyOn(core.model, 'nextInterval').mockReturnValue(0.25)
+      const result = core.review({
+        card: core.newCard({ now }),
+        grade: Rating.Again,
+        now,
+      })
+
+      expect(result.card.dueAt.getTime() - now.getTime()).toBe(86_400_000)
+      expect(result.card.state).toBe(State.Review)
+      expect(result.card.learningStep).toBe(0)
+    }
+  )
+
+  it('caps an overriding Again at the graduating interval', () => {
+    const core = createCore({
+      allowModelOverride: true,
+      graduatingInterval: 0.5,
+    })
+    const now = new Date(2022, 11, 29, 12, 30)
+    const reviewed = core.review({
+      card: core.newCard({ now }),
+      grade: Rating.Easy,
+      now,
+    })
+    vi.spyOn(core.model, 'nextInterval').mockReturnValue(13)
+    const result = core.review({
+      card: reviewed.card,
+      grade: Rating.Again,
+      now,
+    })
+
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(43_200_000)
+    expect(result.card.state).toBe(State.Relearning)
+    expect(result.card.scheduleStatus).toBe('learning')
+    expect(result.card.learningStep).toBe(0)
   })
 
   it('delegates intervals for uncached candidate memory states', () => {

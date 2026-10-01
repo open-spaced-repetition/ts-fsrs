@@ -24,10 +24,14 @@ export interface DefaultSchedulerOptions<
   /** Enable explicit learning steps. FSRS-7 always retains its intrinsic fast trace. */
   readonly enableShortTerm?: boolean
   readonly desiredRetention?: number
-  /** Defaults to [] for FSRS-7, or ['1m', '10m'] for earlier versions. */
+  /** Defaults to ['1m', '10m']. */
   readonly learningSteps?: readonly StepUnit[]
-  /** Defaults to [] for FSRS-7, or ['10m'] for earlier versions. */
+  /** Defaults to ['10m']. */
   readonly relearningSteps?: readonly StepUnit[]
+  /** Minimum days for a review card; shorter intervals stay in (re)learning. Defaults to 1. */
+  readonly graduatingInterval?: number
+  /** Let longer model intervals override learning steps; defaults to true for FSRS-7 only. */
+  readonly allowModelOverride?: boolean
   readonly enableFuzz?: boolean
   readonly maximumInterval?: number
   /** Whether forget clears reps and lapses; defaults to true. */
@@ -119,8 +123,9 @@ export async function DefaultScheduler<
     weights,
     enableShortTerm = true,
     desiredRetention = 0.9,
-    learningSteps = isFSRS7 ? [] : defaultLearningSteps,
-    relearningSteps = isFSRS7 ? [] : defaultRelearningSteps,
+    learningSteps = defaultLearningSteps,
+    relearningSteps = defaultRelearningSteps,
+    allowModelOverride = isFSRS7,
     enableFuzz = false,
     maximumInterval = DEFAULT_MAXIMUM_INTERVAL,
   } = options
@@ -139,6 +144,8 @@ export async function DefaultScheduler<
       desiredRetention,
       learningSteps: Array.from(learningSteps),
       relearningSteps: Array.from(relearningSteps),
+      graduatingInterval: options.graduatingInterval,
+      allowModelOverride,
       enableFuzz,
       maximumInterval,
       clearStatsOnForget: options.clearStatsOnForget,

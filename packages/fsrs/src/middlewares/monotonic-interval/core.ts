@@ -50,23 +50,39 @@ export function calculateScheduleDays<const T extends IntervalCandidates>(
   return [first, second, third, fourth] as ScheduledDays<T>
 }
 
+const SECONDS_PER_DAY = 86400
+
+const toSeconds = (days: number): number => Math.round(days * SECONDS_PER_DAY)
+
+/**
+ * Keeps the current rating interval after every lower rating.
+ *
+ * Once a day interval appears, later ratings advance by at least one day and
+ * sub-day candidates are ignored. Otherwise sub-day intervals never decrease
+ * and advance by one second when a candidate lands on the same second as the
+ * lower rating's candidate. Zero-day intervals may remain equal.
+ */
 export function calculateScheduleDay(
   candidates: IntervalCandidates,
   maximumInterval: number
 ): number {
-  const currentInterval = candidates[candidates.length - 1]
   let scheduledDay: number | undefined
-  for (const interval of candidates) {
-    if (interval < 1) continue
-
-    if (scheduledDay === undefined) {
-      scheduledDay = Math.min(interval, maximumInterval)
-    } else {
+  let subDay = candidates[0]
+  for (let index = 0; index < candidates.length; index++) {
+    const interval = candidates[index]
+    if (interval >= 1) {
       scheduledDay = Math.min(
-        Math.max(interval, scheduledDay + 1),
+        scheduledDay === undefined
+          ? interval
+          : Math.max(interval, scheduledDay + 1),
         maximumInterval
       )
+    } else if (scheduledDay === undefined && index > 0) {
+      subDay =
+        subDay > 0 && toSeconds(interval) === toSeconds(candidates[index - 1])
+          ? subDay + 1 / SECONDS_PER_DAY
+          : Math.max(interval, subDay)
     }
   }
-  return scheduledDay ?? currentInterval
+  return scheduledDay ?? subDay
 }

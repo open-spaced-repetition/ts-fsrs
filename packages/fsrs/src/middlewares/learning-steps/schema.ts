@@ -1,9 +1,14 @@
-import { defineSchema, isObject } from '@open-spaced-repetition/srs-kit'
+import {
+  defineSchema,
+  isFiniteNumber,
+  isObject,
+} from '@open-spaced-repetition/srs-kit'
 import { ConvertStepUnitToMinutes } from './core.js'
 import type {
   LearningStepFields,
   LearningStepFieldsInput,
   LearningStepsMiddlewareConfig,
+  LearningStepsMiddlewareConfigInput,
   StepUnit,
 } from './types.js'
 
@@ -15,6 +20,8 @@ export const defaultLearningSteps: readonly StepUnit[] = Object.freeze([
 export const defaultRelearningSteps: readonly StepUnit[] = Object.freeze([
   '10m',
 ]) // Relearning->Relearning
+
+export const defaultGraduatingInterval = 1
 
 function isStepUnit(value: unknown): value is StepUnit {
   if (typeof value !== 'string') return false
@@ -42,25 +49,48 @@ function isStepList(value: unknown): value is readonly StepUnit[] {
   return true
 }
 
-export const learningStepsConfigSchema =
-  defineSchema<LearningStepsMiddlewareConfig>((value) => {
-    if (!isObject(value)) {
-      return { issues: [{ message: 'Expected learning steps config object' }] }
-    }
+export const learningStepsConfigSchema = defineSchema<
+  LearningStepsMiddlewareConfigInput,
+  LearningStepsMiddlewareConfig
+>((value) => {
+  if (!isObject(value)) {
+    return { issues: [{ message: 'Expected learning steps config object' }] }
+  }
 
-    const { enableShortTerm, learningSteps, relearningSteps } = value
-    if (typeof enableShortTerm !== 'boolean') {
-      return { issues: [{ message: 'Expected enableShortTerm boolean' }] }
-    }
-    if (!isStepList(learningSteps)) {
-      return { issues: [{ message: 'Expected valid learningSteps array' }] }
-    }
-    if (!isStepList(relearningSteps)) {
-      return { issues: [{ message: 'Expected valid relearningSteps array' }] }
-    }
+  const { enableShortTerm, learningSteps, relearningSteps } = value
+  if (typeof enableShortTerm !== 'boolean') {
+    return { issues: [{ message: 'Expected enableShortTerm boolean' }] }
+  }
+  if (!isStepList(learningSteps)) {
+    return { issues: [{ message: 'Expected valid learningSteps array' }] }
+  }
+  if (!isStepList(relearningSteps)) {
+    return { issues: [{ message: 'Expected valid relearningSteps array' }] }
+  }
 
-    return { value: { enableShortTerm, learningSteps, relearningSteps } }
-  })
+  const {
+    graduatingInterval = defaultGraduatingInterval,
+    allowModelOverride = false,
+  } = value
+  if (!isFiniteNumber(graduatingInterval) || graduatingInterval <= 0) {
+    return {
+      issues: [{ message: 'Expected positive graduatingInterval days' }],
+    }
+  }
+  if (typeof allowModelOverride !== 'boolean') {
+    return { issues: [{ message: 'Expected allowModelOverride boolean' }] }
+  }
+
+  return {
+    value: {
+      enableShortTerm,
+      learningSteps,
+      relearningSteps,
+      graduatingInterval,
+      allowModelOverride,
+    },
+  }
+})
 
 export const learningStepFieldsSchema = defineSchema<
   LearningStepFieldsInput,

@@ -50,9 +50,18 @@ describe('calculateScheduleDays', () => {
     expect(calculateScheduleDay([102], 100)).toBe(100)
   })
 
-  it('preserves the current interval when every candidate is sub-day', () => {
+  it('keeps sub-day intervals non-decreasing and separates equal seconds', () => {
+    const second = 1 / 86400
     expect(calculateScheduleDay([1 / 1440], 100)).toBe(1 / 1440)
     expect(calculateScheduleDay([1 / 1440, 5 / 1440], 100)).toBe(5 / 1440)
+    expect(calculateScheduleDay([5 / 1440, 1 / 1440], 100)).toBe(5 / 1440)
+    expect(calculateScheduleDay([0.5, 0.5 + second / 3], 100)).toBe(
+      0.5 + second
+    )
+    expect(calculateScheduleDay([0.5, 0.5, 0.5], 100)).toBe(
+      0.5 + second + second
+    )
+    expect(calculateScheduleDay([0, 0, 5 / 1440], 100)).toBe(5 / 1440)
   })
 
   it('ignores sub-day candidates when a day interval exists', () => {
