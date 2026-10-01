@@ -62,6 +62,10 @@ describe('calculateScheduleDays', () => {
       0.5 + second + second
     )
     expect(calculateScheduleDay([0, 0, 5 / 1440], 100)).toBe(5 / 1440)
+    // A higher candidate must not collapse onto an adjusted lower rating.
+    expect(calculateScheduleDay([0.5, 0.5, 0.5 + 0.6 * second], 100)).toBe(
+      0.5 + second + second
+    )
   })
 
   it('ignores sub-day candidates when a day interval exists', () => {
