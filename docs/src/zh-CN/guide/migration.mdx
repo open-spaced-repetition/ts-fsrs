@@ -135,20 +135,22 @@ FSRS-7 记忆状态包含 `stability`、`stabilityFast` 和 `difficulty`，三�
 
 ### FSRS-7 的默认步骤与学习状态
 
-`DefaultScheduler` 对 FSRS-7 默认使用 `learningSteps: []` 和 `relearningSteps: []`，由模型决定间隔；FSRS-3～6 仍默认使用学习步骤 `['1m', '10m']` 与重新学习步骤 `['10m']`。显式传入的步骤不会被默认值覆盖。`enableShortTerm` 仍默认 `true`，控制显式步骤，不控制 FSRS-7 快轨迹或按间隔划分的学习状态。
+`DefaultScheduler` 对 FSRS-7 与 FSRS-3～6 一样默认使用学习步骤 `['1m', '10m']` 与重新学习步骤 `['10m']`，并开启 `allowModelOverride`，让更长的模型间隔覆盖当前步骤。显式传入的步骤不会被默认值覆盖。`enableShortTerm` 仍默认 `true`，控制显式步骤，不控制 FSRS-7 快轨迹或按间隔划分的学习状态。
 
 注册 `schedulerLearningStepsMiddleware` 后，状态由**最终调度间隔**决定，即使步骤关闭、为空或已完成：
 
-| 复习前状态 | 最终间隔小于一天 | 最终间隔至少一天 |
+| 复习前状态 | 最终间隔小于 `graduatingInterval`（默认一天） | 最终间隔至少 `graduatingInterval` |
 | --- | --- | --- |
 | New / Learning | Learning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
 | Review / Relearning | Relearning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
 
-因此不能假定「关闭步骤就没有 Learning」「只有 Again 才进入 Relearning」或「Easy 一定进入 Review」。Easy 跳过显式步骤；Good 仅在存在适用的下一步骤时推进。没有显式步骤提供间隔时，`learningStep` 重置为 `0`，但状态仍可能是 Learning/Relearning；它是步骤索引，不是复习次数。
+配置了步骤时，没有适用步骤的 Hard、Good、Easy 至少在 `graduatingInterval` 之后到期，因此走完步骤，以及 `Review` 卡片按 Hard、Good 或 Easy，都会进入 `Review`。开启 `allowModelOverride` 时，使用模型间隔的 Again 总是进入 `Learning`/`Relearning`，即使其间隔被限制为 `graduatingInterval`。
+
+没有配置步骤时，不能假定「没有 Learning」「只有 Again 才进入 Relearning」或「Easy 一定进入 Review」。一般来说，Easy 跳过显式步骤，Good 仅在存在适用的下一步骤时推进，时长为 0 的步骤视为没有步骤。`learningStep` 只在卡片留在 Learning/Relearning 时保留下一步骤，卡片进入 Review 时重置为 `0`；它是步骤索引，不是复习次数。
 
 这些转换属于中间件，不属于 `FSRS7Model`。只组合模型和 chrono 的裸调度器仍返回 Review，即使间隔小于一天。迁移应用队列、状态筛选和统计时，需要同步调整依赖旧行为的判断。
 
-[“重放记忆，保留调度安排”一节的完整迁移示例](#重放记忆保留调度安排)**显式保留已有学习步骤**，没有通过省略选项自动采用 FSRS-7 预设的空步骤。若产品决定采用模型驱动的步骤，可明确配置 `learningSteps: []`、`relearningSteps: []`；这不等于移除学习步骤中间件。改变步骤策略应单独验证，不能当作卡片字段迁移顺便执行。
+[“重放记忆，保留调度安排”一节的完整迁移示例](#重放记忆保留调度安排)**显式保留已有学习步骤**，没有依赖默认值。若产品决定完全采用模型驱动的步骤，可明确配置 `learningSteps: []`、`relearningSteps: []`；这不等于移除学习步骤中间件。改变步骤策略应单独验证，不能当作卡片字段迁移顺便执行。
 
 ### 迁移回忆概率调用
 

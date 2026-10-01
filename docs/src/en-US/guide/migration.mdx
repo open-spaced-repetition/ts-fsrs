@@ -133,20 +133,22 @@ Use `fractionalDays: true` so reviews ten minutes apart retain that interval. FS
 
 ### FSRS-7 default steps and learning states
 
-For FSRS-7, `DefaultScheduler` defaults to `learningSteps: []` and `relearningSteps: []`, letting the model determine intervals. FSRS-3–6 retain learning steps `['1m', '10m']` and relearning steps `['10m']`. Explicit settings are not overwritten by defaults. `enableShortTerm` still defaults to `true`; it controls explicit steps, not the FSRS-7 fast trace or interval-based state mapping.
+For FSRS-7, `DefaultScheduler` uses the same learning steps `['1m', '10m']` and relearning steps `['10m']` as FSRS-3–6, and enables `allowModelOverride` so a longer model interval overrides the current step. Explicit settings are not overwritten by defaults. `enableShortTerm` still defaults to `true`; it controls explicit steps, not the FSRS-7 fast trace or interval-based state mapping.
 
 With `schedulerLearningStepsMiddleware` registered, the **final scheduled interval** determines the state, even if steps are disabled, empty or completed:
 
-| Pre-review state | Final interval below one day | Final interval at least one day |
+| Pre-review state | Final interval below `graduatingInterval` (default one day) | Final interval at least `graduatingInterval` |
 | --- | --- | --- |
 | New / Learning | Learning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
 | Review / Relearning | Relearning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
 
-Do not assume disabling steps eliminates Learning, only Again can produce Relearning, or Easy guarantees Review. Easy skips explicit steps; Good advances only when an applicable next step exists. When no explicit step supplies the interval, `learningStep` resets to `0`, but the card can remain Learning/Relearning. It is a step index, not a review count.
+When steps are configured, a Hard, Good, or Easy rating without an applicable step is scheduled at least `graduatingInterval` later, so finishing the steps, and rating a `Review` card Hard, Good, or Easy, always lead to `Review`. With `allowModelOverride`, an Again that uses the model interval always leads to `Learning`/`Relearning`, even when its interval is capped at `graduatingInterval`.
+
+When no steps are configured, do not assume Learning disappears, only Again can produce Relearning, or Easy guarantees Review. In general, Easy skips explicit steps, Good advances only when an applicable next step exists, and a zero-length step counts as no step. `learningStep` keeps the next step only while the card stays in Learning/Relearning; it resets to `0` when the card enters Review. It is a step index, not a review count.
 
 These transitions belong to middleware, not `FSRS7Model`. A bare scheduler combining only model and chrono still returns Review, even for a sub-day interval. Update queues, state filters and statistics that rely on the old behavior.
 
-The [complete migration example in “Replay memory and preserve the schedule”](#replay-memory-and-preserve-the-schedule) **explicitly preserves existing learning steps** instead of silently adopting FSRS-7's empty preset steps by omitting options. If the product chooses model-driven steps, explicitly configure `learningSteps: []` and `relearningSteps: []`; this does not mean removing the learning-steps middleware. Verify that policy change separately from the card-field migration.
+The [complete migration example in “Replay memory and preserve the schedule”](#replay-memory-and-preserve-the-schedule) **explicitly preserves existing learning steps** instead of relying on defaults. If the product chooses fully model-driven steps, explicitly configure `learningSteps: []` and `relearningSteps: []`; this does not mean removing the learning-steps middleware. Verify that policy change separately from the card-field migration.
 
 ### Migrate retrievability calls
 
