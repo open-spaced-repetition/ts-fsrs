@@ -50,23 +50,45 @@ export function calculateScheduleDays<const T extends IntervalCandidates>(
   return [first, second, third, fourth] as ScheduledDays<T>
 }
 
+const SECONDS_PER_DAY = 86400
+
+const toSeconds = (days: number): number => Math.round(days * SECONDS_PER_DAY)
+
+/**
+ * Keeps the current rating interval after every lower rating.
+ *
+ * Once a day interval appears, later ratings advance by at least one day and
+ * sub-day candidates are ignored. Otherwise sub-day intervals never decrease,
+ * and a candidate that is not lower than the previous one advances by one
+ * second when it would land on the same second as the previous result. Zero-day
+ * intervals may remain equal.
+ */
 export function calculateScheduleDay(
   candidates: IntervalCandidates,
   maximumInterval: number
 ): number {
-  const currentInterval = candidates[candidates.length - 1]
   let scheduledDay: number | undefined
-  for (const interval of candidates) {
-    if (interval < 1) continue
-
-    if (scheduledDay === undefined) {
-      scheduledDay = Math.min(interval, maximumInterval)
-    } else {
+  let subDay = candidates[0]
+  for (let index = 0; index < candidates.length; index++) {
+    const interval = candidates[index]
+    if (interval >= 1) {
       scheduledDay = Math.min(
-        Math.max(interval, scheduledDay + 1),
+        scheduledDay === undefined
+          ? interval
+          : Math.max(interval, scheduledDay + 1),
         maximumInterval
       )
+    } else if (scheduledDay === undefined && index > 0) {
+      const raised = Math.max(interval, subDay)
+      // A rating that is not lower than the previous one moves past it when
+      // both land on the same second; a lower rating may share its interval.
+      subDay =
+        subDay > 0 &&
+        toSeconds(interval) >= toSeconds(candidates[index - 1]) &&
+        toSeconds(raised) === toSeconds(subDay)
+          ? subDay + 1 / SECONDS_PER_DAY
+          : raised
     }
   }
-  return scheduledDay ?? currentInterval
+  return scheduledDay ?? subDay
 }
