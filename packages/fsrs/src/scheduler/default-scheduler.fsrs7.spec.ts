@@ -39,24 +39,27 @@ describe('DefaultScheduler FSRS-7', () => {
   })
 
   it.each([undefined, 'FSRS-7'] as const)(
-    'uses model intervals when steps are unspecified for version %s',
+    'uses default steps with model override when steps are unspecified for version %s',
     async (version) => {
       for (const steps of [
         {},
         { learningSteps: undefined, relearningSteps: undefined },
       ]) {
         const scheduler = await DefaultScheduler({ version, ...steps })
-        expect(scheduler.config.learningSteps).toEqual([])
-        expect(scheduler.config.relearningSteps).toEqual([])
+        expect(scheduler.config.learningSteps).toEqual(['1m', '10m'])
+        expect(scheduler.config.relearningSteps).toEqual(['10m'])
         expect(scheduler.config.enableShortTerm).toBe(true)
+        expect(scheduler.config.allowModelOverride).toBe(true)
         const result = scheduler.review({
           card: scheduler.newCard({ now }),
           now,
           grade: Rating.Again,
         })
-        expect(result.card.scheduledDays).toBe(
-          scheduler.model.nextInterval(result.card, 0.9)
+        // The model's Again interval is shorter than the 1m step.
+        expect(scheduler.model.nextInterval(result.card, 0.9)).toBeLessThan(
+          1 / 1440
         )
+        expect(result.card.scheduledDays).toBe(1 / 1440)
         expect(result.card.state).toBe(State.Learning)
         expect(result.card.learningStep).toBe(0)
       }
@@ -66,9 +69,9 @@ describe('DefaultScheduler FSRS-7', () => {
   it('preserves explicitly configured FSRS-7 steps independently', async () => {
     const learning = await DefaultScheduler({ learningSteps: ['2m'] })
     expect(learning.config.learningSteps).toEqual(['2m'])
-    expect(learning.config.relearningSteps).toEqual([])
+    expect(learning.config.relearningSteps).toEqual(['10m'])
     const relearning = await DefaultScheduler({ relearningSteps: ['3m'] })
-    expect(relearning.config.learningSteps).toEqual([])
+    expect(relearning.config.learningSteps).toEqual(['1m', '10m'])
     expect(relearning.config.relearningSteps).toEqual(['3m'])
   })
 
@@ -78,6 +81,7 @@ describe('DefaultScheduler FSRS-7', () => {
       const scheduler = await DefaultScheduler({ version })
       expect(scheduler.config.learningSteps).toEqual(['1m', '10m'])
       expect(scheduler.config.relearningSteps).toEqual(['10m'])
+      expect(scheduler.config.allowModelOverride).toBe(false)
     }
   )
 
@@ -169,6 +173,7 @@ describe('DefaultScheduler FSRS-7', () => {
     const scheduler = await DefaultScheduler({
       version: 'FSRS-7',
       learningSteps: ['1m', '10m'],
+      allowModelOverride: false,
     })
     const card = scheduler.newCard({ now, cardId: 'fsrs7' })
     expectTypeOf(card.stabilityFast).toEqualTypeOf<number>()
@@ -304,6 +309,7 @@ describe('DefaultScheduler FSRS-7', () => {
         version: 'FSRS-7',
         learningSteps: [step],
         enableFuzz: true,
+        allowModelOverride: false,
       })
       const card = scheduler.newCard({ now })
       const result = scheduler.review({ card, now, grade: Rating.Again })
@@ -327,7 +333,29 @@ describe('DefaultScheduler FSRS-7', () => {
     }
   )
 
-  it('keeps a completed step in learning when the model interval is below one day', async () => {
+  it('lets a longer model interval override a shorter step when enabled', async () => {
+    const scheduler = await DefaultScheduler({
+      version: 'FSRS-7',
+      learningSteps: ['0.01m'],
+      enableFuzz: true,
+      allowModelOverride: true,
+    })
+    const card = scheduler.newCard({ now })
+    const result = scheduler.review({ card, now, grade: Rating.Again })
+    const modelInterval = scheduler.model.nextInterval(result.card, 0.9)
+    // 0.01m rounds to a 1s step, shorter than the model interval.
+    expect(modelInterval).toBeGreaterThan(1 / 86400)
+    expect(modelInterval).toBeLessThan(1)
+    expect(result.card.scheduledDays).toBe(modelInterval)
+    expect(result.card.dueAt.getTime() - now.getTime()).toBe(
+      Math.trunc(modelInterval * 86400000)
+    )
+    expect(result.card.state).toBe(State.Learning)
+    expect(result.card.learningStep).toBe(0)
+    expect(scheduler.rollback(result)).toEqual(card)
+  })
+
+  it('graduates a completed step for one day when the model interval is below one day', async () => {
     const scheduler = await DefaultScheduler({
       version: 'FSRS-7',
       desiredRetention: 0.99,
@@ -343,10 +371,33 @@ describe('DefaultScheduler FSRS-7', () => {
       now: first.card.dueAt,
       grade: Rating.Good,
     })
-    expect(result.card.scheduledDays).toBeGreaterThan(0)
-    expect(result.card.scheduledDays).toBeLessThan(1)
-    expect(result.card.state).toBe(State.Learning)
-    expect(result.card.scheduleStatus).toBe('learning')
+    expect(scheduler.model.nextInterval(result.card, 0.99)).toBeLessThan(1)
+    expect(result.card.scheduledDays).toBe(1)
+    expect(result.card.state).toBe(State.Review)
+    expect(result.card.scheduleStatus).toBe('review')
+    expect(result.card.learningStep).toBe(0)
+  })
+
+  it('graduates for the configured graduating interval', async () => {
+    const scheduler = await DefaultScheduler({
+      version: 'FSRS-7',
+      desiredRetention: 0.99,
+      learningSteps: ['1m'],
+      graduatingInterval: 0.5,
+    })
+    const first = scheduler.review({
+      card: scheduler.newCard({ now }),
+      now,
+      grade: Rating.Again,
+    })
+    const result = scheduler.review({
+      card: first.card,
+      now: first.card.dueAt,
+      grade: Rating.Good,
+    })
+    expect(scheduler.model.nextInterval(result.card, 0.99)).toBeLessThan(0.5)
+    expect(result.card.scheduledDays).toBe(0.5)
+    expect(result.card.state).toBe(State.Review)
     expect(result.card.learningStep).toBe(0)
   })
 

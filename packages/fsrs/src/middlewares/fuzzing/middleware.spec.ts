@@ -88,16 +88,12 @@ describe('fuzzing with explicit learning steps', () => {
   )
 
   it.each([false, true])(
-    'uses the configured rounding for zero steps and graduation with fractionalDays=%s',
+    'uses the configured rounding for zero steps with fractionalDays=%s',
     (fractionalDays) => {
-      for (const step of ['0m', '0.001m', '1m'] as const) {
+      for (const step of ['0m', '0.001m'] as const) {
         const core = createCore(fractionalDays, step)
         const card = core.newCard({ now })
-        const first = core.review({ card, now, grade: Rating.Again })
-        const result =
-          step === '1m'
-            ? core.review({ card: first.card, now, grade: Rating.Good })
-            : first
+        const result = core.review({ card, now, grade: Rating.Again })
         const interval = core.model.nextInterval(result.card, 0.9)
         expect(interval).toBeGreaterThan(0)
         expect(interval).toBeLessThan(0.5)
@@ -108,6 +104,22 @@ describe('fuzzing with explicit learning steps', () => {
         expect(result.card.state).toBe(State.Learning)
         expect(result.card.learningStep).toBe(0)
       }
+    }
+  )
+
+  it.each([false, true])(
+    'graduates a sub-day model interval to one day with fractionalDays=%s',
+    (fractionalDays) => {
+      const core = createCore(fractionalDays, '1m')
+      const first = core.review({
+        card: core.newCard({ now }),
+        now,
+        grade: Rating.Again,
+      })
+      const result = core.review({ card: first.card, now, grade: Rating.Good })
+      expect(result.card.dueAt.getTime() - now.getTime()).toBe(DAY)
+      expect(result.card.scheduledDays).toBe(1)
+      expect(result.card.state).toBe(State.Review)
     }
   )
 })

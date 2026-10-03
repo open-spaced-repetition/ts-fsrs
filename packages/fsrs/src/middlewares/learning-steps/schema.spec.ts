@@ -17,6 +17,8 @@ describe('learningStepsConfigSchema', () => {
       enableShortTerm: true,
       learningSteps: ['1m', '1.5h', '0.25d'],
       relearningSteps: ['.5m', '1e2m'],
+      graduatingInterval: 1,
+      allowModelOverride: false,
     })
     expectTypeOf(config).toExtend<LearningStepsMiddlewareConfig>()
     expectTypeOf<StepUnit>().toExtend<`${number}${'m' | 'h' | 'd'}`>()
@@ -33,8 +35,46 @@ describe('learningStepsConfigSchema', () => {
       enableShortTerm: false,
       learningSteps: [],
       relearningSteps: [],
+      graduatingInterval: 1,
+      allowModelOverride: false,
     })
   })
+
+  it('accepts a positive graduating interval in days', () => {
+    expect(
+      learningStepsConfigSchema.parse({
+        enableShortTerm: true,
+        learningSteps: [],
+        relearningSteps: [],
+        graduatingInterval: 0.5,
+      }).graduatingInterval
+    ).toBe(0.5)
+  })
+
+  it('rejects a non-boolean allowModelOverride', () => {
+    expect(() =>
+      learningStepsConfigSchema.parse({
+        enableShortTerm: true,
+        learningSteps: [],
+        relearningSteps: [],
+        allowModelOverride: 1,
+      })
+    ).toThrow('Expected allowModelOverride boolean')
+  })
+
+  it.each([0, -1, Number.POSITIVE_INFINITY, Number.NaN, '1'])(
+    'rejects graduating interval %s',
+    (graduatingInterval) => {
+      expect(() =>
+        learningStepsConfigSchema.parse({
+          enableShortTerm: true,
+          learningSteps: [],
+          relearningSteps: [],
+          graduatingInterval,
+        })
+      ).toThrow('Expected positive graduatingInterval days')
+    }
+  )
 
   it('does not cap a finite step at the model maximum interval', () => {
     expect(
