@@ -1,5 +1,11 @@
 # ts-fsrs
 
+## 6.0.0-beta.13
+
+### Minor Changes
+
+- [#561](https://github.com/open-spaced-repetition/ts-fsrs/pull/561) [`397df91`](https://github.com/open-spaced-repetition/ts-fsrs/commit/397df9117b49dd9042a0b1c77abe23e1f5eb1410) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add `graduatingInterval` and `allowModelOverride` to learning steps, keep sub-day monotonic intervals ordered, and default FSRS-7 to `['1m', '10m']` / `['10m']` steps with model override.
+
 ## 6.0.0-beta.12
 
 ### Patch Changes
