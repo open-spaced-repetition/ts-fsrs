@@ -16,6 +16,8 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 `graduatingInterval`（預設 `1`，單位為天）是卡片處於 `Review` 時的最短間隔。最終間隔短於 `graduatingInterval` 時進入或維持 `Learning`/`Relearning`；達到 `graduatingInterval` 時進入 `Review`。步驟被停用或為空、由模型提供間隔時，也適用這項規則。
 
+有一個例外：Again 使用模型間隔覆蓋顯式步驟時，即使最終間隔達到 `graduatingInterval`，卡片仍維持 `Learning`/`Relearning`。流程圖呈現的是一般的間隔對應規則，此例外優先於圖中的規則。
+
 零時長步驟（如 `0m`，或按秒四捨五入後為零的時長）視為沒有步驟，不支援負數時長。
 
 ## 四種狀態
@@ -23,13 +25,15 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 | 狀態 | 含義 | 預設佇列 |
 | --- | --- | --- |
 | `New` | 卡片是新卡，或已透過 `scheduler.forget()` 重設。 | `new` |
-| `Learning` | 卡片需要在 `graduatingInterval` 之內再次進行初始學習，間隔來自顯式步驟或模型。 | `learning` |
+| `Learning` | 卡片處於初始學習階段，需要再次複習，間隔通常短於 `graduatingInterval`。 | `learning` |
 | `Review` | 卡片不處於短期學習階段，間隔至少為 `graduatingInterval`。 | `review` |
-| `Relearning` | 已複習過的卡片需要在 `graduatingInterval` 之內再次複習，間隔來自顯式步驟或模型。 | `learning` |
+| `Relearning` | 已複習過的卡片正在重新學習，需要再次複習，間隔通常短於 `graduatingInterval`。 | `learning` |
 
 ## 評分如何改變狀態
 
-評分首先決定是否使用顯式步驟間隔。當 `enableShortTerm: true` 且至少設定了一個步驟時，學習步驟策略如下：
+評分首先決定是否使用顯式步驟間隔。下表假設 `enableShortTerm: true`，且目前狀態使用的步驟列表非空：`New`/`Learning` 使用 `learningSteps`，`Review`/`Relearning` 使用 `relearningSteps`。如果該列表為空，即使另一列表設定了步驟，排程器也使用模型間隔而不套用畢業下限。
+
+下文的畢業行為假設 `maximumInterval >= graduatingInterval`，且沒有其他中介軟體將間隔縮短到 `graduatingInterval` 以下。
 
 | 評分 | `New` / `Learning` / `Relearning` | `Review` |
 | --- | --- | --- |
@@ -42,9 +46,9 @@ Hard 步驟間隔為前兩個步驟時長的平均值；只有一個步驟時，
 
 開啟 `allowModelOverride`（`DefaultScheduler` 對 FSRS-7 預設開啟）時，如果模型間隔比目前步驟長，排程器改用模型間隔。Again 的模型間隔不超過 `graduatingInterval`，使用模型間隔的 Again 總是進入 `Learning`/`Relearning`。Hard 和 Good 的間隔達到 `graduatingInterval` 時，卡片不必走完剩餘步驟即畢業進入 `Review`。模型間隔仍可能被其他間隔中介軟體調整。
 
-**設定了步驟時，走完步驟或按 Easy 會讓卡片進入 `Review`；`Review` 卡片按 Hard、Good 或 Easy 後仍維持 `Review`。**
+如果 `maximumInterval < graduatingInterval`，上限可能阻止畢業。例如，設定 `graduatingInterval: 2` 和 `maximumInterval: 1` 時，走完學習步驟後的模型間隔被限制為 1 天，因此卡片仍處於 `Learning`。
 
-間隔確定後，`schedulerLearningStepsMiddleware` 再按下表決定狀態。下表描述狀態映射，不代表各評分使用相同的間隔選擇規則：
+間隔確定後，`schedulerLearningStepsMiddleware` 按下表決定狀態。上文的 Again 模型覆蓋例外優先於此表。下表描述狀態轉換，不代表各評分使用相同的間隔選擇規則：
 
 | 目前狀態 | 最終間隔 < `graduatingInterval` | 最終間隔 ≥ `graduatingInterval` |
 | --- | --- | --- |
@@ -63,9 +67,36 @@ Hard 步驟間隔為前兩個步驟時長的平均值；只有一個步驟時，
 
 ## 執行狀態轉換
 
-範例使用預設 FSRS-7 和固定設定，並關閉 `allowModelOverride` 以便看清每個步驟。顯式學習及重新學習步驟完成後，Good 以至少一天的間隔畢業進入 `Review`。輔助函式直接使用公開的 `DefaultSchedulerCard`、`Grade` 與 `State` 型別。
+下方的可執行範例使用預設 FSRS-7 模型和以下設定：
 
-`learningStep` 是從零開始的步驟索引，不是複習次數。`Hard`、`Again` 和最後一個 `Good` 範例從同一張處於步驟 `1` 的卡片分別出發：`Hard` 保持索引 `1`（預設 Hard 間隔為 `5.5m`），`Again` 重設為 `0`（`1m`），而 `Good` 因沒有下一步驟而畢業：至少等待 `graduatingInterval`，`learningStep` 重設為 `0` 並進入 `Review`。重新學習範例同理：Again 使用 `10m` 重新學習步驟，隨後 Good 畢業。間隔以分鐘顯示，保留兩位小數。
+```ts
+const scheduler = await DefaultScheduler({
+  learningSteps: ['1m', '10m'],
+  relearningSteps: ['10m'],
+  enableFuzz: false,
+  allowModelOverride: false,
+})
+```
+
+`graduatingInterval` 使用預設值 **1 天**。卡片初始狀態為 `New`，`learningStep: 0`。`learningStep` 是從零開始的步驟索引，不是複習次數；學習和重新學習都使用同一個欄位記錄步驟進度。
+
+設定 `allowModelOverride: false` 時，範例產生以下轉換：
+
+| 目前狀態 | 目前 learningStep | 評分 | 轉換後狀態 | 轉換後 learningStep | 間隔 |
+| --- | --- | --- | --- | --- | --- |
+| New | 0 | Again | Learning | 0 | 1 分鐘 |
+| Learning | 0 | Good | Learning | 1 | 10 分鐘 |
+| Learning | 1 | Hard | Learning | 1 | 5.5 分鐘 |
+| Learning | 1 | Again | Learning | 0 | 1 分鐘 |
+| Learning | 1 | Good | Review | 0 | 1 天 |
+| Review | 0 | Again | Relearning | 0 | 10 分鐘 |
+| Relearning | 0 | Good | Review | 0 | 1 天 |
+
+`learningStep: 1` 的 Hard、Again 和 Good 行是對同一張卡片的不同評分分支，並非連續複習。重新學習分支從另一張透過 Easy 進入 `Review` 的卡片開始。
+
+關閉 `allowModelOverride` 會保留設定的步驟間隔。開啟後，較長的模型間隔可以取代顯式步驟。例如，假設模型間隔為 30 分鐘，原本 10 分鐘的 Good 步驟就會延長到 30 分鐘；如果模型間隔較短，則該步驟維持不變。即使設定 `allowModelOverride: false`，排程器在步驟完成後或沒有適用步驟時仍會使用模型間隔。
+
+下方完整範例使用公開的 `DefaultSchedulerCard`、`Grade` 和 `State` 型別，輸出間隔以分鐘顯示，保留兩位小數。
 
 :::note dueAt 不是 now
 `dueAt` 表示卡片應從何時起複習，`now` 是實際複習時間，通常應滿足 `now >= dueAt`。為了讓輸出可以重複驗證且不混淆兩者，本例會在每張卡片的 `dueAt` 後 30 秒進行複習。
