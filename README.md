@@ -9,6 +9,8 @@
 
 **ts-fsrs is a TypeScript toolkit for building spaced repetition systems with FSRS.**
 
+https://github.com/user-attachments/assets/15591b40-4bc0-4fe0-8f12-ce4000544d38
+
 ## Packages
 
 This repository contains two main packages:
