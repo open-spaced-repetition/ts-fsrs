@@ -142,9 +142,11 @@ With `schedulerLearningStepsMiddleware` registered, the **final scheduled interv
 | New / Learning | Learning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
 | Review / Relearning | Relearning, `scheduleStatus: learning` | Review, `scheduleStatus: review` |
 
-When steps are configured, a Hard, Good, or Easy rating without an applicable step is scheduled at least `graduatingInterval` later, so finishing the steps, and rating a `Review` card Hard, Good, or Easy, always lead to `Review`. With `allowModelOverride`, an Again that uses the model interval always leads to `Learning`/`Relearning`, even when its interval is capped at `graduatingInterval`.
+When steps are configured, a Hard, Good, or Easy rating without an applicable step is scheduled at least `graduatingInterval` later, so finishing the steps, or rating a `Review` card Hard, Good, or Easy, will always lead to being `Review`. With `allowModelOverride`, an Again that uses the model interval always leads to `Learning`/`Relearning`, even when its interval is capped at `graduatingInterval`.
 
-When no steps are configured, do not assume Learning disappears, only Again can produce Relearning, or Easy guarantees Review. In general, Easy skips explicit steps, Good advances only when an applicable next step exists, and a zero-length step counts as no step. `learningStep` keeps the next step only while the card stays in Learning/Relearning; it resets to `0` when the card enters Review. It is a step index, not a review count.
+When no steps are configured, do not assume that no cards will be in a Learning state. only one `Again` can cause a card to become `Relearning`.
+Pressing Easy guarantees a card will enter a `Review` state. In general, Easy skips explicit steps, 
+Good advances only when an applicable next step exists, and a zero-length step counts as no step. `learningStep` keeps the next step only while the card stays in Learning/Relearning; it resets to `0` when the card enters Review. It is a step index, not a review count.
 
 These transitions belong to middleware, not `FSRS7Model`. A bare scheduler combining only model and chrono still returns Review, even for a sub-day interval. Update queues, state filters and statistics that rely on the old behavior.
 

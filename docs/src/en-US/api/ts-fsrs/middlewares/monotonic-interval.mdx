@@ -1,6 +1,6 @@
 ---
 title: MonotonicInterval
-description: Built-in middleware schedulerMonotonicIntervalMiddleware — orders intervals across ratings
+description: Built-in middleware schedulerMonotonicIntervalMiddleware — ensures that the rating's intervals are never larger than previous ratings.
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It orders the scheduled interval across the four ratings so harder ratings are never scheduled later than easier ones (subject to `maximumInterval`). Once a lower rating has an interval of one day or more, a later rating of one day or more is at least one day longer than the previous one, and a later sub-day interval is raised to the previous interval. While every lower rating is below one day, intervals never decrease, and a rating that lands on the same second as the previous rating is scheduled one second later.
+It orders the scheduled interval across the four ratings so harder ratings are never scheduled later than easier ones (subject to `maximumInterval`). If a lower rating has an interval of one day or more, a later rating of one day or more is at least one day longer than the previous one, and a later sub-day interval is increased to the duration of the previous interval. If every lower rating is below one day, intervals won't decrease decrease. A rating that lands on the same second as the previous rating is scheduled one second later.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```

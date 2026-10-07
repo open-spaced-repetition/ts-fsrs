@@ -14,7 +14,7 @@ import stateTransitionsCode from '@/snippets/run-code/state-transitions.ts?raw'
 
 The diagram and table show the final scheduled interval, after explicit steps and interval middleware. Ratings affect that interval; they do not alone determine the next state.
 
-`graduatingInterval` (default `1`, in days) is the shortest interval for a card in `Review`. A final interval shorter than `graduatingInterval` enters or keeps `Learning`/`Relearning`; an interval of `graduatingInterval` or longer enters `Review`. This also applies when steps are disabled or empty and the model supplies the interval.
+`graduatingInterval` (default `1` day) is the shortest interval for a card in `Review`. A final interval shorter than `graduatingInterval` enters or keeps `Learning`/`Relearning`; an interval of `graduatingInterval` or longer enters `Review`. This also applies when steps are disabled or empty and the model supplies the interval.
 
 Zero-length steps (such as `0m`, or durations that round to zero seconds) count as no step. Negative durations are not supported.
 
@@ -40,7 +40,7 @@ Ratings first determine whether an explicit step supplies the interval. With `en
 
 The Hard step interval is the average of the first two steps, or 1.5 times the only step. With empty steps or `enableShortTerm: false`, every rating uses the model interval, and only the state mapping below applies. `learningStep` keeps the next step only while the card stays in `Learning`/`Relearning`; it resets to `0` when the card enters `Review`.
 
-When `allowModelOverride` is enabled (the FSRS-7 default in `DefaultScheduler`), the scheduler uses the model interval instead of the current step if the model interval is longer. For Again, the model interval is capped at `graduatingInterval`, and an Again that uses it always enters `Learning`/`Relearning`. For Hard and Good, a card whose interval reaches `graduatingInterval` graduates to `Review` without finishing the remaining steps. Interval middleware can still adjust model intervals.
+When `allowModelOverride` is enabled (the FSRS-7 default in `DefaultScheduler`), the scheduler uses the interval from the model instead of the current step if the interval from the model is longer. For Again, the model's interval is capped at `graduatingInterval`, and an Again that uses it always enters `Learning`/`Relearning`. For Hard and Good, a card whose interval reaches `graduatingInterval` graduates to `Review` without finishing the remaining steps. Interval middleware can still adjust model intervals.
 
 **When steps are configured, finishing them or pressing Easy moves the card to `Review`, and a `Review` card rated Hard, Good, or Easy stays in `Review`.**
 
@@ -53,7 +53,7 @@ After the interval is resolved, `schedulerLearningStepsMiddleware` maps it to th
 | `Review` | `Relearning` | `Review` |
 | `Relearning` | `Relearning` | `Review` |
 
-When an explicit step applies, the scheduler keeps its configured duration unless `allowModelOverride` selects a longer model interval. A step of `graduatingInterval` or longer still moves the card to `Review`.
+When an explicit step applies, the scheduler keeps its configured duration unless the model from `allowModelOverride` provides a longer interval. A step of `graduatingInterval` or longer still moves the card to `Review`.
 
 :::warning Learning states require the `schedulerLearningStepsMiddleware` middleware
 `DefaultScheduler` registers a `schedulerLearningStepsMiddleware` and defaults `enableShortTerm` to `true` including for FSRS-7. For FSRS-7, this flag controls explicit `learningSteps` and `relearningSteps`, not its intrinsic fast trace or the interval-based state mapping. With `enableShortTerm: false`, an interval below `graduatingInterval` still enters the `Learning` or `Relearning` phase.
