@@ -85,7 +85,11 @@ export interface NextIntervalMiddlewareContext<
 export interface ReviewMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends NextIntervalMiddlewareContext<Env> {
-  /** Recall probability of the input card at elapsedDays, before rating. */
+  /**
+   * Raw model.forgettingCurve result for the input card at elapsedDays, before
+   * rating. May be NaN depending on the model and memory state; the scheduler
+   * does not normalize it.
+   */
   readonly retrievability: number
   readonly input: NextIntervalMiddlewareContext<Env>['input'] & {
     readonly now: unknown
