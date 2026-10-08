@@ -1,11 +1,17 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
+import type { AnySchedulerCore } from '@/scheduler/scheduler.js'
 import { defineSchema, isObject } from '@/schema/index.js'
 import {
   defineStringFieldOutputSchema,
   defineStringFieldSchema,
 } from '@/schema/string-field.test.js'
-import { defineMiddleware } from './middleware.js'
+import {
+  defineMiddleware,
+  type NextIntervalMiddlewareContext,
+  type ReviewMiddlewareContext,
+  type RollbackMiddlewareContext,
+} from './middleware.js'
 
 const displayConfigSchema = defineStringFieldSchema({
   field: 'source',
@@ -50,7 +56,14 @@ const cardInitInputMiddleware = defineMiddleware({
     },
   },
   handlers: {
+    nextInterval(ctx, next) {
+      const intervalInstanceHoverTarget = ctx.instance
+      const intervalElapsedDaysHoverTarget = ctx.elapsedDays
+      next()
+    },
     review(ctx, next) {
+      const reviewInstanceHoverTarget = ctx.instance
+      const reviewRetrievabilityHoverTarget = ctx.retrievability
       const defaultReviewStatusHoverTarget = ctx.input.card.scheduleStatus
       next()
     },
@@ -88,6 +101,7 @@ const displayMiddleware = defineMiddleware({
       ctx.result.revlog.audit = reviewConfigHoverTarget.source
     },
     rollback(ctx, next) {
+      const rollbackInstanceHoverTarget = ctx.instance
       const rollbackAuditHoverTarget = ctx.input.revlog.audit
       const rollbackStatusHoverTarget = ctx.input.revlog.scheduleStatus
       next()
@@ -200,6 +214,11 @@ describe('middleware type display', () => {
     }>;
 }>`,
     reviewCardSourceHoverTarget: `const reviewCardSourceHoverTarget: string`,
+    intervalInstanceHoverTarget: `const intervalInstanceHoverTarget: AnySchedulerCore`,
+    intervalElapsedDaysHoverTarget: `const intervalElapsedDaysHoverTarget: number`,
+    reviewInstanceHoverTarget: `const reviewInstanceHoverTarget: AnySchedulerCore`,
+    reviewRetrievabilityHoverTarget: `const reviewRetrievabilityHoverTarget: number`,
+    rollbackInstanceHoverTarget: `const rollbackInstanceHoverTarget: AnySchedulerCore`,
     reviewStatusHoverTarget: `const reviewStatusHoverTarget: "new" | "learning" | "review" | "paused"`,
     reviewResultAuditHoverTarget: `const reviewResultAuditHoverTarget: string | undefined`,
     reviewResultStatusHoverTarget: `const reviewResultStatusHoverTarget: "new" | "learning" | "review" | "paused" | undefined`,
@@ -212,5 +231,24 @@ describe('middleware type display', () => {
     for (const [marker, expected] of Object.entries(expectedDefineMiddleware)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
+  })
+
+  it('keeps the exposed runtime fields readonly', () => {
+    expectTypeOf<
+      Pick<
+        ReviewMiddlewareContext,
+        'instance' | 'retrievability' | 'elapsedDays'
+      >
+    >().toEqualTypeOf<{
+      readonly instance: AnySchedulerCore
+      readonly retrievability: number
+      readonly elapsedDays: number
+    }>()
+    expectTypeOf<NextIntervalMiddlewareContext>().not.toHaveProperty(
+      'retrievability'
+    )
+    expectTypeOf<Pick<RollbackMiddlewareContext, 'instance'>>().toEqualTypeOf<{
+      readonly instance: AnySchedulerCore
+    }>()
   })
 }, 60_000)

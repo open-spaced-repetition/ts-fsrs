@@ -16,6 +16,7 @@ import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
 import { useComposeDefaultValue } from './default-value.js'
 import { defineScheduler } from './define-scheduler.js'
+import type { AnySchedulerCore } from './scheduler.js'
 import {
   config,
   createSM2NumericScheduler,
@@ -1453,6 +1454,116 @@ describe('SchedulerCore.forward', () => {
   })
 })
 
+describe('middleware runtime context', () => {
+  it('exposes the active instance in review, interval, and rollback handlers', () => {
+    const reviews: AnySchedulerCore[] = []
+    const intervals: AnySchedulerCore[] = []
+    const rollbacks: AnySchedulerCore[] = []
+    const definition = createSM2NumericScheduler().use(
+      defineMiddleware({
+        name: 'context-instance',
+        handlers: {
+          review(ctx, next) {
+            reviews.push(ctx.instance)
+            next()
+          },
+          nextInterval(ctx, next) {
+            intervals.push(ctx.instance)
+            next()
+          },
+          rollback(ctx, next) {
+            rollbacks.push(ctx.instance)
+            next()
+          },
+        },
+      })
+    )
+    const instances = [
+      definition.create({ config }),
+      definition.create({ config }),
+    ]
+
+    for (const instance of instances) {
+      const card = instance.newCard({ now: 0 })
+      const result = instance.review({ card, grade: Rating.Good, now: 0 })
+      instance.nextInterval(result.card, 0.9, {
+        card,
+        grade: Rating.Good,
+        elapsedDays: 0,
+      })
+      instance.rollback(result)
+    }
+
+    expect(reviews).toHaveLength(instances.length)
+    expect(intervals).toHaveLength(instances.length * 2)
+    expect(rollbacks).toHaveLength(instances.length)
+    for (const [index, instance] of instances.entries()) {
+      expect(reviews[index]).toBe(instance)
+      expect(intervals[index * 2]).toBe(instance)
+      expect(intervals[index * 2 + 1]).toBe(instance)
+      expect(rollbacks[index]).toBe(instance)
+    }
+  })
+
+  it.each([
+    ['review', 0.5],
+    ['preview', 0.5],
+    ['preview', 100_000],
+  ] as const)(
+    'reuses input card retrievability during %s after %s days',
+    (operation, elapsedDays) => {
+      const reviews: number[] = []
+      const instance = createSM2NumericScheduler()
+        .use(
+          defineMiddleware({
+            name: 'context-retrievability',
+            handlers: {
+              review(ctx, next) {
+                reviews.push(ctx.retrievability)
+                expect(ctx.elapsedDays).toBe(elapsedDays)
+                next()
+                expect(ctx.retrievability).toBe(reviews.at(-1))
+              },
+            },
+          })
+        )
+        .create({ config })
+      const card = {
+        ...instance.newCard({ now: 0 }),
+        interval: 10,
+        reviewStep: 3,
+        state: State.Review,
+      }
+      const expected = instance.model.forgettingCurve(card, elapsedDays)
+      const curve = vi.spyOn(instance.model, 'forgettingCurve')
+      const step = vi.spyOn(instance.model, 'step')
+
+      if (operation === 'review') {
+        instance.review({ card, grade: Rating.Good, now: elapsedDays })
+      } else {
+        const preview = instance.preview({ card, now: elapsedDays })
+        expect(Array.from(preview)).toHaveLength(4)
+        expect(Array.from(preview)).toHaveLength(4)
+      }
+
+      const count = operation === 'review' ? 1 : 4
+      expect(reviews).toEqual(
+        Array(operation === 'review' ? 1 : 8).fill(expected)
+      )
+      expect(curve).toHaveBeenCalledOnce()
+      expect(curve).toHaveBeenCalledWith(
+        { interval: 10, easeFactor: card.easeFactor, reviewStep: 3 },
+        elapsedDays
+      )
+      expect(step).toHaveBeenCalledTimes(count)
+      for (const [input] of step.mock.calls) {
+        expect(input.elapsedDays).toBe(elapsedDays)
+        expect(input.retrievability).toBe(expected)
+      }
+    }
+  )
+})
+
 describe('SchedulerCore.nextInterval', () => {
   it('uses the supplied state and effective retention without stepping the current grade', () => {
     const queryCore = createSM2NumericScheduler()
@@ -1461,6 +1572,7 @@ describe('SchedulerCore.nextInterval', () => {
           name: 'query-retention',
           handlers: {
             nextInterval(ctx, next) {
+              expect(ctx).not.toHaveProperty('retrievability')
               ctx.candidate.desiredRetention[ctx.input.grade] = 0.8
               next()
             },

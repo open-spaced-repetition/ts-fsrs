@@ -2,6 +2,7 @@
 
 import type { Grade } from '@/primitives/rating.js'
 import type { ScheduleStatus } from '@/primitives/status.js'
+import type { AnySchedulerCore } from '@/scheduler/scheduler.js'
 import type {
   AnyObjectSchema,
   Assign,
@@ -69,6 +70,7 @@ export type DesiredRetentionByGrade = Record<Grade, number>
 export interface NextIntervalMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends MiddlewareContextBase<Env> {
+  readonly instance: AnySchedulerCore
   readonly input: {
     readonly card: MiddlewareContextObjectOf<Env, 'card'>
     readonly grade: Grade
@@ -83,6 +85,8 @@ export interface NextIntervalMiddlewareContext<
 export interface ReviewMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends NextIntervalMiddlewareContext<Env> {
+  /** Recall probability of the input card at elapsedDays, before rating. */
+  readonly retrievability: number
   readonly input: NextIntervalMiddlewareContext<Env>['input'] & {
     readonly now: unknown
   }
@@ -92,6 +96,7 @@ export interface ReviewMiddlewareContext<
 export interface RollbackMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,
 > extends MiddlewareContextBase<Env> {
+  readonly instance: AnySchedulerCore
   readonly input: {
     readonly card: MiddlewareContextObjectOf<Env, 'card'>
     readonly revlog: MiddlewareContextObjectOf<Env, 'revlog'>
