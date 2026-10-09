@@ -25,9 +25,9 @@ Zero-length steps (such as `0m`, or durations that round to zero seconds) count 
 | State | Meaning | Default queue |
 | --- | --- | --- |
 | `New` | The card is new or has been reset with `scheduler.forget()`. | `new` |
-| `Learning` | The card is in initial learning and needs another review, usually before `graduatingInterval` has passed. | `learning` |
+| `Learning` | The card is in it's initial learning state and needs another review. It will stay in it's learning state so long as the next step is shorter than `graduatingInterval`. | `learning` |
 | `Review` | The card is outside short-term learning; its interval is at least `graduatingInterval`. | `review` |
-| `Relearning` | A previously reviewed card is learning again and needs another review, usually before `graduatingInterval` has passed. | `learning` |
+| `Relearning` | A previously graduated card is in a learning state again and needs another review. It will stay in a relearning state so long as it's interval is shorter than `graduatingInterval`. | `learning` |
 
 ## How ratings move a card
 
