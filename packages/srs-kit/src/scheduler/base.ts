@@ -61,7 +61,7 @@ interface PreparedReview<Env extends BlankSchedulerEnv> {
   }
   readonly elapsedDays: number
   readonly memoryState: Record<string, unknown>
-  readonly retrievability?: number
+  readonly retrievability: number
   readonly candidate: ReviewCandidateContext
 }
 
@@ -78,6 +78,7 @@ type RollbackResultDraft<Env extends BlankSchedulerEnv> = {
 }
 
 type NextIntervalMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
+  readonly instance: SchedulerCore<SchedulerCoreEnv<Env>>
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
   readonly input: {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
@@ -91,6 +92,7 @@ type NextIntervalMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
 
 type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> =
   NextIntervalMiddlewareOperationContext<Env> & {
+    readonly retrievability: number
     readonly input: NextIntervalMiddlewareOperationContext<Env>['input'] & {
       readonly now: SchedulerCoreEnv<Env>['chrono']
     }
@@ -98,6 +100,7 @@ type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> =
   }
 
 type RollbackMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
+  readonly instance: SchedulerCore<SchedulerCoreEnv<Env>>
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
   readonly input: {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
@@ -364,6 +367,7 @@ export class BaseScheduler<
       retention
     )
     const ctx: NextIntervalMiddlewareOperationContext<Env> = {
+      instance: this,
       config: this.config,
       input: Object.freeze({ card, grade, desiredRetention: retention }),
       elapsedDays,
@@ -438,6 +442,7 @@ export class BaseScheduler<
     ) as SchedulerCoreEnv<Env>['card']['output']
 
     const ctx: RollbackMiddlewareOperationContext<Env> = {
+      instance: this,
       config: this.config,
       input: {
         card: Object.freeze(card),
@@ -578,9 +583,11 @@ export class BaseScheduler<
     now: SchedulerCoreEnv<Env>['chrono']
   ): ReviewResultDraft<Env> {
     const ctx: ReviewMiddlewareOperationContext<Env> = {
+      instance: this,
       config: this.config,
       input: new ReviewInput<Env>({ card: prepared.card, grade, now }),
       elapsedDays: prepared.elapsedDays,
+      retrievability: prepared.retrievability,
       scheduledDays: undefined,
       candidate: prepared.candidate,
       result: { card: {}, revlog: {} },

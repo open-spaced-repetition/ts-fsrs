@@ -2,7 +2,13 @@ import { describe, expect, it } from 'vitest'
 import type { Grade } from '@/primitives/rating.js'
 import { Rating } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
+import {
+  config,
+  createSM2NumericScheduler,
+} from '@/scheduler/scheduler.test.js'
 import { schedulerStatsMiddleware } from './middleware.js'
+
+const instance = createSM2NumericScheduler().create({ config })
 
 type ReviewHandler = NonNullable<
   NonNullable<typeof schedulerStatsMiddleware.handlers>['review']
@@ -27,6 +33,7 @@ function reviewContext({
   readonly lapses?: number
 } = {}): ReviewContext {
   return {
+    instance,
     config: { chrono: 0, clearStatsOnForget: true },
     input: {
       card: { reps, lapses, state, scheduleStatus: 'review' },
@@ -34,6 +41,7 @@ function reviewContext({
       now: 0,
     },
     elapsedDays: 1,
+    retrievability: 0.9,
     scheduledDays: undefined,
     candidate: {
       desiredRetention: {
@@ -66,6 +74,7 @@ function rollbackContext({
   readonly lapses?: number
 } = {}): RollbackContext {
   return {
+    instance,
     config: { chrono: 0, clearStatsOnForget: true },
     input: {
       card: { reps, lapses, state, scheduleStatus: 'review' },
