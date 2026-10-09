@@ -19,6 +19,8 @@ console.log(
       state: result.card.state,
       dueAt: result.card.dueAt,
       stability: result.card.stability,
+      stabilityFast: result.card.stabilityFast,
+      difficulty: result.card.difficulty,
       rating: result.revlog.rating,
     },
     null,

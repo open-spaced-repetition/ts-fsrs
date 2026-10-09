@@ -16,6 +16,15 @@ import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
 
 开启短期调度时，它应用配置的 `learningSteps` 与 `relearningSteps`，并维护卡片的 `learningStep` 与学习状态。
 
+| 配置 | 默认值 | 含义 |
+| --- | --- | --- |
+| `enableShortTerm` | 必填 | 开启或关闭显式步骤。 |
+| `learningSteps` / `relearningSteps` | 必填 | 步骤时长，如 `'1m'` 或 `'1h'`。不推荐使用达到 `graduatingInterval` 的步骤（默认情况下如 `'1d'`）：这类步骤会让卡片进入 `Review`，并跳过剩余步骤。`defaultLearningSteps` 为 `['1m', '10m']`，`defaultRelearningSteps` 为 `['10m']`。 |
+| `graduatingInterval` | `1`（`defaultGraduatingInterval`） | 卡片处于 `Review` 时的最短间隔（天）。最终间隔更短时，卡片保持 `Learning`/`Relearning`。配置了步骤时，走完步骤以及 `Review` 卡片按 Hard、Good、Easy 都至少使用这个间隔。 |
+| `allowModelOverride` | `false` | 模型间隔比当前步骤长时，改用模型间隔。Again 不超过 `graduatingInterval`；Hard、Good 的间隔达到 `graduatingInterval` 时提前毕业。 |
+
+`DefaultScheduler` 对 FSRS-7 开启 `allowModelOverride`。各评分如何选择间隔和状态，见[状态转换](../../../guide/state-transitions)。
+
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
 ```
 

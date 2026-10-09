@@ -16,6 +16,15 @@ import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
 
 短期スケジューリングが有効な場合、これは設定された `learningSteps` と `relearningSteps` を適用し、カードの `learningStep` と学習状態を管理します。
 
+| 設定 | 既定値 | 意味 |
+| --- | --- | --- |
+| `enableShortTerm` | 必須 | 明示的なステップを有効または無効にします。 |
+| `learningSteps` / `relearningSteps` | 必須 | `'1m'` や `'1h'` などのステップの長さ。`graduatingInterval` 以上のステップ（既定では `'1d'` など）は推奨しません。カードが `Review` に移り、残りのステップが飛ばされます。`defaultLearningSteps` は `['1m', '10m']`、`defaultRelearningSteps` は `['10m']` です。 |
+| `graduatingInterval` | `1`（`defaultGraduatingInterval`） | `Review` のカードの最短間隔（日）。最終間隔がこれより短いと `Learning`/`Relearning` に留まります。ステップを設定している場合、ステップを終えたときと `Review` のカードの Hard、Good、Easy は少なくともこの間隔を使います。 |
+| `allowModelOverride` | `false` | モデルの間隔が現在のステップより長いとき、モデルの間隔を使います。Again は `graduatingInterval` を超えず、Hard と Good は間隔が `graduatingInterval` に達すると早期卒業します。 |
+
+`DefaultScheduler` は FSRS-7 で `allowModelOverride` を有効にします。各評価が間隔と状態をどう選ぶかは[状態遷移](../../../guide/state-transitions)を参照してください。
+
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
 ```
 

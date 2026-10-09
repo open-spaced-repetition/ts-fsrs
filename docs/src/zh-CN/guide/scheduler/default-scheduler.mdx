@@ -26,8 +26,10 @@ FSRS-7 卡片除 `stability` 和 `difficulty` 外还包含 `stabilityFast`。旧
 | `weights` | 预设权重 | 可选的训练权重；省略时使用所选版本的预设默认值。FSRS-7 需要恰好 34 个 FSRS-7 权重；传入旧版权重会在构造调度器时抛出异常。 |
 | `desiredRetention` | `0.9` | 在计算间隔前应用的目标保留率。 |
 | `enableShortTerm` | `true` | 启用学习与再学习步骤。 |
-| `learningSteps` | FSRS-7: `[]`; 其他版本: `['1m', '10m']` | `enableShortTerm` 开启时应用的学习步骤。 |
-| `relearningSteps` | FSRS-7: `[]`; 其他版本: `['10m']` | `enableShortTerm` 开启时应用的再学习步骤。 |
+| `learningSteps` | `['1m', '10m']` | `enableShortTerm` 开启时应用的学习步骤。 |
+| `relearningSteps` | `['10m']` | `enableShortTerm` 开启时应用的再学习步骤。 |
+| `graduatingInterval` | `1` | 卡片处于 `Review` 时的最短间隔（天）。最终间隔更短时，卡片保持 `Learning`/`Relearning`。配置了步骤时，走完步骤以及 `Review` 卡片按 Hard、Good、Easy 都至少使用这个间隔。 |
+| `allowModelOverride` | FSRS-7: `true`; 其他版本: `false` | 模型间隔比当前步骤长时，改用模型间隔。Again 不超过 `graduatingInterval`；Hard、Good 的间隔达到 `graduatingInterval` 时提前毕业。 |
 | `enableFuzz` | `false` | 开启时分散间隔以增加变化。 |
 | `maximumInterval` | `36500` | 间隔的天数上限。 |
 | `clearStatsOnForget` | `true` | `forget` 是否清空 `reps` 与 `lapses`。 |
