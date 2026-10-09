@@ -21,8 +21,10 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 | `weights` | プリセットの重み | 任意の学習済み重み。 |
 | `desiredRetention` | `0.9` | 間隔計算の前に適用する目標保持率。 |
 | `enableShortTerm` | `true` | 学習・再学習ステップを有効にします。 |
-| `learningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
-| `relearningSteps` | プリセットのステップ | 短期スケジューリングが有効なときに適用されます。 |
+| `learningSteps` | `['1m', '10m']` | 短期スケジューリングが有効なときに適用されます。 |
+| `relearningSteps` | `['10m']` | 短期スケジューリングが有効なときに適用されます。 |
+| `graduatingInterval` | `1` | `Review` のカードの最短間隔（日）。 |
+| `allowModelOverride` | FSRS-7: `true`; その他のバージョン: `false` | モデルの間隔が現在のステップより長いとき、モデルの間隔を使います。 |
 | `enableFuzz` | `false` | 有効にすると間隔を分散させます。 |
 | `maximumInterval` | `36500` | 間隔の日数上限。 |
 | `clearStatsOnForget` | `true` | `forget` が `reps` と `lapses` を消去するかどうか。 |

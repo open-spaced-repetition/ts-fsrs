@@ -21,8 +21,10 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 | `weights` | preset weights | Optional trained weights. |
 | `desiredRetention` | `0.9` | Target retention before interval calculation. |
 | `enableShortTerm` | `true` | Enables learning and relearning steps. |
-| `learningSteps` | preset steps | Applied when short-term scheduling is on. |
-| `relearningSteps` | preset steps | Applied when short-term scheduling is on. |
+| `learningSteps` | `['1m', '10m']` | Applied when short-term scheduling is on. |
+| `relearningSteps` | `['10m']` | Applied when short-term scheduling is on. |
+| `graduatingInterval` | `1` | Shortest interval, in days, for a card in `Review`. |
+| `allowModelOverride` | FSRS-7: `true`; other versions: `false` | Uses the model interval instead of the current step when the model interval is longer. |
 | `enableFuzz` | `false` | Spreads intervals when enabled. |
 | `maximumInterval` | `36500` | Upper bound on the interval in days. |
 | `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |

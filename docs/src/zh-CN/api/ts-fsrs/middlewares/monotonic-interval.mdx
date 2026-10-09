@@ -1,6 +1,6 @@
 ---
 title: MonotonicInterval
-description: 内置中间件 schedulerMonotonicIntervalMiddleware —— 跨评分排序天级间隔
+description: 内置中间件 schedulerMonotonicIntervalMiddleware —— 跨评分排序间隔
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-它跨四种评分排序已安排的天级间隔，使更难的评分永远不会比更容易的评分安排得更晚（受 `maximumInterval` 约束）。
+它跨四种评分排序已安排的间隔，使更难的评分永远不会比更容易的评分安排得更晚（受 `maximumInterval` 约束）。较低评分的间隔达到一天后，后续一天及以上的间隔至少比上一评分长一天，后续小于一天的间隔则提升到上一评分的间隔。较低评分都小于一天时，间隔不会减小；若某评分与上一评分落在同一秒，则顺延一秒。
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```

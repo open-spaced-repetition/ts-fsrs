@@ -10,6 +10,7 @@ const scheduler = await DefaultScheduler({
   learningSteps: ['1m', '10m'],
   relearningSteps: ['10m'],
   enableFuzz: false,
+  allowModelOverride: false,
 })
 const stateNames: Record<State, string> = {
   [State.New]: 'New',
