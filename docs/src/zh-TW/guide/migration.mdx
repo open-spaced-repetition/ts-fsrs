@@ -34,7 +34,7 @@ B. 升級至 ts-fsrs v6，並將模型從 FSRS-6 升級至 FSRS-7。
 3. 遷移後不得使用 legacy API 或型別，包括 fsrs()、FSRS、createEmptyCard、generatorParameters、舊排程器/strategy，以及從根入口匯入的舊 Card、CardInput、ReviewLog、FSRSParameters；不要新增長期相容層。保持改動聚焦，保留無關工作。
 4. 遷移卡片、設定與方法呼叫，保留穩定 cardId 與應用程式中繼資料，驗證反序列化後的時間。明確處理 scheduleStatus、State.New 的 lastReviewAt: null、欄位改名、{ card, revlog } 回傳值，以及 clearStatsOnForget 的預設值差異。
 5. 嚴格區分紀錄時間：v6 revlog.lastReviewAt 是複習前的上次複習時間，dueAt 是複習前到期時間，reviewTime 是本次實際複習時間（不是 reviewAt）。v5 一般紀錄的 due 來自 last_review || due，不能一律改名為 dueAt；缺少原始快照時，不得偽造可精確復原的 v6 紀錄。
-6. 僅選擇 B 時：再切換 FSRS7Model，使用其獨立 34 個預設權重或重新訓練的 FSRS-7 權重，設定 fractionalDays: true。不得重用 FSRS-6 權重，也不得以 0.8 * stability 補造 stabilityFast。enableShortTerm 僅控制明確的學習步驟，不關閉 FSRS-7 快軌跡。 明確保留原學習步驟，不要因 FSRS-7 預設空步驟而遺失原設定；驗證最終間隔小於一天/至少一天、關閉/空/完成步驟及無中介軟體時的狀態邊界。獨立 curve(weights, elapsedDays, state) 從 ts-fsrs/models/fsrs-7 匯入，預先驗證權重並讀取 retrievability；total 是混合權重之和。也可使用 model.forgettingCurve 取得數值回憶機率。
+6. 僅選擇 B 時：再切換 FSRS7Model，使用其獨立 34 個預設權重或重新訓練的 FSRS-7 權重，設定 fractionalDays: true。不得重用 FSRS-6 權重，也不得以 0.8 * stability 補造 stabilityFast。enableShortTerm 僅控制明確的學習步驟，不關閉 FSRS-7 快軌跡。DefaultScheduler 對 FSRS-7 預設使用 learningSteps: ['1m', '10m']、relearningSteps: ['10m'] 和 allowModelOverride: true。請明確保留原學習步驟，不要依賴預設值；驗證最終間隔小於一天/至少一天、關閉/空/完成步驟及無中介軟體時的狀態邊界。獨立 curve(weights, elapsedDays, state) 從 ts-fsrs/models/fsrs-7 匯入，預先驗證權重並讀取 retrievability；total 是混合權重之和。也可使用 model.forgettingCurve 取得數值回憶機率。
 7. 僅選擇 B 時：對已學習卡片選取從建立或最近一次記憶重設以來的完整歷史，映射 rating 與實際 reviewTime，以 Reschedule.replay() 重建 stability、stabilityFast、difficulty，不傳入舊模型 initialState。重建結果僅更新目前 card 的 memoryState；歷史 revlog 僅作為唯讀輸入，不得修改、覆寫或補寫任何歷史資料。遷移時只更新目前卡片的記憶狀態，不重新安排既有卡片的下次複習時間（dueAt）；之後複習時再由 FSRS-7 計算新的時間。lastReviewAt、cardId、學習進度與統計保持不變。過濾 Manual 不等於處理記憶重設，完整性不能僅憑列數或最後時間戳記判斷。
 8. 僅選擇 B 時：新卡使用 FSRS-7 預設記憶狀態；已學習卡片的歷史缺少、截斷、為空、僅含 Manual 或不一致時，必須明確報錯/跳過，保留 FSRS-6 狀態與設定並依模型版本路由，不默默清零。保留原始紀錄；模型、權重設定與記憶狀態一起保存，設定跨模型復原邊界。
 9. 若需修改保存資料，提供備份、試執行與回復方式，正式環境資料變更遵循儲存庫既有流程。加入並實際執行聚焦測試：舊資料轉換、四種卡片狀態、複習/預覽/復原/遺忘、提前與逾期複習的三個時間欄位、同日小數間隔、Manual 與重設邊界、缺少歷史處理，以及遷移前後到期時間/ID/學習進度/統計不變。
@@ -135,20 +135,22 @@ FSRS-7 記憶狀態包含 `stability`、`stabilityFast` 與 `difficulty`，三�
 
 ### FSRS-7 的預設步驟與學習狀態
 
-`DefaultScheduler` 對 FSRS-7 預設使用 `learningSteps: []` 與 `relearningSteps: []`，由模型決定間隔；FSRS-3～6 仍預設使用學習步驟 `['1m', '10m']` 與重新學習步驟 `['10m']`。明確傳入的步驟不會被預設值覆寫。`enableShortTerm` 仍預設 `true`，控制明確的步驟，不控制 FSRS-7 快軌跡或依間隔劃分的學習狀態。
+`DefaultScheduler` 對 FSRS-7 與 FSRS-3～6 一樣預設使用學習步驟 `['1m', '10m']` 與重新學習步驟 `['10m']`，並開啟 `allowModelOverride`，讓較長的模型間隔覆寫目前步驟。明確傳入的步驟不會被預設值覆寫。`enableShortTerm` 仍預設 `true`，控制明確的步驟，不控制 FSRS-7 快軌跡或依間隔劃分的學習狀態。
 
 註冊 `schedulerLearningStepsMiddleware` 後，狀態由**最終排程間隔**決定，即使步驟關閉、為空或已完成：
 
-| 複習前狀態 | 最終間隔小於一天 | 最終間隔至少一天 |
+| 複習前狀態 | 最終間隔小於 `graduatingInterval`（預設一天） | 最終間隔至少 `graduatingInterval` |
 | --- | --- | --- |
 | New / Learning | Learning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
 | Review / Relearning | Relearning，`scheduleStatus: learning` | Review，`scheduleStatus: review` |
 
-因此不能假設「關閉步驟就沒有 Learning」、「只有 Again 才進入 Relearning」或「Easy 一定進入 Review」。Easy 跳過明確的步驟；Good 僅在存在適用的下一步驟時推進。沒有明確步驟提供間隔時，`learningStep` 重設為 `0`，但狀態仍可能是 Learning/Relearning；它是步驟索引，不是複習次數。
+設定了步驟時，沒有適用步驟的 Hard、Good、Easy 至少在 `graduatingInterval` 之後到期，因此走完步驟，以及 `Review` 卡片按 Hard、Good 或 Easy，都會進入 `Review`。開啟 `allowModelOverride` 時，使用模型間隔的 Again 總是進入 `Learning`/`Relearning`，即使其間隔被限制為 `graduatingInterval`。
+
+沒有設定步驟時，不能假設「沒有 Learning」、「只有 Again 才進入 Relearning」或「Easy 一定進入 Review」。一般來說，Easy 跳過明確的步驟，Good 僅在存在適用的下一步驟時推進，時長為 0 的步驟視為沒有步驟。`learningStep` 只在卡片留在 Learning/Relearning 時保留下一步驟，卡片進入 Review 時重設為 `0`；它是步驟索引，不是複習次數。
 
 這些轉換屬於中介軟體，不屬於 `FSRS7Model`。只組合模型與 chrono 的排程器仍傳回 Review，即使間隔小於一天。遷移應用程式佇列、狀態篩選與統計時，需要同步調整依賴舊行為的判斷。
 
-[「重播記憶，保留排程安排」一節的完整遷移範例](#重播記憶保留排程安排)**明確保留既有學習步驟**，不透過省略選項自動採用 FSRS-7 預設的空步驟。若產品決定採用模型驅動的步驟，可明確設定 `learningSteps: []`、`relearningSteps: []`；這不等於移除學習步驟中介軟體。改變步驟策略應單獨驗證，不能在卡片欄位遷移時順便執行。
+[「重播記憶，保留排程安排」一節的完整遷移範例](#重播記憶保留排程安排)**明確保留既有學習步驟**，不依賴預設值。若產品決定完全採用模型驅動的步驟，可明確設定 `learningSteps: []`、`relearningSteps: []`；這不等於移除學習步驟中介軟體。改變步驟策略應單獨驗證，不能在卡片欄位遷移時順便執行。
 
 ### 遷移回憶機率呼叫
 
