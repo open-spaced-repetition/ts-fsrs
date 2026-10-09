@@ -1,5 +1,11 @@
 # @open-spaced-repetition/srs-kit
 
+## 1.0.0-beta.9
+
+### Minor Changes
+
+- [#566](https://github.com/open-spaced-repetition/ts-fsrs/pull/566) [`58d902f`](https://github.com/open-spaced-repetition/ts-fsrs/commit/58d902f8aac8a35522345282891c6d52e8779fa0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): expose the scheduler instance in middleware handlers and the input card's retrievability in review contexts.
+
 ## 1.0.0-beta.8
 
 ### Major Changes
