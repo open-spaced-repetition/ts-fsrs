@@ -32,41 +32,41 @@ Readouts change continuously, so the list groups them as dynamic fields. A slash
 
 | 時間（秒） / Time (s) | ナレーション / Voiceover | 字幕表示終了（秒） / Subtitle ends (s) |
 |---|---|---|
-| 0.75–4.25 | Write it down. When will you recall it again? | 4.88 |
-| 6.75–11.12 | Before computers, people followed rules with cards and dates. | 11.15 |
-| 12.30–16.52 | Then SuperMemo-2 brought ratings and intervals into computation. | 16.60 |
-| 19.00–22.62 | A model describes memory, and how it changes. | 22.70 |
-| 22.95–27.70 | A review updates memory state. The model estimates recall probability. | 27.75 |
-| 37.40–42.37 | ts-fsrs version six. Beyond one algorithm. | 42.77 |
-| 47.92–53.03 | Model updates memory state. Scheduler coordinates reviews. | 53.12 |
+| 0.75–4.25 | How long can you recall things if all you do is write them down? | 4.88 |
+| 6.75–11.12 | Before computers, people memorised cards by following rules with math and dates. | 11.15 |
+| 12.30–16.52 | Then SuperMemo-2 brought ratings and intervals into the computer realm. | 16.60 |
+| 19.00–22.62 | A model describes how your memory degrades over time. | 22.70 |
+| 22.95–27.70 | When you review a card, it stores a "memory state". The model then uses this state to predict recall probability for the future. | 27.75 |
+| 37.40–42.37 | ts-fsrs version six. Fully customizable. | 42.77 |
+| 47.92–53.03 | The model updates a cards memory state. The scheduler calculates review times. | 53.12 |
 | 53.37–59.75 | Middleware applies scheduling policies. Chrono handles time values and arithmetic. | 59.85 |
 | 61.35–64.40 | Define your own model with defineModel. | 65.35 |
-| 66.95–70.26 | Review logs become organized training data. | 70.35 |
-| 70.60–75.98 | Train on past reviews. Evaluate on reviews not used for training. | 76.22 |
+| 66.95–70.26 | Transform your review logs into organized training data. | 70.35 |
+| 70.60–75.98 | The model trains itself on past reviews. Evaluating itself on seperate reviews not used for training. | 76.22 |
 | 76.47–79.25 | Use the trained weights for scheduling. | 79.47 |
-| 82.02–85.40 | Compose the supported parts into your own approach. | 85.52 |
-| 86.67–90.58 | Create custom models and middleware, then test them. | 90.67 |
-| 92.12–96.39 | Beyond one algorithm. Build more possibilities. | 96.75 |
+| 82.02–85.40 | Mix and match the supported components into your own custom approach. | 85.52 |
+| 86.67–90.58 | You can even create completely custom models and middleware, then use them as you see fit. | 90.67 |
+| 92.12–96.39 | A fully customizable approach. Build with more than just one algorithm. | 96.75 |
 
 ## 2. 画面上でそのまま読み上げていないテキスト / On-screen text not read verbatim
 
 | 表示時間（秒） / Display time (s) | 画面テキスト / On-screen text |
 |---|---|
 | 2.77–5.95 | A<br>Q<br>Reviews spaced over time / strengthen long-term memory.<br>What is spaced repetition?<br>When is the / next review? |
-| 6.05–11.78 | From cards / to computation<br>Rules, carried by hand. |
+| 6.05–11.78 | From cards / to the computer realm<br>Rules, carried out by hand. |
 | 6.35–11.78 | Later<br>Review again<br>Today |
 | 11.85–17.93 | 0<br>1<br>6 days<br>7<br>A rating. / A next interval.<br>Next interval<br>q = 4<br>Review rating<br>SM-2 1987 |
 | 18.05–29.57 | 0<br>0%<br>100%<br>12<br>20<br>28<br>36<br>50%<br>6<br>90%<br>Elapsed days<br>FSRS-7<br>Retrievability<br>Reviews |
 | 18.05–28.60 | Memory, / made visible. |
-| 18.07–29.52 | * Model state examples |
+| 18.07–29.52 | * Memory state examples per model |
 | 18.83–26.98 | ≈ [dynamic retrievability percentage]<br>Elapsed days · [dynamic day value] |
 | 18.83–22.95 | Base interval from review (90%) ≈ 4.78 days |
 | 18.83–29.57 | Good / Remembered |
 | 22.95–24.65 | Base interval from review (90%) ≈ 28.10 days |
 | 24.65–26.98 | Base interval from review (90%) ≈ 0.05 days |
 | 24.68–29.57 | Again / Forgotten |
-| 29.07–33.70 | FSRS-7 / R(t)<br>Model state examples |
-| 29.08–33.68 | Depth arranges examples; it is not a measured axis. |
+| 29.07–33.70 | FSRS-7 / R(t)<br>Memory state examples |
+| 29.08–33.68 | Depth delineates between examples; it is not a measured axis. |
 | 33.32–35.47 | 0<br>0%<br>100%<br>12<br>20<br>28<br>36<br>50%<br>6<br>90%<br>Again / Forgotten<br>Elapsed days<br>FSRS-7<br>Good / Remembered<br>Retrievability<br>Reviews |
 | 33.35–35.43 | * Model state examples |
 | 34.07–35.47 | Memory, / made visible. |
@@ -84,8 +84,8 @@ Readouts change continuously, so the list groups them as dynamic fields. A slash
 | 76.65–81.20 | config.weights<br>Custom models need compatible trainers. |
 | 81.32–91.32 | Built-in support<br>FSRS-3 · 4 · 4.5 · 5 · 6 · 7<br>More ways / to build. |
 | 85.85–91.32 | An extension point, not a finished learning app.<br>Custom Model<br>Extension example |
-| 91.42–92.85 | A<br>Q<br>Reviews spaced over time / strengthen long-term memory.<br>What is spaced repetition? |
-| 93.07–99.75 | 2026.10.28 RELEASE<br>A composable SRS framework<br>github.com/open-spaced-repetition/ts-fsrs<br>ts-fsrs v6 |
+| 91.42–92.85 | A<br>Q<br>Reviews spaced over time / designed to strengthen long-term memory.<br>What is spaced repetition? |
+| 93.07–99.75 | 2026.10.28 RELEASE<br>A customizable SRS framework<br>github.com/open-spaced-repetition/ts-fsrs<br>ts-fsrs v6 |
 
 ## 3. 表記・発音の対応とミュートについて / Written forms, pronunciation, and muted narration
 
