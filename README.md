@@ -13,16 +13,14 @@
 
 This repository contains two main packages:
 
-| Package | Description | FSRS Version | Package Version | Downloads |
+| Package | Description | Supported FSRS Versions | Package Version | Downloads |
 | --- | --- | --- | --- | --- |
-| [`ts-fsrs`](./packages/fsrs/README.md) | the scheduler for review flows | [![fsrs version](https://img.shields.io/badge/FSRS-v6-blue?style=flat-square)](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-6) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
-| [`@open-spaced-repetition/binding`](./packages/binding/README.md) | the optimizer for parameter training and CSV conversion | [![fsrs version](https://img.shields.io/badge/FSRS-v6-blue?style=flat-square)](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-6) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
+| [`ts-fsrs`](./packages/fsrs/README.md) | the scheduler for review flows | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/en-US/guide/model/index.mdx) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
+| [`@open-spaced-repetition/binding`](./packages/binding/README.md) | the optimizer for parameter training and CSV conversion | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](./docs/src/en-US/guide/optimizer/index.mdx) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
 
 ## Installation
 
-All current packages in this repository require Node.js `>=20.0.0`.
-
-Node.js 16 and 18 are end-of-life, so we no longer support versions earlier than Node.js 20. See the [official release status page](https://nodejs.org/en/about/previous-releases#looking-for-the-latest-release-of-a-version-branch).
+`ts-fsrs` v6 and `@open-spaced-repetition/binding` require Node.js `>=24.0.0`.
 
 ```bash
 pnpm add ts-fsrs
@@ -36,22 +34,26 @@ pnpm add @open-spaced-repetition/binding
 
 ## Basic Usage
 
-Use `ts-fsrs` to schedule reviews:
+Use `DefaultScheduler()` to schedule reviews with `ts-fsrs` v6. It defaults to FSRS-7; the library version and the FSRS model version are independent.
 
 ```ts
-import { createEmptyCard, fsrs, Rating } from 'ts-fsrs'
+import { DefaultScheduler, Rating } from 'ts-fsrs'
 
-const scheduler = fsrs()
-const card = createEmptyCard()
+const now = new Date('2026-01-01T00:00:00.000Z')
+const scheduler = await DefaultScheduler()
+const card = scheduler.newCard({ now })
 
 // Preview all four possible outcomes before the user answers.
-const preview = scheduler.repeat(card, new Date())
-// Apply the final rating after the user has already answered.
-const result = scheduler.next(card, new Date(), Rating.Good)
+const preview = scheduler.preview({ card, now })
+for (const { grade, card: previewCard, revlog } of preview) {
+  console.log(grade, previewCard, revlog)
+}
 
-console.log(preview[Rating.Good].card)
+// Apply the final rating after the user has already answered.
+const result = scheduler.review({ card, grade: Rating.Good, now })
+
 console.log(result.card)
-console.log(result.log)
+console.log(result.revlog)
 ```
 
 Use `@open-spaced-repetition/binding` when you want to train FSRS parameters from review logs. For CSV conversion, timezone handling, browser/WASI setup, and training examples, see [`packages/binding/README.md`](./packages/binding/README.md).
@@ -62,7 +64,8 @@ For detailed usage, advanced examples, browser/WASI setup, and API notes:
 
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
-- [State transition diagram for cards](./ts-fsrs-workflow.drawio)
+- [Quick start](./docs/src/en-US/guide/quick-start.mdx)
+- [v5 → v6 and FSRS-7 migration](./docs/src/en-US/guide/migration.mdx)
 
 ## Examples
 

@@ -38,14 +38,16 @@ There are two ways to open the project in a Dev Container:
 The Dev Container will automatically:
 
 - Build the Docker image based on the official Rust image
-- Install Node.js 20 with node-gyp dependencies
-- Set up Rust toolchain with WASM support (`wasm32-wasip1-threads` target)
+- Install Node.js 26 with node-gyp dependencies
+- Set up Rust toolchain with both WASI targets (`wasm32-wasip1` and `wasm32-wasip1-threads`)
 - Install WASI SDK for WebAssembly builds
 - Enable and configure pnpm package manager
 - Install all Node.js dependencies
 - Download test data (`revlog.csv`)
 - Configure the bash prompt with git information
 - Install recommended VS Code extensions
+
+Binding build artifacts (`packages/binding/dist`) are kept in a Docker volume for this workspace. Build and inspect them from inside the container.
 
 You can monitor the progress in the VS Code terminal. The setup is complete when you see:
 
@@ -59,7 +61,7 @@ Open a new terminal in VS Code (`Terminal` → `New Terminal`) and verify the in
 
 ```bash
 # Check Node.js and pnpm
-node --version    # Should show v20.x.x
+node --version    # Should show v26.x.x
 pnpm --version    # Should show the configured version
 
 # Check Rust toolchain
@@ -78,8 +80,8 @@ rustup target list --installed | grep wasm32-wasip1-threads
 # Run all tests
 pnpm test
 
-# Run tests in watch mode
-pnpm test:watch
+# Run ts-fsrs tests in watch mode
+pnpm --filter ts-fsrs exec vitest watch
 
 # Run tests with coverage
 pnpm test:coverage
@@ -93,8 +95,25 @@ pnpm build
 
 # Build specific package
 pnpm --filter ts-fsrs build
-pnpm --filter @ts-fsrs/binding build
+pnpm --filter @open-spaced-repetition/binding build
 ```
+
+### Working with Documentation
+
+Run these commands from the repository root inside the container:
+
+```bash
+# Start the documentation development server
+pnpm docs:dev
+
+# Build the documentation site
+pnpm docs:build
+
+# Preview the production documentation build
+pnpm docs:preview
+```
+
+The development and build commands prepare the required workspace packages and WASM assets automatically. Open the URL printed in the terminal; use VS Code's Ports view to forward the server port if needed.
 
 ### Type Checking
 

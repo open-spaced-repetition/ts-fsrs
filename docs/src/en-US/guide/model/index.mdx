@@ -53,7 +53,7 @@ A model owns memory-state updates, forgetting-curve evaluation, and base-interva
 
 ## Use a versioned model
 
-`DefaultScheduler` uses FSRS-6, but every versioned model can also be created and called directly:
+`DefaultScheduler` defaults to FSRS-7 and can select any supported FSRS version through its `version` option. Every versioned model can also be created and called directly; the following example uses FSRS-6:
 
 ```ts twoslash file="../../../snippets/run-code/model.ts"
 ```
@@ -84,7 +84,7 @@ Only use `FSRS6Model.create({ config, bypass: true })` when the caller has expli
 ## Model versions
 
 - [FSRS-7](./fsrs-7) — dual-trace implementation reference; 34 weights and numerical intervals.
-- [FSRS-6](./fsrs-6) — current default, trainable decay, and same-day updates.
+- [FSRS-6](./fsrs-6) — trainable decay and same-day updates.
 - [FSRS-5](./fsrs-5) — fixed power forgetting curve with same-day updates.
 - [FSRS-4.5](./fsrs-4dot5) — fixed power curve without a same-day formula.
 - [FSRS-4](./fsrs-4) — the first power-curve version in this package.

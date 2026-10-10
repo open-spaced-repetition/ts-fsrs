@@ -1,5 +1,5 @@
 # Use official devcontainers Rust image
-FROM mcr.microsoft.com/devcontainers/rust:1-bullseye
+FROM mcr.microsoft.com/devcontainers/rust:2-1-bookworm
 
 # Install additional system dependencies
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
@@ -13,8 +13,8 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     && apt-get clean -y \
     && rm -rf /var/lib/apt/lists/*
 
-# Add wasm32-wasip1-threads target for WASM builds
-RUN rustup target add wasm32-wasip1-threads
+# Add both WASI targets for WASM builds
+RUN rustup target add wasm32-wasip1 wasm32-wasip1-threads
 
 # Install wasi-sdk for WASM builds
 RUN WASI_SDK_VERSION=27.0 && \
@@ -28,6 +28,8 @@ RUN WASI_SDK_VERSION=27.0 && \
     mv /tmp/wasi-sdk-${WASI_SDK_VERSION}-${WASI_SDK_ARCH}-linux/* /home/vscode/.wasi-sdk/ && \
     rm -rf /tmp/wasi-sdk* && \
     chown -R vscode:vscode /home/vscode/.wasi-sdk
+
+ENV WASI_SDK_PATH=/home/vscode/.wasi-sdk
 
 # Fix cargo registry permissions for vscode user
 RUN mkdir -p /usr/local/cargo/registry /usr/local/cargo/git && \

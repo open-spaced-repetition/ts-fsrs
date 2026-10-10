@@ -50,7 +50,7 @@
   },
   "homepage": "https://github.com/open-spaced-repetition/ts-fsrs#readme",
   "engines": {
-    "node": ">=20.0.0"
+    "node": ">=24.0.0"
   },
   "packageManager": "pnpm@12.5.1"
 }

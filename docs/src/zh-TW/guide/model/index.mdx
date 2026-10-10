@@ -53,7 +53,7 @@ FSRS 模型依據評分和經過時間計算新的記憶狀態，透過遺忘曲
 
 ## 使用版本化模型
 
-`DefaultScheduler` 使用 FSRS-6，但也可以直接建立並呼叫任意版本的模型：
+`DefaultScheduler` 預設使用 FSRS-7，可透過 `version` 選擇任一支援的 FSRS 版本。也可以直接建立並呼叫各版本模型；下例以 FSRS-6 為例：
 
 ```ts twoslash file="../../../snippets/run-code/model.ts"
 ```
@@ -84,7 +84,7 @@ Schema 描述公開邊界，並在 scheduler 組合 schema 時使用。直接呼
 ## 模型版本
 
 - [FSRS-7](./fsrs-7) — 雙分量實作參考，34 個權重與數值求間隔。
-- [FSRS-6](./fsrs-6) — 目前預設版本，支援可訓練衰減與同日更新。
+- [FSRS-6](./fsrs-6) — 支援可訓練衰減與同日更新。
 - [FSRS-5](./fsrs-5) — 使用固定冪函數遺忘曲線，並支援同日更新。
 - [FSRS-4.5](./fsrs-4dot5) — 使用固定冪函數曲線，不包含同日公式。
 - [FSRS-4](./fsrs-4) — 本專案中第一個使用冪函數曲線的版本。

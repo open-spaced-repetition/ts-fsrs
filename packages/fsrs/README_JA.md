@@ -1,34 +1,30 @@
 # ts-fsrs
 
-[Introduction](./README.md) | [简体中文](./README_CN.md) | [はじめに](./README_JA.md)
-
-[![fsrs version](https://img.shields.io/badge/FSRS-v6-blue?style=flat-square)](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm#fsrs-6)
+[![対応 FSRS バージョン](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/model/index.mdx)
 [![npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs)
 [![downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 
-**ts-fsrs は、Free Spaced Repetition Scheduler (FSRS) アルゴリズムを使って独自の間隔反復システムを構築するための TypeScript パッケージです。**
+[Introduction](./README.md) | [简体中文](./README_CN.md) | [はじめに](./README_JA.md)
+
+**ts-fsrs は、Free Spaced Repetition Scheduler (FSRS) アルゴリズムを使って間隔反復システムを構築するための TypeScript パッケージです。**
+
+ts-fsrs v6 は FSRS-3、FSRS-4、FSRS-4.5、FSRS-5、FSRS-6、FSRS-7 に対応しています。ライブラリのバージョンと FSRS モデルのバージョンは別のものです。
 
 ## 目次
 
-- [ts-fsrs](#ts-fsrs)
-  - [目次](#目次)
-  - [インストール](#インストール)
-  - [クイックスタート](#クイックスタート)
-  - [使い方](#使い方)
-    - [カスタムパラメータ](#カスタムパラメータ)
-    - [`generatorParameters`](#generatorparameters)
-    - [`repeat` と `next`](#repeat-と-next)
-    - [想起確率](#想起確率)
-    - [`next_state` と `next_interval`](#next_state-と-next_interval)
-    - [履歴関連のヘルパー](#履歴関連のヘルパー)
-  - [リファレンス](#リファレンス)
-  - [API ドキュメント](#api-ドキュメント)
-  - [例](#例)
-  - [コントリビュート](#コントリビュート)
+- [インストール](#インストール)
+- [クイックスタート](#クイックスタート)
+- [設定](#設定)
+- [想起確率（Retrievability）](#想起確率retrievability)
+- [nextInterval](#nextinterval)
+- [defineScheduler でスケジューラーを構成する](#definescheduler-でスケジューラーを構成する)
+- [ドキュメント](#ドキュメント)
+- [例](#例)
+- [コントリビュート](#コントリビュート)
 
 ## インストール
 
-`ts-fsrs` は Node.js `>=20.0.0` を必要とします。
+`ts-fsrs` は Node.js `>=24.0.0` を必要とします。
 
 ```bash
 npm install ts-fsrs
@@ -39,195 +35,133 @@ bun add ts-fsrs
 
 ## クイックスタート
 
-スケジューラーを初期化します。
+トップレベル `await` に対応した ES モジュールで実行します。
 
 ```ts
-import { createEmptyCard, fsrs, Rating } from 'ts-fsrs'
+import { DefaultScheduler, Rating } from 'ts-fsrs'
 
-const scheduler = fsrs()
-```
+const now = new Date('2026-01-01T00:00:00.000Z')
+const scheduler = await DefaultScheduler()
+const card = scheduler.newCard({ now })
 
-新しいカードを作成します。
-
-```ts
-const card = createEmptyCard()
-```
-
-4 つの評価に対する結果をまとめてプレビューします。
-
-```ts
-const preview = scheduler.repeat(card, new Date())
-
-console.log(preview[Rating.Again].card)
-console.log(preview[Rating.Hard].card)
-console.log(preview[Rating.Good].card)
-console.log(preview[Rating.Easy].card)
-```
-
-ユーザーの評価がすでに確定している場合は、その評価を直接適用します。
-
-```ts
-const result = scheduler.next(card, new Date(), Rating.Good)
-
-console.log(result.card)
-console.log(result.log)
-```
-
-## 使い方
-
-### カスタムパラメータ
-
-```ts
-import { fsrs } from 'ts-fsrs'
-
-const scheduler = fsrs({
-  request_retention: 0.9,
-  maximum_interval: 36500,
-  enable_fuzz: true,
-  enable_short_term: true,
-  learning_steps: ['1m', '10m'],
-  relearning_steps: ['10m'],
-})
-```
-
-`request_retention` は、スケジューラーが維持したい最低保持率（0%から100%）を表します。値を高くすると復習回数は増え、低くすると減ります。
-
-`maximum_interval` は、カードをどれだけ先までスケジュールできるかの上限です。
-
-`enable_fuzz` は、長い間隔に少量のランダムな揺らぎを加えます。
-
-`enable_short_term`、`learning_steps`、`relearning_steps` は短期学習と再学習のステップ挙動を制御します。
-
-### `generatorParameters`
-
-`fsrs()` は内部で `generatorParameters()` を使って入力を正規化するため、通常の初期化では部分的な設定オブジェクトをそのまま `fsrs()` に渡せます。
-
-`generatorParameters()` は、シリアライズ、保存、または完全な `FSRSParameters` オブジェクトの再利用が必要な場合に使ってください。
-
-```ts
-import { fsrs, generatorParameters } from 'ts-fsrs'
-
-const params = generatorParameters({
-  request_retention: 0.9,
-  maximum_interval: 36500,
-})
-
-console.log(JSON.stringify(params))
-
-const scheduler = fsrs(params)
-```
-
-保存したパラメータをあとで読み込む場合も、パースしたオブジェクトをそのまま `fsrs()` に渡せます。
-
-```ts
-import { fsrs, type FSRSParameters } from 'ts-fsrs'
-
-const serializedParams = '{"request_retention":0.9,"maximum_interval":36500}'
-const params = JSON.parse(serializedParams) as FSRSParameters
-const scheduler = fsrs(params)
-```
-
-これらのパラメータが外部ストレージ、ユーザー入力、またはネットワークから来る場合は、`fsrs()` に渡す前にアプリケーション境界でランタイム検証を行うことを推奨します。`zod` のようなランタイム schema ライブラリはこの用途に適しています。
-
-### `repeat` と `next`
-
-ユーザーが回答する前に 4 通りの結果を見たい場合は `repeat` を使います。
-
-```ts
-const preview = scheduler.repeat(card, new Date())
-```
-
-ユーザーの評価がすでに分かっている場合は `next` を使います。
-
-```ts
-const result = scheduler.next(card, new Date(), Rating.Good)
-```
-
-### 想起確率
-
-```ts
-const retrievability = scheduler.get_retrievability(result.card, new Date(), false)
-console.log(retrievability)
-```
-
-`elapsed_days`、`stability`、そして有効な decay 値がすでにある場合は、`forgetting_curve()` を直接使って想起確率を計算することもできます。
-
-```ts
-import { forgetting_curve } from 'ts-fsrs'
-
-const retrievability = forgetting_curve(0.5, 12, result.card.stability)
-console.log(retrievability)
-```
-
-decay 値を直接渡す場合は、正の数であり、`0.1` から `0.8` の範囲内である必要があります。
-
-### `next_state` と `next_interval`
-
-記憶状態を直接扱う場合は、`next_state()` と `next_interval()` を組み合わせて使えます。
-
-```ts
-import { fsrs, Rating, withFuzzing, type FSRSState } from 'ts-fsrs'
-
-const scheduler = fsrs({ enable_fuzz: false })
-
-const memoryState: FSRSState = {
-  stability: 3.2,
-  difficulty: 5.6,
+const preview = scheduler.preview({ card, now })
+for (const { grade, card: previewCard, revlog } of preview) {
+  console.log(grade, previewCard, revlog)
 }
 
-const elapsedDays = 12
-const nextState = scheduler.next_state(memoryState, elapsedDays, Rating.Good)
-const nextInterval = scheduler.next_interval(nextState.stability)
-
-// 必要に応じて手動で fuzz を適用できます。
-// repeat() / next() を通常通り呼ぶ場合、スケジューラ側で自動的に適用されます。
-const fuzzed = withFuzzing(
-  nextInterval,
-  elapsedDays,
-  scheduler.parameters,
-  'my-seed'
-)
-
-console.log(nextState)
-console.log(nextInterval, fuzzed)
+const result = scheduler.review({ card, grade: Rating.Good, now })
+console.log(result.card)
+console.log(result.revlog)
 ```
 
-`next_interval` は基本となるインターバル（fuzz 未適用）を返すようになりました。Fuzz はスケジューラ／ストラテジー層に切り出され、手動で適用したいときは `ts-fsrs` からエクスポートされる `withFuzzing` を呼び出してください。これはシミュレーション、分析、または `{ stability, difficulty }` を自前で扱うカスタムスケジューリングに便利です。通常の復習フローでは `repeat()` または `next()` を使うほうが自然です。
+`preview()` は Again、Hard、Good、Easy の 4 つの評価に対する反復可能な結果を返します。`review()` は新しいカードと復習ログを返し、入力カードを変更しません。アプリケーションでは `result.card` と `result.revlog` を保存してください。
 
-### 履歴関連のヘルパー
+`DefaultScheduler()` は `version` を省略すると FSRS-7 を使用し、目標保持率、統計、学習ステップ、最大間隔、単調間隔、スケジュール日数の標準ポリシーを含みます。ファジングはオプションで有効にできます。
 
-スケジューラーは次の補助メソッドも提供します。
-
-- `rollback(card, log)`
-- `forget(card, now, reset_count?)`
-- `reschedule(card, reviews, options?)`
-
-これらは、既存データのインポート、履歴の再生、保存済みログからの状態再構築に便利です。
-
-## リファレンス
-
-カードの状態：
+## 設定
 
 ```ts
-State.New
-State.Learning
-State.Review
-State.Relearning
+import { DefaultScheduler } from 'ts-fsrs'
+
+const scheduler = await DefaultScheduler({
+  version: 'FSRS-7',
+  desiredRetention: 0.9,
+  enableShortTerm: true,
+  learningSteps: ['1m', '10m'],
+  relearningSteps: ['10m'],
+  enableFuzz: false,
+  maximumInterval: 36_500,
+})
 ```
 
-レビュー評価：
+`desiredRetention` は目標保持率で、値を高くすると復習負担が増えます。`maximumInterval` は最大間隔を日単位で制限します。`enableShortTerm`、`learningSteps`、`relearningSteps` は明示的な学習ステップを制御します。`enableFuzz` は長い間隔にランダムな揺らぎを加えます。`weights` を省略すると、選択したモデルのプリセット重みが使われます。
+
+## 想起確率（Retrievability）
+
+`scheduler.model.forgettingCurve(memoryState, elapsedDays)` で想起確率を推定します。モデルの完全な記憶状態を渡してください。FSRS-7 では `stability`、`stabilityFast`、`difficulty` が必要です。この例のカード状態は `reviewedAt` に記録され、scheduler の chrono が `checkedAt` までの経過日数を計算します。
 
 ```ts
-Rating.Again
-Rating.Hard
-Rating.Good
-Rating.Easy
+import { DefaultScheduler, Rating } from 'ts-fsrs'
+
+const scheduler = await DefaultScheduler()
+const reviewedAt = new Date('2026-01-01T00:00:00.000Z')
+const card = scheduler.newCard({ now: reviewedAt })
+const result = scheduler.review({ card, grade: Rating.Good, now: reviewedAt })
+
+const checkedAt = new Date('2026-01-02T12:00:00.000Z')
+const elapsedDays = scheduler.chrono.difference(reviewedAt, checkedAt)
+const retrievability = scheduler.model.forgettingCurve(result.card, elapsedDays)
+
+console.log(retrievability)
 ```
 
-## API ドキュメント
+戻り値は 0 から 1 の数値です。FSRS-7 は小数の日数を保持するため、この例では復習から 1.5 日後の想起確率を求めます。
 
-- リポジトリ概要：[github.com/open-spaced-repetition/ts-fsrs](https://github.com/open-spaced-repetition/ts-fsrs#readme)
-- オプティマイザーパッケージ：[`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)
+## nextInterval
+
+`scheduler.model.nextInterval(memoryState, desiredRetention)` はモデルの基本間隔を返します。計算済みの評価後の状態に構成した間隔ポリシーを適用するには、`scheduler.nextInterval(memoryState, desiredRetention, context)` を使います。
+
+```ts
+import { DefaultScheduler, Rating } from 'ts-fsrs'
+
+const scheduler = await DefaultScheduler({ allowModelOverride: false })
+const now = new Date('2026-01-01T00:00:00.000Z')
+const card = scheduler.newCard({ now })
+const grade = Rating.Good
+const result = scheduler.review({ card, grade, now })
+
+const baseInterval = scheduler.model.nextInterval(result.card, 0.9)
+const interval = scheduler.nextInterval(result.card, 0.9, {
+  card,
+  grade,
+  elapsedDays: 0,
+})
+
+console.log({ baseInterval, interval })
+```
+
+この例では `allowModelOverride` を無効にし、設定した学習ステップをポリシー間隔に反映させます。どちらの間隔も日単位です。context には復習前のカード、選択した評価、その復習までの経過日数を渡し、第1引数には評価後の記憶状態を渡します。この例では新しいカードを直ちに復習するため、`elapsedDays` は `0` です。scheduler の問い合わせは `nextInterval` middleware だけを実行し、カードを進めたり復習ログを生成したりしません。最終的なカードとログは `review()` で取得してください。
+
+## defineScheduler でスケジューラーを構成する
+
+`defineScheduler({ model, chrono })` は再利用可能な definition を作成します。モデルは記憶状態と間隔を計算し、chrono は時刻の表現と演算を担当します。`.use(...)` でスケジューリングポリシーを追加し、`.create({ config })` でユーザーやコレクションの設定を検証して独立したスケジューラーを作成します。`DefaultScheduler()` は同じ構成 API を使った既成のプリセットです。
+
+```ts
+import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'
+import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
+import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model } from 'ts-fsrs/models/fsrs-7'
+
+const schedulerDefinition = defineScheduler({
+  model: FSRS7Model,
+  chrono: dateChrono,
+}).use(schedulerDesiredRetentionMiddleware)
+
+const scheduler = schedulerDefinition.create({
+  config: {
+    weights: FSRS7_DEFAULT_WEIGHTS,
+    fractionalDays: true,
+    desiredRetention: 0.9,
+  },
+})
+
+const now = new Date('2026-01-01T00:00:00.000Z')
+const card = scheduler.newCard({ now })
+const result = scheduler.review({ card, grade: Rating.Good, now })
+
+console.log(result.card)
+console.log(result.revlog)
+```
+
+構成した definition をプログラム共通のプリセットとして保持し、設定ごとにスケジューラーを作成します。この例では目標保持率のポリシーだけを追加しています。学習ステップ、統計、ファジング、間隔制限が必要なら、対応する middleware を明示的に追加してください。高度なスケジューリングや履歴操作は下記のガイドを参照してください。
+
+## ドキュメント
+
+- [クイックスタート](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/quick-start.mdx)
+- [スケジューラーと時刻体系](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/scheduler/index.mdx)
+- [モデル](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/model/index.mdx)
+- [Middleware](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/middleware/index.mdx)
+- [v5 → v6 と FSRS-7 への移行](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/migration.mdx)
+- [オプティマイザーガイド](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/ja-JP/guide/optimizer/index.mdx)：パラメーターの学習や復習ログ CSV の変換には、[`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding) を別途インストールします。
 
 ## 例
 
