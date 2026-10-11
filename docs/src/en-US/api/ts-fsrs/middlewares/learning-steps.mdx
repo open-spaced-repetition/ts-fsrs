@@ -16,6 +16,15 @@ import { schedulerLearningStepsMiddleware } from 'ts-fsrs/middlewares'
 
 When short-term scheduling is enabled, it applies the configured `learningSteps` and `relearningSteps` and maintains the card's `learningStep` and learning state.
 
+| Config | Default | Meaning |
+| --- | --- | --- |
+| `enableShortTerm` | required | Turns explicit steps on or off. |
+| `learningSteps` / `relearningSteps` | required | Step durations such as `'1m'` or `'1h'`. Steps of `graduatingInterval` or longer, such as `'1d'` with the default, are not recommended: they move the card to `Review` and skip the remaining steps. `defaultLearningSteps` is `['1m', '10m']`; `defaultRelearningSteps` is `['10m']`. |
+| `graduatingInterval` | `1` (`defaultGraduatingInterval`) | Shortest interval, in days, for a card in `Review`. Shorter final intervals keep the card in `Learning`/`Relearning`. When steps are configured, finishing them and rating a `Review` card Hard, Good, or Easy use at least this interval. |
+| `allowModelOverride` | `false` | Uses the model interval instead of the current step when the model interval is longer. Again is capped at `graduatingInterval`; Hard and Good graduate early once the interval reaches `graduatingInterval`. |
+
+`DefaultScheduler` enables `allowModelOverride` for FSRS-7. See [State transitions](../../../guide/state-transitions) for how each rating selects its interval and state.
+
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/learning-steps.ts"
 ```
 

@@ -1,6 +1,6 @@
 ---
 title: MonotonicInterval
-description: 內建中介軟體 schedulerMonotonicIntervalMiddleware——跨評分排序天級間隔
+description: 內建中介軟體 schedulerMonotonicIntervalMiddleware——跨評分排序間隔
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-它會排序四種評分之間的排程天級間隔，使較難的評分永遠不會排得比容易的評分晚（受限於 `maximumInterval`）。
+它會排序四種評分之間的排程間隔，使較難的評分永遠不會排得比容易的評分晚（受限於 `maximumInterval`）。較低評分的間隔達到一天後，後續一天以上的間隔至少比上一評分長一天，後續小於一天的間隔則提升到上一評分的間隔。較低評分都小於一天時，間隔不會減小；若某評分與上一評分落在同一秒，則順延一秒。
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```

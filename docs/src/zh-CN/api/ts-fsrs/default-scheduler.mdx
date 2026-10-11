@@ -21,8 +21,10 @@ DefaultScheduler(options?): Promise<DefaultScheduler>
 | `weights` | 预设权重 | 可选的训练权重。 |
 | `desiredRetention` | `0.9` | 计算间隔前应用的目标保留率。 |
 | `enableShortTerm` | `true` | 启用学习与再学习步骤。 |
-| `learningSteps` | 预设步骤 | 开启短期调度时应用。 |
-| `relearningSteps` | 预设步骤 | 开启短期调度时应用。 |
+| `learningSteps` | `['1m', '10m']` | 开启短期调度时应用。 |
+| `relearningSteps` | `['10m']` | 开启短期调度时应用。 |
+| `graduatingInterval` | `1` | 卡片处于 `Review` 时的最短间隔（天）。 |
+| `allowModelOverride` | FSRS-7: `true`; 其他版本: `false` | 模型间隔比当前步骤长时，改用模型间隔。 |
 | `enableFuzz` | `false` | 启用后分散间隔。 |
 | `maximumInterval` | `36500` | 间隔的天数上限。 |
 | `clearStatsOnForget` | `true` | `forget` 是否清空 `reps` 与 `lapses`。 |

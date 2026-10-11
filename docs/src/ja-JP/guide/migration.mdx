@@ -34,7 +34,7 @@ TODO List の承認後に、その範囲のコード、必要なデータ移行�
 3. 移行後のコードでは legacy API・型を使わないでください。fsrs()、FSRS、createEmptyCard、generatorParameters、旧スケジューラー/strategy、ルートから import する旧 Card、CardInput、ReviewLog、FSRSParameters が対象です。恒久的な互換レイヤーを追加せず、変更を絞り、無関係な作業を保持してください。
 4. カード、設定、メソッド呼び出しを移行し、固定 cardId とアプリケーションのメタデータを維持して、デシリアライズした時刻を検証してください。scheduleStatus、State.New の lastReviewAt: null、フィールド名、{ card, revlog } の戻り値、clearStatsOnForget のデフォルト値の違いを明示的に扱ってください。
 5. ログの時刻を区別してください。v6 の revlog.lastReviewAt は復習前の前回復習時刻、dueAt は復習前の期日、reviewTime は今回の実際の復習時刻です（reviewAt ではありません）。通常の v5 ログの due は last_review || due に由来するため、一律に dueAt へ改名してはいけません。元のスナップショットがなければ、正確な取り消しを保証する v6 ログを捏造しないでください。
-6. B の場合のみ：次に FSRS7Model と、独立した 34 個のデフォルト重みまたは再学習した FSRS-7 の重みを使用し、fractionalDays: true にしてください。FSRS-6 の重みを流用したり、0.8 * stability で stabilityFast を補ったりしてはいけません。enableShortTerm が制御するのは明示的な学習ステップであり、FSRS-7 の高速トレースではありません。 FSRS-7 の空ステップのデフォルトで既存設定を失わず、学習ステップを明示して維持してください。最終間隔が 1 日未満/以上、ステップ無効/空/完了、middleware なしの状態境界を検証してください。独立した curve(weights, elapsedDays, state) は ts-fsrs/models/fsrs-7 から import し、重みを事前検証して retrievability を読んでください。total は混合係数の和です。model.forgettingCurve でも数値の想起確率を取得できます。
+6. B の場合のみ：次に FSRS7Model と、独立した 34 個のデフォルト重みまたは再学習した FSRS-7 の重みを使用し、fractionalDays: true にしてください。FSRS-6 の重みを流用したり、0.8 * stability で stabilityFast を補ったりしてはいけません。enableShortTerm が制御するのは明示的な学習ステップであり、FSRS-7 の高速トレースではありません。DefaultScheduler は FSRS-7 で learningSteps: ['1m', '10m']、relearningSteps: ['10m']、allowModelOverride: true を既定値として使います。既定値に頼らず、既存の学習ステップを明示して維持してください。最終間隔が 1 日未満/以上、ステップ無効/空/完了、middleware なしの状態境界を検証してください。独立した curve(weights, elapsedDays, state) は ts-fsrs/models/fsrs-7 から import し、重みを事前検証して retrievability を読んでください。total は混合係数の和です。model.forgettingCurve でも数値の想起確率を取得できます。
 7. B の場合のみ：学習済みカードでは作成時または最新の記憶リセット以降の完全な履歴を選び、rating と実際の reviewTime を対応付け、旧モデルの initialState を渡さず Reschedule.replay() で stability、stabilityFast、difficulty を再構築してください。再構築した memoryState は現在の card だけに適用してください。過去の revlog は読み取り専用の入力とし、履歴データの変更・上書き・後付けをしないでください。移行時は現在のカードの記憶状態だけを更新し、既存カードの次回復習日時（dueAt）は変更しないでください。そのカードを次に復習した時点で、FSRS-7 が新しい次回復習日時を計算します。lastReviewAt、cardId、学習進捗、統計は維持してください。Manual の除外はリセットの解釈ではなく、行数や最後の時刻だけでは完全性を証明できません。
 8. B の場合のみ：新規カードは FSRS-7 の記憶デフォルト値で初期化してください。学習済みカードの履歴が欠落、切り詰め、空、Manual のみ、または不整合なら明示的にエラー/スキップとし、FSRS-6 の状態と設定を維持してモデルバージョンで振り分けてください。暗黙に記憶を初期化しないでください。元のログを保持し、モデル、重み/設定、記憶状態を一緒に保存し、モデル間の取り消し境界を設けてください。
 9. 保存データを変更する場合はバックアップ、ドライラン、復旧手順を用意し、本番データの変更は既存の運用手順に従ってください。旧データ変換、4 種類のカード状態、復習/プレビュー/取り消し/忘却、前倒し・延滞復習の 3 時刻、小数の同日間隔、Manual/リセット境界、履歴不足、期日/ID/学習進捗/統計の維持を対象としたテストを追加して実行してください。
@@ -135,20 +135,22 @@ FSRS-7 の記憶状態は `stability`、`stabilityFast`、`difficulty` です。
 
 ### FSRS-7 のデフォルトステップと学習状態
 
-`DefaultScheduler` は FSRS-7 で `learningSteps: []` と `relearningSteps: []` をデフォルトとし、モデルが間隔を決定します。FSRS-3～6 は学習ステップ `['1m', '10m']` と再学習ステップ `['10m']` を維持します。明示した設定はデフォルト値で上書きされません。`enableShortTerm` は引き続き `true` がデフォルトで、明示的なステップを制御します。FSRS-7 の高速トレースや間隔による状態分類は無効にしません。
+`DefaultScheduler` は FSRS-7 でも FSRS-3～6 と同じ学習ステップ `['1m', '10m']` と再学習ステップ `['10m']` をデフォルトとし、`allowModelOverride` を有効にして、より長いモデル間隔で現在のステップを上書きします。明示した設定はデフォルト値で上書きされません。`enableShortTerm` は引き続き `true` がデフォルトで、明示的なステップを制御します。FSRS-7 の高速トレースや間隔による状態分類は無効にしません。
 
 `schedulerLearningStepsMiddleware` が登録されている場合、ステップが無効・空・完了済みでも、**最終スケジュール間隔**で状態が決まります。
 
-| 復習前の状態 | 最終間隔が 1 日未満 | 最終間隔が 1 日以上 |
+| 復習前の状態 | 最終間隔が `graduatingInterval`（デフォルト 1 日）未満 | 最終間隔が `graduatingInterval` 以上 |
 | --- | --- | --- |
 | New / Learning | Learning、`scheduleStatus: learning` | Review、`scheduleStatus: review` |
 | Review / Relearning | Relearning、`scheduleStatus: learning` | Review、`scheduleStatus: review` |
 
-ステップを無効にすれば Learning がなくなる、Again だけが Relearning を生む、Easy は必ず Review になる、という前提は使えません。Easy は明示的なステップをスキップし、Good は適用可能な次のステップがある場合のみ進みます。明示的なステップが間隔を提供しない場合、`learningStep` は `0` に戻りますが、Learning/Relearning のままの場合があります。これはステップ番号であり、復習回数ではありません。
+ステップを設定している場合、適用されるステップがない Hard、Good、Easy は少なくとも `graduatingInterval` 後に予定されます。そのため、ステップを終えたときや、`Review` のカードに Hard、Good、Easy を付けたときは常に `Review` になります。`allowModelOverride` が有効な場合、モデルの間隔を使う Again は、間隔が `graduatingInterval` に制限されても常に `Learning`/`Relearning` になります。
+
+ステップを設定していない場合、Learning がなくなる、Again だけが Relearning を生む、Easy は必ず Review になる、という前提は使えません。一般に、Easy は明示的なステップをスキップし、Good は適用可能な次のステップがある場合のみ進み、長さ 0 のステップはステップなしとして扱います。`learningStep` はカードが Learning/Relearning に留まる間だけ次のステップを保持し、カードが Review に移ると `0` に戻ります。これはステップ番号であり、復習回数ではありません。
 
 状態遷移は middleware の責務で、`FSRS7Model` の責務ではありません。モデルと chrono だけのスケジューラーは、間隔が 1 日未満でも Review を返します。旧動作を前提としたキュー、状態フィルター、統計の処理も更新してください。
 
-[「記憶をリプレイし、スケジュールを維持する」の完全な移行サンプル](#記憶をリプレイしスケジュールを維持する)は、設定省略で FSRS-7 の空ステップのデフォルトを採用せず、**既存の学習ステップを明示して維持**します。製品としてモデル主導のステップを選ぶ場合は `learningSteps: []` と `relearningSteps: []` を明示してください。学習ステップ middleware を削除するという意味ではありません。方針の変更はカードフィールドの移行と分けて検証してください。
+[「記憶をリプレイし、スケジュールを維持する」の完全な移行サンプル](#記憶をリプレイしスケジュールを維持する)は、デフォルトに頼らず**既存の学習ステップを明示して維持**します。製品として完全にモデル主導のステップを選ぶ場合は `learningSteps: []` と `relearningSteps: []` を明示してください。学習ステップ middleware を削除するという意味ではありません。方針の変更はカードフィールドの移行と分けて検証してください。
 
 ### 想起確率の呼び出しを移行する
 

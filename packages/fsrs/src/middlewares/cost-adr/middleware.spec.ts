@@ -173,6 +173,7 @@ describe('schedulerCostAdrMiddleware', () => {
     expect(() =>
       schedulerCostAdrMiddleware.handlers!.nextInterval!(
         {
+          instance: fsrs7Scheduler.create({ config }),
           config: { ...config, chrono: dateChrono },
           input: {
             card: { state: State.New, scheduleStatus: 'new' },
