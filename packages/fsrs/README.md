@@ -17,7 +17,7 @@ ts-fsrs v6 supports FSRS-3, FSRS-4, FSRS-4.5, FSRS-5, FSRS-6, and FSRS-7. The li
 - [Configuration](#configuration)
 - [Retrievability](#retrievability)
 - [nextInterval](#nextinterval)
-- [Compose a scheduler with defineScheduler](#compose-a-scheduler-with-definescheduler)
+- [Create a custom scheduler with defineScheduler](#compose-a-scheduler-with-definescheduler)
 - [Documentation](#documentation)
 - [Examples](#examples)
 - [Contributing](#contributing)
@@ -35,7 +35,7 @@ bun add ts-fsrs
 
 ## Quickstart
 
-Run this example in an ES module with top-level `await`:
+Run this example in an ES module which has top-level `await`:
 
 ```ts
 import { DefaultScheduler, Rating } from 'ts-fsrs'
@@ -54,7 +54,7 @@ console.log(result.card)
 console.log(result.revlog)
 ```
 
-`preview()` returns iterable results for Again, Hard, Good, and Easy. `review()` returns a new card and review log without mutating the input card. Persist both `result.card` and `result.revlog` in your application.
+`preview()` returns an iterable with results for Again, Hard, Good, and Easy. `review()` returns a new card and review log without mutating the input card. Save both `result.card` and `result.revlog` in your application.
 
 `DefaultScheduler()` uses FSRS-7 when `version` is omitted and includes standard retention, statistics, learning-step, maximum-interval, monotonic-interval, and scheduled-days policies. Fuzzing is optional.
 
@@ -95,11 +95,11 @@ const retrievability = scheduler.model.forgettingCurve(result.card, elapsedDays)
 console.log(retrievability)
 ```
 
-The result is a number from 0 to 1. FSRS-7 keeps fractional elapsed days, so this example queries the probability 1.5 days after the review.
+The result is a number from 0 to 1. FSRS-7 keeps fractional elapsed days, so this example shows the estimated recall probability 1.5 days after the review.
 
 ## nextInterval
 
-`scheduler.model.nextInterval(memoryState, desiredRetention)` returns the model's base interval. Use `scheduler.nextInterval(memoryState, desiredRetention, context)` to apply the composed interval policies to an already computed post-rating state.
+`scheduler.model.nextInterval(memoryState, desiredRetention)` returns the model's base interval. Use `scheduler.nextInterval(memoryState, desiredRetention, context)` to apply the configured interval policies to an already computed post-rating state.
 
 ```ts
 import { DefaultScheduler, Rating } from 'ts-fsrs'
@@ -124,7 +124,7 @@ This example disables `allowModelOverride` so the configured learning step remai
 
 ## Compose a scheduler with defineScheduler
 
-`defineScheduler({ model, chrono })` creates a reusable definition. The model supplies memory-state and interval calculations; the chrono supplies time representation and arithmetic. Add scheduling policies with `.use(...)`, then call `.create({ config })` to validate a user's or collection's configuration and create an independent scheduler. `DefaultScheduler()` is a ready-made preset built with the same composition API.
+`defineScheduler({ model, chrono })` creates a reusable definition. The model supplies memory-state and interval calculations; the chrono supplies time representation and arithmetic. You can add scheduling policies with `.use(...)`, then call `.create({ config })` to validate a user's or collection's configuration and create an independent scheduler. `DefaultScheduler()` is a ready-made preset built with the same composition API.
 
 ```ts
 import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'
@@ -152,7 +152,7 @@ console.log(result.card)
 console.log(result.revlog)
 ```
 
-Keep the composed definition as a program-level preset and reuse it to create schedulers for different configurations. This example adds only the retention policy; add learning steps, statistics, fuzzing, or interval limits explicitly when you need them. See the guides below for advanced scheduling and history operations.
+You can keep your custom definition as a program-level preset and reuse it to create schedulers for different configurations. This example adds only the retention policy; add learning steps, statistics, fuzzing, or interval limits explicitly when you need them. See the guides below for advanced scheduling and history operations.
 
 ## Documentation
 
