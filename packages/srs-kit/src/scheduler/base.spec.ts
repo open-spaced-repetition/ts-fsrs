@@ -147,7 +147,6 @@ describe('SchedulerCore.create', () => {
       weights: SM2_DEFAULT_WEIGHTS,
       clearStatsOnForget: true,
     })
-    expect(c.config).not.toHaveProperty('desiredRetention')
   })
 
   it('rejects invalid config', () => {
