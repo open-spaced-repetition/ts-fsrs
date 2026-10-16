@@ -1,4 +1,5 @@
 import {
+  type CustomScheduler,
   dateChrono,
   defineScheduler,
   type Grade,
@@ -48,12 +49,24 @@ type SchedulerPreview =
   SchedulerPreviews extends Iterable<infer Preview> ? Preview : never
 
 describe('public scheduler types', () => {
-  it('names a composed scheduler without importing srs-kit', () => {
+  it('names a custom scheduler without importing srs-kit', () => {
     const definition = defineScheduler({
       model: FSRS6Model,
       chrono: dateChrono,
     }).use(...middlewares)
 
+    expectTypeOf(definition.create).toEqualTypeOf<
+      CustomScheduler<
+        typeof FSRS6Model.name,
+        SchedulerEnvFor<
+          typeof FSRS6Model,
+          typeof dateChrono,
+          typeof middlewares
+        >,
+        typeof FSRS6Model,
+        typeof dateChrono
+      >['create']
+    >()
     expectTypeOf(definition.create).toEqualTypeOf<PublicSchedulerCreate>()
   })
 

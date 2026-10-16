@@ -10,7 +10,7 @@ description: defineScheduler のリファレンス——モデルと chrono か�
 **シグネチャ**
 
 ```ts
-defineScheduler({ model, chrono }): ComposableScheduler
+defineScheduler({ model, chrono }): CustomScheduler
 ```
 
 **パラメータ**
@@ -23,7 +23,7 @@ defineScheduler({ model, chrono }): ComposableScheduler
 **戻り値** — 二つのメソッドを持つ再利用可能な定義：
 
 ```ts
-definition.use(...middleware): ComposableScheduler   // new definition; original unchanged
+definition.use(...middleware): CustomScheduler   // new definition; original unchanged
 definition.create({ config }): SchedulerCore          // validates config, independent instance
 ```
 

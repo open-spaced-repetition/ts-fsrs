@@ -36,7 +36,7 @@ describe('fsrs7ConfigSchema', () => {
   })
 
   it.each([0, 17, 19, 21, 33, 35])(
-    'rejects %s weights at the schema and composed scheduler boundary',
+    'rejects %s weights at the schema and scheduler boundary',
     (length) => {
       const config = { weights: Array.from({ length }, () => 1) }
       expect(() => fsrs7ConfigSchema.parse(config)).toThrow(

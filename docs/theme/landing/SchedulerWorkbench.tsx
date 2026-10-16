@@ -25,10 +25,10 @@ const CODE_LINES = Math.min(
 
 const TABS: readonly {
   readonly id: LandingSnippetId
-  readonly labelKey: 'home.tab.default' | 'home.tab.compose' | 'home.tab.extend'
+  readonly labelKey: 'home.tab.default' | 'home.tab.custom' | 'home.tab.extend'
 }[] = [
   { id: 'default', labelKey: 'home.tab.default' },
-  { id: 'compose', labelKey: 'home.tab.compose' },
+  { id: 'custom', labelKey: 'home.tab.custom' },
   { id: 'extend', labelKey: 'home.tab.extend' },
 ]
 

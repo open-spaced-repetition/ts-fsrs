@@ -17,7 +17,7 @@ ts-fsrs v6 supports FSRS-3, FSRS-4, FSRS-4.5, FSRS-5, FSRS-6, and FSRS-7. The li
 - [Configuration](#configuration)
 - [Retrievability](#retrievability)
 - [nextInterval](#nextinterval)
-- [Create a custom scheduler with defineScheduler](#compose-a-scheduler-with-definescheduler)
+- [Create a custom scheduler with defineScheduler](#create-a-custom-scheduler-with-definescheduler)
 - [Documentation](#documentation)
 - [Examples](#examples)
 - [Contributing](#contributing)
@@ -122,9 +122,9 @@ console.log({ baseInterval, interval })
 
 This example disables `allowModelOverride` so the configured learning step remains visible in the policy interval. Both intervals are in days. The context contains the pre-review card, selected grade, and elapsed days for that review; the first argument is the post-rating memory state. This example reviews a new card immediately, so `elapsedDays` is `0`. The scheduler query runs `nextInterval` middleware without advancing the card or generating a review log. Use `review()` for the final card and revlog.
 
-## Compose a scheduler with defineScheduler
+## Create a custom scheduler with defineScheduler
 
-`defineScheduler({ model, chrono })` creates a reusable definition. The model supplies memory-state and interval calculations; the chrono supplies time representation and arithmetic. You can add scheduling policies with `.use(...)`, then call `.create({ config })` to validate a user's or collection's configuration and create an independent scheduler. `DefaultScheduler()` is a ready-made preset built with the same composition API.
+`defineScheduler({ model, chrono })` creates a reusable definition. The model supplies memory-state and interval calculations; the chrono supplies time representation and arithmetic. You can add scheduling policies with `.use(...)`, then call `.create({ config })` to validate a user's or collection's configuration and create an independent scheduler. `DefaultScheduler()` is a ready-made preset built with the same API.
 
 ```ts
 import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'

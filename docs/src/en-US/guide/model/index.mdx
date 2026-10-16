@@ -75,7 +75,7 @@ The following example implements an [SM-2 variant](https://github.com/open-space
 
 <RunCode code={customModelCode} />
 
-The schemas describe the public boundary and are consumed when a scheduler composes its schema. A direct `create` implementation must perform any required parsing and normalization before returning `config`, `bounds`, `algorithm`, `step`, `nextInterval`, `forgettingCurve`, and `forward`. Keep that core deterministic and free of scheduler policy.
+The schemas describe the public boundary and are consumed when a scheduler creates its schema. A direct `create` implementation must perform any required parsing and normalization before returning `config`, `bounds`, `algorithm`, `step`, `nextInterval`, `forgettingCurve`, and `forward`. Keep that core deterministic and free of scheduler policy.
 
 :::warning Use bypass only with prepared config
 Only use `FSRS6Model.create({ config, bypass: true })` when the caller has explicitly completed that model's migration, clipping, schema validation, and range checks. It skips those create-time steps and freezing. Never use `bypass` for raw user, storage, or network input.

@@ -3,7 +3,7 @@ export type MiddlewareRuntimeHandler<Context> = (
   next: () => void
 ) => void
 
-export function composeMiddleware<Context>(
+export function runMiddlewares<Context>(
   handlers: readonly (MiddlewareRuntimeHandler<Context> | undefined)[],
   context: Context,
   terminal: (ctx: Context) => void

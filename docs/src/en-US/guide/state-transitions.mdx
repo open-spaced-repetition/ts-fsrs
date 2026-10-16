@@ -62,7 +62,7 @@ When an explicit step applies, the scheduler keeps its configured duration unles
 :::warning Learning states require the `schedulerLearningStepsMiddleware` middleware
 `DefaultScheduler` registers a `schedulerLearningStepsMiddleware` and defaults `enableShortTerm` to `true` including for FSRS-7. For FSRS-7, this flag controls explicit `learningSteps` and `relearningSteps`, not its intrinsic fast trace or the interval-based state mapping. With `enableShortTerm: false`, an interval below `graduatingInterval` still enters the `Learning` or `Relearning` phase.
 
-If you compose with `defineScheduler`, register the middleware with `.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the default behaviour remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory states and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
+If you create a custom scheduler with `defineScheduler`, register the middleware with `.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the default behaviour remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory states and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
 :::
 
 `Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.

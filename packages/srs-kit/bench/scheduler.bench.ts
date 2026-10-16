@@ -76,7 +76,7 @@ describe('SM2 numeric scheduler', () => {
   })
 })
 
-describe('defineScheduler composition', () => {
+describe('defineScheduler initialization', () => {
   const cachedScheduler = defineScheduler({
     model: SM2Model,
     chrono: numericChrono,
@@ -158,8 +158,8 @@ describe('defineScheduler composition', () => {
     }).run()
   })
 
-  test('create (cached composition)', async ({ bench }) => {
-    await bench('create (cached composition)', () => {
+  test('create (cached initialization)', async ({ bench }) => {
+    await bench('create (cached initialization)', () => {
       consumeScheduler(cachedScheduler.create({ config }))
     }).run()
   })
