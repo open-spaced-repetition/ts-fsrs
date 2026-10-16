@@ -1,6 +1,6 @@
 ---
 title: Architecture
-description: Understand model, chrono, middleware, and scheduler responsibilities in ts-fsrs, compose reusable presets, and follow a review from input to card and revlog
+description: Understand model, chrono, middleware, and scheduler responsibilities in ts-fsrs, create reusable presets, and follow a review from input to card and revlog
 ---
 
 import RunCode from '../../components/RunCode'
@@ -28,7 +28,7 @@ Your application selects cards, stores the returned card and revlog, and manages
 `defineScheduler({ model, chrono })` creates a definition. `.use(...)` returns a new definition with the added middleware and its inferred types; the original definition remains reusable. `.create({ config })` validates a user's configuration and creates an independent scheduler instance.
 
 :::note Reuse the complete definition
-Keep the definition, including its `.use(...)` composition, at program level. Create instances when user or collection configuration becomes available.
+Keep the definition, including middleware added with `.use(...)`, at program level. Create instances when user or collection configuration becomes available.
 :::
 
 ```ts twoslash file="../../snippets/run-code/architecture.ts"

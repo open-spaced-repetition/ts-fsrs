@@ -2,7 +2,7 @@ import { dateChrono, defineScheduler, Rating } from 'ts-fsrs'
 import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
 import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model } from 'ts-fsrs/models/fsrs-6'
 
-// Compose a reusable definition once, at the program level.
+// Create a reusable definition once, at the program level.
 const schedulerDefinition = defineScheduler({
   model: FSRS6Model,
   chrono: dateChrono,

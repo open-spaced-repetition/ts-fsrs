@@ -1,6 +1,6 @@
 ---
 title: defineScheduler
-description: Reference for defineScheduler — compose a reusable scheduler definition from a model and chrono
+description: Reference for defineScheduler — create a reusable scheduler definition from a model and chrono
 ---
 
 # defineScheduler
@@ -10,7 +10,7 @@ description: Reference for defineScheduler — compose a reusable scheduler defi
 **Signature**
 
 ```ts
-defineScheduler({ model, chrono }): ComposableScheduler
+defineScheduler({ model, chrono }): CustomScheduler
 ```
 
 **Parameters**
@@ -23,7 +23,7 @@ defineScheduler({ model, chrono }): ComposableScheduler
 **Returns** — a reusable definition with two methods:
 
 ```ts
-definition.use(...middleware): ComposableScheduler   // new definition; original unchanged
+definition.use(...middleware): CustomScheduler   // new definition; original unchanged
 definition.create({ config }): SchedulerCore          // validates config, independent instance
 ```
 

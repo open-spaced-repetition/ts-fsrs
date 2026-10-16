@@ -1,6 +1,6 @@
 ---
 title: Introduction
-description: What ts-fsrs is, and how a model, a chronology, and optional middleware compose into a reusable scheduler definition
+description: What ts-fsrs is, and how a model, a chronology, and optional middleware form a reusable scheduler definition
 ---
 
 import { Prompt } from '@rspress/core/theme'
@@ -8,7 +8,7 @@ import { withBase, withSiteOrigin } from '@rspress/core/runtime'
 
 # Introduction
 
-`ts-fsrs` is a TypeScript toolkit for building spaced repetition systems with FSRS. Its declarative API composes a model, a chronology, and optional middleware into a reusable scheduler definition.
+`ts-fsrs` is a TypeScript toolkit for building spaced repetition systems with FSRS. Its declarative API creates a reusable scheduler definition from a model, a chronology, and optional middleware.
 
 ## Building blocks
 
@@ -16,7 +16,7 @@ A **model** is the FSRS algorithm and its parameters. `FSRS7Model` is the curren
 
 A **chronology** decides how time is represented. `dateChrono` works with `Date`, `numericChrono` with numbers in days, and `temporalInstantChrono` with `Temporal.Instant`.
 
-**Middleware** adds scheduling policy, such as `schedulerLearningStepsMiddleware`, `schedulerFuzzingMiddleware`, `schedulerMaximumIntervalMiddleware`, or `schedulerLeechMiddleware`. Compose them with `.use(...)` before creating the scheduler.
+**Middleware** adds scheduling policy, such as `schedulerLearningStepsMiddleware`, `schedulerFuzzingMiddleware`, `schedulerMaximumIntervalMiddleware`, or `schedulerLeechMiddleware`. Add them with `.use(...)` before creating the scheduler.
 
 `defineScheduler` combines these into a definition. Calling `.create()` validates the configuration and returns an independent scheduler, so one definition can back several of them.
 

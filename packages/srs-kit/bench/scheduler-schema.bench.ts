@@ -3,21 +3,21 @@ import { numericChrono } from '@/chrono/presets/numeric/index.js'
 import type { Middleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
-import {
-  composeSchema,
-  parsedCardMemoryStateSymbol,
-} from '@/scheduler/compose-schema.js'
 import { defineScheduler } from '@/scheduler/index.js'
+import {
+  createSchedulerSchema,
+  parsedCardMemoryStateSymbol,
+} from '@/scheduler/scheduler-schema.js'
 import { getAttachedValue } from '@/schema/attached-value.js'
 
-let composeSchemaSink = 0
+let schedulerSchemaSink = 0
 
 function consumeParsedCard(value: {
   readonly card: Readonly<Record<string, unknown>>
   readonly memoryState: Readonly<Record<string, unknown>>
 }): void {
-  composeSchemaSink =
-    (composeSchemaSink +
+  schedulerSchemaSink =
+    (schedulerSchemaSink +
       Number(value.card.interval ?? 0) +
       Number(value.memoryState.reviewStep ?? 0)) %
     Number.MAX_SAFE_INTEGER
@@ -51,15 +51,15 @@ function createCard(middlewares: readonly Middleware[]) {
     .newCard({ now: 0 })
 }
 
-describe('composeSchema', () => {
+describe('createSchedulerSchema', () => {
   const noMiddleware = [] as const
   const statsMiddlewares = [schedulerStatsMiddleware] as const
-  const baseSchema = composeSchema({
+  const baseSchema = createSchedulerSchema({
     model: SM2Model,
     chrono: numericChrono,
     middlewares: noMiddleware,
   })
-  const statsSchema = composeSchema({
+  const statsSchema = createSchedulerSchema({
     model: SM2Model,
     chrono: numericChrono,
     middlewares: statsMiddlewares,
@@ -67,9 +67,9 @@ describe('composeSchema', () => {
   const baseCard = createCard(noMiddleware)
   const statsCard = createCard(statsMiddlewares)
 
-  test('compose schema', async ({ bench }) => {
-    await bench('compose schema', () => {
-      composeSchema({
+  test('create scheduler schema', async ({ bench }) => {
+    await bench('create scheduler schema', () => {
+      createSchedulerSchema({
         model: SM2Model,
         chrono: numericChrono,
         middlewares: statsMiddlewares,

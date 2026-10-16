@@ -12,16 +12,16 @@ import { State } from '@/primitives/state.js'
 import {
   parsedCardMemoryStateSymbol,
   parsedModelConfigSymbol,
-} from '@/scheduler/compose-schema.js'
+} from '@/scheduler/scheduler-schema.js'
 import { getAttachedValue } from '@/schema/attached-value.js'
 import type { Mutable, SchemaInput } from '@/schema/index.js'
 import {
   assignEnumerableDataFields,
-  composeMiddleware,
   createLazyIterable,
   desiredRetentionSchema,
   elapsedDaysSchema,
   parse,
+  runMiddlewares,
   scheduledDaysSchema,
 } from '@/schema/index.js'
 import type {
@@ -374,7 +374,7 @@ export class BaseScheduler<
       scheduledDays: undefined,
       candidate,
     }
-    composeMiddleware(this.nextIntervalHandlers, ctx, (ctx) => {
+    runMiddlewares(this.nextIntervalHandlers, ctx, (ctx) => {
       const memoryState = ctx.candidate.step(ctx.input.grade)
       ctx.scheduledDays ??= ctx.candidate.nextInterval(
         memoryState,
@@ -451,7 +451,7 @@ export class BaseScheduler<
       result: { card: {} },
     }
 
-    composeMiddleware(this.rollbackHandlers, ctx, (ctx) =>
+    runMiddlewares(this.rollbackHandlers, ctx, (ctx) =>
       this.finalizeRollback(ctx)
     )
     this.applyRollbackChronoDefaults(ctx.result, revlog)
@@ -593,7 +593,7 @@ export class BaseScheduler<
       result: { card: {}, revlog: {} },
     }
 
-    composeMiddleware(this.reviewIntervalHandlers, ctx, (ctx) => {
+    runMiddlewares(this.reviewIntervalHandlers, ctx, (ctx) => {
       const memoryState = ctx.candidate.step(ctx.input.grade)
       ctx.scheduledDays ??= ctx.candidate.nextInterval(
         memoryState,

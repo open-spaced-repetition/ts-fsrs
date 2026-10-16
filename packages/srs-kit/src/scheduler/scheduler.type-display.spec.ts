@@ -129,7 +129,7 @@ interface MemoryStateForDisplay {
   readonly difficulty: number
 }
 
-type ComposedCardForDisplay = Mutable<
+type CustomCardForDisplay = Mutable<
   Omit<
     Mutable<MemoryStateForDisplay & { dueAt: Date }> & {
       readonly reps: number
@@ -141,7 +141,7 @@ type ComposedCardForDisplay = Mutable<
   }
 >
 
-type ComposedRevlogForDisplay = Mutable<
+type CustomRevlogForDisplay = Mutable<
   Omit<Mutable<{ reviewedAt: Date; readonly rating: Grade }>, 'rating'> & {
     readonly rating: Grade
   }
@@ -150,12 +150,12 @@ type NewCardEnvForDisplay = {
   readonly config: object
   readonly cardInitInput: { readonly now?: Date }
   readonly card: {
-    readonly input: ComposedCardForDisplay
-    readonly output: ComposedCardForDisplay
+    readonly input: CustomCardForDisplay
+    readonly output: CustomCardForDisplay
   }
   readonly revlog: {
-    readonly input: ComposedRevlogForDisplay
-    readonly output: ComposedRevlogForDisplay
+    readonly input: CustomRevlogForDisplay
+    readonly output: CustomRevlogForDisplay
   }
   readonly chrono: Date
   readonly scheduleStatus: 'new' | 'learning' | 'review'
@@ -166,7 +166,7 @@ function displayNewCard(card: ReturnType<typeof newCardForDisplay>) {
   return card
 }
 
-const composedNewCardForDisplay = displayNewCard({
+const customNewCardForDisplay = displayNewCard({
   stability: 1,
   difficulty: 2,
   dueAt: new Date(0),
@@ -210,12 +210,12 @@ type DefaultValueEnvForDisplay = {
     output: { readonly input: object; readonly now?: unknown }
   }>
   readonly card: SRSSchema<{
-    input: ComposedCardForDisplay
-    output: ComposedCardForDisplay
+    input: CustomCardForDisplay
+    output: CustomCardForDisplay
   }>
   readonly revlog: SRSSchema<{
-    input: ComposedRevlogForDisplay
-    output: ComposedRevlogForDisplay
+    input: CustomRevlogForDisplay
+    output: CustomRevlogForDisplay
   }>
   readonly scheduleStatus: 'new' | 'learning' | 'review'
 }
@@ -240,7 +240,7 @@ const defaultValueCardForDisplay = displayDefaultValueCard({
 
 interface FSRSSchedulerForDisplay {
   readonly preview: () => PreviewResult<
-    ScheduleResult<ComposedCardForDisplay, ComposedRevlogForDisplay>
+    ScheduleResult<CustomCardForDisplay, CustomRevlogForDisplay>
   >
 }
 
@@ -275,7 +275,7 @@ describe('defineScheduler type display', () => {
   const service = getTypeDisplayService()
 
   const expectedSchedulers = {
-    baseSm2NumericScheduler: `const baseSm2NumericScheduler: ComposableScheduler<"sm2", {
+    baseSm2NumericScheduler: `const baseSm2NumericScheduler: CustomScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
     readonly config: SRSSchema<{
@@ -351,7 +351,7 @@ describe('defineScheduler type display', () => {
     }>;
     readonly fields: {};
 }>>`,
-    sm2NumericScheduler: `const sm2NumericScheduler: ComposableScheduler<"sm2", {
+    sm2NumericScheduler: `const sm2NumericScheduler: CustomScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
     readonly config: SRSSchema<{
@@ -433,7 +433,7 @@ describe('defineScheduler type display', () => {
     }>;
     readonly fields: {};
 }>>`,
-    sm2NumericSchedulerWithMiddleware: `const sm2NumericSchedulerWithMiddleware: ComposableScheduler<"sm2", {
+    sm2NumericSchedulerWithMiddleware: `const sm2NumericSchedulerWithMiddleware: CustomScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review";
     readonly config: SRSSchema<{
@@ -699,7 +699,7 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedDefaultValues = {
-    composedNewCardForDisplay: `const composedNewCardForDisplay: {
+    customNewCardForDisplay: `const customNewCardForDisplay: {
     reps: number;
     stability: number;
     difficulty: number;
@@ -742,7 +742,7 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedSuspend = {
-    sm2WithSuspend: `const sm2WithSuspend: ComposableScheduler<"sm2", {
+    sm2WithSuspend: `const sm2WithSuspend: CustomScheduler<"sm2", {
     readonly chrono: number;
     readonly scheduleStatus: "new" | "learning" | "review" | "suspend";
     readonly config: SRSSchema<{
@@ -902,7 +902,7 @@ describe('defineScheduler type display', () => {
 }`,
   }
 
-  it('keeps scheduler hovers readable with composed env', () => {
+  it('keeps scheduler hovers readable with custom env', () => {
     for (const [marker, expected] of Object.entries(expectedSchedulers)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }

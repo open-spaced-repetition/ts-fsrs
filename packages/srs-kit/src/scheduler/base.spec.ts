@@ -14,7 +14,7 @@ import {
 import { gradeSchema, Rating, State } from '@/primitives/index.js'
 import { defineSchema, isObject, numberSchema } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
-import { useComposeDefaultValue } from './default-value.js'
+import { createSchedulerDefaultValue } from './default-value.js'
 import { defineScheduler } from './define-scheduler.js'
 import type { AnySchedulerCore } from './scheduler.js'
 import {
@@ -156,7 +156,7 @@ describe('SchedulerCore.create', () => {
     ).toThrow()
   })
 
-  it('reuses model config parsed by composed scheduler config', () => {
+  it('reuses model config parsed by scheduler config', () => {
     let configParses = 0
     let createdConfigFrozen = true
     const spiedConfigSchema = defineSchema<SM2Config>((value) => {
@@ -2164,7 +2164,7 @@ describe('card schema validation', () => {
     ).toThrow()
   })
 
-  it('requires composed card parsing to preserve model memory state', () => {
+  it('requires scheduler card parsing to preserve model memory state', () => {
     const unmarkedCardSchema = defineSchema<unknown, Record<string, unknown>>(
       (value) =>
         isObject(value)
@@ -2180,7 +2180,7 @@ describe('card schema validation', () => {
         ...scheduler.schema,
         card: unmarkedCardSchema,
       },
-      defaultValue: useComposeDefaultValue({
+      defaultValue: createSchedulerDefaultValue({
         model: SM2Model,
         chrono: numericChrono,
         middlewares: [],

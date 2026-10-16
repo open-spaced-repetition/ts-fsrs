@@ -30,7 +30,7 @@ After the user selects a target, perform step 1 read-only and identify the actua
 Only after the user approves the TODO List, implement its code changes, necessary data migration scripts and tests, checking off each completed item. If additional scope is discovered, update the list and obtain confirmation before executing that additional work. For A, skip steps 6–8 and the FSRS-7-only checks in step 9; do not add stabilityFast or replay history to rebuild FSRS-7 states. For B, complete all applicable steps.
 
 1. Read the migration guide: ${withSiteOrigin(withBase('/guide/migration.md'))}, scheduler guide: ${withSiteOrigin(withBase('/guide/scheduler/index.md'))}, and FSRS-7 guide: ${withSiteOrigin(withBase('/guide/model/fsrs-7.md'))}. Inspect repository instructions, pinned dependencies, all scheduling call sites, configuration, and card/log storage. Establish the actual starting point, skip completed stages, and do not downgrade existing v6/FSRS-7 code.
-2. Migrate the v6 API first; only for B, upgrade the model afterward and verify each stage separately. Use defineScheduler({ model: FSRS6Model, chrono }), .use(...) and .create({ config }), preserving actual FSRS-6 weights, time policy, learning steps, fuzzing and statistics. A bare definition lacks the full old policy; compose the required middleware as documented. Infer types from the new scheduler.
+2. Migrate the v6 API first; only for B, upgrade the model afterward and verify each stage separately. Use defineScheduler({ model: FSRS6Model, chrono }), .use(...) and .create({ config }), preserving actual FSRS-6 weights, time policy, learning steps, fuzzing and statistics. A bare definition lacks the full old policy; add the required middleware as documented. Infer types from the new scheduler.
 3. Use no legacy APIs or types in migrated code: fsrs(), FSRS, createEmptyCard, generatorParameters, old scheduler classes/strategies, or legacy Card, CardInput, ReviewLog and FSRSParameters imported from the root. Do not add a permanent compatibility layer. Keep the changes focused and preserve unrelated work.
 4. Migrate cards, configuration and method calls, preserving stable cardId and application metadata and validating deserialized timestamps. Handle scheduleStatus, lastReviewAt: null for State.New, field renames, the { card, revlog } result, and the clearStatsOnForget default change explicitly.
 5. Keep log timestamps distinct: v6 revlog.lastReviewAt is the pre-review previous review time, dueAt is the pre-review due date, and reviewTime is the actual current review time (not reviewAt). Ordinary v5 logs derive due from last_review || due; never universally rename it to dueAt. Without the original snapshot, do not fabricate v6 logs claiming exact rollback support.
@@ -45,7 +45,7 @@ Only after the user approves the TODO List, implement its code changes, necessar
 
 ### Define the scheduling policy
 
-`defineScheduler({ model, chrono })` creates a reusable definition. `.use(...)` composes middleware into a new definition; `.create({ config })` validates configuration and creates an independent scheduler instance. Keep the definition at application scope and create instances for user or deck configuration.
+`defineScheduler({ model, chrono })` creates a reusable definition. `.use(...)` adds middleware to a new definition; `.create({ config })` validates configuration and creates an independent scheduler instance. Keep the definition at application scope and create instances for user or deck configuration.
 
 A bare definition does **not** include all v5 scheduling policies. This example uses the same middleware order as the current standard preset: desired retention, fuzzing, statistics, scheduled days, learning steps, maximum interval, and monotonic intervals. Preserve your actual settings and FSRS-6 weights. With `dateChrono`, `fractionalDays: false` uses UTC calendar-day differences; do not change the time policy during this API-only step without checking the effect.
 
@@ -54,7 +54,7 @@ A bare definition does **not** include all v5 scheduling policies. This example 
 
 <RunCode code={v6Code} />
 
-The local `StoredV5Card` describes application storage; it is not imported from the legacy library. Pass an existing stable database ID as `cardId`, and keep application-specific fields separately. The composed card schema validates the converted dates and fields. Validate any additional application fields at the storage boundary as well.
+The local `StoredV5Card` describes application storage; it is not imported from the legacy library. Pass an existing stable database ID as `cardId`, and keep application-specific fields separately. The scheduler's card schema validates the converted dates and fields. Validate any additional application fields at the storage boundary as well.
 
 ### Configuration mapping
 

@@ -58,4 +58,4 @@ For fractional elapsed days, the built-in `dateChrono.create({ config: { fractio
 
 The two-hour gap yields `1` with the UTC-date preset and `0.08333333333333333` with the custom Chrono. Calling `add(from, 0.5)` adds twelve hours, giving January 2 at 11:00 UTC.
 
-This custom Chrono measures fixed durations; it does not account for local calendar days or daylight saving. Choose the Temporal preset when those calendar rules are needed. See [Architecture](../architecture) for composing the model and scheduling policies.
+This custom Chrono measures fixed durations; it does not account for local calendar days or daylight saving. Choose the Temporal preset when those calendar rules are needed. See [Architecture](../architecture) for choosing the model and scheduling policies.

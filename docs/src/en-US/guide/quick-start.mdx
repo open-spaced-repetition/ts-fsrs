@@ -1,6 +1,6 @@
 ---
 title: Quick start
-description: Install ts-fsrs, start with DefaultScheduler, and run both the default and composable scheduler examples in the browser with Rating.Good
+description: Install ts-fsrs, start with DefaultScheduler, and run both the default and custom scheduler examples in the browser with Rating.Good
 ---
 
 import { PackageManagerTabs } from '@rspress/core/theme'
@@ -33,7 +33,7 @@ The example makes the common defaults explicit. Change `desiredRetention`, learn
 
 ## Create a scheduler
 
-Use `defineScheduler` when you need to choose the model or chronology, or compose middleware yourself. It creates a reusable definition; calling `.create()` validates the configuration and returns an independent scheduler.
+Use `defineScheduler` when you need to choose the model or chronology, or select middleware yourself. It creates a reusable definition; calling `.create()` validates the configuration and returns an independent scheduler.
 
 `chrono` defines how time is represented, stored on cards and review logs, and used in scheduling calculations, allowing you to use JavaScript `Date`, Temporal, or numeric time values. `chrono.normalize` uses a `ChronoTimeNormalizer` schema to convert card or revlog time fields into `{ previous, current }` for scheduling and rollback.
 
@@ -43,7 +43,7 @@ Use `defineScheduler` when you need to choose the model or chronology, or compos
 <RunCode code={defineSchedulerCode} />
 
 :::note Reuse the scheduler definition
-Keep the result of `defineScheduler(...)`, including any middleware composed with `.use(...)`, as a program-level preset. Call `schedulerDefinition.create({ config })` when a user or collection needs a scheduler; each call validates that configuration and returns an independent instance.
+Keep the result of `defineScheduler(...)`, including any middleware added with `.use(...)`, as a program-level preset. Call `schedulerDefinition.create({ config })` when a user or collection needs a scheduler; each call validates that configuration and returns an independent instance.
 :::
 
 Use the code block's copy button to copy the original source, or run it directly in the dedicated Worker. The fixed `now` value keeps the output reproducible.
