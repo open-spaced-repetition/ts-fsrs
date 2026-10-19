@@ -7,7 +7,7 @@
   // Features to add to the dev container
   "features": {
     "ghcr.io/devcontainers/features/node:1": {
-      "version": "20",
+      "version": "26",
       "nodeGypDependencies": true
     }
   },
@@ -24,7 +24,8 @@
 
   // Mount SSH keys for git operations
   "mounts": [
-    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached"
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,type=bind,consistency=cached",
+    "source=ts-fsrs-binding-dist-${devcontainerId},target=${containerWorkspaceFolder}/packages/binding/dist,type=volume"
   ],
 
   // Use 'postCreateCommand' to run commands after the container is created.

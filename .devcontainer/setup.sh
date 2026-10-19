@@ -4,6 +4,9 @@ set -e
 
 echo "🚀 Setting up ts-fsrs development environment..."
 
+# Keep generated binding artifacts writable on their Docker volume.
+sudo chown "$(id -u):$(id -g)" packages/binding/dist
+
 # Fix SSH permissions if .ssh directory exists
 if [ -d "/home/vscode/.ssh" ]; then
     echo "🔑 Fixing SSH permissions..."
@@ -15,25 +18,11 @@ fi
 
 # Enable corepack and install pnpm (version controlled by package.json)
 echo "📦 Enabling corepack and installing pnpm..."
+npm install --global corepack@0.36.0 --force
 corepack enable
 yes | corepack install || corepack install
 
 
-
-# Set SHELL environment variable for pnpm setup
-export SHELL=/bin/bash
-
-# Configure pnpm global bin path
-echo "📦 Configuring pnpm global directory..."
-pnpm setup
-# Set PNPM_HOME and update PATH for current session
-export PNPM_HOME="/home/vscode/.local/share/pnpm"
-export PATH="$PNPM_HOME:$PATH"
-
-# Reload shell configuration to ensure persistence
-if [ -f /home/vscode/.bashrc ]; then
-    source /home/vscode/.bashrc
-fi
 
 # Install Node.js dependencies
 echo "📦 Installing Node.js dependencies..."
