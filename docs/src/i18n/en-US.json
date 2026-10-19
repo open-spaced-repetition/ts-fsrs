@@ -45,7 +45,7 @@
   "home.middleware.builtin.scheduledDays": "Stores scheduled days and their rollback values, preserving fractional intervals when enabled.",
   "home.middleware.builtin.stats": "Adds and maintains the reps and lapses counters on cards.",
   "home.middleware.eyebrow": "Built-ins",
-  "home.middleware.title": "Scheduling policies, ready to use.",
+  "home.middleware.title": "Built-in and custom scheduling policies.",
   "home.perf.description": "The API is designed around lazy evaluation, code splitting, and immutable results.",
   "home.perf.eyebrow": "Performance",
   "home.perf.immutable.body": "Reviews return new cards; nothing in the input is mutated.",
