@@ -41,12 +41,12 @@ export function EntryLevels() {
           features={LEVELS.map(({ step, titleKey, bodyKey, api }) => ({
             icon: step,
             title: t(titleKey),
-            details: `${t(bodyKey)}<div class="mt-3 flex flex-wrap gap-1.5">${api
+            details: `${t(bodyKey)}<span class="mt-3 flex flex-wrap gap-1.5">${api
               .map(
                 (name) =>
                   `<code class="rounded-full border border-line px-2.5 py-1 font-mono text-[11px] text-muted">${name}</code>`
               )
-              .join('')}</div>`,
+              .join('')}</span>`,
             span: 4,
           }))}
         />
