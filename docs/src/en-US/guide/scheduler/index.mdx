@@ -37,7 +37,7 @@ A scheduler exists in two stages:
 `defineScheduler` keeps the concrete model and chrono types, so schemas and handlers stay type-checked through `.use(...)`. `.use(middlewareA, middlewareB)` returns a new definition with the middleware added in order; the original definition is unchanged and stays reusable. Calling `.create({ config })` validates that configuration against the scheduler schemas and returns an independent scheduler whose state is its own.
 
 :::note Keep the definition, create the instances
-Hold the definition, including its registered middleware, at the program level. Call `.create({ config })` when a user or collection configuration becomes available. Each call validates that configuration and returns a separate instance, so two `.create()` calls never share scheduling state.
+Store the definition, including its registered middleware, at the program level. Call `.create({ config })` when a user or collection configuration becomes available. Each call validates that configuration and returns a separate instance, so two `.create()` calls never share scheduling state.
 :::
 
 ## Reuse one definition for many schedulers
