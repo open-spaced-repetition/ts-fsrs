@@ -10,7 +10,7 @@ This repository contains:
 
 ## Prerequisites
 
-- Node.js `>=20`
+- Node.js `>=24` (use Node.js 26 from `.nvmrc` for repository development)
 - `pnpm` via Corepack
 - Rust stable with `clippy` and `rustfmt` when working on `packages/binding`
 - `wasi-sdk` when building the WASI target for `packages/binding`
@@ -26,7 +26,11 @@ You can setup the repository in one of two supported ways:
 
 ### Option 1: Local toolchains
 
+With nvm, run `nvm install` and `nvm use` to select the version in `.nvmrc` before installing dependencies.
+
 ```bash
+# Node.js 26 needs Corepack installed explicitly; --force replaces existing shims.
+npm install --global corepack@0.36.0 --force
 corepack enable pnpm
 pnpm install --frozen-lockfile
 ```

@@ -24,7 +24,6 @@ on:
       # - '.github/**'
       - '.vscode/**'
       - '.gitignore'
-      - '.npmignore'
       - 'LICENSE'
       - 'README.md'
   push:
@@ -33,7 +32,6 @@ on:
       # - '.github/**'
       - '.vscode/**'
       - '.gitignore'
-      - '.npmignore'
       - 'LICENSE'
       - 'README.md'
     branches:
