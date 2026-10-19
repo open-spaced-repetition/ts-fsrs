@@ -25,7 +25,7 @@ import type { SchedulerSchema } from './scheduler.js'
 export const parsedModelConfigSymbol = Symbol('parsedModelConfig')
 export const parsedCardMemoryStateSymbol = Symbol('parsedCardMemoryState')
 
-export function composeSchema(ctx: {
+export function createSchedulerSchema(ctx: {
   readonly model: AnyModel
   readonly chrono: AnyChrono
   readonly middlewares: readonly AnyMiddleware[]

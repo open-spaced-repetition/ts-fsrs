@@ -8,7 +8,7 @@ import defaultSchedulerCode from '@/snippets/run-code/default-scheduler.ts?raw'
 
 # DefaultScheduler
 
-`DefaultScheduler` is an async factory that returns a ready scheduler instance. It composes a model (FSRS-7 by default) with `dateChrono` and the standard scheduling policies, so the only thing you configure is its options. Internally it is the same definition-and-instance machinery as a custom `defineScheduler` — the preset is just a convenient assembly.
+`DefaultScheduler` is an async factory that returns a ready scheduler instance. It creates a model (FSRS-7 by default) with `dateChrono` and the standard scheduling policies, so the only thing you configure is its options. Internally it is the same definition-and-instance machinery as a custom `defineScheduler` — the preset is just a convenient assembly.
 
 ## Options
 
@@ -16,7 +16,7 @@ When upgrading from FSRS-3~6 to FSRS-7, omit `weights` to use FSRS-7 defaults or
 
 FSRS-7 cards include `stabilityFast` as well as `stability` and `difficulty`. Rebuild legacy FSRS-3~6 memory states by replaying review history with `Reschedule`; parameter migration does not migrate card state. Do not seed an evolved fast trace with `0.8 * stability`. The preset enables fractional days for FSRS-7, and `enableShortTerm: false` only disables explicit learning steps, not the model's fast trace.
 
-For cost-adaptive retention, compose a custom definition with `schedulerCostAdrMiddleware` in place of `schedulerDesiredRetentionMiddleware`. Cost ADR is not a `DefaultScheduler` option.
+For cost-adaptive retention, create a custom definition with `schedulerCostAdrMiddleware` in place of `schedulerDesiredRetentionMiddleware`. Cost ADR is not a `DefaultScheduler` option.
 
 `scheduler.nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` queries the interval for an already computed post-rating state. It runs `handlers.nextInterval` without advancing the card or chrono; put shared interval policies in that hook.
 
@@ -34,7 +34,7 @@ For cost-adaptive retention, compose a custom definition with `schedulerCostAdrM
 | `maximumInterval` | `36500` | Upper bound on the interval in days. |
 | `clearStatsOnForget` | `true` | Whether `forget` clears `reps` and `lapses`. |
 
-`DefaultScheduler` always uses `dateChrono` and composes the standard policies in the order described on the [Middleware](../middleware/built-in) page: desired retention, fuzzing, statistics, scheduled days, learning steps, maximum interval, then monotonic interval. Choosing `version` changes the model and its parameters, not this policy set.
+`DefaultScheduler` always uses `dateChrono` and applies the standard policies in the order described on the [Middleware](../middleware/built-in) page: desired retention, fuzzing, statistics, scheduled days, learning steps, maximum interval, then monotonic interval. Choosing `version` changes the model and its parameters, not this policy set.
 
 ```ts twoslash file="../../../snippets/run-code/default-scheduler.ts"
 ```

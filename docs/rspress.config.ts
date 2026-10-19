@@ -218,7 +218,7 @@ export default defineConfig({
   plugins: [
     pluginReleaseUpdates(workspaceRoot),
     pluginTwoslash({ twoslashOptions }),
-    // `siteUrl` is left out so the plugin composes `siteOrigin` and `base`
+    // `siteUrl` is left out so the plugin combines `siteOrigin` and `base`
     // itself, which makes a preview deployment map its own host. A sitemap of
     // relative paths is useless, so it is skipped when no origin is known.
     ...(siteOrigin

@@ -416,7 +416,7 @@ describe('DefaultScheduler', () => {
     })
   })
 
-  describe('middleware composition', () => {
+  describe('middleware integration', () => {
     it('wires cardId-based fuzzing', async () => {
       const scheduler = await DefaultScheduler({ enableFuzz: true })
       const firstCard = {

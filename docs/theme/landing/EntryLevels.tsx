@@ -15,8 +15,8 @@ const LEVELS = [
   },
   {
     step: '02',
-    titleKey: 'home.entry.compose.title',
-    bodyKey: 'home.entry.compose.body',
+    titleKey: 'home.entry.custom.title',
+    bodyKey: 'home.entry.custom.body',
     api: ['defineScheduler', '.use(middleware)'],
   },
   {

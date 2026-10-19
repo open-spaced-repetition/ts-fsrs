@@ -102,7 +102,7 @@ export type ModelCreate<
   readonly clip?: boolean
   readonly check?: boolean
   /**
-   * The config has already been parsed by the composed scheduler schema.
+   * The config has already been parsed by the scheduler schema.
    * Model implementations should use it directly and skip create-time
    * validation, migration, clipping, range checks, and freezing.
    */

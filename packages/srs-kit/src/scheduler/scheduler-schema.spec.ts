@@ -9,7 +9,10 @@ import {
   rememberAttachedValue,
 } from '@/schema/attached-value.js'
 import { defineSchema } from '@/schema/index.js'
-import { composeSchema, parsedCardMemoryStateSymbol } from './compose-schema.js'
+import {
+  createSchedulerSchema,
+  parsedCardMemoryStateSymbol,
+} from './scheduler-schema.js'
 
 describe('own __proto__ fields', () => {
   it('keeps setter protection when a core-field setter exposes the parsed card', () => {
@@ -32,7 +35,7 @@ describe('own __proto__ fields', () => {
       },
     })
     try {
-      const schema = composeSchema({
+      const schema = createSchedulerSchema({
         model: SM2Model,
         chrono: numericChrono,
         middlewares: [
@@ -89,7 +92,7 @@ describe('own __proto__ fields', () => {
         })),
       },
     })
-    const schema = composeSchema({
+    const schema = createSchedulerSchema({
       model: SM2Model,
       chrono: numericChrono,
       middlewares: [first, second],
@@ -112,7 +115,7 @@ describe('own __proto__ fields', () => {
     const memoryState = defineSchema<SM2State>((value) => ({
       value: { ...SM2Model.schema.memoryState.parse(value), ...fields },
     }))
-    const schema = composeSchema({
+    const schema = createSchedulerSchema({
       model: {
         ...SM2Model,
         schema: { ...SM2Model.schema, memoryState },
@@ -146,7 +149,7 @@ it('allows revlog middleware to override writable non-configurable model fields'
       }
     ),
   }))
-  const schema = composeSchema({
+  const schema = createSchedulerSchema({
     model: { ...SM2Model, schema: { ...SM2Model.schema, memoryState } },
     chrono: numericChrono,
     middlewares: [

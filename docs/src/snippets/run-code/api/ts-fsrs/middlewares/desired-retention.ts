@@ -9,7 +9,7 @@ const base = {
 }
 const now = new Date('2026-01-01T00:00:00.000Z')
 
-// 1) Compose a reusable definition: model, chrono, and the policy.
+// 1) Create a reusable definition: model, chrono, and the policy.
 const schedulerDefinition = defineScheduler({
   model: FSRS6Model,
   chrono: dateChrono,

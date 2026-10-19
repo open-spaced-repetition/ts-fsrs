@@ -226,12 +226,7 @@ export type SchedulerUseFn<
   C extends AnyChrono = AnyChrono,
 > = <const AddedMWs extends readonly AnyMiddleware[]>(
   ...middlewares: AddedMWs
-) => ComposableScheduler<
-  Name,
-  Prettify<ExtendSchedulerEnv<Env, AddedMWs>>,
-  M,
-  C
->
+) => CustomScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>, M, C>
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
@@ -285,7 +280,7 @@ export type SchedulerCreate<
  * Scheduler definition that can be extended into independent middleware
  * branches and materialized with create().
  */
-export interface ComposableScheduler<
+export interface CustomScheduler<
   Name extends string | symbol = string | symbol,
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
   M extends AnyModel = AnyModel,
@@ -305,4 +300,4 @@ export interface ComposableScheduler<
   readonly use: SchedulerUseFn<Name, Env, M, C>
 }
 
-export type AnyScheduler = ComposableScheduler<any, any, any, any>
+export type AnyScheduler = CustomScheduler<any, any, any, any>

@@ -10,7 +10,7 @@ const previews = collectLandingPreviews()
 
 describe('landing preview data', () => {
   it('runs every snippet the tabs offer', () => {
-    expect(Object.keys(previews)).toEqual(['compose', 'default', 'extend'])
+    expect(Object.keys(previews)).toEqual(['custom', 'default', 'extend'])
   })
 
   // The highlighted tabs come from the directory listing, the rows from the
@@ -36,7 +36,7 @@ describe('landing preview data', () => {
     expect(previews.default.grades[Rating.Again].scheduleStatus).toBe(
       'learning'
     )
-    expect(previews.compose.grades[Rating.Again].scheduleStatus).toBe(
+    expect(previews.custom.grades[Rating.Again].scheduleStatus).toBe(
       'suspended'
     )
   })
