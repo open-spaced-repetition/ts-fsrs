@@ -128,7 +128,7 @@
   "revlogTrainer.schema.review_rating.type": "符号なし整数（1–4）",
   "revlogTrainer.schema.review_state.meaning": "回答前の状態：0 New、1 Learning、2 Review、3 Relearning。最後の New/Learning ブロックから履歴を保持します。",
   "revlogTrainer.schema.review_state.type": "符号なし整数（0–3）",
-  "revlogTrainer.schema.review_time.meaning": "ミリ秒の Unix タイムスタンプ。FSRS6 は整数の学習日数、FSRS7 は各学習日の実際の長さで正規化した小数日数を使います。最適化には日をまたぐ観測も必要です。",
+  "revlogTrainer.schema.review_time.meaning": "ミリ秒の Unix タイムスタンプ。FSRS6 は整数の学習日数、FSRS7 は各学習日の実際の長さで正規化した小数日数を使います。",
   "revlogTrainer.schema.review_time.type": "64 ビット符号付き整数",
   "revlogTrainer.select": "revlog.csv を選択",
   "revlogTrainer.selected": "選択済み：{{name}}",
