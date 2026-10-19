@@ -128,13 +128,31 @@ describe('revlog.csv training', () => {
   })
 })
 
-// Initialization of a non-trivial FSRS7 dataset still needs interday observations.
-it('reports insufficient FSRS7 initialization data when every interval is under a day', async () => {
-  const rows = [HEADER]
-  for (let card = 0; card < 16; card++) {
-    rows.push(`1704067200000,${card},3,1000,0`, `1704070800000,${card},4,900,2`)
+it.each([16, 64])(
+  'accepts %i FSRS7 same-day items without interday initialization',
+  async (itemCount) => {
+    const rows = [HEADER]
+    for (let card = 0; card < itemCount; card++) {
+      rows.push(
+        `1704067200000,${card},3,1000,0`,
+        `1704070800000,${card},4,900,2`
+      )
+    }
+    const result = await trainRevlogCsv(rows.join('\n'), {
+      ...options,
+      modelVersion: 'FSRS-7',
+    })
+    const defaults = await computeParameters([], {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-7',
+    })
+    expect(result.itemCount).toBe(itemCount)
+    expect(result.weights).toHaveLength(34)
+    expect(result.weights.every(Number.isFinite)).toBe(true)
+    if (itemCount < 64) {
+      expect(result.weights).toEqual(defaults)
+    } else {
+      expect(result.weights).not.toEqual(defaults)
+    }
   }
-  await expect(
-    trainRevlogCsv(rows.join('\n'), { ...options, modelVersion: 'FSRS-7' })
-  ).rejects.toThrow('NotEnoughData')
-})
+)

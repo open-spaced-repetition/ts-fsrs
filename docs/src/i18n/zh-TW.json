@@ -128,7 +128,7 @@
   "revlogTrainer.schema.review_rating.type": "無號整數（1–4）",
   "revlogTrainer.schema.review_state.meaning": "作答前狀態：0 New、1 Learning、2 Review 或 3 Relearning；從最後一個 New/Learning 區塊開始保留歷史。",
   "revlogTrainer.schema.review_state.type": "無號整數（0–3）",
-  "revlogTrainer.schema.review_time.meaning": "毫秒 Unix 時間戳。FSRS6 使用整數學習日；FSRS7 依學習日實際長度計算小數天。最佳化仍需部分跨日觀測。",
+  "revlogTrainer.schema.review_time.meaning": "毫秒 Unix 時間戳。FSRS6 使用整數學習日；FSRS7 依學習日實際長度計算小數天。",
   "revlogTrainer.schema.review_time.type": "64 位元有號整數",
   "revlogTrainer.select": "選擇 revlog.csv",
   "revlogTrainer.selected": "已選擇：{{name}}",
