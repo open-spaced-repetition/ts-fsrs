@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0-beta.7
+
+### Patch Changes
+
+- [#571](https://github.com/open-spaced-repetition/ts-fsrs/pull/571) [`a54dc32`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a54dc32dbc9b93ce7264d19be1a2a0ee5300fe37) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: update fsrs-rs with upstream training and evaluation fixes.
+
 ## 0.6.0-beta.6
 
 ### Patch Changes
