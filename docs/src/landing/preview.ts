@@ -1,5 +1,5 @@
 import type { Grade } from 'ts-fsrs'
-import * as compose from '../snippets/landing/compose'
+import * as custom from '../snippets/landing/custom'
 import * as defaultSnippet from '../snippets/landing/default'
 import * as extend from '../snippets/landing/extend'
 import type {
@@ -24,7 +24,7 @@ type LandingSnippetModule = {
 }
 
 const SNIPPET_MODULES = {
-  compose,
+  custom,
   default: defaultSnippet,
   extend,
 } satisfies Record<string, LandingSnippetModule>

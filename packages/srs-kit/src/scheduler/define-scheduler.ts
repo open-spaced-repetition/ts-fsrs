@@ -3,10 +3,10 @@ import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
 import type { Prettify } from '@/schema/index.js'
 import { BaseScheduler } from './base.js'
-import { composeSchema } from './compose-schema.js'
-import { useComposeDefaultValue } from './default-value.js'
+import { createSchedulerDefaultValue } from './default-value.js'
 import type { SchedulerEnvFor, SchedulerNameOf } from './infer.js'
-import type { ComposableScheduler, SchedulerCreate } from './scheduler.js'
+import type { CustomScheduler, SchedulerCreate } from './scheduler.js'
+import { createSchedulerSchema } from './scheduler-schema.js'
 
 type InitialSchedulerEnv<M extends AnyModel, C extends AnyChrono> = Prettify<
   SchedulerEnvFor<M, C, readonly []>
@@ -50,14 +50,14 @@ export function defineScheduler<
 >(definition: {
   readonly model: M
   readonly chrono: C
-}): ComposableScheduler<SchedulerNameOf<M>, InitialSchedulerEnv<M, C>, M, C> {
+}): CustomScheduler<SchedulerNameOf<M>, InitialSchedulerEnv<M, C>, M, C> {
   const { model, chrono } = definition
 
   function build(node?: MiddlewareNode): object {
     let middlewares: readonly AnyMiddleware[] | undefined
-    let defaultValue: ReturnType<typeof useComposeDefaultValue> | undefined
-    let schedulerSchema: ReturnType<typeof composeSchema> | undefined
-    let compositionReady = false
+    let defaultValue: ReturnType<typeof createSchedulerDefaultValue> | undefined
+    let schedulerSchema: ReturnType<typeof createSchedulerSchema> | undefined
+    let initialized = false
 
     const getMiddlewares = () => {
       middlewares ??= flattenMiddlewares(node)
@@ -69,7 +69,7 @@ export function defineScheduler<
       modelDef: model,
       chronoDef: chrono,
       get defaultValue() {
-        defaultValue ??= useComposeDefaultValue({
+        defaultValue ??= createSchedulerDefaultValue({
           model,
           chrono,
           middlewares: getMiddlewares(),
@@ -77,7 +77,7 @@ export function defineScheduler<
         return defaultValue
       },
       get schema() {
-        schedulerSchema ??= composeSchema({
+        schedulerSchema ??= createSchedulerSchema({
           model,
           chrono,
           middlewares: getMiddlewares(),
@@ -85,10 +85,10 @@ export function defineScheduler<
         return schedulerSchema
       },
       create(ctx: Parameters<SchedulerCreate<InitialSchedulerEnv<M, C>>>[0]) {
-        if (!compositionReady) {
+        if (!initialized) {
           schedulerSchema = scheduler.schema
           defaultValue = scheduler.defaultValue
-          compositionReady = true
+          initialized = true
         }
 
         // biome-ignore lint/suspicious/noExplicitAny: runtime Env avoids TS7 TS2590
@@ -117,7 +117,7 @@ export function defineScheduler<
         }
         return build(child)
       },
-    } satisfies Record<keyof ComposableScheduler, unknown>
+    } satisfies Record<keyof CustomScheduler, unknown>
 
     return scheduler
   }

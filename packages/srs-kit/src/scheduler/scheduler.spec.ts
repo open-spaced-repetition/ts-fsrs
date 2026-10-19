@@ -146,7 +146,7 @@ describe('defineScheduler', () => {
     expectTypeOf(scheduler.name).toEqualTypeOf<'sm2'>()
   })
 
-  it('exposes composed default values', () => {
+  it('exposes merged default values', () => {
     const emptyCard = scheduler.defaultValue.newCard(
       {
         operation: 'newCard',
@@ -279,7 +279,7 @@ describe('defineScheduler', () => {
     })
   })
 
-  it('exposes composed schemas', () => {
+  it('exposes merged schemas', () => {
     expect(scheduler.schema.config).toBeDefined()
     expect(scheduler.schema.cardInitInput).toBeDefined()
     expect(scheduler.schema.card).toBeDefined()
@@ -363,13 +363,13 @@ describe('defineScheduler', () => {
     })
   })
 
-  it('validates scheduler config input before composing config fields', () => {
+  it('validates scheduler config input before merging config fields', () => {
     expect(() => scheduler.schema.config.parse(null)).toThrow(
       'Expected scheduler config object'
     )
   })
 
-  it('validates chrono config while composing scheduler config', () => {
+  it('validates chrono config while merging scheduler config', () => {
     const offsetSchema = defineSchema<{ readonly offset: number }>((value) => {
       if (
         value &&
@@ -431,7 +431,7 @@ describe('defineScheduler', () => {
     ).toThrow('Expected offset config')
   })
 
-  it('validates middleware config while composing scheduler config', () => {
+  it('validates middleware config while merging scheduler config', () => {
     expect(() => middlewareScheduler.schema.config.parse(config)).toThrow(
       'Expected source config'
     )
@@ -485,7 +485,7 @@ describe('defineScheduler', () => {
     )
   })
 
-  it('validates composed chrono and model revlog fields', () => {
+  it('validates merged chrono and model revlog fields', () => {
     const dateScheduler = defineScheduler({
       model: SM2Model,
       chrono: dateChrono,
@@ -541,7 +541,7 @@ describe('defineScheduler', () => {
     ).toBe(reviewTime)
   })
 
-  it('infers composed config type', () => {
+  it('infers merged config type', () => {
     expectTypeOf<SchedulerConfigOf<typeof scheduler>>().toEqualTypeOf<{
       readonly weights: readonly number[]
       readonly clearStatsOnForget: boolean
@@ -589,7 +589,7 @@ describe('defineScheduler', () => {
     }>()
   })
 
-  it('infers composed card type with flattened model fields', () => {
+  it('infers merged card type with flattened model fields', () => {
     expectTypeOf<SchedulerCardOf<typeof scheduler>>().toEqualTypeOf<{
       interval: number
       easeFactor: number
@@ -655,7 +655,7 @@ describe('defineScheduler', () => {
     }>()
   })
 
-  it('infers composed revlog type with flattened model fields', () => {
+  it('infers merged revlog type with flattened model fields', () => {
     expectTypeOf<SchedulerRevlogOf<typeof scheduler>>().toEqualTypeOf<{
       interval: number
       easeFactor: number

@@ -1,25 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import {
-  composeMiddleware,
-  type MiddlewareRuntimeHandler,
-} from './middleware.js'
+import { type MiddlewareRuntimeHandler, runMiddlewares } from './middleware.js'
 
 type Runtime = {
   readonly name: string
   readonly enabled: boolean
 }
 
-type ComposeContext = {
+type RuntimeContext = {
   readonly value: string
 }
 
-const composeContext: ComposeContext = { value: 'ctx' }
+const runtimeContext: RuntimeContext = { value: 'ctx' }
 
-describe('composeMiddleware', () => {
+describe('runMiddlewares', () => {
   it('runs the terminal without runtimes', () => {
     const trace: string[] = []
 
-    composeMiddleware([], composeContext, (_ctx) => {
+    runMiddlewares([], runtimeContext, (_ctx) => {
       trace.push('terminal')
     })
 
@@ -34,7 +31,7 @@ describe('composeMiddleware', () => {
       { name: 'inner', enabled: true },
     ]
     const createHandler =
-      (runtime: Runtime): MiddlewareRuntimeHandler<ComposeContext> =>
+      (runtime: Runtime): MiddlewareRuntimeHandler<RuntimeContext> =>
       (ctx, next) => {
         trace.push(`${runtime.name}:before:${ctx.value}`)
         next()
@@ -44,7 +41,7 @@ describe('composeMiddleware', () => {
       runtime.enabled ? createHandler(runtime) : undefined
     )
 
-    composeMiddleware(handlers, composeContext, (_ctx) => {
+    runMiddlewares(handlers, runtimeContext, (_ctx) => {
       trace.push('terminal')
     })
 
@@ -59,7 +56,7 @@ describe('composeMiddleware', () => {
 
   it('throws when next is called more than once', () => {
     expect(() =>
-      composeMiddleware(
+      runMiddlewares(
         [
           (_ctx: Runtime, next: () => void) => {
             next()

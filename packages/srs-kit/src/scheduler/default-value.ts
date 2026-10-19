@@ -13,7 +13,7 @@ function resolveChronoDefault(
   return isFunction(value) ? (value as ChronoDefaultRuntimeFn) : undefined
 }
 
-export function useComposeDefaultValue(ctx: {
+export function createSchedulerDefaultValue(ctx: {
   readonly model: AnyModel
   readonly chrono: AnyChrono
   readonly middlewares: readonly AnyMiddleware[]

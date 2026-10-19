@@ -12,6 +12,10 @@ overrides:
   minimatch: '>=10.2.3'
   # Rolldown uses Emnapi 1; wasm-runtime 1.2 requires Emnapi 2.
   '@rolldown/binding-wasm32-wasi>@napi-rs/wasm-runtime': 1.1.6
+  katex@>=0.11.0 <0.18.2: ^0.18.2
+  sharp@<0.35.5: ^0.35.5
+  shell-quote@>=1.8.4 <1.11.0: ^1.11.0
+  source-map-js@>=1.0.0 <1.2.2: ^1.2.2
 
 verifyDepsBeforeRun: error
 

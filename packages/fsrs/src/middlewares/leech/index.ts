@@ -16,7 +16,7 @@
  * - Use `defineMiddleware` with `scheduleStatus: ['suspended']`, the config and
  *   card schemas, and no unnecessary factory or core abstraction.
  * - Default new-card `lapses` to `0`. During forget, preserve the input value
- *   only when the composed config has `clearStatsOnForget === false`;
+ *   only when the scheduler config has `clearStatsOnForget === false`;
  *   otherwise reset it to `0`.
  * - In the review handler, call `next()` first. A lapse occurs only when
  *   `ctx.input.card.state === State.Review` and
