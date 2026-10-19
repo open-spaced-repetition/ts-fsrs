@@ -55,7 +55,7 @@
     "@emnapi/core": "2.0.0-alpha.5",
     "@emnapi/runtime": "2.0.0-alpha.5",
     "@napi-rs/cli": "3.10.4",
-    "@napi-rs/wasm-runtime": "^1.2.4",
+    "@napi-rs/wasm-runtime": "^1.2.5",
     "@taplo/cli": "^0.7.0",
     "emnapi": "2.0.0-alpha.5",
     "npm-run-all2": "^9.0.3"

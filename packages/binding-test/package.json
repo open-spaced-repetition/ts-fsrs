@@ -14,7 +14,7 @@
   "devDependencies": {
     "@emnapi/core": "2.0.0-alpha.5",
     "@emnapi/runtime": "2.0.0-alpha.5",
-    "@napi-rs/wasm-runtime": "^1.2.4",
+    "@napi-rs/wasm-runtime": "^1.2.5",
     "@types/papaparse": "^5.5.2",
     "papaparse": "^5.7.0",
     "tinybench": "^6.2.0",
