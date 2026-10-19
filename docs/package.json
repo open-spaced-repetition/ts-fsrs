@@ -22,13 +22,13 @@
   "dependencies": {
     "@open-spaced-repetition/binding-wasm32-wasip1": "workspace:^",
     "clsx": "^2.1.1",
-    "monaco-editor": "0.56.0",
-    "react": "19.3.0",
-    "react-dom": "19.3.0",
+    "monaco-editor": "0.57.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "react-json-view-lite": "^2.5.0",
-    "temporal-polyfill": "^1.0.5",
+    "temporal-polyfill": "^1.0.6",
     "ts-fsrs": "workspace:*",
-    "zod": "^4.6.5"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "^1.63.0",
