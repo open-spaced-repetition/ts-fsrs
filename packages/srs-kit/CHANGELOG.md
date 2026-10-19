@@ -1,5 +1,11 @@
 # @open-spaced-repetition/srs-kit
 
+## 1.0.0-beta.10
+
+### Patch Changes
+
+- [#569](https://github.com/open-spaced-repetition/ts-fsrs/pull/569) [`e574e88`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e574e8844f134c40fa01c17f7371a20263894a73) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor: Rename `ComposableScheduler` to `CustomScheduler` and `composeMiddleware` to `runMiddlewares`.
+
 ## 1.0.0-beta.9
 
 ### Minor Changes
