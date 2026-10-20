@@ -1,5 +1,8 @@
 name: Preview Release
 
+permissions:
+  contents: read
+
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
