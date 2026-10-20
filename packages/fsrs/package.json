@@ -124,7 +124,7 @@
     "@open-spaced-repetition/srs-kit": "workspace:*"
   },
   "devDependencies": {
-    "zod": "^4.6.5",
+    "zod": "^4.6.7",
     "decimal.js": "^10.6.0",
     "tsdown": "0.23.1"
   },
