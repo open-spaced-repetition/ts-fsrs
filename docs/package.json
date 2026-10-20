@@ -44,7 +44,7 @@
     "shiki": "^4.5.0",
     "sponsorkit": "^18.0.0",
     "tailwindcss": "^4.3.3",
-    "typescript": "7.0.2",
+    "typescript": "^6.0.3",
     "unist-util-visit": "5.1.0"
   }
 }

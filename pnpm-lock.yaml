@@ -249,7 +249,7 @@ importers:
         version: 2.0.23(@rspress/core@2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0))
       '@rspress/plugin-twoslash':
         specifier: 2.0.23
-        version: 2.0.23(@rspress/core@2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)
+        version: 2.0.23(@rspress/core@2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@6.0.3)
       '@types/mdast':
         specifier: 4.0.4
         version: 4.0.4
@@ -272,8 +272,8 @@ importers:
         specifier: ^4.3.3
         version: 4.3.3
       typescript:
-        specifier: 7.0.2
-        version: 7.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
       unist-util-visit:
         specifier: 5.1.0
         version: 5.1.0
@@ -432,10 +432,10 @@ importers:
         version: 1.0.5
       tsdown:
         specifier: 0.23.1
-        version: 0.23.1(tsx@4.21.0)(typescript@7.0.2)(unrun@0.3.1)
+        version: 0.23.1(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1)
       typescript:
-        specifier: ^7.0.2
-        version: 7.0.2
+        specifier: ^6.0.3
+        version: 6.0.3
 
 packages:
 
@@ -5174,18 +5174,18 @@ snapshots:
     dependencies:
       '@rspress/core': 2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0)
 
-  '@rspress/plugin-twoslash@2.0.23(@rspress/core@2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@7.0.2)':
+  '@rspress/plugin-twoslash@2.0.23(@rspress/core@2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0))(react@19.3.0)(supports-color@7.2.0)(typescript@6.0.3)':
     dependencies:
       '@floating-ui/dom': 1.8.0
       '@rspress/core': 2.0.23(@rspack/core@2.2.9(@swc/helpers@0.5.23))(micromark-util-types@2.0.2)(micromark@4.0.2(supports-color@7.2.0))(supports-color@7.2.0)
-      '@shikijs/twoslash': 4.4.3(supports-color@7.2.0)(typescript@7.0.2)
+      '@shikijs/twoslash': 4.4.3(supports-color@7.2.0)(typescript@6.0.3)
       mdast-util-from-markdown: 2.0.3(supports-color@7.2.0)
       mdast-util-gfm: 3.1.0(supports-color@7.2.0)
       mdast-util-to-hast: 13.2.1
       picocolors: 1.1.1
       react: 19.3.0
-      twoslash: 0.3.9(supports-color@7.2.0)(typescript@7.0.2)
-      typescript: 7.0.2
+      twoslash: 0.3.9(supports-color@7.2.0)(typescript@6.0.3)
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -5276,12 +5276,12 @@ snapshots:
     dependencies:
       '@shikijs/types': 4.5.0
 
-  '@shikijs/twoslash@4.4.3(supports-color@7.2.0)(typescript@7.0.2)':
+  '@shikijs/twoslash@4.4.3(supports-color@7.2.0)(typescript@6.0.3)':
     dependencies:
       '@shikijs/core': 4.4.3
       '@shikijs/types': 4.4.3
-      twoslash: 0.3.9(supports-color@7.2.0)(typescript@7.0.2)
-      typescript: 7.0.2
+      twoslash: 0.3.9(supports-color@7.2.0)(typescript@6.0.3)
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -5513,10 +5513,10 @@ snapshots:
   '@typescript/typescript-win32-x64@7.0.2':
     optional: true
 
-  '@typescript/vfs@1.6.4(supports-color@7.2.0)(typescript@7.0.2)':
+  '@typescript/vfs@1.6.4(supports-color@7.2.0)(typescript@6.0.3)':
     dependencies:
       debug: 4.4.3(supports-color@7.2.0)
-      typescript: 7.0.2
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
@@ -7011,6 +7011,20 @@ snapshots:
 
   resolve-pkg-maps@1.0.0: {}
 
+  rolldown-plugin-dts@0.28.8(rolldown@1.2.14)(typescript@6.0.3):
+    dependencies:
+      dts-resolver: 3.0.0
+      get-tsconfig: 5.0.0-beta.6
+      obug: 3.0.0
+      rolldown: 1.2.14
+      yuku-ast: 0.19.0
+      yuku-codegen: 0.19.0
+      yuku-parser: 0.19.0
+    optionalDependencies:
+      typescript: 6.0.3
+    transitivePeerDependencies:
+      - oxc-resolver
+
   rolldown-plugin-dts@0.28.8(rolldown@1.2.14)(typescript@7.0.2):
     dependencies:
       dts-resolver: 3.0.0
@@ -7203,6 +7217,33 @@ snapshots:
 
   trough@2.2.0: {}
 
+  tsdown@0.23.1(tsx@4.21.0)(typescript@6.0.3)(unrun@0.3.1):
+    dependencies:
+      cac: 7.1.0
+      defu: 6.1.7
+      empathic: 2.1.0
+      hookable: 6.1.2
+      import-without-cache: 0.4.1
+      obug: 3.0.0
+      picomatch: 4.0.7
+      rolldown: 1.2.14
+      rolldown-plugin-dts: 0.28.8(rolldown@1.2.14)(typescript@6.0.3)
+      tinyexec: 1.3.1
+      tinyglobby: 0.2.17
+      tree-kill: 1.2.2
+      unconfig-core: 7.5.0
+      verkit: 0.5.0
+    optionalDependencies:
+      tsx: 4.21.0
+      typescript: 6.0.3
+      unrun: 0.3.1
+    transitivePeerDependencies:
+      - '@typescript/native-preview'
+      - '@volar/typescript'
+      - '@vue/language-core'
+      - oxc-resolver
+      - vue-tsc
+
   tsdown@0.23.1(tsx@4.21.0)(typescript@7.0.2)(unrun@0.3.1):
     dependencies:
       cac: 7.1.0
@@ -7251,11 +7292,11 @@ snapshots:
 
   twoslash-protocol@0.3.9: {}
 
-  twoslash@0.3.9(supports-color@7.2.0)(typescript@7.0.2):
+  twoslash@0.3.9(supports-color@7.2.0)(typescript@6.0.3):
     dependencies:
-      '@typescript/vfs': 1.6.4(supports-color@7.2.0)(typescript@7.0.2)
+      '@typescript/vfs': 1.6.4(supports-color@7.2.0)(typescript@6.0.3)
       twoslash-protocol: 0.3.9
-      typescript: 7.0.2
+      typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
 
