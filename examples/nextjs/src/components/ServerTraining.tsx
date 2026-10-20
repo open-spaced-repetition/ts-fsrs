@@ -124,29 +124,38 @@ export default function ServerTraining({
 
       <TrainingError message={error} />
 
-      <div className="mb-6 space-y-3">
-        <label htmlFor={modelId} className="block">
-          Model
-        </label>
-        <select
-          id={modelId}
-          value={modelVersion}
-          disabled={isProcessing}
-          className="rounded border p-2 dark:bg-gray-800"
-          onChange={(event) => {
-            setModelVersion(event.target.value as ModelVersion)
-            setError('')
-            resetState()
-          }}
-        >
-          <option value="FSRS-6">FSRS-6 (21 parameters)</option>
-          <option value="FSRS-7">FSRS-7 (34 parameters)</option>
-        </select>
+      <div className="mb-6 grid grid-cols-1 items-end gap-4 md:grid-cols-2">
+        <div>
+          <label
+            htmlFor={modelId}
+            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Model
+          </label>
+          <select
+            id={modelId}
+            value={modelVersion}
+            disabled={isProcessing}
+            className="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            onChange={(event) => {
+              setModelVersion(event.target.value as ModelVersion)
+              setError('')
+              resetState()
+            }}
+          >
+            <option value="FSRS-6">FSRS-6 (21 parameters)</option>
+            <option value="FSRS-7">FSRS-7 (34 parameters)</option>
+          </select>
+        </div>
         {modelVersion === 'FSRS-6' ? (
-          <label htmlFor={shortTermId} className="block">
+          <label
+            htmlFor={shortTermId}
+            className="flex min-h-11 cursor-pointer items-center gap-3 text-sm leading-6 text-gray-700 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:text-gray-300"
+          >
             <input
               id={shortTermId}
               type="checkbox"
+              className="h-4 w-4 shrink-0 cursor-pointer accent-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed"
               checked={enableShortTerm}
               disabled={isProcessing}
               onChange={(event) => setEnableShortTerm(event.target.checked)}
@@ -154,10 +163,14 @@ export default function ServerTraining({
             Enable short-term memory
           </label>
         ) : (
-          <label htmlFor={penaltiesId} className="block">
+          <label
+            htmlFor={penaltiesId}
+            className="flex min-h-11 cursor-pointer items-center gap-3 text-sm leading-6 text-gray-700 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:text-gray-300"
+          >
             <input
               id={penaltiesId}
               type="checkbox"
+              className="h-4 w-4 shrink-0 cursor-pointer accent-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed"
               checked={enableSchedPenalties}
               disabled={isProcessing}
               onChange={(event) =>
