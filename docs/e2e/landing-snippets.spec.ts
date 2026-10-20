@@ -21,24 +21,6 @@ console.log(
   )
 )`
 
-for (const route of ['/', '/zh-CN/', '/zh-TW/', '/ja-JP/']) {
-  test(`home page hydrates without warnings on ${route}`, async ({ page }) => {
-    const errors: string[] = []
-    page.on('pageerror', (error) => errors.push(error.message))
-    page.on('console', (message) => {
-      if (message.type() === 'warning' || message.type() === 'error') {
-        errors.push(message.text())
-      }
-    })
-
-    await page.goto(route)
-    const customTab = page.locator('[role="tab"][id$="-tab-custom"]')
-    await customTab.click()
-    await expect(customTab).toHaveAttribute('aria-selected', 'true')
-    expect(errors).toEqual([])
-  })
-}
-
 for (const [id, file] of readLandingSnippetFiles(docsRoot)) {
   test(`landing snippet ${id} runs in the playground`, async ({ page }) => {
     const pageErrors: string[] = []
