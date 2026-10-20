@@ -9,8 +9,17 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: weekly
+    # Compiler API consumers (Twoslash and type-display tests) require TypeScript 6.
+    ignore:
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]
     groups:
       dependencies:
         dependency-type: production
       devDependencies:
         dependency-type: development
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: weekly
