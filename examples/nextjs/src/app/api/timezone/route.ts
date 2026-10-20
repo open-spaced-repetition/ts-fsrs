@@ -31,7 +31,7 @@ function getTimezoneLabel(tz: string): string {
  */
 function getCommonTimezones() {
   // Get all supported timezones
-  const allTimezones = getSupportedTimezones
+  const allTimezones = getSupportedTimezones()
 
   // Sort by region and then by name
   const sortedTimezones = allTimezones.sort((a, b) => {

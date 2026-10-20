@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { getSupportedTimezones } from '../utils/timezone'
 
+const supportedTimezones = getSupportedTimezones()
+
 const trainingConfigSchema = z.discriminatedUnion('modelVersion', [
   z.object({
     modelVersion: z.literal('FSRS-6'),
@@ -22,7 +24,7 @@ export const trainingSchema = trainingConfigSchema.and(
     timezone: z
       .string()
       .refine(
-        (value) => getSupportedTimezones.includes(value),
+        (value) => supportedTimezones.includes(value),
         'Unsupported timezone.'
       )
       .default('Asia/Shanghai'),
