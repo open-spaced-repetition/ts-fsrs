@@ -2,25 +2,9 @@ import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Turbopack cannot bundle the native .node addon used by server-side training.
   serverExternalPackages: ['@open-spaced-repetition/binding'],
-  // Enable cross-origin isolation for SharedArrayBuffer support (required for WebAssembly)
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          {
-            key: 'Cross-Origin-Opener-Policy',
-            value: 'same-origin',
-          },
-          {
-            key: 'Cross-Origin-Embedder-Policy',
-            value: 'require-corp',
-          },
-        ],
-      },
-    ]
-  },
+  // The browser uses threadless wasm32-wasip1; cross-origin isolation is unnecessary.
 
   // self-hosting
   output: 'standalone',

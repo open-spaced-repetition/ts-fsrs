@@ -8,33 +8,32 @@
     "build": "tsc -b && vite build",
     "lint": "biome check src",
     "lint:fix": "biome check --write src",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "pnpm build && wrangler deploy"
   },
   "dependencies": {
-    "@open-spaced-repetition/binding": "^0.3.0",
-    "@tailwindcss/postcss": "^4.1.17",
-    "autoprefixer": "^10.4.22",
-    "postcss": "^8.5.10",
-    "react": "^19.2.0",
-    "react-dom": "^19.2.0",
-    "tailwindcss": "^4.1.17"
+    "@open-spaced-repetition/binding": "0.6.0-beta.7",
+    "@open-spaced-repetition/binding-wasm32-wasip1": "0.6.0-beta.7",
+    "@tailwindcss/postcss": "^4.3.3",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.31",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "tailwindcss": "^4.3.3"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.3.7",
-    "@types/node": "^24.10.1",
-    "@types/react": "^19.2.5",
-    "@types/react-dom": "^19.2.3",
-    "@vitejs/plugin-react": "^5.1.1",
-    "globals": "^16.5.0",
-    "typescript": "~5.9.3",
-    "vite": "^7.3.2"
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "globals": "^17.13.0",
+    "typescript": "~7.0.2",
+    "vite": "^8.3.4",
+    "wrangler": "^4.151.2"
   },
-  "pnpm": {
-    "supportedArchitectures": {
-      "cpu": [
-        "current",
-        "wasm32"
-      ]
-    }
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=26 <27"
   }
 }

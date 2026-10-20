@@ -1,19 +1,14 @@
-import { computeParameters } from '@open-spaced-repetition/binding'
-import { useCallback, useId, useRef, useState } from 'react'
-
-import type { OptimizationResult, TrainingStats } from '../types/training'
-import { convertFSRSItemsByFile } from '../utils/convert'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
+import type { TrainingMessage, TrainingRequest } from '../training.worker'
+import type {
+  OptimizationResult,
+  TrainingModel,
+  TrainingStats,
+} from '../types/training'
+import TrainingError from './TrainingError'
 
 interface ClientTrainingProps {
   onProcessingChange?: (isProcessing: boolean) => void
-}
-
-// Sentinel error used to signal that training was aborted by the user.
-class AbortTrainingError extends Error {
-  constructor() {
-    super('Training aborted by user')
-    this.name = 'AbortTrainingError'
-  }
 }
 
 const INITIAL_STATS: TrainingStats = {
@@ -22,16 +17,19 @@ const INITIAL_STATS: TrainingStats = {
   fsrsItemsCount: 0,
 }
 
-// Throttle UI progress updates to avoid excessive re-renders while training.
-const UPDATE_THROTTLE_MS = 500
-
 export default function ClientTraining({
   onProcessingChange,
 }: ClientTrainingProps) {
   // Generate unique IDs for form fields
   const nextDayStartsAtId = useId()
   const numRelearningStepsId = useId()
+  const modelVersionId = useId()
+  const modelOptionId = useId()
 
+  const [modelVersion, setModelVersion] = useState<TrainingModel>('FSRS-7')
+  const [enableShortTerm, setEnableShortTerm] = useState(true)
+  const [enableSchedPenalties, setEnableSchedPenalties] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
@@ -39,13 +37,14 @@ export default function ClientTraining({
   const [results, setResults] = useState<OptimizationResult[]>([])
   const [stats, setStats] = useState<TrainingStats>(INITIAL_STATS)
 
-  // Signals that the user has requested the in-flight training to abort.
-  // Read inside the progress callback to short-circuit back to the binding.
-  const abortedRef = useRef(false)
-  // Track last UI update time per training run for throttling.
-  const lastUpdateTimeRef = useRef<Record<string, number>>({})
+  const workerRef = useRef<Worker | null>(null)
+  useEffect(() => () => workerRef.current?.terminate(), [])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setError(null)
+    setCsvFile(null)
+    setResults([])
+    setStats(INITIAL_STATS)
     const file = event.target.files?.[0]
     if (!file) {
       return
@@ -53,190 +52,103 @@ export default function ClientTraining({
 
     const MAX_FILE_SIZE_MB = 100 // 100MB limit for client-side processing
     if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-      alert(
+      setError(
         `File size exceeds ${MAX_FILE_SIZE_MB}MB. Please select a smaller file.`
       )
       event.target.value = '' // Reset file input
       return
     }
     setCsvFile(file)
-    // Reset previous results
-    setResults([])
-    setStats(INITIAL_STATS)
   }
 
-  const handleCancel = useCallback(() => {
-    abortedRef.current = true
-  }, [])
+  const finish = useCallback(() => {
+    workerRef.current?.terminate()
+    workerRef.current = null
+    setIsProcessing(false)
+    onProcessingChange?.(false)
+  }, [onProcessingChange])
 
-  const handleProcessCSV = async () => {
+  const handleCancel = useCallback(() => {
+    finish()
+    setError(null)
+    setResults([])
+    setStats(INITIAL_STATS)
+  }, [finish])
+
+  const handleProcessCSV = () => {
+    setError(null)
     if (!csvFile) {
-      alert('Please select a CSV file first')
+      setError('Please select a CSV file first')
       return
     }
-
     setIsProcessing(true)
-    abortedRef.current = false
-    lastUpdateTimeRef.current = {}
     onProcessingChange?.(true)
-
+    setResults([
+      {
+        modelVersion,
+        enableShortTerm: modelVersion === 'FSRS-7' || enableShortTerm,
+        enableSchedPenalties: modelVersion === 'FSRS-7' && enableSchedPenalties,
+        parameters: [],
+        progress: '0/0',
+        completed: false,
+      },
+    ])
+    setStats(INITIAL_STATS)
     try {
-      // Read CSV file
-      console.time('parsing csv time')
-      const parseStartTime = performance.now()
-
-      // Convert CSV to FSRS items
-      const fsrsItems = await convertFSRSItemsByFile(csvFile, nextDayStartsAt)
-
-      const parseEndTime = performance.now()
-      const parseDuration = `${(parseEndTime - parseStartTime).toFixed(2)}ms`
-      console.timeEnd('parsing csv time')
-
-      if (abortedRef.current) {
-        throw new AbortTrainingError()
-      }
-
-      setStats((prev) => ({
-        ...prev,
-        parseTime: parseDuration,
-        fsrsItemsCount: fsrsItems.length,
-      }))
-
-      console.log(`fsrs_items.len() = ${fsrsItems.length}`)
-
-      // Start training
-      console.time('full training time')
-      const trainingStartTime = performance.now()
-
-      // Initialize results for both short-term enabled and disabled
-      setResults([
-        {
-          enableShortTerm: true,
-          parameters: [],
-          progress: '0/0',
-          completed: false,
-        },
-        {
-          enableShortTerm: false,
-          parameters: [],
-          progress: '0/0',
-          completed: false,
-        },
-      ])
-
-      // Compute parameters wrapper.
-      // Returns `false` from the progress callback to abort the in-flight
-      // training in the binding layer; the Promise then rejects and we
-      // surface it as an AbortTrainingError.
-      const computeParametersWrapper = async (
-        enableShortTerm: boolean
-      ): Promise<void> => {
-        const key = `enableShortTerm_${enableShortTerm}`
-
-        // Track progress state to avoid redundant updates
-        let lastProgressUpdate = { cur: -1, total: -1 }
-
-        const optimizedParameters = await computeParameters(fsrsItems, {
-          enableShortTerm,
-          numRelearningSteps,
-          progress: (cur, total) => {
-            // Propagate abort request to the native training loop.
-            if (abortedRef.current) {
-              return false
-            }
-
-            // Skip if progress hasn't changed
-            if (
-              lastProgressUpdate.cur === cur &&
-              lastProgressUpdate.total === total
-            ) {
-              return
-            }
-
-            // Throttle UI updates to avoid excessive re-renders
-            const now = Date.now()
-            const lastUpdate = lastUpdateTimeRef.current[key] ?? 0
-
-            // Always update on first call, last call, or after throttle interval
-            const shouldUpdate =
-              cur === 0 ||
-              cur === total ||
-              now - lastUpdate >= UPDATE_THROTTLE_MS
-
-            if (!shouldUpdate) {
-              return
-            }
-
-            console.debug(
-              `[enableShortTerm = ${
-                enableShortTerm ? 1 : 0
-              }] Progress: ${cur}/${total}`
-            )
-
-            lastUpdateTimeRef.current[key] = now
-            lastProgressUpdate = { cur, total }
-
-            // Update progress in real-time using functional update
-            // to ensure we always work with the latest state
+      const worker = new Worker(
+        new URL('../training.worker.ts', import.meta.url),
+        { type: 'module' }
+      )
+      workerRef.current = worker
+      worker.onmessage = ({ data }: MessageEvent<TrainingMessage>) => {
+        switch (data.type) {
+          case 'parsed':
+            setStats((prev) => ({
+              ...prev,
+              parseTime: data.parseTime,
+              fsrsItemsCount: data.fsrsItemsCount,
+            }))
+            break
+          case 'progress':
             setResults((prev) =>
-              prev.map((r) =>
-                r.enableShortTerm === enableShortTerm
-                  ? { ...r, progress: `${cur}/${total}` }
-                  : r
-              )
+              prev.map((r) => ({ ...r, progress: data.progress }))
             )
-          },
-        })
-
-        console.log(
-          `[enableShortTerm = ${enableShortTerm}] optimized parameters:`,
-          optimizedParameters
-        )
-
-        // Update results with completed parameters using functional update
-        setResults((prev) =>
-          prev.map((r) =>
-            r.enableShortTerm === enableShortTerm
-              ? { ...r, parameters: optimizedParameters, completed: true }
-              : r
-          )
-        )
+            break
+          case 'result':
+            setResults((prev) =>
+              prev.map((r) => ({
+                ...r,
+                parameters: data.parameters,
+                completed: true,
+              }))
+            )
+            break
+          case 'done':
+            setStats((prev) => ({ ...prev, trainingTime: data.trainingTime }))
+            finish()
+            break
+          case 'error':
+            finish()
+            setError(`Processing failed: ${data.message}`)
+        }
       }
-
-      // Run computations sequentially to reduce memory pressure.
-      // Running in parallel may cause WebAssembly memory access errors with
-      // large datasets.
-      await computeParametersWrapper(true)
-      if (abortedRef.current) {
-        throw new AbortTrainingError()
+      worker.onerror = (event) => {
+        finish()
+        setError(`Processing failed: ${event.message}`)
       }
-      await computeParametersWrapper(false)
-
-      const trainingEndTime = performance.now()
-      const trainingDuration = `${(trainingEndTime - trainingStartTime).toFixed(
-        2
-      )}ms`
-      setStats((prev) => ({
-        ...prev,
-        trainingTime: trainingDuration,
-      }))
-      console.timeEnd('full training time')
+      worker.postMessage({
+        file: csvFile,
+        nextDayStartsAt,
+        numRelearningSteps,
+        modelVersion,
+        enableShortTerm,
+        enableSchedPenalties,
+      } satisfies TrainingRequest)
     } catch (error) {
-      // Either an explicit abort, or the binding returned early because the
-      // progress callback returned `false`. Reset UI to a clean state.
-      if (abortedRef.current || error instanceof AbortTrainingError) {
-        console.debug('Training cancelled by user.')
-        setResults([])
-        setStats(INITIAL_STATS)
-        return
-      }
-      console.error('Error processing CSV file:', error)
-      const message = error instanceof Error ? error.message : String(error)
-      alert(`Processing failed: ${message}`)
-    } finally {
-      setIsProcessing(false)
-      abortedRef.current = false
-      onProcessingChange?.(false)
+      finish()
+      setError(
+        `Processing failed: ${error instanceof Error ? error.message : String(error)}`
+      )
     }
   }
 
@@ -245,6 +157,8 @@ export default function ClientTraining({
       <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">
         Client-Side FSRS Training
       </h1>
+
+      <TrainingError message={error} />
 
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -263,6 +177,60 @@ export default function ClientTraining({
           </p>
         )}
 
+        <div className="mb-4">
+          <label
+            htmlFor={modelVersionId}
+            className="block text-sm font-medium mb-2"
+          >
+            Model Version
+          </label>
+          <select
+            id={modelVersionId}
+            value={modelVersion}
+            disabled={isProcessing}
+            className="w-full rounded border border-gray-300 bg-white p-2.5 text-gray-900 dark:bg-gray-700 dark:text-gray-100"
+            onChange={(event) => {
+              setModelVersion(
+                event.target.value === 'FSRS-6' ? 'FSRS-6' : 'FSRS-7'
+              )
+              setResults([])
+              setStats(INITIAL_STATS)
+              setError(null)
+            }}
+          >
+            <option value="FSRS-7">FSRS-7 (34 parameters)</option>
+            <option value="FSRS-6">FSRS-6 (21 parameters)</option>
+          </select>
+          <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">
+            {modelVersion === 'FSRS-7'
+              ? 'Uses fractional study days and same-day reviews. Short-term memory is always enabled.'
+              : 'Uses whole study days. Short-term memory can be disabled.'}
+          </p>
+          <label
+            htmlFor={modelOptionId}
+            className="mt-3 flex items-center gap-2"
+          >
+            <input
+              id={modelOptionId}
+              type="checkbox"
+              disabled={isProcessing}
+              checked={
+                modelVersion === 'FSRS-7'
+                  ? enableSchedPenalties
+                  : enableShortTerm
+              }
+              onChange={(event) =>
+                modelVersion === 'FSRS-7'
+                  ? setEnableSchedPenalties(event.target.checked)
+                  : setEnableShortTerm(event.target.checked)
+              }
+            />
+            {modelVersion === 'FSRS-7'
+              ? 'Enable Scheduling Penalties'
+              : 'Enable Short-Term Memory'}
+          </label>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label
@@ -276,7 +244,11 @@ export default function ClientTraining({
               id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) =>
-                setNextDayStartsAt(e.target.value === '' ? nextDayStartsAt : Number(e.target.value))
+                setNextDayStartsAt(
+                  e.target.value === ''
+                    ? nextDayStartsAt
+                    : Number(e.target.value)
+                )
               }
               disabled={isProcessing}
               min={0}
@@ -288,28 +260,30 @@ export default function ClientTraining({
             </p>
           </div>
 
-          <div>
-            <label
-              htmlFor={numRelearningStepsId}
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-            >
-              Number of Relearning Steps
-            </label>
-            <input
-              type="number"
-              id={numRelearningStepsId}
-              value={numRelearningSteps}
-              onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
-              disabled={isProcessing}
-              min={0}
-              max={10}
-              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
-            />
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              Number of learning steps before a card is considered relearned
-              (0-10)
-            </p>
-          </div>
+          {modelVersion === 'FSRS-6' && (
+            <div>
+              <label
+                htmlFor={numRelearningStepsId}
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
+                Number of Relearning Steps
+              </label>
+              <input
+                type="number"
+                id={numRelearningStepsId}
+                value={numRelearningSteps}
+                onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
+                disabled={isProcessing}
+                min={0}
+                max={10}
+                className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              />
+              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                Number of learning steps before a card is considered relearned
+                (0-10)
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -350,7 +324,7 @@ export default function ClientTraining({
             2. Optimization Results
           </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 gap-6 mb-6">
             {results.map((result) => {
               const [current, total] = result.progress.split('/').map(Number)
               const progressPercentage =
@@ -358,11 +332,7 @@ export default function ClientTraining({
 
               return (
                 <div
-                  key={
-                    result.enableShortTerm
-                      ? 'short-term-enabled'
-                      : 'short-term-disabled'
-                  }
+                  key={result.modelVersion}
                   className={`p-5 border rounded-lg ${
                     result.completed
                       ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-700'
@@ -370,10 +340,15 @@ export default function ClientTraining({
                   }`}
                 >
                   <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-                    {result.enableShortTerm
-                      ? 'Short-Term Enabled'
-                      : 'Short-Term Disabled'}
+                    {result.modelVersion} (
+                    {result.modelVersion === 'FSRS-7' ? 34 : 21} parameters)
                   </h3>
+
+                  <p className="mb-3 text-sm text-gray-600 dark:text-gray-400">
+                    {result.modelVersion === 'FSRS-7'
+                      ? `Scheduling penalties: ${result.enableSchedPenalties ? 'enabled' : 'disabled'}`
+                      : `Short-term memory: ${result.enableShortTerm ? 'enabled' : 'disabled'}`}
+                  </p>
 
                   {/* Progress bar */}
                   {!result.completed && result.progress !== '0/0' && (

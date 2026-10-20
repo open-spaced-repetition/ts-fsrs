@@ -16,101 +16,56 @@ Both approaches support:
 - Configurable timezone settings
 - Adjustable parameters (next day start time, relearning steps)
 - Real-time progress tracking
-- Dual optimization modes (with/without short-term memory)
+- FSRS-6 (21 parameters) or FSRS-7 (34 parameters), one configuration per run
 
 ## Getting Started
 
 ### Prerequisites
 
-- Node.js 18+ or Bun
-- pnpm, npm, yarn, or bun as package manager
+- Node.js 26
+- Corepack 0.36.0 and pnpm 12.14.0
 
-### Installation
+### Installation and Development
 
 ```bash
+npm install --global corepack@0.36.0 --force
+corepack enable
 pnpm install
-# or
-npm install
-# or
-yarn install
-# or
-bun install
-```
-
-### Development
-
-Run the development server:
-
-```bash
 pnpm dev
-# or
-npm run dev
-# or
-yarn dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Important Configuration
 
-### 1. Package Manager Configuration (package.json)
+The example is an independent pnpm workspace. Its lockfile is disabled and ignored;
+installs resolve the current compatible dependency versions. This keeps example
+lockfiles out of the repository, but does not replace dependency security updates.
 
-If you are using **pnpm**, you must configure the CPU architecture support to properly download the WebAssembly dependencies:
+Both binding packages are pinned to `0.6.0-beta.7`. Client-side training uses
+`@open-spaced-repetition/binding-wasm32-wasip1` in a dedicated Web Worker. This
+single-threaded WebAssembly target does not require SharedArrayBuffer or
+cross-origin isolation headers. Cancel terminates the worker immediately.
+Server-side training uses the native async `@open-spaced-repetition/binding` API
+so SSE progress and other requests remain responsive. Next.js keeps that package
+external via `serverExternalPackages`.
 
-```json
-{
-  "pnpm": {
-    "supportedArchitectures": {
-      "cpu": [
-        "current",
-        "wasm32"
-      ]
-    }
-  }
-}
+`pnpm-workspace.yaml` enables `wasm32` package installation alongside the current
+CPU architecture. Build the Node.js 26 standalone container from this directory:
+
+```bash
+docker build -t fsrs-next-app .
+docker run --rm -p 3000:3000 fsrs-next-app
 ```
 
-**Why this is needed**: The `@open-spaced-repetition/binding` package includes WebAssembly binaries that require the `wasm32` architecture. Without this configuration, pnpm may not download the correct dependencies.
+### Model-specific inputs
 
-### 2. Next.js Configuration (next.config.ts)
-
-Two critical configurations are required in `next.config.ts`:
-
-#### a. Server External Packages
-
-```typescript
-serverExternalPackages: [
-  '@open-spaced-repetition/binding'
-]
-```
-
-**Why this is needed**: This tells Next.js to not bundle the FSRS binding package during server-side compilation, preventing potential build errors with native/WebAssembly modules.
-
-#### b. Cross-Origin Isolation Headers
-
-```typescript
-async headers() {
-  return [
-    {
-      source: '/:path*',
-      headers: [
-        {
-          key: 'Cross-Origin-Opener-Policy',
-          value: 'same-origin',
-        },
-        {
-          key: 'Cross-Origin-Embedder-Policy',
-          value: 'require-corp',
-        },
-      ],
-    },
-  ];
-}
-```
-
-**Why this is needed**: Client-side WebAssembly training requires `SharedArrayBuffer` support, which is only available in cross-origin isolated contexts. These headers enable the necessary security context for WebAssembly to run efficiently in the browser.
+FSRS-7 is selected by default. It always enables short-term memory and offers
+optional scheduling penalties (off by default). FSRS-6 exposes the short-term
+memory switch and number of relearning steps. The CSV converter and optimizer
+use the same model version and aligned card IDs, matching the documentation's
+revlog trainer. Changing models clears the previous results. Errors appear
+inline and do not open browser alert dialogs.
 
 ## Project Structure
 
@@ -189,8 +144,8 @@ The CSV should contain review history with the following format:
 The easiest way to deploy this Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme).
 
 **Important**: When deploying, ensure that:
-1. The same Next.js configuration (headers and serverExternalPackages) is preserved
+1. The `serverExternalPackages` configuration is preserved
 2. The deployment platform supports WebAssembly
-3. The necessary CORS headers are properly set
+3. Browser Web Workers and WebAssembly assets are served correctly
 
 Check out the [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

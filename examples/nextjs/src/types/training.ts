@@ -1,6 +1,11 @@
 // Shared types for FSRS training functionality
 
+import type { ModelVersion } from './training-schema'
+
+export type { ModelVersion, TrainingConfig } from './training-schema'
+
 export interface OptimizationResult {
+  modelVersion: ModelVersion
   enableShortTerm: boolean
   parameters: number[]
   progress: string
@@ -10,12 +15,6 @@ export interface OptimizationResult {
 export interface TrainingProgress {
   current: number
   total: number
-}
-
-export interface TrainingConfig {
-  enableShortTerm: boolean
-  numRelearningSteps: number
-  timezone?: string
 }
 
 export interface TrainingStats {
@@ -47,6 +46,7 @@ export interface SSEParseCompleteMessage {
 
 export interface SSETrainingStartMessage {
   type: 'training_start'
+  modelVersion: ModelVersion
   enableShortTerm: boolean
 }
 
