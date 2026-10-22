@@ -65,7 +65,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: '26.12.1'
-      commit-sha: ${{ needs.check.outputs.sha }}
+      commit-sha: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.check.outputs.sha }}
   release:
     name: Release
     runs-on: ubuntu-latest
@@ -76,7 +76,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
         with:
-          ref: ${{ needs.check.outputs.sha }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.check.outputs.sha }}
           persist-credentials: false
 
       - name: Setup Node & pnpm
