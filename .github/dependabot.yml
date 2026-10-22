@@ -11,15 +11,27 @@ updates:
       - "examples/**"
     schedule:
       interval: weekly
-    # Compiler API consumers (Twoslash and type-display tests) require TypeScript 6.
     ignore:
+      # Compiler API consumers (Twoslash and type-display tests) require TypeScript 6.
       - dependency-name: typescript
         update-types: ["version-update:semver-major"]
+      # Upgrade Emnapi alongside napi-rs so the WASI toolchain stays compatible.
+      - dependency-name: emnapi
+      - dependency-name: "@emnapi/*"
     groups:
       dependencies:
         dependency-type: production
       devDependencies:
         dependency-type: development
+
+  - package-ecosystem: "cargo"
+    directory: "/"
+    schedule:
+      interval: weekly
+    groups:
+      napi:
+        patterns:
+          - "napi*"
 
   - package-ecosystem: "github-actions"
     directory: "/"
