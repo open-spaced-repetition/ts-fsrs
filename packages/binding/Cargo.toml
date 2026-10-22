@@ -8,11 +8,11 @@ version = "0.0.2"
 crate-type = ["cdylib"]
 
 [dependencies]
-napi = { version = "3.12.7", default-features = true, features = [
+napi = { version = "3.14.2", default-features = true, features = [
   "napi5",
   "web_stream",
 ] }
-napi-derive = "3.6.8"
+napi-derive = "3.6.12"
 csv = "1.4.0"
 jiff = { version = "=0.2.37", default-features = false, features = [
   "alloc",
@@ -28,4 +28,4 @@ branch = "wasm32-wasip1-progress-fsrs7"
 default-features = false
 
 [build-dependencies]
-napi-build = "2.4.4"
+napi-build = "2.6.0"

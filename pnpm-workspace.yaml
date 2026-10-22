@@ -4,6 +4,13 @@ packages:
   - packages/binding/npm/*
   # - examples/*
 
+# Publish through pnpm so catalog ranges are resolved in the tarball.
+catalog:
+  '@emnapi/core': 2.0.0-alpha.6
+  '@emnapi/runtime': 2.0.0-alpha.6
+  '@napi-rs/wasm-runtime': ^1.2.5
+  emnapi: 2.0.0-alpha.6
+
 overrides:
   monaco-editor>dompurify: ^3.4.13
   # Vitest 5 pins tinybench 6.1.4, whose types require the DOM lib.

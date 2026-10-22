@@ -3,7 +3,6 @@ import * as path from 'node:path'
 import { Readable } from 'node:stream'
 import { fileURLToPath } from 'node:url'
 import { convertCsvToFsrsItems } from '@open-spaced-repetition/binding'
-import { getTimezoneOffset, parseCSVToFSRSItems } from './helpers/csv-parser.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -287,119 +286,141 @@ describe('CSV Parser', () => {
       0,
       1,
     ],
-  ] as const)('normalizes learning-day duration: %s', async (_, start, end, rollover, expected) => {
-    const data = Buffer.from(
-      [
-        'card_id,review_time,review_rating,review_state,review_duration',
-        'one,' + Date.parse(start) + ',3,0,1000',
-        'one,' + Date.parse(end) + ',4,2,1000',
-      ].join('\n')
-    )
-    const items = convertCsvToFsrsItems(
-      data,
-      rollover,
-      'America/New_York',
-      'FSRS-7'
-    )
-    expect(items[0].current?.deltaT).toBeCloseTo(expected, 7)
-    const stream = new ReadableStream<Uint8Array>({
-      start(controller) {
-        controller.enqueue(data)
-        controller.close()
-      },
-    })
-    const streamed = await convertCsvToFsrsItems(
-      stream,
-      rollover,
-      'America/New_York',
-      'FSRS-7'
-    )
-    expect(streamed[0].current?.deltaT).toBeCloseTo(expected, 7)
-    if (expected === 1) {
-      const legacy = convertCsvToFsrsItems(
+  ] as const)(
+    'normalizes learning-day duration: %s',
+    async (_, start, end, rollover, expected) => {
+      const data = Buffer.from(
+        [
+          'card_id,review_time,review_rating,review_state,review_duration',
+          `one,${Date.parse(start)},3,0,1000`,
+          `one,${Date.parse(end)},4,2,1000`,
+        ].join('\n')
+      )
+      const items = convertCsvToFsrsItems(
         data,
         rollover,
         'America/New_York',
-        'FSRS-6'
+        'FSRS-7'
       )
-      expect(legacy[0].current?.deltaT).toBe(1)
+      expect(items[0].current?.deltaT).toBeCloseTo(expected, 7)
+      const stream = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(data)
+          controller.close()
+        },
+      })
+      const streamed = await convertCsvToFsrsItems(
+        stream,
+        rollover,
+        'America/New_York',
+        'FSRS-7'
+      )
+      expect(streamed[0].current?.deltaT).toBeCloseTo(expected, 7)
+      if (expected === 1) {
+        const legacy = convertCsvToFsrsItems(
+          data,
+          rollover,
+          'America/New_York',
+          'FSRS-6'
+        )
+        expect(legacy[0].current?.deltaT).toBe(1)
+      }
     }
-  })
+  )
 
-  test.each([
-    0, 4, 23,
-  ])('skips nonexistent study days at rollover %s', async (rollover) => {
-    const hour = String(rollover).padStart(2, '0')
-    const data = Buffer.from(
-      [
-        'card_id,review_time,review_rating,review_state,review_duration',
-        `one,${Date.parse(`2011-12-29T${hour}:00:00-10:00`)},3,0,1000`,
-        `one,${Date.parse(`2011-12-31T${hour}:00:00+14:00`)},4,2,1000`,
-        `one,${Date.parse(`2011-12-31T${hour}:30:00+14:00`)},4,2,1000`,
-      ].join('\n')
-    )
-    const items = convertCsvToFsrsItems(
-      data,
-      rollover,
-      'Pacific/Apia',
-      'FSRS-7'
-    )
-    expect(items[0].current?.deltaT).toBe(1)
-    expect(items[1].current?.deltaT).toBeCloseTo(0.5 / 24, 7)
-    const streamed = await convertCsvToFsrsItems(
-      Readable.toWeb(Readable.from([data])) as ReadableStream<Uint8Array>,
-      rollover,
-      'Pacific/Apia',
-      'FSRS-7'
-    )
-    expect(streamed.map((item) => item.toString())).toEqual(
-      items.map((item) => item.toString())
-    )
-    expect(
-      convertCsvToFsrsItems(data, rollover, 'Pacific/Apia', 'FSRS-6')[0].current
-        ?.deltaT
-    ).toBe(2)
-  })
+  test.each([0, 4, 23])(
+    'skips nonexistent study days at rollover %s',
+    async (rollover) => {
+      const hour = String(rollover).padStart(2, '0')
+      const data = Buffer.from(
+        [
+          'card_id,review_time,review_rating,review_state,review_duration',
+          `one,${Date.parse(`2011-12-29T${hour}:00:00-10:00`)},3,0,1000`,
+          `one,${Date.parse(`2011-12-31T${hour}:00:00+14:00`)},4,2,1000`,
+          `one,${Date.parse(`2011-12-31T${hour}:30:00+14:00`)},4,2,1000`,
+        ].join('\n')
+      )
+      const items = convertCsvToFsrsItems(
+        data,
+        rollover,
+        'Pacific/Apia',
+        'FSRS-7'
+      )
+      expect(items[0].current?.deltaT).toBe(1)
+      expect(items[1].current?.deltaT).toBeCloseTo(0.5 / 24, 7)
+      const streamed = await convertCsvToFsrsItems(
+        Readable.toWeb(Readable.from([data])) as ReadableStream<Uint8Array>,
+        rollover,
+        'Pacific/Apia',
+        'FSRS-7'
+      )
+      expect(streamed.map((item) => item.toString())).toEqual(
+        items.map((item) => item.toString())
+      )
+      expect(
+        convertCsvToFsrsItems(data, rollover, 'Pacific/Apia', 'FSRS-6')[0]
+          .current?.deltaT
+      ).toBe(2)
+    }
+  )
 
   test.each([
     ['2011-12-29T00:00:00-10:00', '2011-12-31T00:00:00+14:00', 0, 1],
     ['2011-12-31T01:00:00+14:00', '2011-12-31T05:00:00+14:00', 4, 4 / 24],
     ['2011-12-31T05:00:00+14:00', '2012-01-01T05:00:00+14:00', 4, 1],
-  ] as const)('handles transition range endpoints: %s', (start, end, rollover, expected) => {
+  ] as const)(
+    'handles transition range endpoints: %s',
+    (start, end, rollover, expected) => {
+      const data = Buffer.from(
+        [
+          'card_id,review_time,review_rating,review_state,review_duration',
+          `one,${Date.parse(start)},3,0,1000`,
+          `one,${Date.parse(end)},4,2,1000`,
+        ].join('\n')
+      )
+      const items = convertCsvToFsrsItems(
+        data,
+        rollover,
+        'Pacific/Apia',
+        'FSRS-7'
+      )
+      expect(items[0].current?.deltaT).toBeCloseTo(expected, 7)
+    }
+  )
+
+  test('FSRS6 preserves whole study days across rollover', () => {
     const data = Buffer.from(
       [
         'card_id,review_time,review_rating,review_state,review_duration',
-        `one,${Date.parse(start)},3,0,1000`,
-        `one,${Date.parse(end)},4,2,1000`,
+        `1,${Date.parse('2024-01-01T03:30:00+08:00')},1,0,1000`,
+        `1,${Date.parse('2024-01-01T04:30:00+08:00')},3,2,1000`,
+        `1,${Date.parse('2024-01-01T05:30:00+08:00')},4,2,1000`,
+        `1,${Date.parse('2024-01-03T04:30:00+08:00')},2,2,1000`,
       ].join('\n')
     )
     const items = convertCsvToFsrsItems(
       data,
-      rollover,
-      'Pacific/Apia',
-      'FSRS-7'
-    )
-    expect(items[0].current?.deltaT).toBeCloseTo(expected, 7)
-  })
-
-  test('FSRS6 should match the legacy converter count', () => {
-    // TS version
-    const tsItems = parseCSVToFSRSItems(testDataPath, nextDayStartsAt, timezone)
-
-    // RS version
-    const csvBuffer = fs.readFileSync(testDataPath)
-    const rsItems = convertCsvToFsrsItems(
-      csvBuffer,
       nextDayStartsAt,
       timezone,
       'FSRS-6'
     )
 
-    // This count should match the Rust implementation
-    expect(tsItems.length).toBe(rsItems.length)
-    console.log(
-      `✅ TS version (${tsItems.length}) matches RS version (${rsItems.length})`
-    )
+    expect(
+      items.map((item) =>
+        item.reviews.map(({ rating, deltaT }) => [rating, deltaT])
+      )
+    ).toEqual([
+      [
+        [1, 0],
+        [3, 1],
+      ],
+      [
+        [1, 0],
+        [3, 1],
+        [4, 0],
+        [2, 2],
+      ],
+    ])
   })
 
   test('should support DST timezone in Rust implementation', () => {
@@ -551,55 +572,5 @@ describe('CSV Parser', () => {
     expect(result).toBeInstanceOf(Promise)
     await expect(result).rejects.toThrow()
     expect(stream.locked).toBe(false)
-  })
-
-  describe('getTimezoneOffset', () => {
-    test('should parse GMT+8 format', () => {
-      const offset = getTimezoneOffset('Asia/Shanghai', new Date('2024-01-01'))
-      expect(offset).toBe(480) // UTC+8 = 480 minutes
-    })
-
-    test('should parse GMT-5 format', () => {
-      const offset = getTimezoneOffset(
-        'America/New_York',
-        new Date('2024-01-01')
-      )
-      expect(offset).toBe(-300) // UTC-5 = -300 minutes (winter time)
-    })
-
-    test('should handle GMT+0 format', () => {
-      const offset = getTimezoneOffset('UTC', new Date('2024-01-01'))
-      expect(offset).toBe(0)
-    })
-
-    test('should parse GMT+5:30 format with minutes', () => {
-      const offset = getTimezoneOffset('Asia/Kolkata', new Date('2024-01-01'))
-      expect(offset).toBe(330) // UTC+5:30 = 330 minutes
-    })
-
-    test('should handle different date timestamps for DST', () => {
-      // Summer time (DST active)
-      const summerOffset = getTimezoneOffset(
-        'America/New_York',
-        new Date('2024-07-01')
-      )
-      // Winter time (DST inactive)
-      const winterOffset = getTimezoneOffset(
-        'America/New_York',
-        new Date('2024-01-01')
-      )
-
-      // New York: UTC-4 in summer, UTC-5 in winter
-      expect(summerOffset).toBe(-240) // UTC-4
-      expect(winterOffset).toBe(-300) // UTC-5
-    })
-
-    test('should throw error for invalid timezone format', () => {
-      // Mock a timezone that returns unparseable format
-      expect(() => {
-        // This should work with the fixed implementation
-        getTimezoneOffset('Europe/London', new Date('2024-01-01'))
-      }).not.toThrow()
-    })
   })
 })

@@ -52,12 +52,12 @@
     "typecheck": "tsc --project js/tsconfig.json"
   },
   "devDependencies": {
-    "@emnapi/core": "2.0.0-alpha.5",
-    "@emnapi/runtime": "2.0.0-alpha.5",
-    "@napi-rs/cli": "3.10.4",
-    "@napi-rs/wasm-runtime": "^1.2.4",
+    "@emnapi/core": "catalog:",
+    "@emnapi/runtime": "catalog:",
+    "@napi-rs/cli": "3.10.8",
+    "@napi-rs/wasm-runtime": "catalog:",
     "@taplo/cli": "^0.7.0",
-    "emnapi": "2.0.0-alpha.5",
+    "emnapi": "catalog:",
     "npm-run-all2": "^9.0.3"
   },
   "keywords": [

@@ -12,11 +12,9 @@
     "test:coverage:ci": "pnpm run test:coverage"
   },
   "devDependencies": {
-    "@emnapi/core": "2.0.0-alpha.5",
-    "@emnapi/runtime": "2.0.0-alpha.5",
-    "@napi-rs/wasm-runtime": "^1.2.4",
-    "@types/papaparse": "^5.5.2",
-    "papaparse": "^5.7.0",
+    "@emnapi/core": "catalog:",
+    "@emnapi/runtime": "catalog:",
+    "@napi-rs/wasm-runtime": "catalog:",
     "tinybench": "^6.2.2",
     "vite": "^8.3.4",
     "vitest": "^5.0.5"
