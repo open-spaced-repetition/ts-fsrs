@@ -29,6 +29,7 @@ permissions:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview'
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: '26.12.1'
@@ -60,6 +61,7 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    environment: npm-release
     outputs:
       published: ${{ steps.changesets.outputs.published }}
     needs:
