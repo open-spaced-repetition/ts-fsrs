@@ -44,6 +44,8 @@ env:
 permissions:
   contents: read # to fetch code (actions/checkout)
 
+cache-mode: read
+
 jobs:
   build:
     strategy:

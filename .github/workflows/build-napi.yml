@@ -78,6 +78,11 @@ jobs:
           toolchain: 1.98.1
           targets: ${{ matrix.settings.target }}
 
+      - name: Get Rust version
+        id: rust-version
+        shell: bash
+        run: echo "version=$(rustc --version)" >> "$GITHUB_OUTPUT"
+
       - name: Cache cargo
         uses: actions/cache@v6
         with:
@@ -87,7 +92,9 @@ jobs:
             ~/.cargo/git/db/
             .cargo-cache
             target/
-          key: ${{ matrix.settings.target }}-cargo-${{ matrix.settings.host }}
+          key: cargo-v2-${{ matrix.settings.target }}-${{ matrix.settings.host }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}-${{ inputs.commit-sha }}
+          restore-keys: |
+            cargo-v2-${{ matrix.settings.target }}-${{ matrix.settings.host }}-${{ steps.rust-version.outputs.version }}-${{ hashFiles('Cargo.lock') }}-
 
       - uses: mlugg/setup-zig@v2
         if: ${{ contains(matrix.settings.target, 'musl') }}

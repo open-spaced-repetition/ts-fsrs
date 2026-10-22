@@ -29,6 +29,8 @@ concurrency:
 
 permissions: {}
 
+cache-mode: read
+
 env:
   CLOUDFLARE_PROJECT_NAME: ${{ vars.CLOUDFLARE_PROJECT_NAME }}
   PREVIEW_URL: https://ts-pr${{ github.event.pull_request.number }}.${{ vars.CLOUDFLARE_PROJECT_NAME }}.pages.dev

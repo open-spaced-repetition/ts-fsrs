@@ -30,6 +30,7 @@ permissions:
 jobs:
   build:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview'
+    cache-mode: write
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: '26.12.1'

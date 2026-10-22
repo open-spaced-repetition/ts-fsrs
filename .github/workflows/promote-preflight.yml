@@ -16,6 +16,8 @@ on:
 permissions:
   contents: read
 
+cache-mode: read
+
 concurrency:
   group: promote-preflight-${{ github.event.pull_request.number }}
   cancel-in-progress: true

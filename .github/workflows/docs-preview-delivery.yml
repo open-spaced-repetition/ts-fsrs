@@ -27,6 +27,8 @@ on:
 
 permissions: {}
 
+cache-mode: read
+
 jobs:
   resolve:
     if: >-
