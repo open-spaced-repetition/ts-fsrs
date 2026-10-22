@@ -2,16 +2,13 @@ name: Preview Release
 
 permissions:
   contents: read
+  pull-requests: read
 
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
   MACOSX_DEPLOYMENT_TARGET: '10.13'
   CARGO_INCREMENTAL: '1'
-  TURBO_API: ${{ secrets.TURBO_API }}
-  TURBO_TEAM: ${{ vars.TURBO_TEAM }}
-  TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
-  TURBO_REMOTE_CACHE_SIGNATURE_KEY: ${{ secrets.TURBO_REMOTE_CACHE_SIGNATURE_KEY }}
 
 on:
   pull_request_review:
@@ -26,6 +23,7 @@ jobs:
       (github.event_name == 'pull_request_review' && github.event.review.state == 'approved')
     runs-on: ubuntu-latest
     outputs:
+      sha: ${{ steps.verify.outputs.result }}
       has-permissions: ${{ steps.checkPermissions.outputs.require-result }}
     steps:
       - name: Check permissions
@@ -35,6 +33,28 @@ jobs:
           # In this example, the approver must have the write access
           # to the repository to trigger the package preview.
           require: 'write'
+          username: ${{ github.event.review.user.login || github.actor }}
+
+      - name: Verify approved commit
+        id: verify
+        if: github.event_name == 'workflow_dispatch' || steps.checkPermissions.outputs.require-result == 'true'
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            if (context.eventName === 'workflow_dispatch') return context.sha;
+            const { pull_request: pr, review } = context.payload;
+            if (review.state !== 'approved' || !review.commit_id || review.commit_id !== pr.head.sha) {
+              throw new Error('Approval does not match the event PR head');
+            }
+            const { data: live } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: pr.number,
+            });
+            if (live.state !== 'open' || live.head.sha !== review.commit_id) {
+              throw new Error('PR head changed or PR is no longer open; a new approval is required');
+            }
+            return review.commit_id;
 
   build:
     needs:
@@ -45,15 +65,19 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: '26.12.1'
-    secrets: inherit
+      commit-sha: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.check.outputs.sha }}
   release:
     name: Release
     runs-on: ubuntu-latest
     needs:
+      - check
       - build
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.check.outputs.sha }}
+          persist-credentials: false
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -81,6 +105,25 @@ jobs:
 
       - name: Run tests
         run: pnpm run test:coverage:ci
+
+      - name: Revalidate approved commit before publishing
+        uses: actions/github-script@v8
+        with:
+          result-encoding: string
+          script: |
+            if (context.eventName === 'workflow_dispatch') return context.sha;
+            const { pull_request: pr, review } = context.payload;
+            if (review.state !== 'approved' || !review.commit_id || review.commit_id !== pr.head.sha) {
+              throw new Error('Approval does not match the event PR head');
+            }
+            const { data: live } = await github.rest.pulls.get({
+              ...context.repo,
+              pull_number: pr.number,
+            });
+            if (live.state !== 'open' || live.head.sha !== review.commit_id) {
+              throw new Error('PR head changed or PR is no longer open; a new approval is required');
+            }
+            return review.commit_id;
 
       - name: Publish Preview Packages
         run: |

@@ -12,6 +12,10 @@ env:
 on:
   workflow_call:
     inputs:
+      commit-sha:
+        description: Immutable commit to build
+        required: true
+        type: string
       node-version:
         type: string
         default: '26.12.1'
@@ -59,6 +63,9 @@ jobs:
     name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit-sha }}
+          persist-credentials: false
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
@@ -141,6 +148,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.commit-sha }}
+          persist-credentials: false
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm

@@ -33,6 +33,7 @@ jobs:
     uses: ./.github/workflows/build-napi.yml
     with:
       node-version: '26.12.1'
+      commit-sha: ${{ github.sha }}
     secrets: inherit
   test:
     needs: build
