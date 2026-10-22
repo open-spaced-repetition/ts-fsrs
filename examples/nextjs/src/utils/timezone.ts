@@ -32,4 +32,9 @@ export function getFormatter(tz: string): Intl.DateTimeFormat {
  * Get all supported timezones
  * @returns Array of timezone strings
  */
-export const getSupportedTimezones = Intl.supportedValuesOf('timeZone')
+export function getSupportedTimezones(): string[] {
+  const timezones = Intl.supportedValuesOf('timeZone')
+  // Intl.supportedValuesOf omits UTC even when it is the system timezone.
+  timezones.push('UTC')
+  return timezones
+}

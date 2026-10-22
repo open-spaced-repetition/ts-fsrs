@@ -2,8 +2,10 @@ import { useRef, useState } from 'react'
 import type {
   OptimizationResult,
   SSEMessage,
+  TrainingConfig,
   TrainingStats,
 } from '@/types/training'
+import { trainingSchema } from '@/types/training-schema'
 
 interface UseSSETrainingOptions {
   onError?: (error: Error) => void
@@ -18,7 +20,7 @@ interface UseSSETrainingReturn {
     file: File,
     timezone: string,
     nextDayStartsAt: number,
-    numRelearningSteps: number
+    config: TrainingConfig
   ) => Promise<void>
   abortTraining: () => void
   resetState: () => void
@@ -55,27 +57,15 @@ export function useSSETraining(
         break
 
       case 'training_start':
-        setResults((prev) => {
-          const newResults = [...prev]
-          if (newResults.length === 0) {
-            // Initialize results array
-            newResults.push(
-              {
-                enableShortTerm: true,
-                parameters: [],
-                progress: '0/0',
-                completed: false,
-              },
-              {
-                enableShortTerm: false,
-                parameters: [],
-                progress: '0/0',
-                completed: false,
-              }
-            )
-          }
-          return newResults
-        })
+        setResults([
+          {
+            modelVersion: data.modelVersion,
+            enableShortTerm: data.enableShortTerm,
+            parameters: [],
+            progress: '0/0',
+            completed: false,
+          },
+        ])
         setStatusMessage(
           `Training ${data.enableShortTerm ? 'with' : 'without'} short-term memory...`
         )
@@ -108,11 +98,11 @@ export function useSSETraining(
 
       case 'error': {
         const errorMsg = `Error: ${data.message}`
-        setStatusMessage(errorMsg)
         if (onError) {
+          setStatusMessage('')
           onError(new Error(data.message))
         } else {
-          alert(errorMsg)
+          setStatusMessage(errorMsg)
         }
         break
       }
@@ -123,7 +113,7 @@ export function useSSETraining(
     file: File,
     timezone: string,
     nextDayStartsAt: number,
-    numRelearningSteps: number
+    config: TrainingConfig
   ) => {
     setIsProcessing(true)
     setStatusMessage('Uploading file...')
@@ -132,12 +122,17 @@ export function useSSETraining(
     abortControllerRef.current = abortController
 
     try {
+      const parameters = trainingSchema.parse({
+        ...config,
+        timezone,
+        nextDayStartsAt,
+      })
       // Create form data
       const formData = new FormData()
       formData.append('file', file)
-      formData.append('timezone', timezone)
-      formData.append('nextDayStartsAt', nextDayStartsAt.toString())
-      formData.append('numRelearningSteps', numRelearningSteps.toString())
+      for (const [name, value] of Object.entries(parameters)) {
+        if (value !== undefined) formData.append(name, String(value))
+      }
 
       // Send to server API and handle SSE response
       const response = await fetch('/api/train', {
@@ -147,7 +142,10 @@ export function useSSETraining(
       })
 
       if (!response.ok) {
-        throw new Error('Server request failed')
+        throw new Error(
+          (await response.text()) ||
+            `Server request failed (${response.status})`
+        )
       }
 
       // Read SSE stream
@@ -196,9 +194,10 @@ export function useSSETraining(
       const errorMessage =
         error instanceof Error ? error.message : 'Processing failed'
       if (onError) {
+        setStatusMessage('')
         onError(error instanceof Error ? error : new Error(errorMessage))
       } else {
-        alert(`Processing failed: ${errorMessage}`)
+        setStatusMessage(`Processing failed: ${errorMessage}`)
       }
     } finally {
       abortControllerRef.current = null

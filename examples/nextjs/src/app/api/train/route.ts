@@ -1,9 +1,10 @@
+import { handle } from '@hono/vercel'
 import { computeParameters } from '@open-spaced-repetition/binding'
 import { Hono } from 'hono'
 import { bodyLimit } from 'hono/body-limit'
 import { streamSSE } from 'hono/streaming'
-import { handle } from 'hono/vercel'
 import type { OptimizationResult } from '@/types/training'
+import { trainingFormSchema } from '@/types/training-schema'
 import { convertFSRSItemByFile } from '@/utils/convert'
 
 export const dynamic = 'force-dynamic'
@@ -27,30 +28,10 @@ app.post(
         // Parse form data
         const formData = await c.req.formData()
         const file = formData.get('file') as File | null
-        const timezone = (formData.get('timezone') as string) || 'Asia/Shanghai'
-        const nextDayStartsAtStr =
-          (formData.get('nextDayStartsAt') as string) || '4'
-        const nextDayStartsAt = parseInt(nextDayStartsAtStr, 10)
-        const numRelearningStepsStr =
-          (formData.get('numRelearningSteps') as string) || '1'
-        const numRelearningSteps = parseInt(numRelearningStepsStr, 10)
+        const { nextDayStartsAt, timezone, ...config } =
+          trainingFormSchema.parse(Object.fromEntries(formData))
 
-        if (
-          Number.isNaN(nextDayStartsAt) ||
-          nextDayStartsAt < 0 ||
-          nextDayStartsAt > 23 ||
-          Number.isNaN(numRelearningSteps)
-        ) {
-          await stream.writeSSE({
-            data: JSON.stringify({
-              type: 'error',
-              message: 'Invalid parameters provided.',
-            }),
-          })
-          return
-        }
-
-        if (!file) {
+        if (!(file instanceof File)) {
           await stream.writeSSE({
             data: JSON.stringify({
               type: 'error',
@@ -72,12 +53,16 @@ app.post(
         const parseStartTime = performance.now()
 
         // Convert CSV to FSRS items
-        const fsrsItems = await convertFSRSItemByFile(
+        const { items: fsrsItems, cardIds } = await convertFSRSItemByFile(
           file,
           nextDayStartsAt,
-          timezone
+          timezone,
+          config.modelVersion
         )
 
+        if (fsrsItems.length === 0) {
+          throw new Error('No valid reviews were found for the selected model.')
+        }
         const parseEndTime = performance.now()
         const parseDuration = parseEndTime - parseStartTime
         const parseTime = `${parseDuration.toFixed(2)}ms`
@@ -96,16 +81,10 @@ app.post(
         // Timing: Training
         const trainingStartTime = performance.now()
 
-        // Initialize results for both short-term enabled and disabled
         const results: OptimizationResult[] = [
           {
-            enableShortTerm: true,
-            parameters: [],
-            progress: '0/0',
-            completed: false,
-          },
-          {
-            enableShortTerm: false,
+            modelVersion: config.modelVersion,
+            enableShortTerm: config.enableShortTerm,
             parameters: [],
             progress: '0/0',
             completed: false,
@@ -114,13 +93,13 @@ app.post(
 
         // Compute parameters wrapper with progress streaming
         const computeParametersWrapper = async (enableShortTerm: boolean) => {
-          // Determine result index based on enableShortTerm
-          const resultIndex = enableShortTerm ? 0 : 1
+          const resultIndex = 0
 
           // Send training start event
           await stream.writeSSE({
             data: JSON.stringify({
               type: 'training_start',
+              modelVersion: config.modelVersion,
               enableShortTerm,
             }),
           })
@@ -129,8 +108,8 @@ app.post(
           let writeQueue = Promise.resolve()
 
           const optimizedParameters = await computeParameters(fsrsItems, {
-            enableShortTerm,
-            numRelearningSteps,
+            ...config,
+            cardIds,
             progress: (cur, total) => {
               console.debug(
                 `[Server][enableShortTerm = ${enableShortTerm ? 1 : 0}] Progress: ${cur}/${total}`
@@ -160,6 +139,7 @@ app.post(
             },
           })
 
+          await writeQueue
           console.debug(
             `[Server][enableShortTerm = ${enableShortTerm}] optimized parameters:`,
             optimizedParameters
@@ -182,10 +162,7 @@ app.post(
           })
         }
 
-        // Run computations sequentially to reduce memory pressure
-        // Running in parallel may cause WebAssembly memory access errors with large datasets
-        await computeParametersWrapper(true)
-        await computeParametersWrapper(false)
+        await computeParametersWrapper(config.enableShortTerm)
 
         const trainingEndTime = performance.now()
         const trainingDuration = trainingEndTime - trainingStartTime

@@ -2,6 +2,8 @@
 
 import { useEffect, useId, useState } from 'react'
 import { useSSETraining } from '@/hooks/useSSETraining'
+import type { ModelVersion } from '@/types/training'
+import TrainingError from './TrainingError'
 
 interface TimezoneOption {
   value: string
@@ -16,10 +18,17 @@ export default function ServerTraining({
   onProcessingChange,
 }: ServerTrainingProps) {
   // Generate unique IDs for form fields
+  const modelId = useId()
+  const shortTermId = useId()
+  const penaltiesId = useId()
+  const [modelVersion, setModelVersion] = useState<ModelVersion>('FSRS-7')
+  const [enableShortTerm, setEnableShortTerm] = useState(true)
+  const [enableSchedPenalties, setEnableSchedPenalties] = useState(false)
   const timezoneId = useId()
   const nextDayStartsAtId = useId()
   const numRelearningStepsId = useId()
 
+  const [error, setError] = useState('')
   const [csvFile, setCsvFile] = useState<File | null>(null)
   const [nextDayStartsAt, setNextDayStartsAt] = useState<number>(4)
   const [numRelearningSteps, setNumRelearningSteps] = useState<number>(1)
@@ -47,7 +56,7 @@ export default function ServerTraining({
     resetState,
   } = useSSETraining({
     onError: (error) => {
-      alert(`Processing failed: ${error.message}`)
+      setError(`Processing failed: ${error.message}`)
     },
   })
 
@@ -65,11 +74,14 @@ export default function ServerTraining({
   }, [isProcessing, onProcessingChange])
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setError('')
+    setCsvFile(null)
+    resetState()
     const file = event.target.files?.[0]
     if (file) {
-      const MAX_FILE_SIZE_MB = 100 // 50MB limit for server-side processing
+      const MAX_FILE_SIZE_MB = 50 // 50MB limit for server-side processing
       if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
-        alert(
+        setError(
           `File size exceeds ${MAX_FILE_SIZE_MB}MB. Please select a smaller file.`
         )
         event.target.value = '' // Reset file input
@@ -82,12 +94,26 @@ export default function ServerTraining({
   }
 
   const handleProcessCSV = async () => {
+    setError('')
     if (!csvFile) {
-      alert('Please select a CSV file first')
+      setError('Please select a CSV file first')
       return
     }
 
-    await startTraining(csvFile, timezone, nextDayStartsAt, numRelearningSteps)
+    resetState()
+    await startTraining(
+      csvFile,
+      timezone,
+      nextDayStartsAt,
+      modelVersion === 'FSRS-6'
+        ? {
+            modelVersion,
+            enableShortTerm,
+            enableSchedPenalties: false,
+            numRelearningSteps,
+          }
+        : { modelVersion, enableShortTerm: true, enableSchedPenalties }
+    )
   }
 
   return (
@@ -95,6 +121,66 @@ export default function ServerTraining({
       <h1 className="text-3xl font-bold mb-8 text-gray-900 dark:text-gray-100">
         Server-Side FSRS Training
       </h1>
+
+      <TrainingError message={error} />
+
+      <div className="mb-6 grid grid-cols-1 items-end gap-4 md:grid-cols-2">
+        <div>
+          <label
+            htmlFor={modelId}
+            className="mb-2 block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
+            Model
+          </label>
+          <select
+            id={modelId}
+            value={modelVersion}
+            disabled={isProcessing}
+            className="block w-full rounded-lg border border-gray-300 bg-white p-2.5 text-sm text-gray-900 focus:border-green-500 focus:outline-none focus:ring-2 focus:ring-green-500 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100"
+            onChange={(event) => {
+              setModelVersion(event.target.value as ModelVersion)
+              setError('')
+              resetState()
+            }}
+          >
+            <option value="FSRS-6">FSRS-6 (21 parameters)</option>
+            <option value="FSRS-7">FSRS-7 (34 parameters)</option>
+          </select>
+        </div>
+        {modelVersion === 'FSRS-6' ? (
+          <label
+            htmlFor={shortTermId}
+            className="flex min-h-11 cursor-pointer items-center gap-3 text-sm leading-6 text-gray-700 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:text-gray-300"
+          >
+            <input
+              id={shortTermId}
+              type="checkbox"
+              className="h-4 w-4 shrink-0 cursor-pointer accent-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed"
+              checked={enableShortTerm}
+              disabled={isProcessing}
+              onChange={(event) => setEnableShortTerm(event.target.checked)}
+            />{' '}
+            Enable short-term memory
+          </label>
+        ) : (
+          <label
+            htmlFor={penaltiesId}
+            className="flex min-h-11 cursor-pointer items-center gap-3 text-sm leading-6 text-gray-700 has-disabled:cursor-not-allowed has-disabled:opacity-50 dark:text-gray-300"
+          >
+            <input
+              id={penaltiesId}
+              type="checkbox"
+              className="h-4 w-4 shrink-0 cursor-pointer accent-green-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-green-500 disabled:cursor-not-allowed"
+              checked={enableSchedPenalties}
+              disabled={isProcessing}
+              onChange={(event) =>
+                setEnableSchedPenalties(event.target.checked)
+              }
+            />{' '}
+            Enable scheduling penalties (FSRS-7 always uses short-term memory)
+          </label>
+        )}
+      </div>
 
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
@@ -148,7 +234,11 @@ export default function ServerTraining({
               id={nextDayStartsAtId}
               value={nextDayStartsAt}
               onChange={(e) =>
-                setNextDayStartsAt(Number(e.target.value) || nextDayStartsAt)
+                setNextDayStartsAt(
+                  e.target.value === ''
+                    ? nextDayStartsAt
+                    : Number(e.target.value)
+                )
               }
               disabled={isProcessing}
               min={0}
@@ -161,28 +251,30 @@ export default function ServerTraining({
           </div>
         </div>
 
-        <div className="mt-4">
-          <label
-            htmlFor={numRelearningStepsId}
-            className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-          >
-            Number of Relearning Steps
-          </label>
-          <input
-            type="number"
-            id={numRelearningStepsId}
-            value={numRelearningSteps}
-            onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
-            disabled={isProcessing}
-            min={0}
-            max={10}
-            className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500 p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
-          />
-          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-            Number of learning steps before a card is considered relearned
-            (0-10)
-          </p>
-        </div>
+        {modelVersion === 'FSRS-6' && (
+          <div className="mt-4">
+            <label
+              htmlFor={numRelearningStepsId}
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+            >
+              Number of Relearning Steps
+            </label>
+            <input
+              type="number"
+              id={numRelearningStepsId}
+              value={numRelearningSteps}
+              onChange={(e) => setNumRelearningSteps(Number(e.target.value))}
+              disabled={isProcessing}
+              min={0}
+              max={10}
+              className="block w-full text-sm text-gray-900 dark:text-gray-100 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-500 focus:border-green-500 p-2.5 disabled:opacity-50 disabled:cursor-not-allowed"
+            />
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              Number of learning steps before a card is considered relearned
+              (0-10)
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="mb-6">
@@ -251,9 +343,8 @@ export default function ServerTraining({
                   }`}
                 >
                   <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">
-                    {result.enableShortTerm
-                      ? 'Short-Term Enabled'
-                      : 'Short-Term Disabled'}
+                    {result.modelVersion} (
+                    {result.modelVersion === 'FSRS-6' ? 21 : 34} parameters)
                   </h3>
 
                   {/* Progress bar */}

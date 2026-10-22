@@ -1,7 +1,21 @@
-# To avoid polluting the root pnpm-lock.yaml, I added a pnpm-workspace.yaml file inside each example.
 packages:
   - .
 
+lockfile: false
+
+minimumReleaseAgeExclude:
+  - '@open-spaced-repetition/binding@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-android-arm64@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-darwin-arm64@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-darwin-x64@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-linux-arm64-gnu@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-linux-arm64-musl@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-linux-x64-gnu@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-linux-x64-musl@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-wasm32-wasi@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-wasm32-wasip1@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-win32-arm64-msvc@0.6.0-beta.7'
+  - '@open-spaced-repetition/binding-win32-x64-msvc@0.6.0-beta.7'
 
 supportedArchitectures:
   cpu: [current, wasm32]

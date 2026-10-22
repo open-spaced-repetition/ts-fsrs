@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Each example resolves dependencies independently.
+pnpm-lock.yaml
+
+# Wrangler local state
+.wrangler/
