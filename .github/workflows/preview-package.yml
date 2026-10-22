@@ -4,6 +4,8 @@ permissions:
   contents: read
   pull-requests: read
 
+cache-mode: read
+
 env:
   DEBUG: napi:*
   APP_NAME: optimizer
