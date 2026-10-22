@@ -5,7 +5,7 @@ inputs:
   node-version:
     description: Node version to use
     required: false
-    default: '26'
+    default: '26.12.1'
   architecture:
     description: Node architecture to use
     required: false
