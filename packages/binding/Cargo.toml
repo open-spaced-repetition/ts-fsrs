@@ -14,7 +14,7 @@ napi = { version = "3.14.2", default-features = true, features = [
 ] }
 napi-derive = "3.6.12"
 csv = "1.4.0"
-jiff = { version = "=0.2.37", default-features = false, features = [
+jiff = { version = "=0.2.38", default-features = false, features = [
   "alloc",
   "tzdb-bundle-always",
 ] }
