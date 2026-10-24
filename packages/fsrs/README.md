@@ -1,6 +1,6 @@
 # ts-fsrs
 
-[![Supported FSRS versions](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/model/index.mdx)
+[![Supported FSRS versions](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/guide/model/)
 [![npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs)
 [![downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 
@@ -156,12 +156,14 @@ You can keep your custom definition as a program-level preset and reuse it to cr
 
 ## Documentation
 
-- [Quick start](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/quick-start.mdx)
-- [Schedulers and chronology](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/scheduler/index.mdx)
-- [Models](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/model/index.mdx)
-- [Middleware](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/middleware/index.mdx)
-- [v5 → v6 and FSRS-7 migration](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/migration.mdx)
-- [Optimizer guide](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/en-US/guide/optimizer/index.mdx): install [`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding) separately for parameter training or review-log CSV conversion.
+- [Quick start](https://open-spaced-repetition.github.io/ts-fsrs/guide/quick-start)
+- [API reference](https://open-spaced-repetition.github.io/ts-fsrs/api/ts-fsrs/)
+- [Playground](https://open-spaced-repetition.github.io/ts-fsrs/playground)
+- [Schedulers and chronology](https://open-spaced-repetition.github.io/ts-fsrs/guide/scheduler/)
+- [Models](https://open-spaced-repetition.github.io/ts-fsrs/guide/model/)
+- [Middleware](https://open-spaced-repetition.github.io/ts-fsrs/guide/middleware/)
+- [v5 → v6 and FSRS-7 migration](https://open-spaced-repetition.github.io/ts-fsrs/guide/migration)
+- [Optimizer guide](https://open-spaced-repetition.github.io/ts-fsrs/guide/optimizer/): install [`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding) separately for parameter training or review-log CSV conversion.
 
 ## Examples
 

@@ -1,6 +1,6 @@
 # ts-fsrs
 
-[![支持的 FSRS 版本](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/model/index.mdx)
+[![支持的 FSRS 版本](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/model/)
 [![npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs)
 [![downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs)
 
@@ -156,12 +156,14 @@ console.log(result.revlog)
 
 ## 文档
 
-- [快速开始](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/quick-start.mdx)
-- [调度器与时间系统](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/scheduler/index.mdx)
-- [模型](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/model/index.mdx)
-- [Middleware](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/middleware/index.mdx)
-- [v5 → v6 与 FSRS-7 迁移](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/migration.mdx)
-- [优化器指南](https://github.com/open-spaced-repetition/ts-fsrs/blob/main/docs/src/zh-CN/guide/optimizer/index.mdx)：训练参数或转换复习日志 CSV 时，额外安装 [`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)。
+- [快速开始](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/quick-start)
+- [API 参考](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/api/ts-fsrs/)
+- [Playground](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/playground)
+- [调度器与时间系统](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/scheduler/)
+- [模型](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/model/)
+- [Middleware](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/middleware/)
+- [v5 → v6 与 FSRS-7 迁移](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/migration)
+- [优化器指南](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/optimizer/)：训练参数或转换复习日志 CSV 时，额外安装 [`@open-spaced-repetition/binding`](https://www.npmjs.com/package/@open-spaced-repetition/binding)。
 
 ## 示例
 
