@@ -2,7 +2,7 @@
 
 ## 6.0.0
 
-This is a major update with breaking changes. We recommend following the [migration guide](https://open-spaced-repetition.github.io/ts-fsrs/guide/migration) and using [llms.txt](https://open-spaced-repetition.github.io/ts-fsrs/llms.txt) as the documentation entry point for AI-assisted migration.
+This is a major update with breaking changes. ts-fsrs v6 introduces FSRS-7, the default model for `DefaultScheduler`; see the [quick start](https://open-spaced-repetition.github.io/ts-fsrs/guide/quick-start#start-with-defaultscheduler) to get started. For existing integrations, we recommend following the [migration guide](https://open-spaced-repetition.github.io/ts-fsrs/guide/migration) and using [llms.txt](https://open-spaced-repetition.github.io/ts-fsrs/llms.txt) as the documentation entry point for AI-assisted migration.
 
 ### Breaking Changes
 
