@@ -4,7 +4,7 @@
 
 # ts-fsrs
 
-[![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/ja-JP/guide/model/index.mdx)
+[![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/guide/model/)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
 
@@ -16,8 +16,8 @@
 
 | パッケージ | 説明 | 対応 FSRS バージョン | パッケージ版 | ダウンロード数 |
 | --- | --- | --- | --- | --- |
-| [`ts-fsrs`](./packages/fsrs/README_JA.md) | 復習フローを構築するためのスケジューラー | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/ja-JP/guide/model/index.mdx) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
-| [`@open-spaced-repetition/binding`](./packages/binding/README_JA.md) | パラメータ学習と CSV 変換のための高性能オプティマイザー | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](./docs/src/ja-JP/guide/optimizer/index.mdx) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
+| [`ts-fsrs`](./packages/fsrs/README_JA.md) | 復習フローを構築するためのスケジューラー | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/guide/model/) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
+| [`@open-spaced-repetition/binding`](./packages/binding/README_JA.md) | パラメータ学習と CSV 変換のための高性能オプティマイザー | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/guide/optimizer/) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
 
 ## インストール
 
@@ -65,8 +65,10 @@ console.log(result.revlog)
 
 - [`packages/fsrs/README_JA.md`](./packages/fsrs/README_JA.md)
 - [`packages/binding/README_JA.md`](./packages/binding/README_JA.md)
-- [クイックスタート](./docs/src/ja-JP/guide/quick-start.mdx)
-- [v5 → v6 と FSRS-7 への移行](./docs/src/ja-JP/guide/migration.mdx)
+- [クイックスタート](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/guide/quick-start)
+- [API リファレンス](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/api/ts-fsrs/)
+- [Playground](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/playground)
+- [v5 → v6 と FSRS-7 への移行](https://open-spaced-repetition.github.io/ts-fsrs/ja-JP/guide/migration)
 
 ## 例
 

@@ -17,8 +17,8 @@ This repository contains two main packages:
 
 | Package | Description | Supported FSRS Versions | Package Version | Downloads |
 | --- | --- | --- | --- | --- |
-| [`ts-fsrs`](./packages/fsrs/README.md) | the scheduler for review flows | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/en-US/guide/model/index.mdx) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
-| [`@open-spaced-repetition/binding`](./packages/binding/README.md) | the optimizer for parameter training and CSV conversion | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](./docs/src/en-US/guide/optimizer/index.mdx) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
+| [`ts-fsrs`](./packages/fsrs/README.md) | the scheduler for review flows | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/guide/model/) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm monthly downloads](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm total downloads](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
+| [`@open-spaced-repetition/binding`](./packages/binding/README.md) | the optimizer for parameter training and CSV conversion | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/guide/optimizer/) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm monthly downloads](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm total downloads](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
 
 ## Installation
 
@@ -66,8 +66,10 @@ For detailed usage, advanced examples, browser/WASI setup, and API notes:
 
 - [`packages/fsrs/README.md`](./packages/fsrs/README.md)
 - [`packages/binding/README.md`](./packages/binding/README.md)
-- [Quick start](./docs/src/en-US/guide/quick-start.mdx)
-- [v5 → v6 and FSRS-7 migration](./docs/src/en-US/guide/migration.mdx)
+- [Quick start](https://open-spaced-repetition.github.io/ts-fsrs/guide/quick-start)
+- [API reference](https://open-spaced-repetition.github.io/ts-fsrs/api/ts-fsrs/)
+- [Playground](https://open-spaced-repetition.github.io/ts-fsrs/playground)
+- [v5 → v6 and FSRS-7 migration](https://open-spaced-repetition.github.io/ts-fsrs/guide/migration)
 
 ## Examples
 

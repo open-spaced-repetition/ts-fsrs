@@ -4,7 +4,7 @@
 
 # ts-fsrs
 
-[![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/zh-CN/guide/model/index.mdx)
+[![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/model/)
 [![codecov](https://img.shields.io/codecov/c/github/open-spaced-repetition/ts-fsrs?token=E3KLLDL8QH&style=flat-square&logo=codecov)](https://codecov.io/gh/open-spaced-repetition/ts-fsrs)
 [![Release](https://img.shields.io/github/actions/workflow/status/open-spaced-repetition/ts-fsrs/release.yml?style=flat-square&logo=githubactions&label=Release)](https://github.com/open-spaced-repetition/ts-fsrs/actions/workflows/release.yml)
 
@@ -16,8 +16,8 @@
 
 | 包 | 说明 | 支持的 FSRS 版本 | 包版本 | 下载量 |
 | --- | --- | --- | --- | --- |
-| [`ts-fsrs`](./packages/fsrs/README_CN.md) | 用于构建复习调度流程的调度器 | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](./docs/src/zh-CN/guide/model/index.mdx) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm 月下载量](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm 总下载量](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
-| [`@open-spaced-repetition/binding`](./packages/binding/README_CN.md) | 用于参数训练和 CSV 转换的高性能优化器 | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](./docs/src/zh-CN/guide/optimizer/index.mdx) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm 月下载量](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm 总下载量](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
+| [`ts-fsrs`](./packages/fsrs/README_CN.md) | 用于构建复习调度流程的调度器 | [![fsrs version](https://img.shields.io/badge/FSRS-3%20%7C%204%20%7C%204.5%20%7C%205%20%7C%206%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/model/) | [![ts-fsrs npm version](https://img.shields.io/npm/v/ts-fsrs.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/ts-fsrs) | [![ts-fsrs npm 月下载量](https://img.shields.io/npm/dm/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) [![ts-fsrs npm 总下载量](https://img.shields.io/npm/dt/ts-fsrs?style=flat-square)](https://www.npmjs.com/package/ts-fsrs) |
+| [`@open-spaced-repetition/binding`](./packages/binding/README_CN.md) | 用于参数训练和 CSV 转换的高性能优化器 | [![fsrs version](https://img.shields.io/badge/FSRS-6%20%7C%207-blue?style=flat-square)](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/optimizer/) | [![binding npm version](https://img.shields.io/npm/v/@open-spaced-repetition/binding.svg?style=flat-square&logo=npm)](https://www.npmjs.com/package/@open-spaced-repetition/binding) | [![binding npm 月下载量](https://img.shields.io/npm/dm/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) [![binding npm 总下载量](https://img.shields.io/npm/dt/%40open-spaced-repetition%2Fbinding?style=flat-square)](https://www.npmjs.com/package/@open-spaced-repetition/binding) |
 
 ## 安装
 
@@ -65,8 +65,10 @@ console.log(result.revlog)
 
 - [`packages/fsrs/README_CN.md`](./packages/fsrs/README_CN.md)
 - [`packages/binding/README_CN.md`](./packages/binding/README_CN.md)
-- [快速开始](./docs/src/zh-CN/guide/quick-start.mdx)
-- [v5 → v6 与 FSRS-7 迁移指南](./docs/src/zh-CN/guide/migration.mdx)
+- [快速开始](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/quick-start)
+- [API 参考](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/api/ts-fsrs/)
+- [Playground](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/playground)
+- [v5 → v6 与 FSRS-7 迁移指南](https://open-spaced-repetition.github.io/ts-fsrs/zh-CN/guide/migration)
 
 ## 示例
 
