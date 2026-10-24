@@ -1,5 +1,76 @@
 # @open-spaced-repetition/srs-kit
 
+## 1.0.0
+
+### Major Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`30d35fb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/30d35fb99c7073c265c81403ff470884df667b78) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): rename `projection` to `normalize` and `ChronoProjection` to `ChronoTimeNormalizer`.
+
+### Minor Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`fab4c67`](https://github.com/open-spaced-repetition/ts-fsrs/commit/fab4c670e33543e49e26d2810e2a93a250122cb9) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add cached grade lookup to review candidates
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`aff2328`](https://github.com/open-spaced-repetition/ts-fsrs/commit/aff2328eafa62e78989c27bf500eb613a3f006aa) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(scheduler): add `nextInterval` queries with shared interval middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0538d20`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0538d20c966e0bfa164fad1d95a4f94f6fec27c1) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): unify card and revlog time projections so rollback restores the pre-review due date
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`74f1cf8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/74f1cf852d0d064de7ff43d46ec556b360f03fa9) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add FSRS-7.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`dd4d3a9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dd4d3a9374ffc93c9bc930c32a41f153e712263b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): make scheduler middleware composition immutable.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`8c0375d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/8c0375db6992e114e49f3d6d97bcb8cfe77f427b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): support mapping preview results to arrays.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`341165a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/341165a47c31ef11c793c7c19ad08c456d3a2bbe) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): expose the scheduler instance in middleware handlers and the input card's retrievability in review contexts.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`e3e7e91`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e3e7e91f347778f9b4a690db64861dcf8d7da0c4) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(middleware): support per-grade desired retention on scheduler candidates.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`4732dfb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4732dfbb4b2b9bef917b30c064c1bb3797f123f3) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(kit): simplify chrono config to share options with middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`04333f6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/04333f6fbdedeca8c2fbecaf50f6bbc10e8a6f9d) Thanks [@ishiko732](https://github.com/ishiko732)! - Publish `@open-spaced-repetition/srs-kit` as a public BSD-licensed package.
+  
+  This initial public release includes the shared SRS framework primitives used by `ts-fsrs`:
+  
+  - schema helpers for validating cards, review logs, models, schedulers, and middleware options;
+  - schedule status and rating primitives;
+  - model contracts with config validation, migration hooks, parameter clipping, and scheduler reuse support;
+  - chrono contracts and presets for numeric elapsed days, `Date`, and `Temporal.Instant`;
+  - middleware definition and composition helpers;
+  - scheduler creation APIs for review, rollback, forget, card initialization, chrono defaults, and middleware finalization;
+  - `SchedulerCore.forward` for replaying a review history into one card and revlog per review.
+
+### Patch Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`adc4554`](https://github.com/open-spaced-repetition/ts-fsrs/commit/adc455435e67debd3efb13fd8d4f035e6112da7b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): add an optional precise `compare` operation to chronology cores and
+  implement it for the Date and Temporal.Instant presets.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`21c030a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21c030a10e6e9eb91243ec314bbceb85211bf5ef) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: separate model parameter migration, clipping, and validation
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`a73dbb2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a73dbb24a11fb060e0b3aa92997660376b17bf73) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor: Rename `ComposableScheduler` to `CustomScheduler` and `composeMiddleware` to `runMiddlewares`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b7deb79`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b7deb794baf1f070b4954dcc26516a8bb3a6cedc) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): expose flattened scheduler config input and output types.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`1139c55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1139c5514fbd7ba2989fab7f1f76056eefc18907) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: export stats middleware APIs.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b9d9f97`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b9d9f973f061f93ebc69f7b982e794634e4f2b8a) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: restore new-card chronology during rollback.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`263dfce`](https://github.com/open-spaced-repetition/ts-fsrs/commit/263dfcecd6f7e92537c8ef6cbf3bbbbb513a06b5) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: infer middleware card initialization fields for `newCard`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`4099540`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4099540e0e61ff5e9e1c8f9aa7b29d845f911f7f) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): accept full Standard Schema types.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b2ea08d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b2ea08db39a4255f51abc2133d8e57975530d982) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten composed schedule fields and label preview card and revlog types.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`d6aa18a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d6aa18a40148c2562b85670415a5dff0e9b6b062) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten named card return type displays across scheduler APIs.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`7ca0459`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7ca045939f6eade60d8a90520e58647e6fe0e7ae) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten composed `newCard` return type displays.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`3929a41`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3929a41c9cb4e51f2dfb718b9cf3242fea845392) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): flatten preview card and revlog type displays.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`612d83b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/612d83bb79dc76e061607baf4b7790311cae665a) Thanks [@ishiko732](https://github.com/ishiko732)! - perf(kit): cache middleware schemas used by scheduler validation.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`7342933`](https://github.com/open-spaced-repetition/ts-fsrs/commit/734293325a5f1c1470a7d4840eb6916f124694b1) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): preserve new-card rollback state while keeping elapsed days at zero.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`dd4d3a9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dd4d3a9374ffc93c9bc930c32a41f153e712263b) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(kit): avoid TypeScript 7 TS2590 errors in scheduler type inference.
+
 ## 1.0.0-beta.10
 
 ### Patch Changes

@@ -1,5 +1,225 @@
 # ts-fsrs
 
+## 6.0.0
+
+### Major Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0fab33f`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0fab33fbaf640318a53fc5f39038428b2e2e8bac) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add the srs-kit-backed `DefaultScheduler` API.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`27e7407`](https://github.com/open-spaced-repetition/ts-fsrs/commit/27e740733fe946837b33579d5fc8007e5a43faff) Thanks [@ishiko732](https://github.com/ishiko732)! - - feat: Add optional `desired_retention` to `FSRSAlgorithm.next_interval`.
+  
+  `next_interval(stability)` is now `next_interval(stability, desired_retention?)`. When omitted, `desired_retention` defaults to `parameters.request_retention`. The algorithm layer no longer clamps by `parameters.maximum_interval`; scheduler paths continue to read `request_retention` from parameters and apply maximum interval limits.
+  
+  - **BREAKING CHANGE:** The `interval_modifier` getter and `calculate_interval_modifier()` method have been removed.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`99f0031`](https://github.com/open-spaced-repetition/ts-fsrs/commit/99f0031cdbedb60899558ddd1603fe705e816660) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move FSRS-6 algorithm operations out of the root `FSRSAlgorithm` API and into the model layer.
+  
+  - `FSRSAlgorithm` and the root-level algorithm helpers have been removed. Use the new `ts-fsrs/models/fsrs-6` entry for FSRS-6 model, algorithm, parameter migration, and clipping helpers.
+  - `next_state`, `next_interval`, `forgetting_curve`, and `get_retrievability` have been removed from the `FSRS` facade/root exports. Use model methods (`step`, `nextInterval`, `forgettingCurve`, `forward`) or import `forgettingCurve` from `ts-fsrs/models/fsrs-6` instead.
+  - `clipParameters` and `migrateParameters` have been removed from the root export. Use `clipFSRS6Parameters` and `migrateFSRS6Parameters` from `ts-fsrs/models/fsrs-6`.
+  - `retrievability(card, now?)` now returns a number only. Format percentages at the call site when needed.
+  - `IFSRS`, `FSRS`, and `fsrs()` are now deprecated and will be removed after the tests are migrated and passing. Use Scheduler going forward.
+  
+  Migration:
+  
+  ```ts
+  // Before
+  import { forgetting_curve, fsrs, migrateParameters } from 'ts-fsrs'
+  
+  const f = fsrs()
+  const state = f.next_state(memoryState, elapsedDays, rating)
+  const interval = f.next_interval(state.stability)
+  const retention = f.get_retrievability(card, now)
+  const recall = f.forgetting_curve(elapsedDays, state.stability)
+  const recallFromHelper = forgetting_curve(decay, elapsedDays, stability)
+  const weights = migrateParameters(w)
+  
+  // After
+  import { fsrs } from 'ts-fsrs'
+  import {
+    forgettingCurve,
+    migrateFSRS6Parameters,
+  } from 'ts-fsrs/models/fsrs-6'
+  
+  const f = fsrs()
+  const state = f.model.step({ memoryState, elapsedDays, rating })
+  const interval = f.model.nextInterval(state, f.parameters.request_retention)
+  const retention = f.retrievability(card, now)
+  const recall = f.model.forgettingCurve(state, elapsedDays)
+  const recallFromHelper = forgettingCurve(
+    decay,
+    elapsedDays,
+    stability
+  )
+  const weights = migrateFSRS6Parameters(w)
+  ```
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`609e31c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/609e31cfab3ccc7b766fc33e8163eafc2cb2c2d2) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add deterministic `cardId + reps` fuzzing middleware and a single flat `newCard({ now, ...fields })` input contract.
+  
+  `createSchedulerFuzzingMiddleware({ fuzzingRange, rng })` supports custom fuzz-range tables and seeded RNG implementations without adding functions to scheduler runtime config.
+  
+  The default seeded RNG now uses FNV-1a with Mulberry32 instead of Alea.
+  
+  Card initialization schemas now live at `schema.cardInitInput`; the composed schema parses the flat options into `{ input, now }`, and `defaultValue.card` receives the parsed card initialization input or forgotten card directly as `ctx.input`.
+  
+  Card initialization input types are carried separately from `SchedulerEnvFor` and `SchedulerCoreEnv`, keeping ordinary scheduler and core type displays compact.
+  
+  Legacy fuzzing now reuses the same core. The deprecated `DefaultInitSeedStrategy`, `GenSeedStrategyWithCardId`, `StrategyMode.SEED`, and `TSeedStrategy` APIs have been removed.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`c7b255e`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c7b255e39eb1c7f5fdc3d6fdc9fd49d3ee394991) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(fsrs): refactor learning steps and update its API.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`72f29d6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/72f29d672782ed03cff8e52bd7879ad22177eccb) Thanks [@ishiko732](https://github.com/ishiko732)! - chore: move legacy scheduler models, types, constants, and helpers behind the
+  legacy barrel while re-exporting SRS primitives and schemas from srs-kit and
+  the FSRS memory-state schema.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0e06042`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0e06042c91ad52c6e34d7f5477397eba7af96281) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** Removed `afterHandler` callback parameter from `createEmptyCard()`, `repeat()`, `next()`, `rollback()`, and `forget()` methods. Transform results externally after calling these methods instead.
+  - **BREAKING CHANGE:** `reschedule` no longer accepts or applies `recordLogHandler`.
+  
+  Migration:
+  
+  ```ts
+  // Before
+  const card = createEmptyCard(now, cardAfterHandler);
+  const result = f.repeat(card, now, repeatAfterHandler);
+  const rescheduled = f.reschedule(card, reviews, { recordLogHandler: fn });
+  
+  // After
+  const card = createEmptyCard(now);
+  const result = repeatAfterHandler(f.repeat(card, now));
+  const rescheduled = f.reschedule(card, reviews);
+  // transform rescheduled.collections externally
+  ```
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`e4e33f1`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e4e33f1771a4b83836e19a9d84885e87b98377cf) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** Removed global `Date.prototype` extensions (`scheduler`, `diff`, `format`, `dueFormat`). Use the standalone functions `date_scheduler()`, `date_diff()`, `formatDate()`, and `show_diff_message()` instead.
+  - **BREAKING CHANGE:** Removed deprecated helper functions `fixDate()`, `fixState()`, and `fixRating()`. Use `TypeConvert.time()`, `TypeConvert.state()`, and `TypeConvert.rating()` instead.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`50a07ba`](https://github.com/open-spaced-repetition/ts-fsrs/commit/50a07babc8faa2f5f0c168594adbe7b593b4c81c) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Remove deprecated `elapsed_days` field from `Card` interface and `elapsed_days`/`last_elapsed_days` fields from `ReviewLog` interface.
+  
+  These fields were marked as deprecated since v5 and scheduled for removal in v6.0.0. When needed, `card.elapsed_days` can be derived from `card.last_review`.
+  
+  Migration: Remove any references to `card.elapsed_days`, `log.elapsed_days`, and `log.last_elapsed_days` from your code. If you still need an elapsed-days value, derive card values from `card.last_review` using `date_diff()`, and for review logs replace `log.elapsed_days` with `date_diff(log.review, log.due, 'days')`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`30d35fb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/30d35fb99c7073c265c81403ff470884df667b78) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): rename `projection` to `normalize` and `ChronoProjection` to `ChronoTimeNormalizer`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0327cd4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0327cd463bede9e1bfea57dda8a745a6ce7cdd5e) Thanks [@ishiko732](https://github.com/ishiko732)! - **BREAKING CHANGE:** Move fuzz handling out of `FSRSAlgorithm` into the scheduler/strategy layer.
+  
+  - `FSRSAlgorithm.apply_fuzz` and the `FSRSAlgorithm.seed` setter have been removed. The fuzz seed now lives internally on the scheduler instance (`AbstractScheduler#_seed`).
+  - `FSRSAlgorithm.next_interval(s, elapsed_days)` is now `next_interval(s)` and returns the base interval (no fuzzing). Use the new `withFuzzing` helper if you need to apply fuzz manually; `repeat()` / `next()` still apply fuzz automatically through the scheduler.
+  - Added `withFuzzing(interval, elapsedDays, config, seed?)` as the canonical camelCase entry point for fuzz application.
+  
+  Migration:
+  
+  ```ts
+  // Before
+  const interval = scheduler.next_interval(stability, elapsedDays)
+  
+  // After
+  import { withFuzzing } from 'ts-fsrs'
+  const base = scheduler.next_interval(stability)
+  const interval = withFuzzing(
+    base,
+    elapsedDays,
+    {
+      enableFuzz: scheduler.parameters.enable_fuzz,
+      maximumInterval: scheduler.parameters.maximum_interval,
+    },
+    seed
+  )
+  ```
+
+### Minor Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`6e823e9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6e823e9ee19c1834ad3f208f792103f07f8c344a) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): add Cost ADR scheduling with state-dependent desired retention.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`01d39a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/01d39a438059469d55ff47fc576cdc1c02b400f2) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add `ts-fsrs/models/fsrs-3` as a dedicated FSRS-3 model entry.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`1b0acf9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1b0acf99a3182e623e13b3c67a46de9a8ce7bf61) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add FSRS-4 model support through the new `ts-fsrs/models/fsrs-4` entry.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`ecc39a4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ecc39a43bb43bd7218ea943b145823957fb47302) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add the `ts-fsrs/models/fsrs-4dot5` entrypoint with FSRS-4.5 model, algorithm, default weights, parameter helpers, and tests.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`aff2328`](https://github.com/open-spaced-repetition/ts-fsrs/commit/aff2328eafa62e78989c27bf500eb613a3f006aa) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(scheduler): add `nextInterval` queries with shared interval middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`6ddeb11`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6ddeb11c37589051f73d8cf5bcfbe70da71d7a28) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add desired retention middleware and remove the exported `CardId` type.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`70f3d30`](https://github.com/open-spaced-repetition/ts-fsrs/commit/70f3d30ab83d691a0d954f85e24e221693a1b242) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineModel` from the root package entry.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`96e8793`](https://github.com/open-spaced-repetition/ts-fsrs/commit/96e87931bbb071972d8f1186e665a11a527d7873) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineMiddleware` and built-in middlewares.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`441c4b4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/441c4b4b283eec855588009f3bc70b9258dc37d7) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose `defineScheduler`, `defineChrono`, and chrono presets
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`5f88f00`](https://github.com/open-spaced-repetition/ts-fsrs/commit/5f88f00ff64ff080241a17e8f9b3128b7e39849d) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): expose srs-kit types and bundle their declarations.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0538d20`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0538d20c966e0bfa164fad1d95a4f94f6fec27c1) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(chrono): unify card and revlog time projections so rollback restores the pre-review due date
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`74f1cf8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/74f1cf852d0d064de7ff43d46ec556b360f03fa9) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add FSRS-7.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`67a1a73`](https://github.com/open-spaced-repetition/ts-fsrs/commit/67a1a731b8ed0f983220bde96b855ce192e89e20) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add `ts-fsrs/models/fsrs-5` as a dedicated FSRS-5 model entry.
+  
+  The new entry exports the FSRS-5 algorithm, default weights, model binding, and parameter migration/clipping helpers based on the v4.7.1 implementation.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`9bd5410`](https://github.com/open-spaced-repetition/ts-fsrs/commit/9bd54109dd93c5d2e3645eb35a5ce281766bdd0b) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export the standalone FSRS-7 curve and its total mixture weight.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`6568c48`](https://github.com/open-spaced-repetition/ts-fsrs/commit/6568c4867b53058c0fe5300ea067a316042f5c80) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add `graduatingInterval` and `allowModelOverride` to learning steps, keep sub-day monotonic intervals ordered, and default FSRS-7 to `['1m', '10m']` / `['10m']` steps with model override.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`d385221`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d38522126b6b15736491594c97530ca1e4acb98a) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): add model creation options for migration, parameter checking, and scheduler-side
+  config reuse.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`56eed46`](https://github.com/open-spaced-repetition/ts-fsrs/commit/56eed46510d57ff08c90d22bca99a56fe77e2e04) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export desiredRetentionSchema, elapsedDaysSchema, and scheduledDaysSchema.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`e3e7e91`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e3e7e91f347778f9b4a690db64861dcf8d7da0c4) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(middleware): support per-grade desired retention on scheduler candidates.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0b24811`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0b248116040bd3fed951a29b447f95fe268664fb) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(kit): add a `Reschedule` class that replays a review history into memory
+  states (`replay`) or into the card and revlog of each review (`reschedule`).
+
+### Patch Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`21c030a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21c030a10e6e9eb91243ec314bbceb85211bf5ef) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: separate model parameter migration, clipping, and validation
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`a73dbb2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a73dbb24a11fb060e0b3aa92997660376b17bf73) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor: Rename `ComposableScheduler` to `CustomScheduler` and `composeMiddleware` to `runMiddlewares`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`1139c55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1139c5514fbd7ba2989fab7f1f76056eefc18907) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: export stats middleware APIs.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`43b7ea7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/43b7ea7f39e142f3d8e63ef34c7b25ae34aaca00) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): clamp FSRS-4.5 through FSRS-6 initial stability to each model's configured bounds.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`fab4c67`](https://github.com/open-spaced-repetition/ts-fsrs/commit/fab4c670e33543e49e26d2810e2a93a250122cb9) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: preserve explicit learning-step intervals while keeping graduation intervals monotonic, and require `maximumInterval` to be a positive integer.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`33934a1`](https://github.com/open-spaced-repetition/ts-fsrs/commit/33934a1917a58d6fe218ac57d92ffe01cd2f0741) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: enforce maximum intervals independently of fuzzing.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0678236`](https://github.com/open-spaced-repetition/ts-fsrs/commit/067823685bfd7438607adc412945801a83341637) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): flatten reschedule card and revlog type displays.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`2f84037`](https://github.com/open-spaced-repetition/ts-fsrs/commit/2f84037b1ebf60a0d63c13c3434c3f7a94b9ce1c) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): export FSRS7ParameterBounds
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`ab1e1a6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ab1e1a6ec4f4cf073ee82a9da6cf41ad452c8d5a) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): correct FSRS-7 sub-day states and default its learning and relearning steps to empty arrays.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`9c03dfd`](https://github.com/open-spaced-repetition/ts-fsrs/commit/9c03dfd2481ac8bd234f1714abc9ce9f4a2dc1b8) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add configurable leech suspension through scheduler middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`be08eda`](https://github.com/open-spaced-repetition/ts-fsrs/commit/be08eda27c4ff171783de40e271c5adbbe49040c) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): rename the leech schedule status to `suspended`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`e6d1f1b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e6d1f1bae99194d9ab53954ca5677723669f3e38) Thanks [@ishiko732](https://github.com/ishiko732)! - Migrate build toolchain from Rollup + esbuild to tsdown (powered by Rolldown). Remove sourcemap generation and code minification. Remove unnecessary dependencies (rollup, @rollup/plugin-*, rollup-plugin-esbuild, rollup-plugin-dts, tslib).
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`20ca0d5`](https://github.com/open-spaced-repetition/ts-fsrs/commit/20ca0d524de04d114d62716dca539b47d8ea0243) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): share monotonic interval scheduling and compose fuzzing and learning steps through scheduler middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`9d73021`](https://github.com/open-spaced-repetition/ts-fsrs/commit/9d73021b593a56f53550972d014d9948835c7d03) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): optimize learning step scheduling.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`aa635e4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/aa635e400d6eb3730fa60449c24f9165b6c3b0c5) Thanks [@ishiko732](https://github.com/ishiko732)! - perf(middleware): avoid redundant model interval and schedule array calculations.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b695e58`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b695e58e69cd26144c896c9d71d86ed6fb124e74) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): optimize monotonic interval scheduling.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`3178417`](https://github.com/open-spaced-repetition/ts-fsrs/commit/31784177e23bfdd661e8b9160228a97c01f2abe3) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(fsrs): preserve second precision for learning-step intervals from 1 second through sub-day durations.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`e78ceda`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e78ceda5cef07c693a184f284e32cb8193ac834a) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: accept `readonly number[]` in model parameter helpers
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`2397122`](https://github.com/open-spaced-repetition/ts-fsrs/commit/2397122d1c6122a03a35549db969a4dda1dfee25) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(middleware): add scheduled days middleware.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`d49e9fb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d49e9fbe5607c8b83094b0652e66ebcf2b99e1c6) Thanks [@ishiko732](https://github.com/ishiko732)! - test: cover legacy exports, the FSRS memory-state schema export, strict
+  primitive schemas, and the optional maximum interval branch.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`8ea1e2c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/8ea1e2cfce9416c200e24ca7d0a660af114464b5) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(fsrs): add a build-time flag to disable rounding while preserving rounding by default.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`9102d35`](https://github.com/open-spaced-repetition/ts-fsrs/commit/9102d352e00820c0f0fb28922a7df9747be4dd18) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(model): add validation for FSRS-6 decay values.
+- Updated dependencies [[`fab4c67`](https://github.com/open-spaced-repetition/ts-fsrs/commit/fab4c670e33543e49e26d2810e2a93a250122cb9), [`aff2328`](https://github.com/open-spaced-repetition/ts-fsrs/commit/aff2328eafa62e78989c27bf500eb613a3f006aa), [`adc4554`](https://github.com/open-spaced-repetition/ts-fsrs/commit/adc455435e67debd3efb13fd8d4f035e6112da7b), [`21c030a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/21c030a10e6e9eb91243ec314bbceb85211bf5ef), [`a73dbb2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a73dbb24a11fb060e0b3aa92997660376b17bf73), [`b7deb79`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b7deb794baf1f070b4954dcc26516a8bb3a6cedc), [`1139c55`](https://github.com/open-spaced-repetition/ts-fsrs/commit/1139c5514fbd7ba2989fab7f1f76056eefc18907), [`0538d20`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0538d20c966e0bfa164fad1d95a4f94f6fec27c1), [`b9d9f97`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b9d9f973f061f93ebc69f7b982e794634e4f2b8a), [`263dfce`](https://github.com/open-spaced-repetition/ts-fsrs/commit/263dfcecd6f7e92537c8ef6cbf3bbbbb513a06b5), [`4099540`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4099540e0e61ff5e9e1c8f9aa7b29d845f911f7f), [`b2ea08d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b2ea08db39a4255f51abc2133d8e57975530d982), [`d6aa18a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d6aa18a40148c2562b85670415a5dff0e9b6b062), [`7ca0459`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7ca045939f6eade60d8a90520e58647e6fe0e7ae), [`3929a41`](https://github.com/open-spaced-repetition/ts-fsrs/commit/3929a41c9cb4e51f2dfb718b9cf3242fea845392), [`74f1cf8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/74f1cf852d0d064de7ff43d46ec556b360f03fa9), [`dd4d3a9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dd4d3a9374ffc93c9bc930c32a41f153e712263b), [`8c0375d`](https://github.com/open-spaced-repetition/ts-fsrs/commit/8c0375db6992e114e49f3d6d97bcb8cfe77f427b), [`341165a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/341165a47c31ef11c793c7c19ad08c456d3a2bbe), [`612d83b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/612d83bb79dc76e061607baf4b7790311cae665a), [`7342933`](https://github.com/open-spaced-repetition/ts-fsrs/commit/734293325a5f1c1470a7d4840eb6916f124694b1), [`e3e7e91`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e3e7e91f347778f9b4a690db64861dcf8d7da0c4), [`30d35fb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/30d35fb99c7073c265c81403ff470884df667b78), [`dd4d3a9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/dd4d3a9374ffc93c9bc930c32a41f153e712263b), [`4732dfb`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4732dfbb4b2b9bef917b30c064c1bb3797f123f3), [`04333f6`](https://github.com/open-spaced-repetition/ts-fsrs/commit/04333f6fbdedeca8c2fbecaf50f6bbc10e8a6f9d)]:
+  - @open-spaced-repetition/srs-kit@1.0.0
+
 ## 6.0.0-beta.15
 
 ### Patch Changes

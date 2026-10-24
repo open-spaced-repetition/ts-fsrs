@@ -1,5 +1,43 @@
 # @open-spaced-repetition/binding
 
+## 0.6.0
+
+### Minor Changes
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`2bdd9d1`](https://github.com/open-spaced-repetition/ts-fsrs/commit/2bdd9d1728a809f91bd9d8f9ba202f5d338e4098) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): add the threadless `wasm32-wasip1` flavor and public workerd exports.
+  
+  The threadless target keeps the Promise-based `computeParameters` and `evaluateWithTimeSeriesSplits` APIs, but executes the work synchronously on the current worker before wrapping the result in a Promise. Browser callers should use a dedicated Worker to keep the main thread responsive. Progress callbacks are supported, and returning `false` stops the operation.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b263e84`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b263e84a913ae4cda7382d5a0ddfe4ae3c22b9cc) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add card IDs to CSV conversion, training, and evaluation.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`0aeb1af`](https://github.com/open-spaced-repetition/ts-fsrs/commit/0aeb1af61208322b851dad81541e7bffd335c52f) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): support `ReadableStream<Uint8Array>` input in `convertCsvToFsrsItems`.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`a2920dc`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a2920dcba670f4cfe59332d3ef1d88c84f60db23) Thanks [@ishiko732](https://github.com/ishiko732)! - fix(binding): require numeric decay in `computeOptimalSteps`, support FSRS-4–6, and correct the decay sign.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`a6d64c8`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a6d64c870c8e5f5d8150283ca215a7260a88f044) Thanks [@ishiko732](https://github.com/ishiko732)! - - **BREAKING CHANGE:** `convertCsvToFsrsItems` now resolves IANA timezones in Rust and no longer accepts the JavaScript offset-provider callback.
+  
+  Use `convertCsvToFsrsItems(data, nextDayStartsAt, timezone)` instead of passing `(ms, timezone) => offsetMinutes`. The binding now applies the timezone offset for each review timestamp internally, including daylight saving time transitions.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`b04bedc`](https://github.com/open-spaced-repetition/ts-fsrs/commit/b04bedc54b4071920c1b24d1b83f1bfdd05b9462) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): support FSRS-7 training and evaluation with model selection, fast stability, and fractional study-day intervals while preserving explicit FSRS-6 support.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`425203b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/425203bf49e00beb76fe5ab3d55620b0f43bb104) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): migrate the native and threaded WASI loaders to napi-rs 3.12 and emnapi v2.
+  
+  The package now requires Node.js 24, publishes one ESM default loader, and exposes the rebuilt threaded loader through `./dynamic`. The existing `./dynamic-wasi` subpath remains as an alias.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`13386b2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/13386b2d772b5b7a4885ee603ae4d9f3b41e789e) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): remove i686 Windows support and the `@open-spaced-repetition/binding-win32-ia32-msvc` package.
+
+### Patch Changes
+
+- [#594](https://github.com/open-spaced-repetition/ts-fsrs/pull/594) [`aef6758`](https://github.com/open-spaced-repetition/ts-fsrs/commit/aef6758aab08abdad7553831a5cf20569d839e35) Thanks [@ishiko732](https://github.com/ishiko732)! - chore: update NAPI-RS and WASI dependencies
+
+- [#600](https://github.com/open-spaced-repetition/ts-fsrs/pull/600) [`28410b2`](https://github.com/open-spaced-repetition/ts-fsrs/commit/28410b2757ca826b5171279412cc899dfab059de) Thanks [@ishiko732](https://github.com/ishiko732)! - chore: update fsrs-rs to d7f337b
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`76430be`](https://github.com/open-spaced-repetition/ts-fsrs/commit/76430be6baadaaf578e97873f3abe4c891fdeb39) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: add `enableSchedPenalties` for FSRS-7 training and evaluation.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`d985eee`](https://github.com/open-spaced-repetition/ts-fsrs/commit/d985eee5385f61c9a917f5f617bb6ad624758761) Thanks [@ishiko732](https://github.com/ishiko732)! - Update native and WASI dependencies and fix dynamic loader cleanup after asynchronous work.
+
+- [#573](https://github.com/open-spaced-repetition/ts-fsrs/pull/573) [`48f0d10`](https://github.com/open-spaced-repetition/ts-fsrs/commit/48f0d10617ce77abecca3398df2ba4313dc0d43d) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: update fsrs-rs with upstream training and evaluation fixes.
+
 ## 0.6.0-beta.7
 
 ### Patch Changes
