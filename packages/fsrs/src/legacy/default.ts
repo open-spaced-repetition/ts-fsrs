@@ -28,6 +28,7 @@ import {
  * } catch (e: any) {
  *   alert(e);
  * }
+ * @deprecated Use the selected model's parameter helpers, such as migrateFSRS6Parameters and checkFSRS6Parameters from ts-fsrs/models/fsrs-6.
  */
 export const checkParameters = (parameters: number[] | readonly number[]) => {
   const invalid = parameters.find((param) => !Number.isFinite(param))
@@ -43,6 +44,7 @@ export const checkParameters = (parameters: number[] | readonly number[]) => {
   return parameters
 }
 
+/** @deprecated Use DefaultScheduler(options) or defineScheduler(...).create({ config }). */
 export const generatorParameters = (
   props?: Partial<FSRSParameters>
 ): FSRSParameters => {
@@ -74,6 +76,7 @@ export const generatorParameters = (
  * ```typescript
  * const card: Card = createEmptyCard(new Date());
  * ```
+ * @deprecated Use scheduler.newCard({ now }) from DefaultScheduler or defineScheduler.
  */
 export function createEmptyCard(now?: DateInput): Card {
   const emptyCard: Card = {

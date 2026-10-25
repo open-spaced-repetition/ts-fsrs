@@ -3,10 +3,14 @@ import type { StepUnit } from '../middlewares/learning-steps/types.js'
 
 export { type Grade, Rating, State } from '@open-spaced-repetition/srs-kit'
 
+/** @deprecated Use keyof typeof State. */
 export type StateType = keyof typeof State
+/** @deprecated Use keyof typeof Rating. */
 export type RatingType = keyof typeof Rating
+/** @deprecated Use Exclude<keyof typeof Rating, 'Manual'>. */
 export type GradeType = Exclude<RatingType, 'Manual'>
 
+/** @deprecated Use DefaultSchedulerRevlog or the inferred revlog type of your custom scheduler. */
 export interface ReviewLog {
   rating: Rating // Rating of the review (Again, Hard, Good, Easy)
   state: State // State of the review (New, Learning, Review, Relearning)
@@ -18,15 +22,18 @@ export interface ReviewLog {
   review: Date // Date of the review
 }
 
+/** @deprecated Use the return type of scheduler.review, which contains card and revlog. */
 export type RecordLogItem = {
   card: Card
   log: ReviewLog
 }
 
+/** @deprecated Use the return type of scheduler.preview. */
 export type RecordLog = {
   [key in Grade]: RecordLogItem
 }
 
+/** @deprecated Use DefaultSchedulerCard or the inferred card type of your custom scheduler. */
 export interface Card {
   due: Date // Due date
   stability: number // Stability
@@ -39,12 +46,14 @@ export interface Card {
   last_review?: Date // Date of the last review (optional)
 }
 
+/** @deprecated Use DefaultSchedulerCardInput or the inferred card input of your custom scheduler. */
 export interface CardInput extends Omit<Card, 'state' | 'due' | 'last_review'> {
   state: StateType | State // Card's state (New, Learning, Review, Relearning)
   due: DateInput // Due date
   last_review?: DateInput | null // Date of the last review (optional)
 }
 
+/** @deprecated Use the time type of the selected chrono; dateChrono requires valid Date objects. */
 export type DateInput = Date | number | string
 
 /**
@@ -60,9 +69,11 @@ export type DateInput = Date | number | string
  *
  * []
  * step: Managed by FSRS
+ * @deprecated Use readonly StepUnit[] with learningSteps/relearningSteps config.
  */
 export type Steps = StepUnit[] | readonly StepUnit[]
 
+/** @deprecated Use the revlog input accepted by your scheduler's rollback method. */
 export interface ReviewLogInput
   extends Omit<ReviewLog, 'rating' | 'state' | 'due' | 'review'> {
   rating: RatingType | Rating // Rating of the review (Again, Hard, Good, Easy)
@@ -71,6 +82,7 @@ export interface ReviewLogInput
   review: DateInput // Date of the last review
 }
 
+/** @deprecated Use DefaultSchedulerOptions or the inferred config input of your custom scheduler. */
 export interface FSRSParameters {
   request_retention: number
   maximum_interval: number
@@ -84,6 +96,7 @@ export interface FSRSParameters {
   relearning_steps: Steps
 }
 
+/** @deprecated Use ModelReview from ts-fsrs, with rating and deltaT. */
 export interface FSRSReview {
   /**
    * 0-4: Manual, Again, Hard, Good, Easy
@@ -97,6 +110,7 @@ export interface FSRSReview {
   deltaT: number
 }
 
+/** @deprecated Use RescheduleReview from ts-fsrs/reschedule, with rating and reviewTime. */
 export type FSRSHistory = Partial<Omit<ReviewLog, 'rating' | 'review'>> &
   (
     | {

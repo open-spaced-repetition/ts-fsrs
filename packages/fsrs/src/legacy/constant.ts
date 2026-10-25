@@ -13,7 +13,8 @@ export const default_request_retention = 0.9
 export const default_maximum_interval = 36500
 export const default_enable_fuzz = false
 export const default_enable_short_term = true
-export const FSRSVersion: string = `v${version} using FSRS-6.0`
+/** Package version only; read the selected model name from scheduler.definition.model.name. */
+export const FSRSVersion: string = `v${version}`
 
 export const S_MIN = FSRS6_MODEL_BOUNDS.sMin
 export const S_MAX = FSRS6_MODEL_BOUNDS.sMax
@@ -25,4 +26,5 @@ export {
 export const default_w = FSRS6_DEFAULT_WEIGHTS
 
 export const W17_W18_Ceiling = FSRS6_W17_W18_CEILING
+/** @deprecated Use clipFSRS6Parameters from ts-fsrs/models/fsrs-6 to clip weights; it returns weights, not a bounds array. */
 export const CLAMP_PARAMETERS = FSRS6ParameterBounds

@@ -16,6 +16,7 @@ import {
 import type { StrategyMode, TStrategyHandler } from './strategies/types.js'
 import type { IPreview, IScheduler } from './types.js'
 
+/** @deprecated Use defineScheduler with an explicit model, chrono, and middleware. */
 export abstract class AbstractScheduler implements IScheduler {
   protected last: Card
   protected current: Card
@@ -27,6 +28,7 @@ export abstract class AbstractScheduler implements IScheduler {
   protected elapsed_days: number = 0 // init
   protected _seed?: string
 
+  /** @deprecated Use defineScheduler(...).create({ config }). */
   constructor(
     card: CardInput | Card,
     now: DateInput,
@@ -64,6 +66,7 @@ export abstract class AbstractScheduler implements IScheduler {
     }`
   }
 
+  /** @deprecated Use scheduler.preview({ card, now }) from the new scheduler API. */
   public preview(): IPreview {
     return {
       [Rating.Again]: this.review(Rating.Again),
@@ -80,6 +83,7 @@ export abstract class AbstractScheduler implements IScheduler {
     }
   }
 
+  /** @deprecated Use scheduler.review({ card, now, grade }) from the new scheduler API. */
   public review(grade: Grade): RecordLogItem {
     const { state } = this.last
     let item: RecordLogItem | undefined
