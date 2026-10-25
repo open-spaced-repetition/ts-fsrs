@@ -1,5 +1,9 @@
 # @open-spaced-repetition/binding-android-arm64
 
+## 0.6.0
+
+No changes in this release.
+
 ## 0.6.0-beta.7
 
 No changes in this release.

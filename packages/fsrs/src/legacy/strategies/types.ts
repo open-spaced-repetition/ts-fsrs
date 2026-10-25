@@ -8,11 +8,13 @@ import type {
 import type { IScheduler } from '@/legacy/types.js'
 import type { LearningStepsResolver } from '@/middlewares/learning-steps/types.js'
 
+/** @deprecated Use defineScheduler and defineMiddleware to compose scheduling policies. */
 export enum StrategyMode {
   SCHEDULER = 'Scheduler',
   LEARNING_STEPS = 'LearningSteps',
 }
 
+/** @deprecated Use defineScheduler and defineMiddleware to compose scheduling policies. */
 export type TSchedulerStrategy<T extends CardInput | Card = CardInput | Card> =
   new (
     card: T,
@@ -27,6 +29,7 @@ type StrategyMap = {
   [StrategyMode.LEARNING_STEPS]: LearningStepsResolver
 }
 
+/** @deprecated Use defineScheduler and defineMiddleware to compose scheduling policies. */
 export type TStrategyHandler<E = StrategyMode> = E extends StrategyMode
   ? StrategyMap[E]
   : never

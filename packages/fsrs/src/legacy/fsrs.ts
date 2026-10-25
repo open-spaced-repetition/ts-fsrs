@@ -37,32 +37,40 @@ import type {
 } from './types.js'
 
 /**
- * @deprecated This interface will be removed after all tests are migrated and passing.
- * Use Scheduler going forward.
+ * @deprecated Use DefaultScheduler or defineScheduler for scheduling. Select FSRS-6 explicitly when retaining the legacy model.
  */
 export interface IFSRS {
+  /** @deprecated Use the model property of a scheduler created with DefaultScheduler or defineScheduler. */
   readonly model: IFSRSModel
+  /** @deprecated Compose policies with defineScheduler(...).use(defineMiddleware(...)). */
   useStrategy<T extends StrategyMode>(
     mode: T,
     handler: TStrategyHandler<T>
   ): this
 
+  /** @deprecated Create a new scheduler definition with only the required middleware. */
   clearStrategy(mode?: StrategyMode): this
 
+  /** @deprecated Use scheduler.preview({ card, now }) with the new card shape. */
   repeat(card: CardInput | Card, now: DateInput): IPreview
 
+  /** @deprecated Use scheduler.review({ card, now, grade }) with the new card shape. */
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem
 
+  /** @deprecated Use scheduler.model.forgettingCurve(memoryState, elapsedDays). Return 0 for New cards and clamp elapsedDays to at least zero; preserve floored elapsed 24-hour days for legacy parity rather than assuming calendar-day chronology is equivalent. */
   retrievability(card: CardInput | Card, now?: DateInput): number
 
+  /** @deprecated Use scheduler.rollback({ card, revlog }) with matching new-format records. */
   rollback(card: CardInput | Card, log: ReviewLogInput): Card
 
+  /** @deprecated Use scheduler.forget({ card, now }); configure clearStatsOnForget explicitly to preserve the desired counter behavior. */
   forget(
     card: CardInput | Card,
     now: DateInput,
     reset_count?: boolean
   ): RecordLogItem
 
+  /** @deprecated Use Reschedule from ts-fsrs/reschedule; convert history to rating/reviewTime records. */
   reschedule(
     current_card: CardInput | Card,
     reviews?: FSRSHistory[],
@@ -71,8 +79,7 @@ export interface IFSRS {
 }
 
 /**
- * @deprecated This class will be removed after all tests are migrated and passing.
- * Use Scheduler going forward.
+ * @deprecated Use DefaultScheduler or defineScheduler for scheduling. Select FSRS-6 explicitly when retaining the legacy model.
  */
 export class FSRS implements IFSRS {
   private strategyHandler = new Map<StrategyMode, TStrategyHandler>()
@@ -80,18 +87,22 @@ export class FSRS implements IFSRS {
   #parameters!: FSRSParameters
   #model!: IFSRSModel
 
+  /** @deprecated Use DefaultScheduler(options) or defineScheduler(...).create({ config }). */
   constructor(parameters: Partial<FSRSParameters> = {}) {
     this.parameters = parameters
   }
 
+  /** @deprecated Use the model property of a scheduler created with DefaultScheduler or defineScheduler. */
   get model(): IFSRSModel {
     return this.#model
   }
 
+  /** @deprecated Use scheduler.config on a scheduler created with DefaultScheduler or defineScheduler. */
   get parameters(): FSRSParameters {
     return this.#parameters
   }
 
+  /** @deprecated Create a new scheduler with the updated config; scheduler.config is readonly. */
   set parameters(parameters: Partial<FSRSParameters>) {
     const normalized = this.prepare_parameters(parameters)
     this.#parameters = new Proxy(normalized, this.params_handler_proxy())
@@ -150,6 +161,7 @@ export class FSRS implements IFSRS {
     }
   }
 
+  /** @deprecated Compose policies with defineScheduler(...).use(defineMiddleware(...)). */
   useStrategy<T extends StrategyMode>(
     mode: T,
     handler: TStrategyHandler<T>
@@ -158,6 +170,7 @@ export class FSRS implements IFSRS {
     return this
   }
 
+  /** @deprecated Create a new scheduler definition with only the required middleware. */
   clearStrategy(mode?: StrategyMode): this {
     if (mode) {
       this.strategyHandler.delete(mode)
@@ -195,6 +208,7 @@ export class FSRS implements IFSRS {
    * const f = fsrs();
    * const recordLog = f.repeat(card, new Date());
    * ```
+   * @deprecated Use scheduler.preview({ card, now }) with the new card shape.
    */
   repeat(card: CardInput | Card, now: DateInput): IPreview {
     const instance = this.getScheduler(card, now)
@@ -212,6 +226,7 @@ export class FSRS implements IFSRS {
    * const f = fsrs();
    * const recordLogItem = f.next(card, new Date(), Rating.Again);
    * ```
+   * @deprecated Use scheduler.review({ card, now, grade }) with the new card shape.
    */
   next(card: CardInput | Card, now: DateInput, grade: Grade): RecordLogItem {
     const instance = this.getScheduler(card, now)
@@ -227,6 +242,7 @@ export class FSRS implements IFSRS {
    * @param card  Card to be processed
    * @param now  Current time or scheduled time
    * @returns  The retrievability of the card
+   * @deprecated Use scheduler.model.forgettingCurve(memoryState, elapsedDays). Return 0 for New cards and clamp elapsedDays to at least zero; preserve floored elapsed 24-hour days for legacy parity rather than assuming calendar-day chronology is equivalent.
    */
   retrievability(card: CardInput | Card, now?: DateInput): number {
     const processedCard = TypeConvert.card(card)
@@ -255,6 +271,7 @@ export class FSRS implements IFSRS {
    * const { card, log } = repeat[Rating.Hard];
    * const rollbackCard = f.rollback(card, log);
    * ```
+   * @deprecated Use scheduler.rollback({ card, revlog }) with matching new-format records.
    */
   rollback(card: CardInput | Card, log: ReviewLogInput): Card {
     const processedCard = TypeConvert.card(card)
@@ -314,6 +331,7 @@ export class FSRS implements IFSRS {
    * const { card, log } = scheduling_cards[Rating.Hard];
    * const forgetCard = f.forget(card, new Date(), true);
    * ```
+   * @deprecated Use scheduler.forget({ card, now }); configure clearStatsOnForget explicitly to preserve the desired counter behavior.
    */
   forget(
     card: CardInput | Card,
@@ -388,6 +406,7 @@ export class FSRS implements IFSRS {
    * )
    * console.log(results_short)
    * ```
+   * @deprecated Use Reschedule from ts-fsrs/reschedule; convert history to rating/reviewTime records.
    */
   reschedule(
     current_card: CardInput | Card,
@@ -430,8 +449,7 @@ export class FSRS implements IFSRS {
 
 /**
  * Create a new instance of TS-FSRS
- * @deprecated This function will be removed after all tests are migrated and passing.
- * Use Scheduler going forward.
+ * @deprecated Use DefaultScheduler or defineScheduler for scheduling. Select FSRS-6 explicitly when retaining the legacy model.
  * @param params FSRSParameters
  * @example
  * ```typescript

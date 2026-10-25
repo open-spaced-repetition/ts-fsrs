@@ -11,6 +11,7 @@ import type { unit } from './types.js'
  * @param t 时间偏移量，当 isDay 为 true 时表示天数，为 false 时表示分钟
  * @param isDay （可选）是否按天数单位进行偏移，默认为 false，表示按分钟单位计算偏移
  * @returns 偏移后的日期和时间对象
+ * @deprecated Use scheduler.chrono.add(date, days); convert minute offsets to days.
  */
 export function date_scheduler(
   now: DateInput,
@@ -24,6 +25,7 @@ export function date_scheduler(
   )
 }
 
+/** @deprecated Use scheduler.chrono.difference(from, to) in days; choose fractional-day and rounding behavior explicitly. */
 export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   if (!now || !pre) {
     throw new FSRSValidationError('Invalid date')
@@ -41,6 +43,7 @@ export function date_diff(now: DateInput, pre: DateInput, unit: unit): number {
   return r
 }
 
+/** @deprecated Format dates in the application with Intl.DateTimeFormat or an explicit formatter if the legacy output format is required. */
 export function formatDate(dateInput: DateInput): string {
   const date = TypeConvert.time(dateInput)
   const year = date.getFullYear()
@@ -62,6 +65,7 @@ function padZero(num: number): string {
 const TIMEUNIT = [60, 60, 24, 31, 12]
 const TIMEUNITFORMAT = ['second', 'min', 'hour', 'day', 'month', 'year']
 
+/** @deprecated Format relative times in the application with Intl.RelativeTimeFormat; select units and rounding explicitly. */
 export function show_diff_message(
   due: DateInput,
   last_review: DateInput,
@@ -85,6 +89,7 @@ export function show_diff_message(
   return `${Math.floor(diff)}${unit ? timeUnit[i] : ''}`
 }
 
+/** @deprecated Use grades from @open-spaced-repetition/srs-kit/primitives. */
 export const Grades: Readonly<Grade[]> = Object.freeze([
   Rating.Again,
   Rating.Hard,
@@ -106,6 +111,7 @@ export function get_fuzz_range(
   return { min_ivl: minInterval, max_ivl: maxInterval }
 }
 
+/** @deprecated Use the configured scheduler.chrono.difference(from, to); preserve UTC calendar-day semantics explicitly if needed. */
 export function dateDiffInDays(last: Date, cur: Date) {
   // Discard the time and time-zone information.
   const utc1 = Date.UTC(
