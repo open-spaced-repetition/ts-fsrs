@@ -1,6 +1,6 @@
 # syntax=docker.io/docker/dockerfile:1
 
-FROM node:26.12.1-alpine AS base
+FROM node:26.13.0-alpine AS base
 
 RUN npm install --global corepack@0.36.0 --force && corepack enable && corepack prepare pnpm@12.14.0 --activate
 

@@ -23,6 +23,7 @@ on:
       - preview
 
     paths:
+      - '.nvmrc'
       - 'packages/**'
       - '.github/workflows/ci.yml'
       - '.github/workflows/build-napi.yml'
@@ -42,7 +43,6 @@ jobs:
   build:
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: '26.12.1'
       commit-sha: ${{ github.sha }}
     secrets: inherit
   test:
@@ -62,7 +62,7 @@ jobs:
           - wasm32-wasip1
         node:
           - '24.22.1'
-          - '26.12.1'
+          - '26.13.0'
 
     uses: ./.github/workflows/test.yml
     with:

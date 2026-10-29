@@ -18,7 +18,8 @@ on:
         type: string
       node-version:
         type: string
-        default: '26.12.1'
+        description: Node version to use (defaults to .nvmrc)
+        default: ''
 
 jobs:
   build:
@@ -60,7 +61,7 @@ jobs:
             extra_flags: --dts index.d.cts
 
     runs-on: ${{ matrix.settings.host }}
-    name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] }}
+    name: stable - ${{ matrix.settings.target }} - node@${{ inputs['node-version'] || '.nvmrc' }}
     steps:
       - uses: actions/checkout@v7
         with:
