@@ -40,7 +40,7 @@ jobs:
       - name: Verify approved commit
         id: verify
         if: github.event_name == 'workflow_dispatch' || steps.checkPermissions.outputs.require-result == 'true'
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
@@ -109,7 +109,7 @@ jobs:
         run: pnpm run test:coverage:ci
 
       - name: Revalidate approved commit before publishing
-        uses: actions/github-script@v8
+        uses: actions/github-script@v9
         with:
           result-encoding: string
           script: |
