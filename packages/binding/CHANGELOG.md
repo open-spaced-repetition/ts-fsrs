@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.1
+
+### Patch Changes
+
+- [#605](https://github.com/open-spaced-repetition/ts-fsrs/pull/605) [`4d1204b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4d1204bce3e1128996f8ca9536ecabccca37eaa1) Thanks [@dependabot](https://github.com/apps/dependabot)! - feat: enable SIMD128 for WASIP1
+
 ## 0.6.0
 
 ### Breaking Changes
