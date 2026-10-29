@@ -132,7 +132,7 @@
   },
   "devDependencies": {
     "temporal-polyfill": "^1.0.6",
-    "tsdown": "0.23.1",
+    "tsdown": "0.23.2",
     "typescript": "^6.0.3"
   },
   "author": "ishiko",

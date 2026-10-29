@@ -25,12 +25,12 @@
     "test:coverage:ci": "turbo run test:coverage:ci"
   },
   "devDependencies": {
-    "@biomejs/biome": "2.5.15",
+    "@biomejs/biome": "2.6.3",
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
     "@types/node": "^26.6.5",
     "@vitest/coverage-istanbul": "5.0.5",
-    "turbo": "^2.11.9",
+    "turbo": "^2.11.10",
     "typescript": "^7.0.2",
     "vitest": "^5.0.5"
   },
