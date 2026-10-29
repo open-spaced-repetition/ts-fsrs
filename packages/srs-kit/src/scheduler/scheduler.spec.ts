@@ -803,4 +803,194 @@ describe('defineScheduler', () => {
       state: State
     }>()
   })
+
+  it('keeps 20 chained use() calls equal to one use() call', () => {
+    const passThrough = (name: string) =>
+      defineMiddleware({
+        name,
+        handlers: {
+          review(_ctx, next) {
+            next()
+          },
+        },
+      })
+    const m0 = passThrough('m0')
+    const m1 = passThrough('m1')
+    const m2 = passThrough('m2')
+    const m3 = passThrough('m3')
+    const m4 = passThrough('m4')
+    const m5 = passThrough('m5')
+    const m6 = passThrough('m6')
+    const m7 = passThrough('m7')
+    const m8 = passThrough('m8')
+    const m9 = passThrough('m9')
+    const m10 = passThrough('m10')
+    const m11 = passThrough('m11')
+    const m12 = passThrough('m12')
+    const m13 = passThrough('m13')
+    const m14 = passThrough('m14')
+    const m15 = passThrough('m15')
+    const m16 = passThrough('m16')
+
+    const chained = createSM2NumericScheduler()
+      .use(sourceMiddleware)
+      .use(m0)
+      .use(m1)
+      .use(m2)
+      .use(m3)
+      .use(m4)
+      .use(m5)
+      .use(m6)
+      .use(statusMiddleware)
+      .use(m7)
+      .use(m8)
+      .use(m9)
+      .use(m10)
+      .use(m11)
+      .use(m12)
+      .use(m13)
+      .use(m14)
+      .use(m15)
+      .use(m16)
+      .use(schedulerStatsMiddleware)
+    const once = createSM2NumericScheduler().use(
+      sourceMiddleware,
+      m0,
+      m1,
+      m2,
+      m3,
+      m4,
+      m5,
+      m6,
+      statusMiddleware,
+      m7,
+      m8,
+      m9,
+      m10,
+      m11,
+      m12,
+      m13,
+      m14,
+      m15,
+      m16,
+      schedulerStatsMiddleware
+    )
+    const chainedConfig = { weights: config.weights, source: 'chained' }
+    const chainedCore = chained.create({ config: chainedConfig })
+    const onceCore = once.create({ config: chainedConfig })
+    const card = chainedCore.newCard({ now: 0 })
+
+    type Status = 'new' | 'learning' | 'review' | 'suspend' | 'buried'
+    type ExpectedTypes = {
+      configInput: {
+        readonly weights: readonly number[]
+        readonly source: string
+        readonly clearStatsOnForget?: boolean
+      }
+      config: {
+        readonly weights: readonly number[]
+        readonly source: string
+        readonly clearStatsOnForget: boolean
+      }
+      cardInitInput: { readonly source?: string; readonly now?: number }
+      cardInput: {
+        readonly interval: number
+        readonly easeFactor: number
+        readonly reviewStep: number
+        readonly source?: string
+        readonly reps: number
+        readonly lapses: number
+        readonly state: State
+        readonly scheduleStatus: Status
+      }
+      card: {
+        interval: number
+        easeFactor: number
+        reviewStep: number
+        source: string
+        reps: number
+        lapses: number
+        state: State
+        scheduleStatus: Status
+      }
+      revlogInput: {
+        readonly interval: number
+        readonly easeFactor: number
+        readonly reviewStep: number
+        readonly audit?: string
+        readonly state: State
+        readonly scheduleStatus: Status
+        readonly rating: Grade
+      }
+      revlog: {
+        interval: number
+        easeFactor: number
+        reviewStep: number
+        audit: string
+        state: State
+        scheduleStatus: Status
+        rating: Grade
+      }
+      status: Status
+    }
+
+    // Both sides are checked against ExpectedTypes. Comparing inferred
+    // scheduler types with each other, or SchedulerConfigInputOf of a chained
+    // scheduler, already trips TS2590 inside expectTypeOf on main.
+    expectTypeOf<
+      Parameters<typeof chained.create>[0]['config']
+    >().toEqualTypeOf<ExpectedTypes['configInput']>()
+    expectTypeOf<SchedulerConfigOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['config']
+    >()
+    expectTypeOf<SchedulerCardInitInputOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['cardInitInput']
+    >()
+    expectTypeOf<SchedulerCardInputOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['cardInput']
+    >()
+    expectTypeOf<SchedulerCardOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['card']
+    >()
+    expectTypeOf<SchedulerRevlogInputOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['revlogInput']
+    >()
+    expectTypeOf<SchedulerRevlogOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['revlog']
+    >()
+    expectTypeOf<SchedulerStatusOf<typeof chained>>().toEqualTypeOf<
+      ExpectedTypes['status']
+    >()
+    expectTypeOf<Parameters<typeof once.create>[0]['config']>().toEqualTypeOf<
+      ExpectedTypes['configInput']
+    >()
+    expectTypeOf<SchedulerConfigOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['config']
+    >()
+    expectTypeOf<SchedulerCardInitInputOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['cardInitInput']
+    >()
+    expectTypeOf<SchedulerCardInputOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['cardInput']
+    >()
+    expectTypeOf<SchedulerCardOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['card']
+    >()
+    expectTypeOf<SchedulerRevlogInputOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['revlogInput']
+    >()
+    expectTypeOf<SchedulerRevlogOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['revlog']
+    >()
+    expectTypeOf<SchedulerStatusOf<typeof once>>().toEqualTypeOf<
+      ExpectedTypes['status']
+    >()
+    expectTypeOf(chainedCore.newCard).toEqualTypeOf(onceCore.newCard)
+    expectTypeOf(chainedCore.review).toEqualTypeOf(onceCore.review)
+    expectTypeOf(chainedCore.preview).toEqualTypeOf(onceCore.preview)
+    expectTypeOf(chainedCore.rollback).toEqualTypeOf(onceCore.rollback)
+    expect(chainedCore.review({ card, grade: Rating.Good, now: 1 })).toEqual(
+      onceCore.review({ card, grade: Rating.Good, now: 1 })
+    )
+  })
 })
