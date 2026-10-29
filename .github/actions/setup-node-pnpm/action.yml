@@ -3,9 +3,9 @@ description: Setup Node.js and pnpm with workspace install caching
 
 inputs:
   node-version:
-    description: Node version to use
+    description: Node version to use (defaults to .nvmrc)
     required: false
-    default: '26.12.1'
+    default: ''
   architecture:
     description: Node architecture to use
     required: false
@@ -22,6 +22,7 @@ runs:
       uses: actions/setup-node@v7
       with:
         node-version: ${{ inputs['node-version'] }}
+        node-version-file: .nvmrc
         architecture: ${{ inputs.architecture }}
         cache: 'pnpm'
 

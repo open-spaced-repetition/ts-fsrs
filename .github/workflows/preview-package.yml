@@ -66,7 +66,6 @@ jobs:
       (github.event_name == 'pull_request_review' && needs.check.outputs.has-permissions == 'true')
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: '26.12.1'
       commit-sha: ${{ github.event_name == 'workflow_dispatch' && github.sha || needs.check.outputs.sha }}
   release:
     name: Release
@@ -83,8 +82,6 @@ jobs:
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: '26.12.1'
 
       - name: Run checks
         run: pnpm run check

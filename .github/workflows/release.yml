@@ -28,12 +28,34 @@ permissions:
   id-token: write
 
 jobs:
-  build:
+  select-mode:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/preview'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node & pnpm
+        uses: ./.github/actions/setup-node-pnpm
+
+      - name: Enter beta prerelease mode (preview only)
+        if: github.ref == 'refs/heads/preview'
+        run: '[ -f .changeset/pre.json ] || pnpm exec changeset pre enter beta'
+
+      - name: Select Changesets mode
+        id: select-mode
+        uses: changesets/action/select-mode@v2.1.2
+
+  build:
+    needs: select-mode
+    if: needs.select-mode.outputs.mode != 'none'
     cache-mode: write
     uses: ./.github/workflows/build-napi.yml
     with:
-      node-version: '26.12.1'
       commit-sha: ${{ github.sha }}
     secrets: inherit
   test:
@@ -53,7 +75,7 @@ jobs:
           - wasm32-wasip1
         node:
           - '24.22.1'
-          - '26.12.1'
+          - '26.13.0'
 
     uses: ./.github/workflows/test.yml
     with:
@@ -63,19 +85,19 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
-    environment: npm-release
+    environment: ${{ needs.select-mode.outputs.mode == 'publish' && 'npm-release' || '' }}
     outputs:
       published: ${{ steps.changesets.outputs.published }}
     needs:
+      - select-mode
       - test
+    if: needs.select-mode.outputs.mode != 'none'
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
       - name: Setup Node & pnpm
         uses: ./.github/actions/setup-node-pnpm
-        with:
-          node-version: '26.12.1'
 
       - name: Run checks
         run: pnpm run check
