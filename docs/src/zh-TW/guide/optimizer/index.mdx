@@ -29,28 +29,32 @@ Optimizer 目前仍處於 beta 階段，API 方法可能隨時調整。
 
 ## 一個套件，兩種執行環境
 
-binding 用同一個匯入暴露同一套 API，載入時會依執行環境自動解析建置：搜尋可用的原生套件，在瀏覽器或 Worker 中回退到 WebAssembly。依需求安裝對應套件：
+原生建置與 WASI 建置提供同一套 API。主套件在 Node 中優先選擇可用的原生模組，瀏覽器入口使用支援執行緒的 WASI 套件。依需求安裝對應套件：
 
 原生模組（Node、伺服器與 CLI）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding" />
 
-WASI Preview 1（wasip1）WebAssembly：
+無執行緒 WASI Preview 1（`wasm32-wasip1`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
 
-wasm32-wasi WebAssembly：
+支援執行緒的 WASI Preview 1（`wasm32-wasip1-threads`，發布套件名稱使用 `wasm32-wasi`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+支援執行緒的建置已棄用，本次發布仍保留，預計在下一版本移除。新的 WASI 整合請使用上面的無執行緒套件。
 
 ```ts
 import { computeParameters } from '@open-spaced-repetition/binding'
 ```
 
-你的執行環境會解析到相符的建置：伺服器或 CLI 用原生模組，瀏覽器或 Web Worker 用 wasm 建置。
+若要明確選擇無執行緒 WASI，請從 `@open-spaced-repetition/binding-wasm32-wasip1` 匯入。兩個 WASI 套件都可以在 Node 或瀏覽器 Worker 中執行。
 
 :::note COOP/COEP 與多執行緒
-WebAssembly 可執行 threadless 或多執行緒。threadless wasm 無需 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 標頭即可運作，進度經 Worker 訊息回傳而非共享記憶體。多執行緒建置要求頁面處於 `crossOriginIsolated`，即以帶 COOP 與 COEP 標頭的方式提供。
+無執行緒建置不需要 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 回應標頭。支援執行緒的建置仍要求頁面透過 COOP 與 COEP 回應標頭啟用 `crossOriginIsolated`。執行緒支援描述的是執行環境能力，不代表訓練會自動在背景執行。
+
+`computeParameters` 和 `evaluateWithTimeSeriesSplits` 在所有建置中都回傳 Promise。原生 binding 透過背景工作執行；兩個 WASI Preview 1 目標（`wasm32-wasip1` 和 `wasm32-wasip1-threads`）都在呼叫執行緒中同步計算，再將結果包裝成 Promise。瀏覽器中應從專用 Worker 呼叫，避免阻塞頁面；Worker 可以在進度回呼中透過 `postMessage` 向頁面傳送進度。
 :::
 
 ## 複習記錄流程

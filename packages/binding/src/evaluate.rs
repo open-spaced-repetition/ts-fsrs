@@ -1,16 +1,16 @@
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use napi::bindgen_prelude::Task;
 use napi::bindgen_prelude::{Env, PromiseRaw, Result};
 use napi_derive::napi;
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use std::sync::{Arc, Mutex};
 
 use crate::{ComputeParametersOptions, FSRSItem, ModelEvaluation, prepare_items};
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use crate::{model::ResolvedOptions, progress};
 
 /// Evaluate parameters using time-series splits.
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 #[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
 pub fn evaluate_with_time_series_splits<'env>(
   env: &'env Env,
@@ -23,8 +23,8 @@ pub fn evaluate_with_time_series_splits<'env>(
   }
 }
 
-/// Evaluate parameters on the current thread inside a threadless WASM worker.
-#[cfg(threadless_wasm)]
+/// Evaluate parameters on the current thread for WASI Preview 1.
+#[cfg(all(target_os = "wasi", target_env = "p1"))]
 #[napi(ts_return_type = "Promise<ModelEvaluation>", catch_unwind)]
 pub fn evaluate_with_time_series_splits<'env>(
   env: &'env Env,
@@ -83,7 +83,7 @@ pub fn evaluate_with_time_series_splits<'env>(
   }
 }
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 impl Task for EvaluateParametersTask {
   type Output = fsrs::ModelEvaluation;
   type JsValue = ModelEvaluation;
@@ -98,51 +98,35 @@ impl Task for EvaluateParametersTask {
 }
 
 // ============================================================================
-// Native and threaded wasm: evaluation runs with a progress poller
+// Non-WASI-p1 targets: evaluation runs with a progress poller
 // ============================================================================
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 pub struct EvaluateParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
   card_ids: Option<Vec<i64>>,
   pub(crate) state: Arc<Mutex<progress::ProgressState>>,
   options: ResolvedOptions,
-  #[cfg(not(target_arch = "wasm32"))]
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
-  #[cfg(threaded_wasm)]
-  pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
 }
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 impl EvaluateParametersTask {
   fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Result<Self> {
     let resolved = ComputeParametersOptions::resolve(options);
     let (train, card_ids) = prepare_items(train_set, ComputeParametersOptions::card_ids(options))?;
     let state = Arc::new(Mutex::new(progress::ProgressState::default()));
 
-    // wasm: start polling here, because the task itself cannot spawn threads
-    #[cfg(threaded_wasm)]
-    let progress_thread = Some(progress::spawn_progress_poller(
-      Arc::clone(&state),
-      resolved.timeout_ms,
-      progress::build_callback(options),
-    ));
-
     Ok(Self {
       train,
       card_ids,
       state,
       options: resolved,
-      // non-wasm reuses the TSFN in the task; wasm already consumed it above
-      #[cfg(not(target_arch = "wasm32"))]
       progress_cb: progress::build_callback(options),
-      #[cfg(threaded_wasm)]
-      progress_thread,
     })
   }
 
   fn evaluate(&mut self) -> Result<fsrs::ModelEvaluation> {
-    #[cfg(not(target_arch = "wasm32"))]
     let progress_thread = progress::spawn_progress_poller(
       Arc::clone(&self.state),
       self.options.timeout_ms,
@@ -174,14 +158,7 @@ impl EvaluateParametersTask {
       guard.finished = true;
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     let _ = progress_thread.join().ok();
-
-    // WASM: join the progress thread
-    #[cfg(threaded_wasm)]
-    if let Some(handle) = self.progress_thread.take() {
-      let _ = handle.join().ok();
-    }
 
     result
   }

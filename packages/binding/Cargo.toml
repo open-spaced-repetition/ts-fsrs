@@ -24,7 +24,7 @@ itertools = "0.15.0"
 
 [dependencies.fsrs]
 git = "https://github.com/ishiko732/fsrs-rs"
-branch = "wasm32-wasip1-progress-fsrs7"
+branch = "feat/wasi-p1"
 default-features = false
 
 [build-dependencies]

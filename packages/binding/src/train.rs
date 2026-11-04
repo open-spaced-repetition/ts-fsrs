@@ -1,40 +1,29 @@
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use napi::bindgen_prelude::Task;
 use napi::bindgen_prelude::{Env, PromiseRaw, Result};
 use napi_derive::napi;
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use std::sync::{Arc, Mutex};
 
 use crate::{ComputeParametersOptions, FSRSItem, validate_card_ids};
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 use crate::{model::ResolvedOptions, progress};
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 pub struct ComputeParametersTask {
   pub(crate) train: Vec<fsrs::FSRSItem>,
   pub(crate) card_ids: Option<Vec<i64>>,
   pub(crate) state: Arc<Mutex<fsrs::CombinedProgressState>>,
   pub(crate) options: ResolvedOptions,
-  #[cfg(not(target_arch = "wasm32"))]
   pub(crate) progress_cb: Option<progress::ProgressCallback>,
-  #[cfg(threaded_wasm)]
-  pub(crate) progress_thread: Option<std::thread::JoinHandle<()>>,
 }
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 impl ComputeParametersTask {
   fn new(train_set: Vec<&FSRSItem>, options: Option<&ComputeParametersOptions>) -> Result<Self> {
     let resolved = ComputeParametersOptions::resolve(options);
     let card_ids = validate_card_ids(train_set.len(), ComputeParametersOptions::card_ids(options))?;
     let state = fsrs::CombinedProgressState::new_shared();
-
-    // wasm: start polling here, because the task itself cannot spawn threads
-    #[cfg(threaded_wasm)]
-    let progress_thread = Some(progress::spawn_progress_poller(
-      Arc::clone(&state),
-      resolved.timeout_ms,
-      progress::build_callback(options),
-    ));
 
     Ok(Self {
       train: train_set
@@ -44,22 +33,17 @@ impl ComputeParametersTask {
       card_ids,
       state,
       options: resolved,
-      // non-wasm reuses the TSFN in the task; wasm already consumed it above
-      #[cfg(not(target_arch = "wasm32"))]
       progress_cb: progress::build_callback(options),
-      #[cfg(threaded_wasm)]
-      progress_thread,
     })
   }
 }
 
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 impl Task for ComputeParametersTask {
   type Output = Vec<f32>;
   type JsValue = Vec<f64>;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    #[cfg(not(target_arch = "wasm32"))]
     let progress_thread = progress::spawn_progress_poller(
       Arc::clone(&self.state),
       self.options.timeout_ms,
@@ -78,14 +62,7 @@ impl Task for ComputeParametersTask {
     })
     .map_err(|e| napi::Error::from_reason(format!("compute_parameters failed: {e}")))?;
 
-    #[cfg(not(target_arch = "wasm32"))]
     let _ = progress_thread.join().ok();
-
-    // WASM: join the progress thread
-    #[cfg(threaded_wasm)]
-    if let Some(handle) = self.progress_thread.take() {
-      let _ = handle.join().ok();
-    }
 
     Ok(out)
   }
@@ -96,7 +73,7 @@ impl Task for ComputeParametersTask {
 }
 
 /// Calculate appropriate parameters for the provided review history.
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 #[napi(ts_return_type = "Promise<number[]>", catch_unwind)]
 pub fn compute_parameters<'env>(
   env: &'env Env,
@@ -109,8 +86,8 @@ pub fn compute_parameters<'env>(
   }
 }
 
-/// Calculate appropriate parameters on the current thread inside a threadless WASM worker.
-#[cfg(threadless_wasm)]
+/// Calculate appropriate parameters on the current thread for WASI Preview 1.
+#[cfg(all(target_os = "wasi", target_env = "p1"))]
 #[napi(ts_return_type = "Promise<number[]>", catch_unwind)]
 pub fn compute_parameters<'env>(
   env: &'env Env,
