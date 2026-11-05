@@ -89,7 +89,10 @@ impl Task for EvaluateParametersTask {
   type JsValue = ModelEvaluation;
 
   fn compute(&mut self) -> Result<Self::Output> {
-    self.evaluate()
+    let state = Arc::clone(&self.state);
+    progress::catch_task_panic(&state, "evaluate_with_time_series_splits", || {
+      self.evaluate()
+    })
   }
 
   fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {

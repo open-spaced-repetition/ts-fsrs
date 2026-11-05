@@ -39,11 +39,8 @@ impl ComputeParametersTask {
 }
 
 #[cfg(not(all(target_os = "wasi", target_env = "p1")))]
-impl Task for ComputeParametersTask {
-  type Output = Vec<f32>;
-  type JsValue = Vec<f64>;
-
-  fn compute(&mut self) -> Result<Self::Output> {
+impl ComputeParametersTask {
+  fn run(&mut self) -> Result<Vec<f32>> {
     let progress_thread = progress::spawn_progress_poller(
       Arc::clone(&self.state),
       self.options.timeout_ms,
@@ -65,6 +62,17 @@ impl Task for ComputeParametersTask {
     let _ = progress_thread.join().ok();
 
     Ok(out)
+  }
+}
+
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
+impl Task for ComputeParametersTask {
+  type Output = Vec<f32>;
+  type JsValue = Vec<f64>;
+
+  fn compute(&mut self) -> Result<Self::Output> {
+    let state = Arc::clone(&self.state);
+    progress::catch_task_panic(&state, "compute_parameters", || self.run())
   }
 
   fn resolve(&mut self, _env: Env, output: Self::Output) -> Result<Self::JsValue> {
