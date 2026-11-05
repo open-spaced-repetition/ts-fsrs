@@ -249,7 +249,9 @@ describe('FSRS compute_parameters', () => {
           return false
         }
       },
-      timeout: 100,
+      // Training takes only ~150 ms; poll often enough to reach the second
+      // callback before it finishes.
+      timeout: 10,
     })
     await expect(result).rejects.toThrow()
     expect(callCount).toBeGreaterThanOrEqual(2)
@@ -272,7 +274,7 @@ describe('FSRS compute_parameters', () => {
           throw new Error('User cancelled')
         }
       },
-      timeout: 100,
+      timeout: 10,
     })
     await expect(result).rejects.toThrow()
   })
