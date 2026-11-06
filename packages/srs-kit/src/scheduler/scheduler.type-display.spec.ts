@@ -449,22 +449,22 @@ describe('defineScheduler type display', () => {
     readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
-            readonly source?: string | undefined;
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
+            readonly source?: string | undefined;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
-            source: string;
             interval: number;
             easeFactor: number;
             reviewStep: number;
             reps: number;
             lapses: number;
+            source: string;
             state: State;
             scheduleStatus: "new" | "learning" | "review";
         };
