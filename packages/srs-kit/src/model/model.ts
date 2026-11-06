@@ -45,6 +45,7 @@ export type BlankModelCoreEnv = {
   readonly config?: unknown
   readonly memoryState: object
   readonly algorithm: unknown
+  readonly forwardResult?: Float64Array
 }
 
 type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
@@ -68,9 +69,12 @@ export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
     memoryState: Readonly<Env['memoryState']>,
     elapsedDays: number
   ) => number
+  /** Packed results contain one fixed-width row per review, in history order. */
   readonly forward: (
     input: ModelForwardInput<Env['memoryState']>
-  ) => readonly Env['memoryState'][]
+  ) => Env extends { readonly forwardResult: Float64Array }
+    ? Float64Array
+    : readonly Env['memoryState'][]
 }
 
 export type AnyModelCore = ModelCore<any>
@@ -107,17 +111,22 @@ export type ModelCreate<
    * validation, migration, clipping, range checks, and freezing.
    */
   readonly bypass?: boolean
-}) => ModelCore<{
-  readonly config: SchemaOutput<Schema['config']>
-  readonly memoryState: SchemaOutput<Schema['memoryState']>
-  readonly algorithm: Algorithm
-}>
+}) => ModelCore<
+  {
+    readonly config: SchemaOutput<Schema['config']>
+    readonly memoryState: SchemaOutput<Schema['memoryState']>
+    readonly algorithm: Algorithm
+  } & (Schema extends { readonly forwardResult: Float64Array }
+    ? { readonly forwardResult: Float64Array }
+    : unknown)
+>
 
 export type BlankModelEnv = {
   readonly name: string | symbol
   readonly config: AnySchema
   readonly memoryState: AnyObjectSchema
   readonly algorithm: unknown
+  readonly forwardResult?: Float64Array
 }
 
 export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
@@ -133,11 +142,27 @@ export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
 
 export type AnyModel = Model<any>
 
+type InferModelCreate<
+  Schema extends BlankModelSchema,
+  Algorithm,
+  ForwardResult,
+> = (...args: Parameters<ModelCreate<Schema, Algorithm>>) => Omit<
+  ReturnType<ModelCreate<Schema, Algorithm>>,
+  'forward'
+> & {
+  readonly forward: (
+    input: ModelForwardInput<SchemaOutput<Schema['memoryState']>>
+  ) => ForwardResult
+}
+
 export function defineModel<
   const Name extends string | symbol,
   const ConfigSchema extends AnySchema,
   const MemoryStateSchema extends AnyObjectSchema,
   const Algorithm,
+  const ForwardResult extends
+    | readonly SchemaOutput<MemoryStateSchema>[]
+    | Float64Array = readonly SchemaOutput<MemoryStateSchema>[],
 >(definition: {
   readonly name: Name
   readonly schema: ModelSchema<{
@@ -149,15 +174,19 @@ export function defineModel<
       readonly config: SchemaOutput<ConfigSchema>
     }) => SchemaInput<MemoryStateSchema>
   }
-  readonly create: ModelCreate<
+  readonly create: InferModelCreate<
     { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
-    Algorithm
+    Algorithm,
+    ForwardResult
   >
 }) {
-  return definition as Model<{
+  type Env = {
     readonly name: Name
     readonly config: ConfigSchema
     readonly memoryState: MemoryStateSchema
     readonly algorithm: Algorithm
-  }>
+  }
+  return definition as unknown as ForwardResult extends Float64Array
+    ? Model<Env & { readonly forwardResult: Float64Array }>
+    : Model<Env>
 }

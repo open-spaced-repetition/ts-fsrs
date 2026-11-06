@@ -6,8 +6,13 @@ import type {
 } from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
-  Scheduler['model']['forward']
->[number]
+  Scheduler['model']['step']
+>
+
+export type MemoryStatesOf<Scheduler extends AnySchedulerCore> =
+  ReturnType<Scheduler['model']['forward']> extends readonly (infer State)[]
+    ? State[]
+    : ReturnType<Scheduler['model']['forward']>
 
 export type TimeOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['chrono']['now']
@@ -55,9 +60,14 @@ export interface RescheduleOptions {
   readonly sortHistory?: boolean
 }
 
-export interface ReplayResult<MemoryState extends object> {
-  readonly memoryState: MemoryState
-  readonly memoryStates: MemoryState[]
+export interface ReplayResult<
+  MemoryState extends object,
+  MemoryStates = MemoryState[],
+> {
+  readonly memoryState: MemoryStates extends Float64Array
+    ? Float64Array
+    : MemoryState
+  readonly memoryStates: MemoryStates
 }
 
 export type RescheduleResult<Scheduler extends AnySchedulerCore> = Prettify<{

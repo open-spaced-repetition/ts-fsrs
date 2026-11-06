@@ -9,6 +9,7 @@ import { FSRSValidationError } from '../error.js'
 import type {
   CardOf,
   MemoryStateOf,
+  MemoryStatesOf,
   NonManualReview,
   ReplayInput,
   ReplayResult,
@@ -35,14 +36,26 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
   replay(
     input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
     options: RescheduleOptions = {}
-  ): ReplayResult<MemoryStateOf<Scheduler>> {
+  ): ReplayResult<MemoryStateOf<Scheduler>, MemoryStatesOf<Scheduler>> {
     const reviews = this.prepareReviews(input.history, options)
-    const memoryStates = this.scheduler.model.forward({
+    const model = this.scheduler.model
+    const memoryStates = model.forward({
       history: this.toModelHistory(reviews),
       initialState: input.initialState,
-    }) as MemoryStateOf<Scheduler>[]
+    }) as MemoryStatesOf<Scheduler>
 
-    return { memoryState: memoryStates[memoryStates.length - 1], memoryStates }
+    // Packed histories have one fixed-width row per review. Return a view, not a copy.
+    const memoryState = (
+      memoryStates instanceof Float64Array
+        ? memoryStates.subarray(
+            memoryStates.length - memoryStates.length / reviews.length
+          )
+        : (memoryStates as MemoryStateOf<Scheduler>[])[reviews.length - 1]
+    ) as ReplayResult<
+      MemoryStateOf<Scheduler>,
+      MemoryStatesOf<Scheduler>
+    >['memoryState']
+    return { memoryState, memoryStates }
   }
 
   /**

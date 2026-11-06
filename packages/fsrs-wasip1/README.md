@@ -15,9 +15,13 @@ const states = model.forward({
     { deltaT: 2.5, rating: 4 },
   ],
 })
+// Float64Array of [stability, difficulty, stabilityFast] triples.
+const secondStability = states[3]
 ```
 
-`step`, `forward`, `forgettingCurve`, and `nextInterval` execute in WASM. Models use ordinary state objects, including `stabilityFast` for FSRS-7. They can be passed to `defineScheduler({ model: FSRS7Model, chrono: dateChrono })` from `ts-fsrs`. `forward` returns every post-review state, excludes `initialState`, and accepts an initial state for truncated histories.
+`step`, `forward`, `forgettingCurve`, and `nextInterval` execute in WASM. `step` and `initialState` use ordinary state objects, including `stabilityFast` for FSRS-7. `forward` returns the binding's `Float64Array` directly, without building state objects; its stride is 3 for both versions (the third value is redundant for FSRS-6). They can be passed to `defineScheduler({ model: FSRS7Model, chrono: dateChrono })` from `ts-fsrs`. `forward` contains every post-review state, excludes `initialState`, and accepts an initial state for truncated histories.
+
+SRS Kit retains the existing object-array result for TS models and infers the packed result for these WASM models. `Reschedule.replay()` preserves the original packed `memoryStates` buffer; its `memoryState` is a `Float64Array` view of the final triple, sharing that buffer. No decoder or full-history conversion is involved. For custom packed models, rows must have a fixed width with one row per review.
 
 ## High-throughput revlog replay
 

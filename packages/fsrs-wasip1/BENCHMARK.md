@@ -1,6 +1,6 @@
 # WASIP1 replay benchmark — 2026-11-06
 
-Batching is necessary. Replacing each TS `step`/curve call with a WASM call makes this workload much slower. A single cross-card batch, returning all states and pre-review retrievability, gives a modest improvement in the tested replay kernel. It does not establish an end-to-end Anki speedup.
+Batching is necessary. Replacing each TS `step`/curve call with a WASM call makes this workload much slower. A single cross-card batch, returning packed states and pre-review retrievability, gives a modest improvement in the tested replay kernel. It does not establish an end-to-end Anki speedup.
 
 ## Environment and workload
 
@@ -10,31 +10,31 @@ Batching is necessary. Replacing each TS `step`/curve call with a WASM call make
 - Synthetic: 2,000 distinct card histories × 30 reviews (60,000 reviews).
 - Public revlog: 9,793 cards, 123,730 reviews; SHA-256 `80b260e7e140755123179a5f1be931b586c031e9c594e2054c3bc267e8f1f369`.
 - CSV parsing, sorting, grouping and UTC-day delta calculation happen before timing. Both models receive identical prepared histories. This is not Anki timezone/rollover conversion.
-- Object-batch measurements include packing the full dataset and reconstructing every returned state object. Packed measurements reuse prepared input buffers and consume raw output.
+- WASM batch measurements include packing the full dataset and directly consuming the returned Float64Array. No state objects are reconstructed. The prepacked case reuses prepared input buffers; TS retains its object-array API. Per-card model.forward also returns its raw Float64Array. Reschedule.replay preserves that buffer and exposes the final row as a subarray view.
 - All per-review states are compared with TS before timing; numerical differences are reported, not assumed absent. Outputs are consumed by checksums.
 
 ## Public revlog: state plus pre-review retrievability
 
-| Model  | TS step + curve | WASM step + curve | WASM batch + curve, including packing/objects | TS / batch |
-| ------ | --------------: | ----------------: | --------------------------------------------: | ---------: |
-| FSRS-6 |          17.503 |           912.154 |                                        15.243 |      1.15× |
-| FSRS-7 |          55.770 |           993.437 |                                        40.529 |      1.38× |
+| Model  | TS step + curve | WASM step + curve | WASM batch + curve, including packing | TS / batch |
+| ------ | --------------: | ----------------: | ------------------------------------: | ---------: |
+| FSRS-6 |          16.558 |           870.526 |                                12.610 |      1.31× |
+| FSRS-7 |          55.847 |           974.497 |                                38.216 |      1.46× |
 
 ## Public revlog: states only
 
-| Model  | TS forward | WASM forward per card | WASM cross-card batch, including packing/objects | WASM prepacked batch |
-| ------ | ---------: | --------------------: | -----------------------------------------------: | -------------------: |
-| FSRS-6 |     11.597 |               116.622 |                                           12.116 |                9.900 |
-| FSRS-7 |     39.758 |               139.159 |                                           31.032 |               28.651 |
+| Model  | TS forward | WASM forward per card, packed | WASM cross-card batch, including packing | WASM prepacked batch |
+| ------ | ---------: | ----------------------------: | ---------------------------------------: | -------------------: |
+| FSRS-6 |     11.483 |                       113.533 |                                    9.956 |                9.499 |
+| FSRS-7 |     39.209 |                       131.845 |                                   28.718 |               28.207 |
 
-FSRS-6 states-only replay does not improve once packing/object reconstruction is included. FSRS-7 states-only replay is about 1.28× faster in this run. The much larger improvement relative to per-review WASM calls comes from reducing N-API crossings and allocation, not a comparable advantage over TS.
+Direct packed consumption avoids the previous object reconstruction. Including input packing, states-only batching is about 1.15× faster for FSRS-6 and 1.37× for FSRS-7 in this run. Per-card calls are still substantially slower than TS, so eliminating conversion alone does not eliminate crossing overhead.
 
 ## Synthetic histories
 
-| Model  | TS step + curve | WASM batch + curve with objects | TS forward | WASM batch with objects |
-| ------ | --------------: | ------------------------------: | ---------: | ----------------------: |
-| FSRS-6 |          11.966 |                           7.341 |      5.996 |                   5.478 |
-| FSRS-7 |          31.637 |                          22.183 |     21.120 |                  16.565 |
+| Model  | TS step + curve | WASM batch + curve | TS forward | WASM batch |
+| ------ | --------------: | -----------------: | ---------: | ---------: |
+| FSRS-6 |          11.189 |              6.138 |      5.581 |      4.694 |
+| FSRS-7 |          29.861 |             18.585 |     19.283 |     13.691 |
 
 ## Numerical differences
 
@@ -48,7 +48,7 @@ The inspected `src/ts/MemorisedBar.ts` uses FSRS-6, maintains per-card states, c
 
 Keep TS for the current per-review integration. To use WASM, preprocess histories by parameter configuration/card/reset segment, call `model.algorithm.forwardBatch(reviews, offsets, true)`, then map returned states and pre-review probabilities back to chronological revlogs. Retain the existing reset, cram, timezone and incomplete-history handling. A per-card `forward` call alone is still slower than TS in this workload.
 
-The FSRS-6 kernel improvement is only about 1.15× here and comes with different stability-floor semantics, so this does not justify a transparent replacement of the current add-on model. FSRS-7 provides a clearer but still modest batch gain. Browser/Anki startup, daily curve sampling, full graph generation and UI responsiveness have not been benchmarked.
+The FSRS-6 kernel improvement is about 1.31× here and comes with different stability-floor semantics, so this does not justify a transparent replacement of the current add-on model. FSRS-7 provides about 1.46× for state-plus-curve replay. Browser/Anki startup, daily curve sampling, full graph generation and UI responsiveness have not been benchmarked.
 
 ## Reproduce
 

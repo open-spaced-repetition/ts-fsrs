@@ -18,12 +18,14 @@ import { FSRS6_DEFAULT_WEIGHTS, FSRS6Model as TS6 } from 'ts-fsrs/models/fsrs-6'
 import { FSRS7_DEFAULT_WEIGHTS, FSRS7Model as TS7 } from 'ts-fsrs/models/fsrs-7'
 
 type State = FSRSState & { stabilityFast?: number }
-interface BenchmarkModel {
+interface BenchmarkModel<ForwardResult = readonly State[]> {
   step(input: ModelStepInput<State>): State
-  forward(input: ModelForwardInput<State>): readonly State[]
+  forward(input: ModelForwardInput<State>): ForwardResult
   forgettingCurve(state: State, elapsedDays: number): number
 }
-type WasmModel = BenchmarkModel & { algorithm: FSRSBinding }
+type WasmModel = BenchmarkModel<Float64Array> & {
+  algorithm: FSRSBinding
+}
 interface Dataset {
   name: string
   sha256?: string
@@ -120,7 +122,7 @@ function checksum(states: readonly State[]) {
   return sum
 }
 function loop(
-  model: BenchmarkModel,
+  model: Pick<BenchmarkModel, 'step' | 'forgettingCurve'>,
   histories: ModelReview[][],
   curves = false
 ) {
@@ -144,6 +146,14 @@ function replay(model: BenchmarkModel, histories: ModelReview[][]) {
   for (const history of histories) sum += checksum(model.forward({ history }))
   return sum
 }
+function replayPacked(model: WasmModel, histories: ModelReview[][]) {
+  let sum = 0
+  for (const history of histories) {
+    const states = model.forward({ history })
+    for (let i = 0; i < states.length; i++) sum += states[i]
+  }
+  return sum
+}
 function pack(histories: ModelReview[][]) {
   const count = histories.reduce((n, h) => n + h.length, 0)
   const input = new Float64Array(count * 2)
@@ -159,35 +169,6 @@ function pack(histories: ModelReview[][]) {
   }
   return { input, offsets }
 }
-function unpack(
-  output: Float64Array,
-  offsets: Uint32Array,
-  version: string,
-  stride = 3
-): State[][] {
-  const cards: State[][] = []
-  for (let card = 0; card < offsets.length - 1; card++) {
-    const states: State[] = []
-    for (
-      let i = offsets[card] * stride;
-      i < offsets[card + 1] * stride;
-      i += stride
-    ) {
-      states.push(
-        version === 'FSRS-6'
-          ? { stability: output[i], difficulty: output[i + 1] }
-          : {
-              stability: output[i],
-              difficulty: output[i + 1],
-              stabilityFast: output[i + 2],
-            }
-      )
-    }
-    cards.push(states)
-  }
-  return cards
-}
-
 const results = []
 for (const dataset of datasets) {
   for (const [version, ts, wasm] of versions) {
@@ -197,11 +178,12 @@ for (const dataset of datasets) {
     for (const history of dataset.histories) {
       const expected = ts.forward({ history })
       const actual = wasm.forward({ history })
-      assert.equal(actual.length, expected.length)
+      assert.equal(actual.length, expected.length * 3)
       for (let i = 0; i < expected.length; i++) {
+        const offsets = { stability: 0, difficulty: 1, stabilityFast: 2 }
         for (const key of Object.keys(expected[i]) as (keyof State)[]) {
           const error =
-            Math.abs((actual[i][key] ?? 0) - (expected[i][key] ?? 0)) /
+            Math.abs(actual[i * 3 + offsets[key]] - (expected[i][key] ?? 0)) /
             Math.max(1, Math.abs(expected[i][key] ?? 0))
           assert(Number.isFinite(error))
           if (error > 0.0001) fieldsOutsideTolerance++
@@ -212,7 +194,7 @@ for (const dataset of datasets) {
               index: i,
               key,
               ts: expected[i],
-              wasm: actual[i],
+              wasm: Array.from(actual.subarray(i * 3, i * 3 + 3)),
             }
           }
         }
@@ -226,7 +208,7 @@ for (const dataset of datasets) {
       ['ts-step+curve', () => loop(ts, dataset.histories, true)],
       ['wasi-step+curve', () => loop(wasm, dataset.histories, true)],
       ['ts-forward', () => replay(ts, dataset.histories)],
-      ['wasi-forward', () => replay(wasm, dataset.histories)],
+      ['wasi-forward-packed', () => replayPacked(wasm, dataset.histories)],
       [
         'wasi-batch-packed',
         () => {
@@ -240,26 +222,22 @@ for (const dataset of datasets) {
         },
       ],
       [
-        'wasi-batch-objects',
+        'wasi-batch',
         () => {
           const { input, offsets } = pack(dataset.histories)
           const output = wasm.algorithm.forwardBatch(input, offsets)
-          return unpack(output, offsets, version).reduce(
-            (sum, states) => sum + checksum(states),
-            0
-          )
+          let sum = 0
+          for (let i = 0; i < output.length; i++) sum += output[i]
+          return sum
         },
       ],
       [
-        'wasi-batch+curve-objects',
+        'wasi-batch+curve',
         () => {
           const { input, offsets } = pack(dataset.histories)
           const output = wasm.algorithm.forwardBatch(input, offsets, true)
-          let sum = unpack(output, offsets, version, 4).reduce(
-            (sum, states) => sum + checksum(states),
-            0
-          )
-          for (let i = 3; i < output.length; i += 4) sum += output[i]
+          let sum = 0
+          for (let i = 0; i < output.length; i++) sum += output[i]
           return sum
         },
       ],

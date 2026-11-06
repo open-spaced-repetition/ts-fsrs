@@ -20,6 +20,7 @@ import {
   clipFSRS7Parameters,
   FSRS7_MODEL_BOUNDS,
   FSRS7MemoryStateSchema,
+  type FSRS7State,
   fsrs7ConfigSchema,
   migrateFSRS7Parameters,
 } from 'ts-fsrs/models/fsrs-7'
@@ -34,26 +35,24 @@ function createCore<
   S extends State,
 >(
   config: C,
-  bounds: ModelBounds<S>,
-  fromValues: (
-    stability: number,
-    difficulty: number,
-    stabilityFast: number
-  ) => S
-): ModelCore<{ config: C; memoryState: S; algorithm: FSRSBinding }> {
+  bounds: ModelBounds<S>
+): ModelCore<{
+  config: C
+  memoryState: S
+  algorithm: FSRSBinding
+  forwardResult: Float64Array
+}> {
   const binding = new FSRSBinding(Array.from(config.weights))
-  const forward = ({ history, initialState }: ModelForwardInput<S>): S[] => {
+  const forward = ({
+    history,
+    initialState,
+  }: ModelForwardInput<S>): Float64Array => {
     const input = new Float64Array(history.length * 2)
     for (let i = 0; i < history.length; i++) {
       input[i * 2] = history[i].deltaT
       input[i * 2 + 1] = history[i].rating
     }
-    const output = binding.forward(input, initialState)
-    const states: S[] = []
-    for (let i = 0; i < output.length; i += 3) {
-      states.push(fromValues(output[i], output[i + 1], output[i + 2]))
-    }
-    return states
+    return binding.forward(input, initialState)
   }
   const forgettingCurve = (state: Readonly<S>, elapsedDays: number): number =>
     binding.currentRetrievability(state, elapsedDays)
@@ -76,6 +75,7 @@ export const FSRS6Model: Model<{
   config: typeof fsrs6ConfigSchema
   memoryState: typeof FSRSMemoryStateSchema
   algorithm: FSRSBinding
+  forwardResult: Float64Array
 }> = defineModel({
   name: 'fsrs-6',
   schema: { config: fsrs6ConfigSchema, memoryState: FSRSMemoryStateSchema },
@@ -98,14 +98,10 @@ export const FSRS6Model: Model<{
       if (check) checkFSRS6Parameters(weights, config.numRelearningSteps, true)
       config = Object.freeze(fsrs6ConfigSchema.parse({ ...config, weights }))
     }
-    return createCore(
-      config,
-      { ...FSRS6_MODEL_BOUNDS, sMin: 0.0001 },
-      (stability, difficulty) => ({
-        stability,
-        difficulty,
-      })
-    )
+    return createCore<typeof config, FSRSState>(config, {
+      ...FSRS6_MODEL_BOUNDS,
+      sMin: 0.0001,
+    })
   },
 })
 
@@ -114,6 +110,7 @@ export const FSRS7Model: Model<{
   config: typeof fsrs7ConfigSchema
   memoryState: typeof FSRS7MemoryStateSchema
   algorithm: FSRSBinding
+  forwardResult: Float64Array
 }> = defineModel({
   name: 'fsrs-7',
   schema: { config: fsrs7ConfigSchema, memoryState: FSRS7MemoryStateSchema },
@@ -135,14 +132,6 @@ export const FSRS7Model: Model<{
       if (check) checkFSRS7Parameters(weights)
       config = Object.freeze(fsrs7ConfigSchema.parse({ weights }))
     }
-    return createCore(
-      config,
-      FSRS7_MODEL_BOUNDS,
-      (stability, difficulty, stabilityFast) => ({
-        stability,
-        difficulty,
-        stabilityFast,
-      })
-    )
+    return createCore<typeof config, FSRS7State>(config, FSRS7_MODEL_BOUNDS)
   },
 })

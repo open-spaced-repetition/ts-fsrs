@@ -22,46 +22,43 @@
           "difficulty": 9.67878555,
           "stability": 66.17653921
         },
-        "wasm": {
-          "stability": 66.17618560791016,
-          "difficulty": 9.678793907165527
-        }
+        "wasm": [66.17618560791016, 9.678793907165527, 66.17618560791016]
       },
       "measurements": {
         "ts-step+curve": {
-          "medianMs": 11.966,
-          "minMs": 10.25,
-          "maxMs": 14.271
+          "medianMs": 11.189,
+          "minMs": 9.796,
+          "maxMs": 11.483
         },
         "wasi-step+curve": {
-          "medianMs": 479.496,
-          "minMs": 442.599,
-          "maxMs": 618.171
+          "medianMs": 430.955,
+          "minMs": 428.578,
+          "maxMs": 434.406
         },
         "ts-forward": {
-          "medianMs": 5.996,
-          "minMs": 5.707,
-          "maxMs": 25.506
+          "medianMs": 5.581,
+          "minMs": 5.525,
+          "maxMs": 5.802
         },
-        "wasi-forward": {
-          "medianMs": 27.923,
-          "minMs": 26.367,
-          "maxMs": 43.869
+        "wasi-forward-packed": {
+          "medianMs": 25.606,
+          "minMs": 25.224,
+          "maxMs": 28.061
         },
         "wasi-batch-packed": {
-          "medianMs": 5.613,
-          "minMs": 4.631,
-          "maxMs": 12.693
+          "medianMs": 4.61,
+          "minMs": 4.404,
+          "maxMs": 6.108
         },
-        "wasi-batch-objects": {
-          "medianMs": 5.478,
-          "minMs": 4.978,
-          "maxMs": 10.027
+        "wasi-batch": {
+          "medianMs": 4.694,
+          "minMs": 4.488,
+          "maxMs": 6.506
         },
-        "wasi-batch+curve-objects": {
-          "medianMs": 7.341,
-          "minMs": 6.733,
-          "maxMs": 8.221
+        "wasi-batch+curve": {
+          "medianMs": 6.138,
+          "minMs": 6.015,
+          "maxMs": 8.012
         }
       }
     },
@@ -81,47 +78,43 @@
           "stabilityFast": 2093.06339073,
           "difficulty": 1
         },
-        "wasm": {
-          "stability": 103.8229751586914,
-          "difficulty": 1,
-          "stabilityFast": 2093.063720703125
-        }
+        "wasm": [103.8229751586914, 1, 2093.063720703125]
       },
       "measurements": {
         "ts-step+curve": {
-          "medianMs": 31.637,
-          "minMs": 30.979,
-          "maxMs": 36.194
+          "medianMs": 29.861,
+          "minMs": 29.073,
+          "maxMs": 30.212
         },
         "wasi-step+curve": {
-          "medianMs": 555.042,
-          "minMs": 492.41,
-          "maxMs": 666.973
+          "medianMs": 485.548,
+          "minMs": 482.359,
+          "maxMs": 489.613
         },
         "ts-forward": {
-          "medianMs": 21.12,
-          "minMs": 19.563,
-          "maxMs": 27.928
+          "medianMs": 19.283,
+          "minMs": 19.067,
+          "maxMs": 19.879
         },
-        "wasi-forward": {
-          "medianMs": 37.577,
-          "minMs": 35.162,
-          "maxMs": 209.84
+        "wasi-forward-packed": {
+          "medianMs": 34.774,
+          "minMs": 33.585,
+          "maxMs": 35.037
         },
         "wasi-batch-packed": {
-          "medianMs": 15.067,
-          "minMs": 13.739,
-          "maxMs": 28.013
+          "medianMs": 13.645,
+          "minMs": 13.55,
+          "maxMs": 13.716
         },
-        "wasi-batch-objects": {
-          "medianMs": 16.565,
-          "minMs": 14.834,
-          "maxMs": 42.781
+        "wasi-batch": {
+          "medianMs": 13.691,
+          "minMs": 13.374,
+          "maxMs": 14.829
         },
-        "wasi-batch+curve-objects": {
-          "medianMs": 22.183,
-          "minMs": 19.852,
-          "maxMs": 28.586
+        "wasi-batch+curve": {
+          "medianMs": 18.585,
+          "minMs": 18.253,
+          "maxMs": 18.684
         }
       }
     },
@@ -141,46 +134,43 @@
           "difficulty": 9.91173295,
           "stability": 1.03937354
         },
-        "wasm": {
-          "stability": 0.4670376777648926,
-          "difficulty": 9.911735534667969
-        }
+        "wasm": [0.4670376777648926, 9.911735534667969, 0.4670376777648926]
       },
       "measurements": {
         "ts-step+curve": {
-          "medianMs": 17.503,
-          "minMs": 15.748,
-          "maxMs": 19.91
+          "medianMs": 16.558,
+          "minMs": 15.817,
+          "maxMs": 20.089
         },
         "wasi-step+curve": {
-          "medianMs": 912.154,
-          "minMs": 878.907,
-          "maxMs": 991.069
+          "medianMs": 870.526,
+          "minMs": 862.163,
+          "maxMs": 874.396
         },
         "ts-forward": {
-          "medianMs": 11.597,
-          "minMs": 11.238,
-          "maxMs": 14.128
+          "medianMs": 11.483,
+          "minMs": 11.18,
+          "maxMs": 11.808
         },
-        "wasi-forward": {
-          "medianMs": 116.622,
-          "minMs": 113.292,
-          "maxMs": 143.093
+        "wasi-forward-packed": {
+          "medianMs": 113.533,
+          "minMs": 112.038,
+          "maxMs": 114.467
         },
         "wasi-batch-packed": {
-          "medianMs": 9.9,
-          "minMs": 9.661,
-          "maxMs": 11.789
+          "medianMs": 9.499,
+          "minMs": 9.2,
+          "maxMs": 9.64
         },
-        "wasi-batch-objects": {
-          "medianMs": 12.116,
-          "minMs": 11.786,
-          "maxMs": 14.985
+        "wasi-batch": {
+          "medianMs": 9.956,
+          "minMs": 9.613,
+          "maxMs": 11.409
         },
-        "wasi-batch+curve-objects": {
-          "medianMs": 15.243,
-          "minMs": 14.243,
-          "maxMs": 18.675
+        "wasi-batch+curve": {
+          "medianMs": 12.61,
+          "minMs": 12.342,
+          "maxMs": 14.836
         }
       }
     },
@@ -201,47 +191,43 @@
           "stabilityFast": 327.85948938,
           "difficulty": 9.19383216
         },
-        "wasm": {
-          "stability": 1.000953197479248,
-          "difficulty": 9.19383430480957,
-          "stabilityFast": 327.859130859375
-        }
+        "wasm": [1.000953197479248, 9.19383430480957, 327.859130859375]
       },
       "measurements": {
         "ts-step+curve": {
-          "medianMs": 55.77,
-          "minMs": 55.653,
-          "maxMs": 61.284
+          "medianMs": 55.847,
+          "minMs": 55.381,
+          "maxMs": 57.601
         },
         "wasi-step+curve": {
-          "medianMs": 993.437,
-          "minMs": 987.285,
-          "maxMs": 1058.777
+          "medianMs": 974.497,
+          "minMs": 969.403,
+          "maxMs": 986.949
         },
         "ts-forward": {
-          "medianMs": 39.758,
-          "minMs": 39.352,
-          "maxMs": 42.378
+          "medianMs": 39.209,
+          "minMs": 38.799,
+          "maxMs": 40.306
         },
-        "wasi-forward": {
-          "medianMs": 139.159,
-          "minMs": 134.72,
-          "maxMs": 142.979
+        "wasi-forward-packed": {
+          "medianMs": 131.845,
+          "minMs": 129.594,
+          "maxMs": 139.299
         },
         "wasi-batch-packed": {
-          "medianMs": 28.651,
-          "minMs": 28.201,
-          "maxMs": 30.298
+          "medianMs": 28.207,
+          "minMs": 27.93,
+          "maxMs": 29.179
         },
-        "wasi-batch-objects": {
-          "medianMs": 31.032,
-          "minMs": 30.598,
-          "maxMs": 34.646
+        "wasi-batch": {
+          "medianMs": 28.718,
+          "minMs": 28.408,
+          "maxMs": 29.447
         },
-        "wasi-batch+curve-objects": {
-          "medianMs": 40.529,
-          "minMs": 40.349,
-          "maxMs": 43.352
+        "wasi-batch+curve": {
+          "medianMs": 38.216,
+          "minMs": 37.609,
+          "maxMs": 38.396
         }
       }
     }
