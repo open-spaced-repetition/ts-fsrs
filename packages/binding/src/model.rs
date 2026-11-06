@@ -2,6 +2,24 @@ use napi::bindgen_prelude::{FnArgs, Function};
 use napi_derive::napi;
 use serde::{Deserialize, Serialize};
 
+/// Plain state accepted by inference APIs, compatible with SRS Kit schemas.
+#[napi(object)]
+pub struct InferenceMemoryState {
+  pub stability: f64,
+  pub difficulty: f64,
+  pub stability_fast: Option<f64>,
+}
+
+impl From<InferenceMemoryState> for fsrs::MemoryState {
+  fn from(state: InferenceMemoryState) -> Self {
+    Self {
+      stability: state.stability as f32,
+      difficulty: state.difficulty as f32,
+      stability_fast: state.stability_fast.unwrap_or(state.stability) as f32,
+    }
+  }
+}
+
 #[napi(js_name = "FSRSBindingReview")]
 #[derive(Debug)]
 pub struct FSRSReview {

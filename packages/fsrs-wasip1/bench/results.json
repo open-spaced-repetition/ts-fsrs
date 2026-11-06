@@ -1,0 +1,249 @@
+{
+  "node": "v26.13.0",
+  "platform": "darwin",
+  "arch": "arm64",
+  "cpu": "Apple M2",
+  "target": "wasm32-wasip1",
+  "warmups": 2,
+  "samples": 7,
+  "results": [
+    {
+      "dataset": "synthetic-2000x30",
+      "version": "FSRS-6",
+      "cards": 2000,
+      "reviews": 60000,
+      "maxScaledError": 5.343314928014649e-6,
+      "fieldsOutsideTolerance": 0,
+      "worst": {
+        "reviews": 30,
+        "index": 28,
+        "key": "stability",
+        "ts": {
+          "difficulty": 9.67878555,
+          "stability": 66.17653921
+        },
+        "wasm": {
+          "stability": 66.17618560791016,
+          "difficulty": 9.678793907165527
+        }
+      },
+      "measurements": {
+        "ts-step+curve": {
+          "medianMs": 11.966,
+          "minMs": 10.25,
+          "maxMs": 14.271
+        },
+        "wasi-step+curve": {
+          "medianMs": 479.496,
+          "minMs": 442.599,
+          "maxMs": 618.171
+        },
+        "ts-forward": {
+          "medianMs": 5.996,
+          "minMs": 5.707,
+          "maxMs": 25.506
+        },
+        "wasi-forward": {
+          "medianMs": 27.923,
+          "minMs": 26.367,
+          "maxMs": 43.869
+        },
+        "wasi-batch-packed": {
+          "medianMs": 5.613,
+          "minMs": 4.631,
+          "maxMs": 12.693
+        },
+        "wasi-batch-objects": {
+          "medianMs": 5.478,
+          "minMs": 4.978,
+          "maxMs": 10.027
+        },
+        "wasi-batch+curve-objects": {
+          "medianMs": 7.341,
+          "minMs": 6.733,
+          "maxMs": 8.221
+        }
+      }
+    },
+    {
+      "dataset": "synthetic-2000x30",
+      "version": "FSRS-7",
+      "cards": 2000,
+      "reviews": 60000,
+      "maxScaledError": 3.883150683383055e-6,
+      "fieldsOutsideTolerance": 0,
+      "worst": {
+        "reviews": 30,
+        "index": 5,
+        "key": "stability",
+        "ts": {
+          "stability": 103.822572,
+          "stabilityFast": 2093.06339073,
+          "difficulty": 1
+        },
+        "wasm": {
+          "stability": 103.8229751586914,
+          "difficulty": 1,
+          "stabilityFast": 2093.063720703125
+        }
+      },
+      "measurements": {
+        "ts-step+curve": {
+          "medianMs": 31.637,
+          "minMs": 30.979,
+          "maxMs": 36.194
+        },
+        "wasi-step+curve": {
+          "medianMs": 555.042,
+          "minMs": 492.41,
+          "maxMs": 666.973
+        },
+        "ts-forward": {
+          "medianMs": 21.12,
+          "minMs": 19.563,
+          "maxMs": 27.928
+        },
+        "wasi-forward": {
+          "medianMs": 37.577,
+          "minMs": 35.162,
+          "maxMs": 209.84
+        },
+        "wasi-batch-packed": {
+          "medianMs": 15.067,
+          "minMs": 13.739,
+          "maxMs": 28.013
+        },
+        "wasi-batch-objects": {
+          "medianMs": 16.565,
+          "minMs": 14.834,
+          "maxMs": 42.781
+        },
+        "wasi-batch+curve-objects": {
+          "medianMs": 22.183,
+          "minMs": 19.852,
+          "maxMs": 28.586
+        }
+      }
+    },
+    {
+      "dataset": "public-revlog-utc-days",
+      "sha256": "80b260e7e140755123179a5f1be931b586c031e9c594e2054c3bc267e8f1f369",
+      "version": "FSRS-6",
+      "cards": 9793,
+      "reviews": 123730,
+      "maxScaledError": 0.5506546397506977,
+      "fieldsOutsideTolerance": 234,
+      "worst": {
+        "reviews": 52,
+        "index": 42,
+        "key": "stability",
+        "ts": {
+          "difficulty": 9.91173295,
+          "stability": 1.03937354
+        },
+        "wasm": {
+          "stability": 0.4670376777648926,
+          "difficulty": 9.911735534667969
+        }
+      },
+      "measurements": {
+        "ts-step+curve": {
+          "medianMs": 17.503,
+          "minMs": 15.748,
+          "maxMs": 19.91
+        },
+        "wasi-step+curve": {
+          "medianMs": 912.154,
+          "minMs": 878.907,
+          "maxMs": 991.069
+        },
+        "ts-forward": {
+          "medianMs": 11.597,
+          "minMs": 11.238,
+          "maxMs": 14.128
+        },
+        "wasi-forward": {
+          "medianMs": 116.622,
+          "minMs": 113.292,
+          "maxMs": 143.093
+        },
+        "wasi-batch-packed": {
+          "medianMs": 9.9,
+          "minMs": 9.661,
+          "maxMs": 11.789
+        },
+        "wasi-batch-objects": {
+          "medianMs": 12.116,
+          "minMs": 11.786,
+          "maxMs": 14.985
+        },
+        "wasi-batch+curve-objects": {
+          "medianMs": 15.243,
+          "minMs": 14.243,
+          "maxMs": 18.675
+        }
+      }
+    },
+    {
+      "dataset": "public-revlog-utc-days",
+      "sha256": "80b260e7e140755123179a5f1be931b586c031e9c594e2054c3bc267e8f1f369",
+      "version": "FSRS-7",
+      "cards": 9793,
+      "reviews": 123730,
+      "maxScaledError": 0.00034952702412472465,
+      "fieldsOutsideTolerance": 10,
+      "worst": {
+        "reviews": 34,
+        "index": 31,
+        "key": "stability",
+        "ts": {
+          "stability": 1.00130318,
+          "stabilityFast": 327.85948938,
+          "difficulty": 9.19383216
+        },
+        "wasm": {
+          "stability": 1.000953197479248,
+          "difficulty": 9.19383430480957,
+          "stabilityFast": 327.859130859375
+        }
+      },
+      "measurements": {
+        "ts-step+curve": {
+          "medianMs": 55.77,
+          "minMs": 55.653,
+          "maxMs": 61.284
+        },
+        "wasi-step+curve": {
+          "medianMs": 993.437,
+          "minMs": 987.285,
+          "maxMs": 1058.777
+        },
+        "ts-forward": {
+          "medianMs": 39.758,
+          "minMs": 39.352,
+          "maxMs": 42.378
+        },
+        "wasi-forward": {
+          "medianMs": 139.159,
+          "minMs": 134.72,
+          "maxMs": 142.979
+        },
+        "wasi-batch-packed": {
+          "medianMs": 28.651,
+          "minMs": 28.201,
+          "maxMs": 30.298
+        },
+        "wasi-batch-objects": {
+          "medianMs": 31.032,
+          "minMs": 30.598,
+          "maxMs": 34.646
+        },
+        "wasi-batch+curve-objects": {
+          "medianMs": 40.529,
+          "minMs": 40.349,
+          "maxMs": 43.352
+        }
+      }
+    }
+  ]
+}

@@ -225,6 +225,26 @@
       "outputs": ["coverage/**"],
       "cache": false,
       "env": ["FSRS_BINDING_WASI_FLAVOR", "TURBO_PLATFORM"]
+    },
+    "@open-spaced-repetition/fsrs-wasip1#typecheck": {
+      "dependsOn": ["build"],
+      "outputs": []
+    },
+    "@open-spaced-repetition/fsrs-wasip1#test": {
+      "dependsOn": ["^build", "prepare:binding"],
+      "outputs": []
+    },
+    "@open-spaced-repetition/fsrs-wasip1#bench": {
+      "dependsOn": ["build"],
+      "cache": false
+    },
+    "@open-spaced-repetition/fsrs-wasip1#prepare:binding": {
+      "dependsOn": ["@open-spaced-repetition/binding#build:wasm:threadless"],
+      "cache": false
+    },
+    "@open-spaced-repetition/fsrs-wasip1#build": {
+      "dependsOn": ["^build", "prepare:binding"],
+      "outputs": ["dist/**"]
     }
   }
 }

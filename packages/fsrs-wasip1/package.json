@@ -1,0 +1,47 @@
+{
+  "name": "@open-spaced-repetition/fsrs-wasip1",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "SRS Kit models backed by the FSRS WASI Preview 1 binding.",
+  "main": "dist/index.js",
+  "module": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "license": "BSD-3-Clause",
+  "engines": {
+    "node": ">=24"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/open-spaced-repetition/ts-fsrs.git",
+    "directory": "packages/fsrs-wasip1"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "typecheck": "tsc --noEmit --pretty false",
+    "check": "biome check src bench tsdown.config.ts vitest.config.ts",
+    "test": "vitest run",
+    "bench": "node --expose-gc bench/revlog.ts",
+    "prepare:binding": "node ../binding/prepare-wasip1-package.mjs"
+  },
+  "dependencies": {
+    "@open-spaced-repetition/binding-wasm32-wasip1": "workspace:^"
+  },
+  "devDependencies": {
+    "tsdown": "0.23.4",
+    "typescript": "^6.0.3",
+    "ts-fsrs": "workspace:^"
+  },
+  "peerDependencies": {
+    "ts-fsrs": ">=6.0.0"
+  }
+}
