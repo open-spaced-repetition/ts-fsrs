@@ -9,8 +9,11 @@ import {
   FSRSBindingReview,
 } from '@open-spaced-repetition/binding'
 
-const describeThreadless =
-  process.env.NAPI_RS_WASI_FLAVOR === 'wasm32-wasip1' ? describe : describe.skip
+const describeWasi = ['wasm32-wasip1', 'wasm32-wasi'].includes(
+  process.env.NAPI_RS_WASI_FLAVOR ?? ''
+)
+  ? describe
+  : describe.skip
 
 function createItem() {
   return new FSRSBindingItem([
@@ -28,7 +31,7 @@ function createTrainingItems(modelVersion?: 'FSRS-6' | 'FSRS-7') {
   )
 }
 
-describeThreadless('threadless WASI binding', () => {
+describeWasi('synchronous WASI p1 binding', () => {
   test('runs scheduling, training, and evaluation from CommonJS', () => {
     const revlogPath = fileURLToPath(new URL('./revlog.csv', import.meta.url))
 
@@ -126,69 +129,103 @@ describeThreadless('threadless WASI binding', () => {
     )
   })
 
-  test.each([
-    'FSRS-6',
-    'FSRS-7',
-  ] as const)('reports %s training progress', async (modelVersion) => {
-    const updates: Array<[number, number]> = []
-    const parameters = await computeParameters(
-      createTrainingItems(modelVersion),
-      {
+  test.each(['FSRS-6', 'FSRS-7'] as const)(
+    'reports %s training progress',
+    async (modelVersion) => {
+      const updates: Array<[number, number]> = []
+      const result = computeParameters(createTrainingItems(modelVersion), {
         enableShortTerm: true,
         modelVersion,
         progress: (current, total) => {
           updates.push([current, total])
         },
-      }
-    )
+      })
 
-    expect(parameters).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
-    expect(parameters.every(Number.isFinite)).toBe(true)
-    expect(updates.length).toBeGreaterThan(1)
-    expect(updates.at(-1)?.[0]).toBe(updates.at(-1)?.[1])
-  })
+      expect(result).toBeInstanceOf(Promise)
+      expect(updates.length).toBeGreaterThan(1)
+      const parameters = await result
+      expect(parameters).toHaveLength(modelVersion === 'FSRS-6' ? 21 : 34)
+      expect(parameters.every(Number.isFinite)).toBe(true)
+      expect(updates.at(-1)?.[0]).toBe(updates.at(-1)?.[1])
+    }
+  )
 
-  test.each([
-    'FSRS-6',
-    'FSRS-7',
-  ] as const)('reports each %s time-series split', async (modelVersion) => {
-    const updates: Array<[number, number]> = []
-    const metrics = await evaluateWithTimeSeriesSplits(
-      createTrainingItems(modelVersion),
-      {
+  test.each(['FSRS-6', 'FSRS-7'] as const)(
+    'reports each %s time-series split',
+    async (modelVersion) => {
+      const updates: Array<[number, number]> = []
+      const result = evaluateWithTimeSeriesSplits(
+        createTrainingItems(modelVersion),
+        {
+          enableShortTerm: true,
+          modelVersion,
+          progress: (current, total) => {
+            updates.push([current, total])
+          },
+        }
+      )
+
+      expect(result).toBeInstanceOf(Promise)
+      expect(updates).toHaveLength(5)
+      const metrics = await result
+      expect(metrics).toEqual(
+        expect.objectContaining({
+          logLoss: expect.any(Number),
+          rmseBins: expect.any(Number),
+        })
+      )
+      expect(updates).toEqual([
+        [1, 5],
+        [2, 5],
+        [3, 5],
+        [4, 5],
+        [5, 5],
+      ])
+    }
+  )
+
+  test.each(['FSRS-6', 'FSRS-7'] as const)(
+    'progress can stop %s training',
+    async (modelVersion) => {
+      await expect(
+        computeParameters(createTrainingItems(modelVersion), {
+          enableShortTerm: true,
+          modelVersion,
+          progress: () => false,
+        })
+      ).rejects.toThrow('compute_parameters failed')
+    }
+  )
+
+  test.each([computeParameters, evaluateWithTimeSeriesSplits])(
+    'preserves synchronous progress callback errors and cancellation',
+    async (run) => {
+      const items = createTrainingItems()
+      const options = {
         enableShortTerm: true,
-        modelVersion,
-        progress: (current, total) => {
-          updates.push([current, total])
+        trainingConfig: {
+          numEpochs: 1,
+          batchSize: 32,
+          seed: 2023,
+          maxSeqLen: 256,
+          learningRate: 0.04,
+          gamma: 1,
         },
       }
-    )
-
-    expect(metrics).toEqual(
-      expect.objectContaining({
-        logLoss: expect.any(Number),
-        rmseBins: expect.any(Number),
-      })
-    )
-    expect(updates).toEqual([
-      [1, 5],
-      [2, 5],
-      [3, 5],
-      [4, 5],
-      [5, 5],
-    ])
-  })
-
-  test.each([
-    'FSRS-6',
-    'FSRS-7',
-  ] as const)('progress can stop %s training', async (modelVersion) => {
-    await expect(
-      computeParameters(createTrainingItems(modelVersion), {
-        enableShortTerm: true,
-        modelVersion,
-        progress: () => false,
-      })
-    ).rejects.toThrow('compute_parameters failed')
-  })
+      await expect(
+        run(items, {
+          ...options,
+          progress: () => false,
+        })
+      ).rejects.toThrow()
+      await expect(
+        run(items, {
+          ...options,
+          progress: () => {
+            throw new Error('Progress failed')
+          },
+        })
+      ).rejects.toThrow('Progress failed')
+    }
+  )
 })

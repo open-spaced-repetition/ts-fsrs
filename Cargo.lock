@@ -133,7 +133,7 @@ checksum = "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
 [[package]]
 name = "fsrs"
 version = "6.6.2"
-source = "git+https://github.com/ishiko732/fsrs-rs?branch=wasm32-wasip1-progress-fsrs7#d7f337b7c3d4f85aff4b523baa077b529cee1005"
+source = "git+https://github.com/open-spaced-repetition/fsrs-rs?rev=f0fbb3c0b9e3a2933aa466c4ab41911579055219#f0fbb3c0b9e3a2933aa466c4ab41911579055219"
 dependencies = [
  "bytemuck",
  "itertools",
@@ -612,9 +612,9 @@ checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
 
 [[package]]
 name = "safe_arch"
-version = "0.7.4"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96b02de82ddbe1b636e6170c21be622223aea188ef2e139be0a5b219ec215323"
+checksum = "42c6efa15875e6ecb39ca61fb0b0c1a40b84fac5a5ffe71eef7d1000c8eb3f5f"
 dependencies = [
  "bytemuck",
 ]
@@ -780,9 +780,9 @@ dependencies = [
 
 [[package]]
 name = "wide"
-version = "0.7.33"
+version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce5da8ecb62bcd8ec8b7ea19f69a51275e91299be594ea5cc6ef7819e16cd03"
+checksum = "d920ac99c3c8edce110cb8d07dbb324d6d026011dce85b1e9355b70f0adacc4f"
 dependencies = [
  "bytemuck",
  "safe_arch",

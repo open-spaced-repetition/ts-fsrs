@@ -7,10 +7,10 @@ packages:
 # Publish through pnpm so catalog ranges are resolved in the tarball.
 catalog:
   # Keep this pair exact: wasm-runtime 1.2.6 plugins require Emnapi's addonModule.
-  '@emnapi/core': 2.0.0-beta.2
-  '@emnapi/runtime': 2.0.0-beta.2
+  '@emnapi/core': 2.0.0-beta.3
+  '@emnapi/runtime': 2.0.0-beta.3
   '@napi-rs/wasm-runtime': 1.2.6
-  emnapi: 2.0.0-beta.2
+  emnapi: 2.0.0-beta.3
 
 overrides:
   monaco-editor>dompurify: ^3.4.13

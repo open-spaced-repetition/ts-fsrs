@@ -45,7 +45,7 @@ Use the same `modelVersion` (`'FSRS-7'` by default, or `'FSRS-6'`) for CSV conve
 
 ## Train weights
 
-`computeParameters(items, options)` is asynchronous and returns the trained weights. `enableShortTerm` is required; `numRelearningSteps` and `trainingConfig` are optional, and `progress` reports `(current, total)` while training runs:
+`computeParameters(items, options)` returns a `Promise<number[]>` containing the trained weights. `enableShortTerm` is required; `numRelearningSteps` and `trainingConfig` are optional, and `progress` reports `(current, total)` while training runs:
 
 ```ts
 const weights = await computeParameters(items, {
@@ -55,12 +55,16 @@ const weights = await computeParameters(items, {
 })
 ```
 
+`computeParameters` and `evaluateWithTimeSeriesSplits` return Promises in every build. The native binding runs them as background tasks. Both WASI Preview 1 targets (`wasm32-wasip1` and `wasm32-wasip1-threads`) compute synchronously on the calling thread and then wrap the result in a Promise. In browsers, call them from a dedicated Worker to keep the page responsive; the Worker can forward progress callbacks to the page with `postMessage`.
+
+On both WASI p1 targets, `progress(current, total)` runs synchronously after each training batch; `evaluateWithTimeSeriesSplits` reports after each completed split. Returning `false` stops the operation and rejects its Promise; throwing from the callback also rejects the Promise. Runs that skip batch training, such as those with too little data, emit no training progress. `timeout` is the native progress polling interval in milliseconds, not a training deadline; WASI p1 ignores it.
+
 `enableSchedPenalties` is optional and defaults to `false`. Set it to `true` to add FSRS-7 interval-growth and short-interval penalties to the training loss. It also applies to training inside `evaluateWithTimeSeriesSplits`. It is ignored by FSRS-6, and does not change scheduling formulas.
 
-`trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. `computeParameters` runs the real training loop, so call it in a Worker rather than on the main thread. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ version: modelVersion, weights })` or a `defineScheduler` config, replacing the model defaults.
+`trainingConfig` (epochs, batch size, seed, max sequence length, learning rate, and L2 weight) is optional and falls back to the binding's defaults. For browser WASI usage, run `computeParameters` in a dedicated Worker. The trainer on the [Playground](../../playground) page runs this same path in a Web Worker and reports progress live. The returned `weights` array is what you pass to `DefaultScheduler({ version: modelVersion, weights })` or a `defineScheduler` config, replacing the model defaults.
 
 ## Evaluate fit
 
-`evaluateWithTimeSeriesSplits(items, options)` splits the review history by time and returns a `ModelEvaluation` with `logLoss` and `rmseBins`, letting you judge whether the trained weights predict held-out reviews. `computeOptimalSteps` goes further: given the reviews and a target retention, it recommends learning and relearning step durations.
+`evaluateWithTimeSeriesSplits(items, options)` splits the review history by time and returns a `Promise<ModelEvaluation>` whose result contains `logLoss` and `rmseBins`, letting you judge whether the trained weights predict held-out reviews. `computeOptimalSteps` goes further: given the reviews and a target retention, it recommends learning and relearning step durations.
 
 See the [Optimizer overview](./index) for the two runtimes and install commands.

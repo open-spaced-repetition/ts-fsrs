@@ -58,7 +58,7 @@ console.log(parameters)
 
 请为 `convertCsvToFsrsItems(data, nextDayStartsAt, timezoneOrOffset, modelVersion)` 和 `computeParameters` 传入相同的 `modelVersion`。默认 FSRS7 按当地换日边界之间的实际学习日长度（包含夏令时）计算小数天，保留当天内的间隔；显式选择 FSRS6 时使用整数学习日。
 
-使用无线程的 `wasm32-wasip1` 包时，`computeParameters` 和 `evaluateWithTimeSeriesSplits` 会在当前 Worker 中同步执行，完成后的结果再包装成 `Promise` 以保持 API 兼容。在浏览器应用中，请从独立的 Worker 调用这些方法，避免阻塞主线程。该模式支持进度回调；回调返回 `false` 可以停止操作。
+使用任一 WASI Preview 1 目标（`wasm32-wasip1` 或 `wasm32-wasip1-threads`）时，`computeParameters` 和 `evaluateWithTimeSeriesSplits` 会在当前 Worker 中同步执行，完成后的结果再包装成 `Promise` 以保持 API 兼容。在浏览器应用中，请从独立的 Worker 调用这些方法，避免阻塞主线程。该模式支持进度回调；回调返回 `false` 可以停止操作。
 
 ### CSV 时区参数
 

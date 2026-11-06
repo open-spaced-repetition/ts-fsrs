@@ -1,4 +1,6 @@
-use std::sync::{Arc, Mutex};
+use std::any::Any;
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::{Arc, Mutex, PoisonError};
 use std::thread;
 use std::time::Duration;
 
@@ -155,4 +157,35 @@ pub fn spawn_progress_poller<S: ProgressStateTrait>(
       std::thread::sleep(sleep_dur);
     }
   })
+}
+
+/// Runs the body of an async task, turning a panic into an error.
+///
+/// napi runs `Task::compute` inside an `extern "C"` callback, which a panic
+/// cannot unwind through: without this guard it aborts the whole process
+/// instead of rejecting the promise. The progress poller is told to stop,
+/// because the panicking body never marks the state finished.
+pub fn catch_task_panic<S: ProgressStateTrait, T>(
+  state: &Arc<Mutex<S>>,
+  name: &str,
+  body: impl FnOnce() -> napi::Result<T>,
+) -> napi::Result<T> {
+  catch_unwind(AssertUnwindSafe(body)).unwrap_or_else(|payload| {
+    state
+      .lock()
+      .unwrap_or_else(PoisonError::into_inner)
+      .set_want_abort(true);
+    Err(napi::Error::from_reason(format!(
+      "{name} panicked: {}",
+      panic_message(payload.as_ref())
+    )))
+  })
+}
+
+fn panic_message(payload: &(dyn Any + Send)) -> &str {
+  payload
+    .downcast_ref::<&str>()
+    .copied()
+    .or_else(|| payload.downcast_ref::<String>().map(String::as_str))
+    .unwrap_or("unknown panic")
 }
