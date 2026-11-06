@@ -63,14 +63,19 @@
   },
   "overrides": [
     {
-      "includes": ["packages/fsrs/**", "packages/srs-kit/**"],
+      "includes": [
+        "packages/fsrs/**",
+        "packages/srs-kit/**",
+        "!**/*.spec.ts",
+        "!**/*.test.ts"
+      ],
       "linter": {
         "rules": {
           "correctness": {
             "useImportExtensions": {
               "level": "error",
               "options": {
-                "forceJsExtensions": true
+                "extensionMappings": { "ts": "js", "tsx": "js" }
               }
             }
           }

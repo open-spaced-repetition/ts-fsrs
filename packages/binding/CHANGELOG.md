@@ -82,11 +82,9 @@
 - [#272](https://github.com/open-spaced-repetition/ts-fsrs/pull/272) [`23ec7a9`](https://github.com/open-spaced-repetition/ts-fsrs/commit/23ec7a947d305f2fb3055653052c43b253b43b9d) Thanks [@ishiko732](https://github.com/ishiko732)! - refactor(binding): refactor progress callback to support training interruption
 
   BREAKING CHANGES:
-
   - progress callback no longer supports async functions, because call_with_return_value does not support asynchronous execution. See Node.js N-API documentation: https://nodejs.org/api/n-api.html#n_api_napi_call_threadsafe_function
 
 - [#309](https://github.com/open-spaced-repetition/ts-fsrs/pull/309) [`7c0d97c`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7c0d97c8f60f0203e07282e6c23ec2adb54dc352) Thanks [@ishiko732](https://github.com/ishiko732)! - feat(binding): add `initOptimizer` dynamic loader for custom wasm/worker resources
-
   - Export `./dynamic-wasi` entry from `binding` with `initOptimizer(options)` for Node.js and browser
   - Export `./wasi-worker` and `./wasm` entries from `binding-wasm32-wasi` for resolving worker and wasm paths
   - Allows users to provide wasm binary (Buffer, URL, Response) and worker (factory, instance, path) externally
@@ -122,7 +120,6 @@
   🎉 Release the first version of the high-performance FSRS optimizer based on [fsrs-rs](https://github.com/open-spaced-repetition/fsrs-rs) and [napi-rs](https://napi.rs/).
 
   ## Features
-
   - **High-Performance Parameter Optimization**: Native Rust implementation for computationally intensive FSRS parameter optimization
   - **Multi-Platform Support**: Pre-built binaries for 11 platforms:
     - Windows: x64, ia32, arm64 (MSVC)
@@ -136,12 +133,10 @@
     - `FSRSBinding`: FSRS scheduler instance for memory state calculations
 
   ## Requirements
-
   - Node.js >= 20.0.0
   - For WebAssembly: Additional package manager configuration required
 
   ## Limitations
-
   - ⚠️ **Beta Notice**: API may change in future releases
   - Cannot run in edge-runtime environments (edge-runtime does not support WASI)
 
