@@ -55,7 +55,7 @@ const weights = await computeParameters(items, {
 })
 ```
 
-`computeParameters` and `evaluateWithTimeSeriesSplits` return Promises in every build. The native binding runs them as background tasks. Both WASI Preview 1 targets (`wasm32-wasip1` and `wasm32-wasip1-threads`) compute synchronously on the calling thread and then wrap the result in a Promise. In browsers, call them from a dedicated Worker to keep the page responsive; the Worker can forward progress callbacks to the page with `postMessage`.
+`computeParameters` and `evaluateWithTimeSeriesSplits` return Promises in every build. The native binding runs them as background tasks. Both WASI Preview 1 targets (`wasm32-wasip1` and `wasm32-wasip1-threads`) compute synchronously on the calling thread and then wrap the result in a Promise. In browsers, you should call them from a dedicated Worker to keep the page responsive; the Worker can forward progress callbacks to the page with `postMessage`.
 
 On both WASI p1 targets, `progress(current, total)` runs synchronously after each training batch; `evaluateWithTimeSeriesSplits` reports after each completed split. Returning `false` stops the operation and rejects its Promise; throwing from the callback also rejects the Promise. Runs that skip batch training, such as those with too little data, emit no training progress. `timeout` is the native progress polling interval in milliseconds, not a training deadline; WASI p1 ignores it.
 

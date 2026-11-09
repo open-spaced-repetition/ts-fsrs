@@ -31,32 +31,32 @@ The Optimizer is currently in beta, and its API methods may change at any time.
 
 ## One package, two runtimes
 
-The binding exposes the same API in native and WASI builds. The main package prefers an available native module in Node; its browser entry uses the threaded WASI package. Install the package your environment needs:
+The binding exposes the same API in both native and WASI builds. The main package prefers native modules in Node; its browser entry uses the multi-threaded WASI package. Install the package your environment needs:
 
 Native module (Node, servers, and CLIs):
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding" />
 
-Threadless WASI Preview 1 (`wasm32-wasip1`):
+Single-threaded WASI Preview 1 (`wasm32-wasip1`):
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
 
-Threaded WASI Preview 1 (`wasm32-wasip1-threads`, published as `wasm32-wasi`):
+Multi-threaded WASI Preview 1 (`wasm32-wasip1-threads`, published as `wasm32-wasi`):
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
 
-The threaded build is deprecated. It remains available in this release and is planned for removal in the next release. Use the threadless package above for new WASI integrations.
+The multi-threaded build is deprecated. It remains available in this release and is planned for removal in the next release. Use the single-threaded package above for new WASI integrations.
 
 ```ts
 import { computeParameters } from '@open-spaced-repetition/binding'
 ```
 
-To select threadless WASI explicitly, import from `@open-spaced-repetition/binding-wasm32-wasip1`. Both WASI packages can run in Node or a browser Worker.
+To select single-threaded WASI explicitly, import from `@open-spaced-repetition/binding-wasm32-wasip1`. Both WASI packages can run in Node or a browser Worker.
 
 :::note COOP/COEP and threading
-The threadless build needs no Cross-Origin-Opener-Policy or Cross-Origin-Embedder-Policy headers. The threaded build still requires a `crossOriginIsolated` page served with COOP and COEP headers. Thread support describes the runtime; it does not make training run in the background.
+The single-threaded build does not need Cross-Origin-Opener-Policy or Cross-Origin-Embedder-Policy headers. The multi-threaded build still requires a `crossOriginIsolated` page served with COOP and COEP headers. Only the runtime is ever multi-threaded. The multi-threaded package does not make training run in the background.
 
-`computeParameters` and `evaluateWithTimeSeriesSplits` return Promises in every build. The native binding runs them as background tasks. Both WASI Preview 1 targets (`wasm32-wasip1` and `wasm32-wasip1-threads`) compute synchronously on the calling thread and then wrap the result in a Promise. In browsers, call them from a dedicated Worker to keep the page responsive; the Worker can forward progress callbacks to the page with `postMessage`.
+`computeParameters` and `evaluateWithTimeSeriesSplits` return Promises. The native binding runs them as background tasks. Both WASI Preview 1 targets (`wasm32-wasip1` and `wasm32-wasip1-threads`) compute synchronously on the calling thread and then wrap the result in a Promise. In browsers, you should call them from a dedicated Worker to keep the page responsive; the Worker can forward progress callbacks to the page with `postMessage`.
 :::
 
 ## The review-log pipeline
