@@ -337,6 +337,7 @@ pub struct ComputeParametersOptions<'env> {
   /// Reports progress; return false to stop training.
   #[napi(ts_type = "(current: number, total: number) => boolean | undefined | void")]
   pub progress: Option<ProgressFunc<'env>>,
+  /// Progress polling interval in milliseconds; ignored on WASI Preview 1.
   #[napi(ts_type = "number")]
   pub timeout: Option<u32>,
 }
@@ -349,7 +350,7 @@ pub(crate) struct ResolvedOptions {
   pub(crate) num_relearning_steps: Option<usize>,
   pub(crate) training_config: Option<fsrs::TrainingConfig>,
   /// Progress poll interval; only meaningful where a poller can run.
-  #[cfg(not(threadless_wasm))]
+  #[cfg(not(all(target_os = "wasi", target_env = "p1")))]
   pub(crate) timeout_ms: u32,
 }
 
@@ -359,7 +360,7 @@ impl ComputeParametersOptions<'_> {
   }
 
   /// Default progress poll interval in milliseconds.
-  #[cfg(not(threadless_wasm))]
+  #[cfg(not(all(target_os = "wasi", target_env = "p1")))]
   const DEFAULT_TIMEOUT_MS: u32 = 500;
 
   pub(crate) fn resolve(options: Option<&Self>) -> ResolvedOptions {
@@ -385,7 +386,7 @@ impl ComputeParametersOptions<'_> {
           (model_version == fsrs::ComputeParametersVersion::Fsrs6)
             .then(fsrs::TrainingConfig::default)
         }),
-      #[cfg(not(threadless_wasm))]
+      #[cfg(not(all(target_os = "wasi", target_env = "p1")))]
       timeout_ms: options
         .and_then(|x| x.timeout)
         .unwrap_or(Self::DEFAULT_TIMEOUT_MS),

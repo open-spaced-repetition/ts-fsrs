@@ -29,28 +29,32 @@ Optimizer は現在ベータ版であり、API メソッドは随時変更され
 
 ## 一つのパッケージ、二つの実行環境
 
-binding は単一の import で同じ API を公開し、読み込み時に実行環境向けのビルドを自動で解決します。利用可能なネイティブパッケージを探し、ブラウザや Worker では WebAssembly にフォールバックします。環境に合わせて該当するパッケージをインストールします。
+ネイティブ版と WASI 版は同じ API を提供します。メインパッケージは Node では利用可能なネイティブモジュールを優先し、ブラウザエントリーではスレッド対応の WASI パッケージを使います。環境に合わせて該当するパッケージをインストールします。
 
 ネイティブモジュール（Node・サーバー・CLI）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding" />
 
-WASI Preview 1（wasip1）WebAssembly：
+スレッドレスの WASI Preview 1（`wasm32-wasip1`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
 
-wasm32-wasi WebAssembly：
+スレッド対応の WASI Preview 1（`wasm32-wasip1-threads`、公開パッケージ名では `wasm32-wasi`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+スレッド対応版は非推奨です。今回のリリースでは引き続き利用できますが、次のリリースで削除する予定です。新しい WASI 連携には上記のスレッドレスパッケージを使ってください。
 
 ```ts
 import { computeParameters } from '@open-spaced-repetition/binding'
 ```
 
-実行環境が対応するビルドを解決します。サーバーや CLI はネイティブモジュール、ブラウザや Web Worker は wasm ビルドを使います。
+スレッドレスの WASI を明示的に選ぶ場合は、`@open-spaced-repetition/binding-wasm32-wasip1` から import してください。どちらの WASI パッケージも Node またはブラウザの Worker で実行できます。
 
 :::note COOP/COEP とスレッド
-WebAssembly は threadless またはスレッドありで実行できます。threadless wasm は Cross-Origin-Opener-Policy や Cross-Origin-Embedder-Policy ヘッダなしで動作し、進捗は共有メモリではなく Worker メッセージで報告します。スレッドありのビルドは、ページが `crossOriginIsolated`（COOP と COEP ヘッダ付きで配信される状態）であることを必要とします。
+スレッドレス版は Cross-Origin-Opener-Policy や Cross-Origin-Embedder-Policy ヘッダなしで動作します。スレッド対応版では引き続き COOP と COEP ヘッダを設定し、ページを `crossOriginIsolated` にする必要があります。スレッド対応は実行環境の機能を表すもので、学習が自動的にバックグラウンドで実行されることを意味しません。
+
+`computeParameters` と `evaluateWithTimeSeriesSplits` は、どのビルドでも Promise を返します。ネイティブ binding はバックグラウンドタスクで実行します。WASI Preview 1 の両ターゲット（`wasm32-wasip1` と `wasm32-wasip1-threads`）は呼び出し元のスレッドで同期的に計算し、その結果を Promise にラップします。ブラウザでは専用 Worker から呼び出してページの応答性を保ってください。Worker は進捗コールバックから `postMessage` でページに進捗を送信できます。
 :::
 
 ## 復習ログのパイプライン

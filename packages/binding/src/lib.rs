@@ -7,7 +7,7 @@ mod convert;
 mod convert_stream;
 mod evaluate;
 mod model;
-#[cfg(not(threadless_wasm))]
+#[cfg(not(all(target_os = "wasi", target_env = "p1")))]
 mod progress;
 mod steps;
 mod timezone;

@@ -23,8 +23,8 @@ serde_json = "1.0.151"
 itertools = "0.15.0"
 
 [dependencies.fsrs]
-git = "https://github.com/ishiko732/fsrs-rs"
-branch = "wasm32-wasip1-progress-fsrs7"
+git = "https://github.com/open-spaced-repetition/fsrs-rs"
+rev = "65224f1de57c538385ecb5e4df0f2564ee6f0fb8"
 default-features = false
 
 [build-dependencies]

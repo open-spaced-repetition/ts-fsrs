@@ -45,7 +45,7 @@ CSV 変換・学習・評価・スケジューリングでは同じ `modelVersio
 
 ## 重みを学習する
 
-`computeParameters(items, options)` は非同期で、学習済みの重みを返します。`enableShortTerm` は必須です。`numRelearningSteps` と `trainingConfig` は省略でき、`progress` は学習中に `(current, total)` を報告します。
+`computeParameters(items, options)` は学習済みの重みを含む `Promise<number[]>` を返します。`enableShortTerm` は必須です。`numRelearningSteps` と `trainingConfig` は省略でき、`progress` は学習中に `(current, total)` を報告します。
 
 ```ts
 const weights = await computeParameters(items, {
@@ -55,12 +55,16 @@ const weights = await computeParameters(items, {
 })
 ```
 
+`computeParameters` と `evaluateWithTimeSeriesSplits` は、どのビルドでも Promise を返します。ネイティブ binding はバックグラウンドタスクで実行します。WASI Preview 1 の両ターゲット（`wasm32-wasip1` と `wasm32-wasip1-threads`）は呼び出し元のスレッドで同期的に計算し、その結果を Promise にラップします。ブラウザでは専用 Worker から呼び出してページの応答性を保ってください。Worker は進捗コールバックから `postMessage` でページに進捗を送信できます。
+
+WASI p1 の両ターゲットでは、`progress(current, total)` は学習の各 batch が完了した直後に同期的に呼び出されます。`evaluateWithTimeSeriesSplits` では各 split の完了後に呼び出されます。`false` を返すと処理が停止し、Promise が reject されます。コールバックが例外を投げた場合も Promise は reject されます。データ不足などで batch 学習を省略する場合、学習の進捗コールバックは発生しません。`timeout` はネイティブ版の進捗ポーリング間隔（ミリ秒）であり、学習の制限時間ではありません。WASI p1 では無視されます。
+
 `enableSchedPenalties` は任意で、既定値は `false` です。`true` にすると、FSRS-7 の間隔の成長と短い間隔へのペナルティを学習損失に追加します。`evaluateWithTimeSeriesSplits` 内部の学習にも適用されますが、FSRS-6 では無視され、スケジューリングの数式は変わりません。
 
-`trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。`computeParameters` は実際の学習ループを実行するため、メインスレッドではなく Worker で呼んでください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ version: modelVersion, weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
+`trainingConfig`（epochs、batch size、seed、最大系列長、学習率、L2 重み）は省略可能で、省略時は binding の既定値を使います。ブラウザの WASI では、専用 Worker 内で `computeParameters` を呼び出してください。[Playground](../../playground)ページのトレーナーは同じ経路を Web Worker で実行し、進捗をライブで報告します。返された `weights` 配列を `DefaultScheduler({ version: modelVersion, weights })` や `defineScheduler` の設定に渡し、モデルの既定値を置き換えます。
 
 ## 適合度を評価する
 
-`evaluateWithTimeSeriesSplits(items, options)` は復習履歴を時刻で分割し、`logLoss` と `rmseBins` を持つ `ModelEvaluation` を返します。学習済みの重みが保留した復習をどれだけ予測するかを判断できます。`computeOptimalSteps` はさらに進み、復習と目標保持率から学習・再学習ステップの推奨時間を返します。
+`evaluateWithTimeSeriesSplits(items, options)` は復習履歴を時刻で分割し、`Promise<ModelEvaluation>` を返します。その結果には `logLoss` と `rmseBins` が含まれます。学習済みの重みが保留した復習をどれだけ予測するかを判断できます。`computeOptimalSteps` はさらに進み、復習と目標保持率から学習・再学習ステップの推奨時間を返します。
 
 インストールコマンドと二つの実行環境は[Optimizer 概要](./index)を参照してください。

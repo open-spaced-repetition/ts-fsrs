@@ -45,7 +45,7 @@ CSV 转换、训练、评估和调度必须选择相同的 `modelVersion`（默�
 
 ## 训练权重
 
-`computeParameters(items, options)` 是异步的，返回训练好的权重。`enableShortTerm` 必填；`numRelearningSteps` 与 `trainingConfig` 可选，`progress` 在训练期间回报 `(current, total)`：
+`computeParameters(items, options)` 返回包含训练权重的 `Promise<number[]>`。`enableShortTerm` 必填；`numRelearningSteps` 与 `trainingConfig` 可选，`progress` 在训练期间回报 `(current, total)`：
 
 ```ts
 const weights = await computeParameters(items, {
@@ -55,12 +55,16 @@ const weights = await computeParameters(items, {
 })
 ```
 
+`computeParameters` 和 `evaluateWithTimeSeriesSplits` 在所有构建中都返回 Promise。原生 binding 通过后台任务执行；两个 WASI Preview 1 目标（`wasm32-wasip1` 和 `wasm32-wasip1-threads`）都在调用线程中同步计算，再将结果包装成 Promise。浏览器中应从专用 Worker 调用，避免阻塞页面；Worker 可以在进度回调中通过 `postMessage` 向页面发送进度。
+
+在两个 WASI p1 目标中，`progress(current, total)` 会在每个训练 batch 完成后同步调用；`evaluateWithTimeSeriesSplits` 则在每个 split 完成后回调。返回 `false` 会停止操作并拒绝其 Promise；回调抛出异常也会拒绝 Promise。数据不足等跳过 batch 训练的情况不会产生训练进度回调。`timeout` 是原生进度轮询间隔，单位为毫秒，并非训练超时时限；WASI p1 会忽略它。
+
 `enableSchedPenalties` 可选，默认为 `false`。设为 `true` 会在训练损失中加入 FSRS-7 的间隔增长和短间隔惩罚。它也适用于 `evaluateWithTimeSeriesSplits` 内部的训练，FSRS-6 会忽略此选项；它不改变调度公式。
 
-`trainingConfig`（epochs、batch size、seed、最大序列长度、学习率与 L2 权重）可选，缺省时用 binding 的默认值。`computeParameters` 运行真正的训练循环，因此应在 Worker 而非主线程中调用。[Playground](../../playground)页的训练器就在 Web Worker 里跑同一路径并实时回报进度。返回的 `weights` 数组就是传给 `DefaultScheduler({ version: modelVersion, weights })` 或 `defineScheduler` 配置、用于替换模型默认值的东西。
+`trainingConfig`（epochs、batch size、seed、最大序列长度、学习率与 L2 权重）可选，缺省时用 binding 的默认值。浏览器中的 WASI 调用应在专用 Worker 内执行 `computeParameters`。[Playground](../../playground)页的训练器就在 Web Worker 里跑同一路径并实时回报进度。返回的 `weights` 数组就是传给 `DefaultScheduler({ version: modelVersion, weights })` 或 `defineScheduler` 配置、用于替换模型默认值的东西。
 
 ## 评估拟合
 
-`evaluateWithTimeSeriesSplits(items, options)` 按时间切分复习历史，返回带 `logLoss` 与 `rmseBins` 的 `ModelEvaluation`，供你判断训练权重对留出复习的预测质量。`computeOptimalSteps` 更进一步：给定复习与目标保留率，推荐学习与再学习步骤的时长。
+`evaluateWithTimeSeriesSplits(items, options)` 按时间切分复习历史，返回 `Promise<ModelEvaluation>`，其结果包含 `logLoss` 与 `rmseBins`，供你判断训练权重对留出复习的预测质量。`computeOptimalSteps` 更进一步：给定复习与目标保留率，推荐学习与再学习步骤的时长。
 
 安装命令与两种运行时见[训练器概览](./index)。

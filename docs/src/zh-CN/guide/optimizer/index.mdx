@@ -29,28 +29,32 @@ Optimizer 目前仍处于 beta 阶段，API 方法可能随时调整。
 
 ## 一个包，两种运行时
 
-binding 用同一个导入暴露同一套 API，加载时会按运行环境自动解析构建：搜索可用的原生包，在浏览器或 Worker 中回退到 WebAssembly。按需安装对应包：
+原生构建与 WASI 构建提供同一套 API。主包在 Node 中优先选择可用的原生模块，浏览器入口使用有线程的 WASI 包。按需安装对应包：
 
 原生模块（Node、服务器与 CLI）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding" />
 
-WASI Preview 1（wasip1）WebAssembly：
+无线程 WASI Preview 1（`wasm32-wasip1`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasip1" />
 
-wasm32-wasi WebAssembly：
+有线程 WASI Preview 1（`wasm32-wasip1-threads`，发布包名使用 `wasm32-wasi`）：
 
 <PackageManagerTabs command="install @open-spaced-repetition/binding-wasm32-wasi" />
+
+有线程构建已弃用，本次发布仍保留，计划在下一版本移除。新的 WASI 集成请使用上面的无线程包。
 
 ```ts
 import { computeParameters } from '@open-spaced-repetition/binding'
 ```
 
-你的运行环境会解析到匹配的构建：服务器或 CLI 用原生模块，浏览器或 Web Worker 用 wasm 构建。
+要明确选择无线程 WASI，请从 `@open-spaced-repetition/binding-wasm32-wasip1` 导入。两个 WASI 包都可以在 Node 或浏览器 Worker 中运行。
 
 :::note COOP/COEP 与多线程
-WebAssembly 可运行 threadless 或多线程。threadless wasm 无需 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 头即可工作，进度经 Worker 消息回传而非共享内存。多线程构建要求页面处于 `crossOriginIsolated`，即以带 COOP 与 COEP 头的方式提供。
+无线程构建不需要 Cross-Origin-Opener-Policy 或 Cross-Origin-Embedder-Policy 响应头。有线程构建仍要求页面通过 COOP 与 COEP 响应头启用 `crossOriginIsolated`。线程支持描述的是运行时能力，不代表训练会自动在后台执行。
+
+`computeParameters` 和 `evaluateWithTimeSeriesSplits` 在所有构建中都返回 Promise。原生 binding 通过后台任务执行；两个 WASI Preview 1 目标（`wasm32-wasip1` 和 `wasm32-wasip1-threads`）都在调用线程中同步计算，再将结果包装成 Promise。浏览器中应从专用 Worker 调用，避免阻塞页面；Worker 可以在进度回调中通过 `postMessage` 向页面发送进度。
 :::
 
 ## 复习日志流程
