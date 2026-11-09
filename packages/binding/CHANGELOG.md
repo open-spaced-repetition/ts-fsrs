@@ -13,7 +13,7 @@
 - [#605](https://github.com/open-spaced-repetition/ts-fsrs/pull/605) [`4d1204b`](https://github.com/open-spaced-repetition/ts-fsrs/commit/4d1204bce3e1128996f8ca9536ecabccca37eaa1) Thanks [@dependabot](https://github.com/apps/dependabot)! - feat: enable SIMD128 for WASIP1
 
 - [#608](https://github.com/open-spaced-repetition/ts-fsrs/pull/608) [`c6f5c49`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c6f5c49f8e44f179a3061f0b76fe832a4be73f1d) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: run WASI p1 training and evaluation synchronously with progress callbacks, keeping Promise return types; use a dedicated Worker in browsers.
-  
+
   Deprecate `wasm32-wasip1-threads` (`@open-spaced-repetition/binding-wasm32-wasi`), with removal planned for the next release; migrate to `@open-spaced-repetition/binding-wasm32-wasip1`.
 
 ## 0.6.0
