@@ -1,5 +1,15 @@
 # @open-spaced-repetition/binding-wasm32-wasi
 
+## 0.6.1
+
+### Patch Changes
+
+- [#608](https://github.com/open-spaced-repetition/ts-fsrs/pull/608) [`c6f5c49`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c6f5c49f8e44f179a3061f0b76fe832a4be73f1d) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: upgrade emnapi to 2.0.0-beta.3 for reliable WASI finalizer cleanup when host timers cannot run, and prevent TSFN finalization re-entry crashes during shutdown.
+
+- [#608](https://github.com/open-spaced-repetition/ts-fsrs/pull/608) [`c6f5c49`](https://github.com/open-spaced-repetition/ts-fsrs/commit/c6f5c49f8e44f179a3061f0b76fe832a4be73f1d) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: run WASI p1 training and evaluation synchronously with progress callbacks, keeping Promise return types; use a dedicated Worker in browsers.
+  
+  Deprecate `wasm32-wasip1-threads` (`@open-spaced-repetition/binding-wasm32-wasi`), with removal planned for the next release; migrate to `@open-spaced-repetition/binding-wasm32-wasip1`.
+
 ## 0.6.0
 
 ### Patch Changes
