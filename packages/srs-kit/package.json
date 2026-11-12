@@ -131,7 +131,7 @@
     "build": "tsdown"
   },
   "devDependencies": {
-    "temporal-polyfill": "^1.0.6",
+    "temporal-polyfill": "^1.0.8",
     "tsdown": "0.23.4",
     "typescript": "^6.0.3"
   },
