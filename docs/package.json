@@ -31,19 +31,19 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@playwright/test": "^1.64.1",
+    "@playwright/test": "^1.65.0",
     "@rsbuild/plugin-tailwindcss": "^2.0.3",
-    "@rspress/core": "2.0.23",
-    "@rspress/plugin-rss": "2.0.23",
-    "@rspress/plugin-sitemap": "2.0.23",
-    "@rspress/plugin-twoslash": "2.0.23",
+    "@rspress/core": "2.1.1",
+    "@rspress/plugin-rss": "2.1.1",
+    "@rspress/plugin-sitemap": "2.1.1",
+    "@rspress/plugin-twoslash": "2.1.1",
     "@types/mdast": "4.0.4",
     "@types/react": "19.3.0",
     "rehype-katex": "7.0.1",
     "remark-math": "6.0.0",
-    "shiki": "^4.5.0",
+    "shiki": "^4.6.0",
     "sponsorkit": "^19.0.0",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3",
     "unist-util-visit": "5.2.0"
   }
