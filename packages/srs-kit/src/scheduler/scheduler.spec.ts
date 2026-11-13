@@ -30,6 +30,7 @@ import type {
 import type {
   SchedulerCardInitSchema,
   SchedulerCoreEnv,
+  SchedulerNewCardFn,
   SchedulerNewCardOptions,
 } from './scheduler.js'
 import {
@@ -998,6 +999,25 @@ describe('defineScheduler', () => {
     expect(chainedCore.review({ card, grade: Rating.Good, now: 1 })).toEqual(
       onceCore.review({ card, grade: Rating.Good, now: 1 })
     )
+  })
+
+  it('keeps union card init input branches in newCard options', () => {
+    type UnionInitEnv = {
+      readonly config: object
+      readonly cardInitInput:
+        | { readonly kind: 'a'; readonly a: number; readonly now?: number }
+        | { readonly kind: 'b'; readonly b: string; readonly now?: number }
+      readonly card: { readonly input: object; readonly output: object }
+      readonly revlog: { readonly input: object; readonly output: object }
+      readonly chrono: number
+      readonly scheduleStatus: 'new'
+    }
+    type NewCard = SchedulerNewCardFn<UnionInitEnv>
+
+    expectTypeOf<Parameters<NewCard>[0]>().toEqualTypeOf<
+      | { readonly kind: 'a'; readonly a: number; readonly now?: number }
+      | { readonly kind: 'b'; readonly b: string; readonly now?: number }
+    >()
   })
 
   it('keeps union card fields through use()', () => {

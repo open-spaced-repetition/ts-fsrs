@@ -71,21 +71,23 @@ export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
 
 // Keep the mapped option and return types inline so QuickInfo expands them.
 export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
-  EmptyPart extends SchedulerNewCardOptions<Env>
-    ? (
-        options?: {
-          [Key in keyof SchedulerCoreCardInitInput<Env>]: SchedulerCoreCardInitInput<Env>[Key]
+  SchedulerCoreCardInitInput<Env> extends infer Input
+    ? EmptyPart extends SchedulerNewCardOptions<Env>
+      ? (
+          options?: Input extends unknown
+            ? { [Key in keyof Input]: Input[Key] }
+            : never
+        ) => {
+          [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
         }
-      ) => {
-        [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
-      }
-    : (
-        options: {
-          [Key in keyof SchedulerCoreCardInitInput<Env>]: SchedulerCoreCardInitInput<Env>[Key]
+      : (
+          options: Input extends unknown
+            ? { [Key in keyof Input]: Input[Key] }
+            : never
+        ) => {
+          [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
         }
-      ) => {
-        [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
-      }
+    : never
 
 export interface ForwardItem<Time> {
   readonly rating: Grade
