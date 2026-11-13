@@ -11,10 +11,12 @@ import {
   fractionalDaysConfigSchema,
   isObject,
   numberSchema,
+  type SRSSchema,
   type StandardSchemaV1,
 } from '@/schema/index.js'
 import { defineScheduler } from './define-scheduler.js'
 import type {
+  ExtendSchedulerEnv,
   SchedulerCardInitInputOf,
   SchedulerCardInputOf,
   SchedulerCardOf,
@@ -25,7 +27,11 @@ import type {
   SchedulerStatusOf,
   SchedulerTimeOf,
 } from './infer.js'
-import type { SchedulerCoreEnv, SchedulerNewCardOptions } from './scheduler.js'
+import type {
+  SchedulerCardInitSchema,
+  SchedulerCoreEnv,
+  SchedulerNewCardOptions,
+} from './scheduler.js'
 import {
   config,
   createSM2NumericScheduler,
@@ -992,5 +998,44 @@ describe('defineScheduler', () => {
     expect(chainedCore.review({ card, grade: Rating.Good, now: 1 })).toEqual(
       onceCore.review({ card, grade: Rating.Good, now: 1 })
     )
+  })
+
+  it('keeps union card fields through use()', () => {
+    type Core = { state: State; scheduleStatus: 'new' }
+    type UnionCard = { kind: 'a'; a: number } | { kind: 'b'; b: string }
+    type UnionEnv = {
+      readonly chrono: number
+      readonly scheduleStatus: 'new'
+      readonly config: SRSSchema<{ input: object; output: object }>
+      readonly cardInitInput: SchedulerCardInitSchema<number>
+      readonly card: SRSSchema<{
+        input: Readonly<UnionCard & Core>
+        output: UnionCard & Core
+      }>
+      readonly revlog: SRSSchema<{
+        input: Readonly<Core & { rating: Grade }>
+        output: Core & { rating: Grade }
+      }>
+    }
+    type Extended = { schema: ExtendSchedulerEnv<UnionEnv, []> }
+
+    expectTypeOf<SchedulerCardOf<Extended>>().toEqualTypeOf<
+      | { kind: 'a'; a: number; state: State; scheduleStatus: 'new' }
+      | { kind: 'b'; b: string; state: State; scheduleStatus: 'new' }
+    >()
+    expectTypeOf<SchedulerCardInputOf<Extended>>().toEqualTypeOf<
+      | {
+          readonly kind: 'a'
+          readonly a: number
+          readonly state: State
+          readonly scheduleStatus: 'new'
+        }
+      | {
+          readonly kind: 'b'
+          readonly b: string
+          readonly state: State
+          readonly scheduleStatus: 'new'
+        }
+    >()
   })
 })

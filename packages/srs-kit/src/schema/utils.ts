@@ -89,7 +89,17 @@ export type AssignFields<
   Left,
   Right,
   Modifier extends 'readonly' | 'mutable' | 'preserve',
-  Fields = Assign<Left, Right>,
+> = Left extends any
+  ? Right extends any
+    ? AssignFieldsOf<Left, Right, Modifier, Assign<Left, Right>>
+    : never
+  : never
+
+type AssignFieldsOf<
+  Left,
+  Right,
+  Modifier extends 'readonly' | 'mutable' | 'preserve',
+  Fields,
 > = Modifier extends 'readonly'
   ? {
       readonly [Key in keyof Fields]: Key extends keyof Right

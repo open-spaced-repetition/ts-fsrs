@@ -73,32 +73,40 @@ export type SchedulerConfigOutput<
 // Scheduler Env schemas are SRSSchema, so read their type arguments directly.
 // SchemaInput/SchemaOutput go through '~standard' (an Omit intersection), and
 // paying that on every chained use() exceeds the instantiation depth (TS2589).
-type EnvSchemaInput<S extends AnySchema> =
-  S extends SRSSchema<infer Definition> ? Definition['input'] : SchemaInput<S>
+type EnvSchemaOf<S extends AnySchema, Mode extends 'input' | 'output'> =
+  S extends SRSSchema<infer Definition>
+    ? Definition[Mode]
+    : Mode extends 'input'
+      ? SchemaInput<S>
+      : SchemaOutput<S>
 
-type EnvSchemaOutput<S extends AnySchema> =
-  S extends SRSSchema<infer Definition> ? Definition['output'] : SchemaOutput<S>
+type HasAddedKeys<Input, Output> = [keyof Input | keyof Output] extends [never]
+  ? false
+  : true
+
+type ExtendSchedulerConfigFields<
+  Env extends BlankSchedulerEnv,
+  AddedMWs extends readonly AnyMiddleware[],
+  Mode extends 'input' | 'output',
+> = AssignFields<
+  EnvSchemaOf<Env['config'], Mode>,
+  MiddlewareConfigPart<AddedMWs, Mode>,
+  'preserve'
+>
 
 type ExtendSchedulerConfig<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
-> = [
-  | keyof MiddlewareConfigPart<AddedMWs, 'input'>
-  | keyof MiddlewareConfigPart<AddedMWs, 'output'>,
-] extends [never]
-  ? Env['config']
-  : SRSSchema<{
-      input: AssignFields<
-        EnvSchemaInput<Env['config']>,
-        MiddlewareConfigPart<AddedMWs, 'input'>,
-        'preserve'
-      >
-      output: AssignFields<
-        EnvSchemaOutput<Env['config']>,
-        MiddlewareConfigPart<AddedMWs, 'output'>,
-        'preserve'
-      >
-    }>
+> =
+  HasAddedKeys<
+    MiddlewareConfigPart<AddedMWs, 'input'>,
+    MiddlewareConfigPart<AddedMWs, 'output'>
+  > extends true
+    ? SRSSchema<{
+        input: ExtendSchedulerConfigFields<Env, AddedMWs, 'input'>
+        output: ExtendSchedulerConfigFields<Env, AddedMWs, 'output'>
+      }>
+    : Env['config']
 
 type MiddlewareCardInitInputFields<
   MWs extends readonly AnyMiddleware[],
@@ -111,7 +119,7 @@ type ExtendSchedulerCardInitInput<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
 > = AssignFields<
-  EnvSchemaInput<Env['cardInitInput']>,
+  EnvSchemaOf<Env['cardInitInput'], 'input'>,
   Assign<
     MiddlewareCardInitInputFields<AddedMWs, 'input'>,
     { readonly now?: Env['chrono'] }
@@ -119,15 +127,11 @@ type ExtendSchedulerCardInitInput<
   'preserve'
 >
 
-type SchedulerCardInitOutput<Env extends BlankSchedulerEnv> = EnvSchemaOutput<
-  Env['cardInitInput']
->['input']
-
 type ExtendSchedulerCardInitOutput<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
 > = AssignFields<
-  SchedulerCardInitOutput<Env>,
+  EnvSchemaOf<Env['cardInitInput'], 'output'>['input'],
   MiddlewareCardInitInputFields<AddedMWs, 'output'>,
   'preserve'
 >
@@ -135,18 +139,19 @@ type ExtendSchedulerCardInitOutput<
 type ExtendSchedulerCardInitSchema<
   Env extends BlankSchedulerEnv,
   AddedMWs extends readonly AnyMiddleware[],
-> = [
-  | keyof MiddlewareCardInitInputFields<AddedMWs, 'input'>
-  | keyof MiddlewareCardInitInputFields<AddedMWs, 'output'>,
-] extends [never]
-  ? Env['cardInitInput']
-  : SRSSchema<{
-      input: ExtendSchedulerCardInitInput<Env, AddedMWs>
-      output: {
-        readonly input: ExtendSchedulerCardInitOutput<Env, AddedMWs>
-        readonly now?: unknown
-      }
-    }>
+> =
+  HasAddedKeys<
+    MiddlewareCardInitInputFields<AddedMWs, 'input'>,
+    MiddlewareCardInitInputFields<AddedMWs, 'output'>
+  > extends true
+    ? SRSSchema<{
+        input: ExtendSchedulerCardInitInput<Env, AddedMWs>
+        output: {
+          readonly input: ExtendSchedulerCardInitOutput<Env, AddedMWs>
+          readonly now?: unknown
+        }
+      }>
+    : Env['cardInitInput']
 
 type SchedulerObjectKey = 'card' | 'revlog'
 
@@ -178,7 +183,7 @@ type ExtendSchedulerObject<
   Key extends SchedulerObjectKey,
   Mode extends 'input' | 'output',
 > = AssignFields<
-  Mode extends 'input' ? EnvSchemaInput<Env[Key]> : EnvSchemaOutput<Env[Key]>,
+  EnvSchemaOf<Env[Key], Mode>,
   Assign<
     MiddlewareObjectFields<AddedMWs, Key, Mode>,
     SchedulerCoreFieldsFor<
@@ -237,16 +242,16 @@ export type SchedulerEnvFor<
     input: Prettify<SchedulerConfigInput<M, C, MWs>>
     output: Prettify<SchedulerConfigOutput<M, C, MWs>>
   }>
-  readonly cardInitInput: [
-    | keyof MiddlewareCardInitInputFields<MWs, 'input'>
-    | keyof MiddlewareCardInitInputFields<MWs, 'output'>,
-  ] extends [never]
-    ? SchedulerCardInitSchema<ChronoTimeOf<C>>
-    : SchedulerCardInitSchema<
+  readonly cardInitInput: HasAddedKeys<
+    MiddlewareCardInitInputFields<MWs, 'input'>,
+    MiddlewareCardInitInputFields<MWs, 'output'>
+  > extends true
+    ? SchedulerCardInitSchema<
         ChronoTimeOf<C>,
         MiddlewareCardInitInputFields<MWs, 'input'>,
         MiddlewareCardInitInputFields<MWs, 'output'>
       >
+    : SchedulerCardInitSchema<ChronoTimeOf<C>>
   readonly card: SRSSchema<{
     input: Prettify<Readonly<SchedulerObjectFields<M, C, MWs, 'card', 'input'>>>
     output: Prettify<SchedulerCardFields<M, C, MWs>>

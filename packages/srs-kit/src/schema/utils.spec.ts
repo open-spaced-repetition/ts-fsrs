@@ -1,4 +1,5 @@
 import { describe, expect, expectTypeOf, it } from 'vitest'
+import type { AssignFields } from './utils.js'
 import {
   assert,
   assignEnumerableDataFields,
@@ -266,5 +267,34 @@ describe('assignEnumerableDataFields', () => {
     expect(target[symbol]).toBe('symbol')
     expect(Object.hasOwn(target, 'hidden')).toBe(false)
     expect(setterCalls).toBe(0)
+  })
+})
+
+describe('AssignFields', () => {
+  type Memory = { kind: 'a'; a: number } | { kind: 'b'; b: string }
+  type Extra = { readonly extra?: boolean }
+
+  it('keeps union branches for every modifier', () => {
+    expectTypeOf<AssignFields<Memory, Extra, 'preserve'>>().toEqualTypeOf<
+      | { kind: 'a'; a: number; readonly extra?: boolean }
+      | { kind: 'b'; b: string; readonly extra?: boolean }
+    >()
+    expectTypeOf<AssignFields<Memory, Extra, 'readonly'>>().toEqualTypeOf<
+      | { readonly kind: 'a'; readonly a: number; readonly extra?: boolean }
+      | { readonly kind: 'b'; readonly b: string; readonly extra?: boolean }
+    >()
+    expectTypeOf<AssignFields<Memory, Extra, 'mutable'>>().toEqualTypeOf<
+      | { kind: 'a'; a: number; extra?: boolean }
+      | { kind: 'b'; b: string; extra?: boolean }
+    >()
+  })
+
+  it('distributes over a union on the right', () => {
+    expectTypeOf<
+      AssignFields<{ id: string }, Memory, 'preserve'>
+    >().toEqualTypeOf<
+      | { id: string; kind: 'a'; a: number }
+      | { id: string; kind: 'b'; b: string }
+    >()
   })
 })
