@@ -1,5 +1,13 @@
 # @open-spaced-repetition/srs-kit
 
+## 1.0.1
+
+### Patch Changes
+
+- [#601](https://github.com/open-spaced-repetition/ts-fsrs/pull/601) [`e74ffc7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e74ffc7c944e8772fc3705d44723453ccb6d7fd0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: support deeper chained `use()` without TS2589.
+
+- [#601](https://github.com/open-spaced-repetition/ts-fsrs/pull/601) [`e74ffc7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e74ffc7c944e8772fc3705d44723453ccb6d7fd0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: expand `newCard` and `DefaultScheduler` options in editor hovers.
+
 ## 1.0.0
 
 First stable release of the model-independent SRS framework, licensed under BSD-3-Clause. FSRS algorithms and FSRS-specific scheduling policies are provided by `ts-fsrs`. ([#418](https://github.com/open-spaced-repetition/ts-fsrs/pull/418)) Thanks [@ishiko732](https://github.com/ishiko732)!
