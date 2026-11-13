@@ -114,7 +114,9 @@ export type DefaultSchedulerRevlog<
 export async function DefaultScheduler<
   Version extends DefaultSchedulerVersion = 'FSRS-7',
 >(
-  options: DefaultSchedulerOptions<Version> = {}
+  options: {
+    [Key in keyof DefaultSchedulerOptions<Version>]: DefaultSchedulerOptions<Version>[Key]
+  } = {}
 ): Promise<DefaultScheduler<Version>> {
   const version = options.version ?? 'FSRS-7'
   const isFSRS7 = version === 'FSRS-7'

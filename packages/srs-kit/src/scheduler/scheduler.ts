@@ -69,13 +69,21 @@ type SchedulerCoreCardInitInput<Env extends BlankSchedulerCoreEnv> =
 export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
   Prettify<SchedulerCoreCardInitInput<Env>>
 
-// Keep the mapped return type inline so QuickInfo expands named card aliases.
+// Keep the mapped option and return types inline so QuickInfo expands them.
 export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
   EmptyPart extends SchedulerNewCardOptions<Env>
-    ? (options?: SchedulerNewCardOptions<Env>) => {
+    ? (
+        options?: {
+          [Key in keyof SchedulerCoreCardInitInput<Env>]: SchedulerCoreCardInitInput<Env>[Key]
+        }
+      ) => {
         [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
       }
-    : (options: SchedulerNewCardOptions<Env>) => {
+    : (
+        options: {
+          [Key in keyof SchedulerCoreCardInitInput<Env>]: SchedulerCoreCardInitInput<Env>[Key]
+        }
+      ) => {
         [Key in keyof Env['card']['output']]: Env['card']['output'][Key]
       }
 
