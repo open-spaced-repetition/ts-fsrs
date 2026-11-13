@@ -19,6 +19,7 @@ import type {
   SchedulerDefaultValue,
   SchedulerNewCardFn,
 } from './scheduler.js'
+import { sourceMiddleware } from './scheduler.test.js'
 
 const sm2NumericScheduler = defineScheduler({
   model: SM2Model,
@@ -119,6 +120,18 @@ const defaultNewCard = sm2NumericSchedulerWithMiddleware.defaultValue.newCard(
   },
   0
 )
+
+const sm2NumericNewCard = sm2NumericCoreWithMiddleware.newCard
+
+const sourceChainedNewCard = defineScheduler({
+  model: SM2Model,
+  chrono: numericChrono,
+})
+  .use(sourceMiddleware)
+  .use(schedulerStatsMiddleware)
+  .create({
+    config: { weights: SM2_DEFAULT_WEIGHTS, source: 'display' },
+  }).newCard
 
 const mappedPreview = sm2NumericCoreWithMiddleware
   .preview({ card: sm2NumericCoreWithMiddleware.newCard({ now: 0 }), now: 0 })
@@ -449,22 +462,22 @@ describe('defineScheduler type display', () => {
     readonly cardInitInput: SchedulerCardInitSchema<number>;
     readonly card: SRSSchema<{
         input: {
-            readonly source?: string | undefined;
             readonly interval: number;
             readonly easeFactor: number;
             readonly reviewStep: number;
             readonly reps: number;
             readonly lapses: number;
+            readonly source?: string | undefined;
             readonly state: State;
             readonly scheduleStatus: "new" | "learning" | "review";
         };
         output: {
-            source: string;
             interval: number;
             easeFactor: number;
             reviewStep: number;
             reps: number;
             lapses: number;
+            source: string;
             state: State;
             scheduleStatus: "new" | "learning" | "review";
         };
@@ -741,6 +754,34 @@ describe('defineScheduler type display', () => {
 }`,
   }
 
+  const expectedNewCards = {
+    sm2NumericNewCard: `const sm2NumericNewCard: (options?: {
+    readonly now?: number | undefined;
+} | undefined) => {
+    source: string;
+    interval: number;
+    easeFactor: number;
+    reviewStep: number;
+    reps: number;
+    lapses: number;
+    state: State;
+    scheduleStatus: "new" | "learning" | "review";
+}`,
+    sourceChainedNewCard: `const sourceChainedNewCard: (options?: {
+    readonly source?: string | undefined;
+    readonly now?: number | undefined;
+} | undefined) => {
+    source: string;
+    interval: number;
+    easeFactor: number;
+    reviewStep: number;
+    reps: number;
+    lapses: number;
+    state: State;
+    scheduleStatus: "new" | "learning" | "review";
+}`,
+  }
+
   const expectedSuspend = {
     sm2WithSuspend: `const sm2WithSuspend: CustomScheduler<"sm2", {
     readonly chrono: number;
@@ -922,6 +963,12 @@ describe('defineScheduler type display', () => {
 
   it('shows flattened card types for card-returning APIs', () => {
     for (const [marker, expected] of Object.entries(expectedDefaultValues)) {
+      expect(quickInfoAt(service, SELF, marker)).toBe(expected)
+    }
+  })
+
+  it('shows flattened newCard options and card', () => {
+    for (const [marker, expected] of Object.entries(expectedNewCards)) {
       expect(quickInfoAt(service, SELF, marker)).toBe(expected)
     }
   })

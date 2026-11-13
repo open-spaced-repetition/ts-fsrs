@@ -79,6 +79,45 @@ export type Assign<TLeft, TRight> = TLeft extends any
     : never
   : never
 
+/**
+ * Assign with readonly control. Keys and modifiers come from Assign, but
+ * values are read from Left/Right directly, so a field inherited through N
+ * nested AssignFields resolves in N mapped steps instead of going through
+ * each level's Omit (keeps chained scheduler use() below TS2589).
+ */
+export type AssignFields<
+  Left,
+  Right,
+  Modifier extends 'readonly' | 'mutable' | 'preserve',
+> = Left extends any
+  ? Right extends any
+    ? AssignFieldsOf<Left, Right, Modifier, Assign<Left, Right>>
+    : never
+  : never
+
+type AssignFieldsOf<
+  Left,
+  Right,
+  Modifier extends 'readonly' | 'mutable' | 'preserve',
+  Fields,
+> = Modifier extends 'readonly'
+  ? {
+      readonly [Key in keyof Fields]: Key extends keyof Right
+        ? Right[Key]
+        : Left[Key & keyof Left]
+    }
+  : Modifier extends 'mutable'
+    ? {
+        -readonly [Key in keyof Fields]: Key extends keyof Right
+          ? Right[Key]
+          : Left[Key & keyof Left]
+      }
+    : {
+        [Key in keyof Fields]: Key extends keyof Right
+          ? Right[Key]
+          : Left[Key & keyof Left]
+      }
+
 export type IntersectAssign<TLeft, TRight> = TLeft extends any
   ? TRight extends any
     ? IsNonEmptyObject<TLeft> extends false
