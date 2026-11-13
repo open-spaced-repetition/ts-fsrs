@@ -48,7 +48,11 @@ async function twoslashTransformer(
   const borrowed: UserConfig = {}
   await pluginTwoslash({ twoslashOptions }).config?.(
     borrowed,
-    { addPlugin: () => {}, removePlugin: () => {} },
+    {
+      addPlugin: () => {},
+      removePlugin: () => {},
+      getI18nData: async () => ({}),
+    },
     true
   )
   const transformer = borrowed.markdown?.shiki?.transformers?.at(-1)
