@@ -4,6 +4,7 @@ import type {
   AnyObjectSchema,
   AnySchema,
   BoundsPrefix,
+  IsAny,
   Prettify,
   SchemaInput,
   SchemaOutput,
@@ -45,6 +46,11 @@ export type BlankModelCoreEnv = {
   readonly config?: unknown
   readonly memoryState: object
   readonly algorithm: unknown
+  /**
+   * Overrides the `forward` result type. A non-array result must be a packed
+   * typed array with one fixed-width row per review, in history order.
+   */
+  readonly forwardResult?: unknown
 }
 
 type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
@@ -52,6 +58,14 @@ type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
 }
   ? Config
   : unknown
+
+/** Defaults to one memory state per review unless the env sets `forwardResult`. */
+type ModelForwardResult<Env extends BlankModelCoreEnv> =
+  IsAny<Env> extends true
+    ? readonly Env['memoryState'][]
+    : Env extends { readonly forwardResult: infer Result }
+      ? Result
+      : readonly Env['memoryState'][]
 
 export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
   readonly config: ModelCoreConfig<Env>
@@ -70,7 +84,7 @@ export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
   ) => number
   readonly forward: (
     input: ModelForwardInput<Env['memoryState']>
-  ) => readonly Env['memoryState'][]
+  ) => ModelForwardResult<Env>
 }
 
 export type AnyModelCore = ModelCore<any>
@@ -107,17 +121,24 @@ export type ModelCreate<
    * validation, migration, clipping, range checks, and freezing.
    */
   readonly bypass?: boolean
-}) => ModelCore<{
-  readonly config: SchemaOutput<Schema['config']>
-  readonly memoryState: SchemaOutput<Schema['memoryState']>
-  readonly algorithm: Algorithm
-}>
+}) => ModelCore<
+  {
+    readonly config: SchemaOutput<Schema['config']>
+    readonly memoryState: SchemaOutput<Schema['memoryState']>
+    readonly algorithm: Algorithm
+  } & (Schema extends { readonly forwardResult: infer Result }
+    ? // `Model` passes its env as `Schema`, so a declared `forwardResult` carries over.
+      { readonly forwardResult: Result }
+    : // Omitted: ModelForwardResult falls back to memory states, keeping hovers unchanged.
+      unknown)
+>
 
 export type BlankModelEnv = {
   readonly name: string | symbol
   readonly config: AnySchema
   readonly memoryState: AnyObjectSchema
   readonly algorithm: unknown
+  readonly forwardResult?: unknown
 }
 
 export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
@@ -133,11 +154,30 @@ export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
 
 export type AnyModel = Model<any>
 
+// `forward` is replaced so `defineModel` can infer `ForwardResult` from `create`.
+type DefineModelCreate<
+  Schema extends BlankModelSchema,
+  Algorithm,
+  ForwardResult,
+> = (...args: Parameters<ModelCreate<Schema, Algorithm>>) => Omit<
+  ModelCore<{
+    readonly config: SchemaOutput<Schema['config']>
+    readonly memoryState: SchemaOutput<Schema['memoryState']>
+    readonly algorithm: Algorithm
+  }>,
+  'forward'
+> & {
+  readonly forward: (
+    input: ModelForwardInput<SchemaOutput<Schema['memoryState']>>
+  ) => ForwardResult
+}
+
 export function defineModel<
   const Name extends string | symbol,
   const ConfigSchema extends AnySchema,
   const MemoryStateSchema extends AnyObjectSchema,
   const Algorithm,
+  ForwardResult = readonly SchemaOutput<MemoryStateSchema>[],
 >(definition: {
   readonly name: Name
   readonly schema: ModelSchema<{
@@ -149,15 +189,22 @@ export function defineModel<
       readonly config: SchemaOutput<ConfigSchema>
     }) => SchemaInput<MemoryStateSchema>
   }
-  readonly create: ModelCreate<
+  readonly create: DefineModelCreate<
     { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
-    Algorithm
+    Algorithm,
+    ForwardResult
   >
 }) {
-  return definition as Model<{
+  type Env = {
     readonly name: Name
     readonly config: ConfigSchema
     readonly memoryState: MemoryStateSchema
     readonly algorithm: Algorithm
-  }>
+  }
+  // Omit the default forward result to keep hovers and declarations unchanged.
+  return definition as unknown as [ForwardResult] extends [
+    readonly SchemaOutput<MemoryStateSchema>[],
+  ]
+    ? Model<Env>
+    : Model<Env & { readonly forwardResult: ForwardResult }>
 }

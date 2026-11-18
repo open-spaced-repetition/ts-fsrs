@@ -45,7 +45,9 @@ const result = reschedule.reschedule({ history, initialCard: card })
 
 `replay` 只靠歷史就重建出穩定性（`2.3065`）；`reschedule` 則透過排程器重新計算卡片與其到期時間。
 
-**相關型別** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`，以及推導型別 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
+若模型的 `forward` 回傳的不是狀態陣列，而是打包的 typed array（例如每次複習對應一列、列寬固定的 `Float64Array`），`memoryStates` 即為該緩衝區本身，`memoryState` 則是其最後一列的 `subarray` 視圖，與 `memoryStates` 共用同一緩衝區。打包模型、排程器與 `Reschedule` 須來自同一個套件（例如全部來自 `ts-fsrs`），不支援混用不同的套件。
+
+**相關型別** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`ReplayResultOf`、`RescheduleResult`，以及推導型別 `CardOf`、`MemoryStateOf`、`MemoryStatesOf`、`TimeOf`、`ScheduleResultOf`。
 
 **另見** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。
 

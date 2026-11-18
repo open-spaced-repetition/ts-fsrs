@@ -45,7 +45,9 @@ const result = reschedule.reschedule({ history, initialCard: card })
 
 `replay` は履歴だけで安定度（`2.3065`）を再構築します。`reschedule` はスケジューラを通じてカードとその期限を再計算します。
 
-**関連型** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`RescheduleResult`、および推論型 `CardOf`、`MemoryStateOf`、`TimeOf`、`ScheduleResultOf`。
+モデルの `forward` が状態の配列ではなくパックされた typed array（例：レビューごとに固定幅の行を 1 行持つ `Float64Array`）を返す場合、`memoryStates` はそのバッファそのもの、`memoryState` は最終行の `subarray` ビューとなり、同じバッファを共有します。パックされたモデル、スケジューラ、`Reschedule` は同じパッケージから構築してください（例：すべて `ts-fsrs` から）。パッケージの混在はサポートされません。
+
+**関連型** — `RescheduleReview`、`NonManualReview`、`ReplayResult`、`ReplayResultOf`、`RescheduleResult`、および推論型 `CardOf`、`MemoryStateOf`、`MemoryStatesOf`、`TimeOf`、`ScheduleResultOf`。
 
 **参照** — [defineScheduler](./define/define-scheduler)、[DefaultScheduler](./default-scheduler)。
 

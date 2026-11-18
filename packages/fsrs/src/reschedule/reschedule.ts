@@ -11,12 +11,41 @@ import type {
   MemoryStateOf,
   NonManualReview,
   ReplayInput,
-  ReplayResult,
+  ReplayResultOf,
   RescheduleInput,
   RescheduleOptions,
   RescheduleResult,
   TimeOf,
 } from './infer.js'
+
+/** A typed array with one fixed-width row per review. */
+interface PackedMemoryStates {
+  readonly length: number
+  subarray(begin: number): object
+}
+
+function isPackedMemoryStates(value: unknown): value is PackedMemoryStates {
+  return ArrayBuffer.isView(value) && !(value instanceof DataView)
+}
+
+/** Returns the last state, or a view of the last row of a packed result. */
+function lastMemoryState(memoryStates: unknown, reviewCount: number): object {
+  if (Array.isArray(memoryStates)) {
+    return memoryStates[memoryStates.length - 1]
+  }
+  if (
+    isPackedMemoryStates(memoryStates) &&
+    memoryStates.length > 0 &&
+    memoryStates.length % reviewCount === 0
+  ) {
+    return memoryStates.subarray(
+      memoryStates.length - memoryStates.length / reviewCount
+    )
+  }
+  throw new FSRSValidationError(
+    'Model forward must return an array or a typed array with one fixed-width row per review'
+  )
+}
 
 /**
  * Replays a review history on top of an existing srs-kit scheduler core.
@@ -35,14 +64,17 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
   replay(
     input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
     options: RescheduleOptions = {}
-  ): ReplayResult<MemoryStateOf<Scheduler>> {
+  ): ReplayResultOf<Scheduler> {
     const reviews = this.prepareReviews(input.history, options)
-    const memoryStates = this.scheduler.model.forward({
+    const memoryStates: unknown = this.scheduler.model.forward({
       history: this.toModelHistory(reviews),
       initialState: input.initialState,
-    }) as MemoryStateOf<Scheduler>[]
+    })
 
-    return { memoryState: memoryStates[memoryStates.length - 1], memoryStates }
+    return {
+      memoryState: lastMemoryState(memoryStates, reviews.length),
+      memoryStates,
+    } as ReplayResultOf<Scheduler>
   }
 
   /**

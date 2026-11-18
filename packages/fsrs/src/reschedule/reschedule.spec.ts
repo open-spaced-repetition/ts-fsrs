@@ -1,5 +1,6 @@
 import {
   defineChrono,
+  defineModel,
   defineScheduler,
   defineSchema,
   Rating,
@@ -14,7 +15,7 @@ import { FSRSValidationError } from '@/error.js'
 import type { FSRSState } from '@/kit/types.js'
 import { FSRS6_DEFAULT_WEIGHTS } from '@/models/fsrs-6/constants.js'
 import { FSRS6Model } from '@/models/fsrs-6/model.js'
-import { Reschedule } from './index.js'
+import { type MemoryStatesOf, Reschedule } from './index.js'
 
 const DAY_MS = 86_400_000
 const DAY_NS = 86_400_000_000_000n
@@ -57,6 +58,23 @@ const createTemporalFixture = () => {
 let temporalFixture: ReturnType<typeof createTemporalFixture> | undefined
 const temporal = () => (temporalFixture ??= createTemporalFixture())
 
+const definePackedScheduler = <Result>(forward: () => Result) =>
+  defineScheduler({
+    model: defineModel({
+      name: 'packed-fsrs-6',
+      schema: FSRS6Model.schema,
+      defaultValue: FSRS6Model.defaultValue,
+      create(options) {
+        return { ...FSRS6Model.create(options), forward }
+      },
+    }),
+    chrono: dateChrono,
+  })
+const packedHistory = [
+  { rating: Rating.Good, reviewTime: new Date(DAY_MS) },
+  { rating: Rating.Easy, reviewTime: new Date(DAY_MS * 3) },
+]
+
 beforeEach(() => {
   vi.restoreAllMocks()
 })
@@ -88,6 +106,46 @@ describe('Reschedule', () => {
     expect(Object.keys(result)).toEqual(['memoryState', 'memoryStates'])
     expectTypeOf(result.memoryStates).toEqualTypeOf<FSRSState[]>()
     expectTypeOf(result.memoryState).toEqualTypeOf<FSRSState>()
+    expectTypeOf<MemoryStatesOf<typeof dateScheduler>>().toEqualTypeOf<
+      FSRSState[]
+    >()
+  })
+
+  it('returns a view of the last row of a packed forward result', () => {
+    const packed = new Float64Array([1, 5, 0, 2, 4.5, 0])
+    const scheduler = definePackedScheduler(() => packed).create({
+      config: modelConfig,
+    })
+
+    const result = new Reschedule(scheduler).replay({ history: packedHistory })
+
+    expectTypeOf(result.memoryStates).toEqualTypeOf<Float64Array<ArrayBuffer>>()
+    expectTypeOf(result.memoryState).toEqualTypeOf<Float64Array<ArrayBuffer>>()
+    expectTypeOf<MemoryStatesOf<typeof scheduler>>().toEqualTypeOf<
+      Float64Array<ArrayBuffer>
+    >()
+    expect(result.memoryStates).toBe(packed)
+    expect([...result.memoryState]).toEqual([2, 4.5, 0])
+    expect(result.memoryState.buffer).toBe(packed.buffer)
+    expect(result.memoryState.byteOffset).toBe(
+      3 * Float64Array.BYTES_PER_ELEMENT
+    )
+    expectTypeOf(result.memoryState).not.toExtend<FSRSState>()
+  })
+
+  it.each([
+    ['without one row per review', () => new Float64Array([1, 5, 0])],
+    ['that are an empty typed array', () => new Float64Array(0)],
+    ['that are a DataView', () => new DataView(new ArrayBuffer(8))],
+    ['that are a plain object', () => ({ stride: 3, values: [] })],
+  ])('rejects packed forward results %s', (_, forward: () => object) => {
+    const scheduler = definePackedScheduler(forward).create({
+      config: modelConfig,
+    })
+
+    expect(() =>
+      new Reschedule(scheduler).replay({ history: packedHistory })
+    ).toThrow(FSRSValidationError)
   })
 
   it('rejects empty history even when an initial state is provided', () => {
