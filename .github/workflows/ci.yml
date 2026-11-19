@@ -29,6 +29,9 @@ on:
       - '.github/workflows/build-napi.yml'
       - '.github/workflows/test.yml'
       - '.github/actions/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
+      - '.cargo/**'
       - 'pnpm-lock.yaml'
       - 'turbo.json'
 

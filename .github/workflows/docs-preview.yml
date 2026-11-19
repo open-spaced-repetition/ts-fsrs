@@ -19,13 +19,19 @@ on:
       - 'turbo.json'
       - 'Cargo.lock'
       - 'Cargo.toml'
+      - '.cargo/**'
       - 'packages/binding/Cargo.toml'
       - '.github/actions/setup-node-pnpm/action.yml'
       - '.github/actions/build-docs/action.yml'
       - '.github/workflows/docs-preview.yml'
 
 concurrency:
-  group: docs-preview-${{ github.event.pull_request.number }}
+  group: >-
+    docs-preview-${{
+    (github.event.action == 'labeled' && github.event.label.name != 'docs-preview')
+    && format('ignored-{0}', github.run_id)
+    || github.event.pull_request.number
+    }}
   cancel-in-progress: true
 
 permissions: {}

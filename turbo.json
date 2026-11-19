@@ -4,6 +4,7 @@
     "pnpm-lock.yaml",
     "Cargo.lock",
     "Cargo.toml",
+    ".cargo/**",
     "packages/*/Cargo.toml",
     "package.json",
     "biome.json",
