@@ -45,7 +45,9 @@ const result = reschedule.reschedule({ history, initialCard: card })
 
 `replay` reconstructs stability (`2.3065`) from the history alone; `reschedule` recomputes the card and its due time through the scheduler.
 
-**Related types** — `RescheduleReview`, `NonManualReview`, `ReplayResult`, `RescheduleResult`, and the inference types `CardOf`, `MemoryStateOf`, `TimeOf`, `ScheduleResultOf`.
+When the model's `forward` returns a packed typed array (for example a `Float64Array` with one fixed-width row per review) instead of an array of states, `memoryStates` is that buffer unchanged and `memoryState` is a `subarray` view of its last row, sharing the same buffer. Build packed models, schedulers and `Reschedule` from the same package (for example all from `ts-fsrs`); mixing packages is not supported.
+
+**Related types** — `RescheduleReview`, `NonManualReview`, `ReplayResult`, `ReplayResultOf`, `RescheduleResult`, and the inference types `CardOf`, `MemoryStateOf`, `MemoryStatesOf`, `TimeOf`, `ScheduleResultOf`.
 
 **See** — [defineScheduler](./define/define-scheduler), [DefaultScheduler](./default-scheduler).
 
