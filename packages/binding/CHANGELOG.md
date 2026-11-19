@@ -1,5 +1,11 @@
 # @open-spaced-repetition/binding
 
+## 0.6.2
+
+### Patch Changes
+
+- [#623](https://github.com/open-spaced-repetition/ts-fsrs/pull/623) [`7e29947`](https://github.com/open-spaced-repetition/ts-fsrs/commit/7e29947ad385ad55702c295cec3a2a114c7cf151) Thanks [@dependabot](https://github.com/apps/dependabot)! - chore: bump `jiff` from 0.2.41 to 1.0.0 and use `TimeZone::to_timestamp` for study-day boundaries.
+
 ## 0.6.1
 
 ### Patch Changes
