@@ -64,12 +64,12 @@ fn study_day_boundaries(
   }
   let boundary = |date: Date| {
     timezone
-      .to_zoned(
+      .to_timestamp(
         date
           .at(0, 0, 0, 0)
           .checked_add(SignedDuration::from_hours(next_day_starts_at))?,
       )
-      .map(|zoned| zoned.timestamp().as_millisecond())
+      .map(Timestamp::as_millisecond)
   };
   let value = (boundary(date)?, boundary(date.tomorrow()?)?);
   boundaries.insert(date, value);
