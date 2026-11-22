@@ -65,7 +65,7 @@ When an explicit step applies, the scheduler keeps its configured duration unles
 If you create a custom scheduler with `defineScheduler`, register the middleware with `.use(schedulerLearningStepsMiddleware)` to get this state mapping; without it, the default behaviour remains `Review` with `scheduleStatus: review`, even when FSRS-7 returns an interval below one day. The model computes memory states and intervals; learning-state transitions are middleware behavior. To produce `Learning`/`Relearning` states after FSRS-7 scheduling, register `schedulerLearningStepsMiddleware` or implement your own state-transition middleware.
 :::
 
-`Rating.Manual` is not a review grade. Pass one of `Again`, `Hard`, `Good`, or `Easy` to `review()`.
+With the default scale, pass `Again`, `Hard`, `Good`, or `Easy` to `review()`. For a custom scale, pass one of the values in `scheduler.ratings.grades`; manual ratings are rejected.
 
 ## Run the transitions
 

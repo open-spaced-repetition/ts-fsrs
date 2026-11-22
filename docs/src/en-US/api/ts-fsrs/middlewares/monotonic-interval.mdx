@@ -1,6 +1,6 @@
 ---
 title: MonotonicInterval
-description: Built-in middleware schedulerMonotonicIntervalMiddleware — ensures that the rating's intervals are never larger than previous ratings.
+description: Built-in middleware schedulerMonotonicIntervalMiddleware — keeps scheduled intervals monotonic across a model's rating scale
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It orders the scheduled interval across the four ratings so harder ratings are never scheduled later than easier ones (subject to `maximumInterval`). If a lower rating has an interval of one day or more, a later rating of one day or more is at least one day longer than the previous one, and a later sub-day interval is increased to the duration of the previous interval. If every lower rating is below one day, intervals won't decrease decrease. A rating that lands on the same second as the previous rating is scheduled one second later.
+It processes all grades in ascending scale order and prevents intervals from decreasing, so harder grades are not scheduled later than easier ones. Once a result of one day or more exists, each later non-lapse candidate of one day or more is at least one day longer than the previous result, and later sub-day candidates keep the previous result. Consecutive lapse grades may tie, as can grades capped at `maximumInterval`. Until a result of one day or more exists, a non-lapse candidate that is no shorter than the previous candidate at second precision, and would land on the same second as the previous result, is moved one second later. Zero-day intervals may tie.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```

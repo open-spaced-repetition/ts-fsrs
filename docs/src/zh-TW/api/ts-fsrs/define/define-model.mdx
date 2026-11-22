@@ -13,7 +13,9 @@ description: defineModel 的參考——把模型定義連同其 schema 與模�
 defineModel(definition): Model
 ```
 
-該定義包裝設定與記憶狀態 schema、預設值，以及模型核心工廠（`step`、`nextInterval`、`forgettingCurve`、`forward`），同時保持它們的具體型別。
+該定義包裝設定與記憶狀態 schema、預設值、選用的評分方案 `ratings`，以及模型核心工廠（`step`、`nextInterval`、`forgettingCurve`、`forward`），同時保持它們的具體型別。
+
+**評分方案（`ratings`）** — 選用的 `RatingScale`，宣告模型的非手動評分、遺忘評分與手動評分。每一項為 `{ value: number, lapse?: boolean, manual?: boolean }`：`lapse` 表示遺忘評分，`manual` 表示手動評分；兩者皆為 `true` 的項目會被 `defineScheduler` 拒絕。一般物件無需 `as const`；如需保留評分的字面值型別，可加上 `as const` 或直接內嵌傳入評分方案。省略 `ratings` 時預設使用 `defaultRatingScale`（Manual `0`、Again `1`、Hard `2`、Good `3`、Easy `4`）。`ModelRatingOf<typeof MyModel>` 會回傳評分聯合型別，`ModelGradeOf<typeof MyModel>` 會回傳可能的非手動評分聯合型別（未明確標記為手動的評分）。對於字面值型別的評分值，若 `manual` 的型別被擴大為 `boolean`，該值仍算作可能的非手動評分，但模型核心的輸入型別只接受評分方案型別中沒有 `manual` 標記、或標記為字面值 `manual: false` 的值。框架不會在直接呼叫 `model.forward` 時額外執行執行期評分驗證；`scheduler.forward()` 會在重播前驗證歷史評分。
 
 **回傳** — 一個 `Model`，可作為 `model` 傳給 `defineScheduler({ model, chrono })`。
 

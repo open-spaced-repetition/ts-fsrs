@@ -16,12 +16,28 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | --- | --- | --- |
 | `newCard` | `newCard(input?)` | 處於預設狀態的卡片。 |
 | `review` | `review({ card, grade, now? })` | 該次複習的 `{ card, revlog }`。 |
-| `preview` | `preview({ card, now? })` | 四個評分各自對應之 `{ grade, card, revlog }` 的惰性可迭代物件。 |
+| `forward` | `forward({ history, initialCard? })` | 從 `initialCard`（未傳入時於第一筆複習時間建立新卡片）開始依序重播 `{ rating, reviewTime }` 歷史，每筆歷史回傳一個 `{ card, revlog }`。歷史為空時回傳 `[]`。 |
+| `preview` | `preview({ card, now? })` | 依數值升冪針對 `scheduler.ratings.preview` 中每個評分產生 `{ grade, card, revlog }` 的惰性可迭代物件（預設為四個 FSRS 評分）。 |
 | `rollback` | `rollback({ card, revlog })` | 使用其儲存的 revlog，復原為複習前的卡片。 |
 | `forget` | `forget({ card, now? })` | 透過其預設值重置的卡片。 |
 | `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | 接收已計算的評分後記憶狀態，透過 `handlers.nextInterval` 回傳天數，不執行 review 處理函式，也不推進卡片或 chrono。 |
 
-`review` 與 `preview` 絕不會修改傳入的卡片；它們會回傳新卡片。`rollback` 接受一次複習的 `{ card, revlog }`，並還原為複習前的卡片。
+`review` 與 `preview` 絕不會修改傳入的卡片；它們會回傳新卡片。`rollback` 接受一次複習的 `{ card, revlog }`，並還原為複習前的卡片。`review`、`nextInterval`、`forward` 以及 revlog 解析都會以 `scheduler.ratings.gradeSchema` 驗證評分（手動評分或評分方案外的值會擲出 `SRSSchemaError`）；`forward` 會在呼叫 `model.step` 前先驗證所有歷史項目的評分。
+
+呼叫 `forward()` 時，`history` 須依時間順序排列；在 `forward()` 回傳前（包含模型與中介軟體回呼中），不要修改該陣列及其項目。
+
+## 評分方案（`scheduler.ratings`）
+
+每個排程器實例都公開一個凍結的 `ratings: SchedulerRatings` 物件，每次 `defineScheduler` 呼叫僅計算一次，並在所有 `create()` 實例與 `.use()` 分支間共用同一參考：
+
+| 成員 | 含義 |
+| --- | --- |
+| `scale` | 模型 `RatingScale` 的凍結副本，每項只保留 `value` 與值為 `true` 的標記（省略 `ratings` 時即為 `defaultRatingScale` 本身）。 |
+| `grades` | 依數值升冪排列的凍結非手動評分陣列。 |
+| `preview` | 依數值升冪排列的凍結預覽評分陣列（預設等於 `grades`）。 |
+| `manual` | 依數值升冪排列的凍結手動評分陣列。 |
+| `gradeSchema` / `ratingSchema` | 分別驗證非手動評分與評分方案中全部評分（含手動評分）的 schema。 |
+| `isLapse(grade)` / `isManual(rating)` | 判斷給定值是否為遺忘評分或手動評分的函式。 |
 
 ## 卡片狀態與 scheduleStatus
 

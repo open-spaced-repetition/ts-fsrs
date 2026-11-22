@@ -10,21 +10,24 @@ description: defineScheduler のリファレンス——モデルと chrono か�
 **シグネチャ**
 
 ```ts
-defineScheduler({ model, chrono }): CustomScheduler
+defineScheduler({ model, chrono, preview? }): CustomScheduler
 ```
 
 **パラメータ**
 
 | パラメータ | 型 | 備考 |
 | --- | --- | --- |
-| `model` | `Model` | 記憶状態の更新と間隔計算を担います。例：`FSRS6Model`。 |
+| `model` | `Model` | 記憶状態の更新、間隔計算、および任意の `ratings` スケールを担います。例：`FSRS6Model`。 |
 | `chrono` | `Chrono` | 時刻表現と日数の計算を担います。 |
+| `preview` | `{ grades: readonly G[] }` | 省略可能。モデルのグレードの空でない部分集合です。`preview()` は指定されたグレードのみを数値の昇順で評価・生成し、生成要素の `grade` 型を絞り込みます。`review()` の入力は絞り込まれません。`model` がユニオン型の場合、`preview.grades` と `review()` はすべての候補モデルに共通するグレードだけを受け付けます。 |
+
+`defineScheduler` は定義時にモデルのレーティングスケールを検証し（すべての値が有限かつ一意、`manual` と `lapse` を兼ねない、非忘却グレードが少なくとも 1 つ存在する、すべての忘却グレードがすべての非忘却グレードより小さい）、`preview.grades` が空でなくスケール内の非手動グレードのみを含むことも検証します。
 
 **戻り値** — 二つのメソッドを持つ再利用可能な定義：
 
 ```ts
-definition.use(...middleware): CustomScheduler   // new definition; original unchanged
-definition.create({ config }): SchedulerCore          // validates config, independent instance
+definition.use(...middleware): CustomScheduler   // 新しい定義を返し、元の定義は変更しない
+definition.create({ config }): SchedulerCore     // config を検証し、独立したインスタンスを返す
 ```
 
 **参照** — [スケジューラ概要](../../../guide/scheduler)（定義とインスタンスのモデル）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

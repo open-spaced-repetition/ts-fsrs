@@ -14,13 +14,13 @@ import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It reads lapses from the stats middleware and sets `scheduleStatus` to `suspended` whenever lapses reach a positive integer multiple of `leechThreshold`. The default threshold `0` disables suspension; your application must respect the suspended status when selecting cards.
+Leech tracks lapses on Review cards and shares the count with the stats middleware when both are enabled. When a lapse brings `lapses` to a positive multiple of `leechThreshold`, it sets `scheduleStatus` to `suspended`. The default threshold `0` disables suspension. Your application should respect this status when selecting cards.
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```
 
 <RunCode code={leechCode} />
 
-With `leechThreshold: 1`, two lapses suspend the card.
+In this example, `leechThreshold` is `1`. Once the card is in `Review`, the first `Again` counts as a lapse and suspends the card. The second `Again` brings `lapses` to `2`, also a multiple of `1`, so Leech suspends the card again and the output shows `lapses: 2`.
 
 **See** — [Built-in policies](../../../guide/middleware/built-in).

@@ -26,7 +26,9 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — memory after each review
 ```
 
-履歴の各項目は `{ rating, reviewTime }` のペアです。既存の記憶状態から続ける場合は、第1引数に `initialState` を渡します。どちらのメソッドも第2引数に `{ sortHistory: false }` を指定できます。デフォルトの `sortHistory: true` は、chrono が `compare` を提供する場合にのみ並べ替えます。`numericChrono` や `compare` のないカスタム chrono では入力順が維持されるため、時刻順の履歴を渡してください。手動評価は除外され、手動以外の復習が少なくとも1件必要です。
+履歴の各項目は `{ rating, reviewTime }` のペアで、`rating` の型はスケジューラのレーティングスケールから推論されます（FSRS では `Rating`、カスタムモデルではその評価ユニオン型）。既存の記憶状態から続ける場合は、第1引数に `initialState` を渡します。どちらのメソッドも第2引数に `{ sortHistory: false }` を指定できます。デフォルトの `sortHistory: true` は、chrono が `compare` を提供する場合にのみ並べ替えます。`numericChrono` や `compare` のないカスタム chrono では入力順が維持されるため、時刻順の履歴を渡してください。`replay` と `reschedule` はいずれも `scheduler.ratings.ratingSchema` で各評価を検証し（不正な値では `SRSSchemaError` を投げます）、`scheduler.ratings.isManual(rating)` が `true` の項目（FSRS の `Rating.Manual`（`0`）や `-1` のようなカスタム手動評価）を除外します。手動評価のないスケールでは何も除外しません。手動以外の復習が少なくとも1件必要です。
+
+スケジューラがユニオン型の場合、履歴には候補のすべてのスケジューラが受け付ける評価だけを指定できます。
 
 ## リスケジュール
 

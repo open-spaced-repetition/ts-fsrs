@@ -16,12 +16,28 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | --- | --- | --- |
 | `newCard` | `newCard(input?)` | A card in its default state. |
 | `review` | `review({ card, grade, now? })` | `{ card, revlog }` for the review. |
-| `preview` | `preview({ card, now? })` | A lazy iterable of `{ grade, card, revlog }` for each of the four grades. |
+| `forward` | `forward({ history, initialCard? })` | One `{ card, revlog }` per `{ rating, reviewTime }` history item, replayed in order from `initialCard` (or a new card at the first review time). An empty history returns `[]`. |
+| `preview` | `preview({ card, now? })` | A lazy iterable of `{ grade, card, revlog }` for each grade in `scheduler.ratings.preview` in ascending value order (all four FSRS grades by default). |
 | `rollback` | `rollback({ card, revlog })` | The card before a review, using its saved revlog. |
 | `forget` | `forget({ card, now? })` | A card reset through its defaults. |
 | `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | Uses an already computed post-rating memory state and returns days through `handlers.nextInterval`. It does not run review handlers or advance the card or chrono. |
 
-`review` and `preview` never mutate their input card; they return new cards. `rollback` takes a review's `{ card, revlog }` and restores the pre-review card.
+`review` and `preview` never mutate their input card; they return new cards. `rollback` takes a review's `{ card, revlog }` and restores the pre-review card. `review`, `nextInterval`, `forward`, and revlog parsing validate grades with `scheduler.ratings.gradeSchema` (rejecting manual or out-of-scale ratings with `SRSSchemaError`); `forward` validates the rating of every history item before running `model.step`.
+
+For `forward()`, pass `history` in chronological order, and keep the array and its entries unchanged until `forward()` returns, including inside model and middleware callbacks.
+
+## Rating scale (`scheduler.ratings`)
+
+Every scheduler instance exposes a frozen `ratings: SchedulerRatings` object computed once per `defineScheduler` call and shared across every `create()` and `.use()` branch:
+
+| Member | Meaning |
+| --- | --- |
+| `scale` | A frozen copy of the model's `RatingScale`; each entry keeps only `value` and any flag set to `true` (`defaultRatingScale` itself when `ratings` is omitted). |
+| `grades` | Frozen non-manual grade values in ascending numeric order. |
+| `preview` | Frozen preview grade subset in ascending numeric order (defaults to `grades`). |
+| `manual` | Frozen manual rating values in ascending numeric order. |
+| `gradeSchema` / `ratingSchema` | Schemas validating grades (non-manual) and all scale ratings (including manual). |
+| `isLapse(grade)` / `isManual(rating)` | Predicates classifying lapse grades and manual ratings. |
 
 ## Card state and scheduleStatus
 

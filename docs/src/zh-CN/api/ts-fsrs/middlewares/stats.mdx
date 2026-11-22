@@ -14,7 +14,7 @@ import statsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/stats.ts?raw'
 import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-它在卡片上维护 `reps` 与 `lapses`。一次遗忘指 Review 状态的卡片被评为 Again。
+它在卡片上维护 `reps` 与 `lapses`。Review 状态的卡片收到标记为 `lapse: true` 的评分时，`lapses` 加一。默认评分方案中该评分为 Again。
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/stats.ts"
 ```

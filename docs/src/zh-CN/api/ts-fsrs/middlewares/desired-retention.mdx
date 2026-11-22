@@ -1,6 +1,6 @@
 ---
 title: DesiredRetention
-description: 内置中间件 schedulerDesiredRetentionMiddleware —— 在计算间隔前应用目标保留率
+description: 内置中间件 schedulerDesiredRetentionMiddleware —— 为默认 FSRS 评分方案在计算间隔前应用目标保留率
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -25,6 +25,6 @@ import { schedulerDesiredRetentionMiddleware } from 'ts-fsrs/middlewares'
 
 **另见** —— [内置策略](../../../guide/middleware/built-in)。
 
-`desiredRetention` 接受 `(0, 1)` 内的有限数字，或包含全部四种评分的记录。`nextInterval` 处理函数写入候选保留率映射；独立查询显式传入的保留率优先。
+`desiredRetention` 接受 `(0, 1)` 内的有限数字，或以默认 FSRS 四种评分为键的记录。自定义评分方案请使用 `createSchedulerDesiredRetentionMiddleware(scale)`，返回的中间件的 `desiredRetention` 配置项接受 `(0, 1)` 内的有限数字，或以该评分方案的非手动评分为键的记录。`nextInterval` 处理函数写入候选保留率映射；独立查询显式传入的保留率优先。
 
-Cost ADR 根据记忆状态和复习成本调整保留率。组合时用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。间隔上限仍由 `schedulerMaximumIntervalMiddleware` 负责。
+Cost ADR 针对默认 FSRS 评分方案，根据记忆状态和复习成本调整保留率。组合时用 `schedulerCostAdrMiddleware` 替换 `schedulerDesiredRetentionMiddleware`；它不包含在 `DefaultScheduler` 中。间隔上限仍由 `schedulerMaximumIntervalMiddleware` 负责。

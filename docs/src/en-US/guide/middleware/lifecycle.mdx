@@ -27,4 +27,8 @@ Order matters when policies interact: register `schedulerScheduledDaysMiddleware
 
 Rollback uses its own handlers in the same registration order. A rollback handler can read `ctx.config`, `ctx.input.card`, and `ctx.input.revlog`, and writes only `ctx.result.card`. Schema declarations alone do not restore custom fields: save the required old values during review and restore them in the rollback handler according to the configured policy, as the streak example on the [Overview](./index) does.
 
-`preview()` runs the review handlers for the requested candidate ratings. Keep handlers free of database writes, notifications, and other external effects; persist the selected review result in your application. `forget()` resets a card with its defaults rather than running a separate handler, so the streak example resets the counter to zero.
+`preview()` runs the review handlers for the requested candidate ratings (`scheduler.ratings.preview`). Keep handlers free of database writes, notifications, and other external effects; persist the selected review result in your application. `forget()` resets a card with its defaults rather than running a separate handler, so the streak example resets the counter to zero.
+
+## Rating scales
+
+Grade fields in handler contexts, such as `ctx.input.grade`, are typed with the default FSRS `Grade` (`1 | 2 | 3 | 4`), but handlers run on every rating scale; `use()` does not check whether a middleware supports the model's scale. Handlers that depend on the scale should read `ctx.instance.ratings` (`grades`, `isLapse`, `gradeSchema`, and so on) instead of hard-coding FSRS grade constants; `ctx.candidate.desiredRetention` is pre-filled with one entry per grade of the scale.

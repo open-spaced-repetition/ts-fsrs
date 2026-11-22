@@ -25,10 +25,17 @@ A `Model` definition exposes:
 | Member | Type / meaning |
 | --- | --- |
 | `name` | The model's name. |
+| `ratings` | Optional `RatingScale` defining the model's grades, lapse grades, and manual ratings. Omitted for the default FSRS scale (`defaultRatingScale`). |
 | `schema.config` | Schema that validates the model's configuration. |
 | `schema.memoryState` | Schema for the memory state. |
 | `defaultValue.memoryState` | `({ config }) => memoryState` — the starting memory state for a new card. |
 | `create` | Builds a `ModelCore` from a config. |
+
+### Custom rating scales
+
+Pass `ratings` to `defineModel` to declare a custom `RatingScale`. Each entry is `{ value: number, lapse?: boolean, manual?: boolean }`: `lapse` marks a failed-recall grade and `manual` a manual rating; `defineScheduler` rejects an entry with both flags set to `true`. A plain object works without `as const`; add `as const` (or pass the scale inline) to keep literal grade types. Omitting `ratings` uses `defaultRatingScale` (Manual `0`, Again `1`, Hard `2`, Good `3`, Easy `4`).
+
+Use `ModelRatingOf<typeof MyModel>` and `ModelGradeOf<typeof MyModel>` to read a model's rating union and possible grade union. With literal grade values, a value whose `manual` flag is widened to `boolean` remains a possible grade, while model-core inputs accept only values whose entries have no `manual` flag or a literal `manual: false` in the scale type. The framework does not add runtime rating validation to direct calls to `model.forward`; `scheduler.forward()` validates history ratings before replaying them.
 
 ```ts
 const model = FSRS6Model.create({

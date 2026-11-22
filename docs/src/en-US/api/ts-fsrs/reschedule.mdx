@@ -26,7 +26,9 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — memory after each review
 ```
 
-Each history item is a `{ rating, reviewTime }` pair. Pass `initialState` in the first argument when continuing from an existing memory state. Both methods accept `{ sortHistory: false }` as their second argument. By default, `sortHistory: true` sorts only when the chronology provides `compare`. With `numericChrono` or a custom chronology without `compare`, input order is preserved, so supply chronological history yourself. Manual ratings are skipped; at least one non-manual review is required.
+Each history item is a `{ rating, reviewTime }` pair whose `rating` type is inferred from the scheduler's rating scale (`Rating` for FSRS, or the custom model's rating union). Pass `initialState` in the first argument when continuing from an existing memory state. Both methods accept `{ sortHistory: false }` as their second argument. By default, `sortHistory: true` sorts only when the chronology provides `compare`. With `numericChrono` or a custom chronology without `compare`, input order is preserved, so supply chronological history yourself. Both `replay` and `reschedule` validate every rating with `scheduler.ratings.ratingSchema` (invalid values throw `SRSSchemaError`) and skip entries where `scheduler.ratings.isManual(rating)` is `true`, such as `Rating.Manual` (`0`) on FSRS or a custom manual rating like `-1`. A scale without manual entries skips nothing. At least one non-manual review is required.
+
+If the scheduler type is a union, history can use only ratings accepted by every possible scheduler.
 
 ## Reschedule
 

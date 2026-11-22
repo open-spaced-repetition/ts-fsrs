@@ -14,7 +14,7 @@ import statsCode from '@/snippets/run-code/api/ts-fsrs/middlewares/stats.ts?raw'
 import { schedulerStatsMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-It maintains `reps` and `lapses` on the card. A lapse is an Again rating on a Review card.
+It maintains `reps` and `lapses` on the card. On a Review card, any grade marked `lapse: true` increments `lapses` (Again on the default scale).
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/stats.ts"
 ```
