@@ -3,7 +3,6 @@ import {
   defineSchema,
   desiredRetentionSchema,
   type Grade,
-  type IsSameType,
   isObject,
   type Prettify,
   type RatingScale,
@@ -21,7 +20,7 @@ export type DesiredRetentionConfig<
     : GradeOrScale extends RatingScale
       ? Prettify<
           Record<RatingScaleCertainGradeOf<GradeOrScale>, number> &
-            Partial<Record<ScaleGrade<GradeOrScale>, number>>
+            Partial<Record<RatingScaleGradeOf<GradeOrScale>, number>>
         >
       : never
 }
@@ -30,20 +29,15 @@ export type DesiredRetentionConfigInput<G extends number = Grade> = {
   readonly desiredRetention: number | Record<G, number>
 }
 
-type ScaleGrade<Scale extends RatingScale> =
-  IsSameType<RatingScaleGradeOf<Scale>, Grade> extends true
-    ? Grade
-    : RatingScaleGradeOf<Scale>
-
 export function createDesiredRetentionConfigSchema<
   const Scale extends RatingScale,
 >(
   scale: Scale
 ): SRSSchema<{
-  input: DesiredRetentionConfigInput<ScaleGrade<Scale>>
+  input: DesiredRetentionConfigInput<RatingScaleGradeOf<Scale>>
   output: DesiredRetentionConfig<Scale>
 }> {
-  type G = ScaleGrade<Scale>
+  type G = RatingScaleGradeOf<Scale>
   const scaleGrades = Object.values(scale)
     .filter((entry) => !entry.manual)
     .map((entry) => entry.value as G)

@@ -5,7 +5,7 @@ import type {
   IsSameType,
   Prettify,
   Rating,
-  SRSSchema,
+  SchemaInput,
 } from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
@@ -26,25 +26,12 @@ export type CardOf<Scheduler extends AnySchedulerCore> = Parameters<
   Scheduler['review']
 >[0]['card']
 
-export type RatingOf<Scheduler extends AnySchedulerCore> =
-  Scheduler['ratings']['ratingSchema'] extends SRSSchema<{
-    input: infer R extends number
-    output: number
-  }>
-    ? IsSameType<R, Rating> extends true
-      ? Rating
-      : R
-    : Rating
+export type RatingOf<Scheduler extends AnySchedulerCore> = SchemaInput<
+  Scheduler['ratings']['ratingSchema']
+>
 
 export type GradeOf<Scheduler extends AnySchedulerCore> =
-  Scheduler['ratings']['gradeSchema'] extends SRSSchema<{
-    input: infer G extends number
-    output: number
-  }>
-    ? IsSameType<G, Grade> extends true
-      ? Grade
-      : G
-    : Grade
+  Scheduler['ratings']['grades'][number]
 
 export type ScheduleResultOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['forward']
