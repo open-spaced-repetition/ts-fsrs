@@ -287,7 +287,7 @@ describe('schedulerFuzzingMiddleware review', () => {
     expect(statsFirst.card.reps).toBe(fuzzFirst.card.reps)
   })
 
-  it('uses reps already assigned by an earlier middleware', () => {
+  it('seeds from card.reps + 1 while preserving reps assigned by an earlier middleware', () => {
     const cardId = 'assigned-reps'
     const rng = vi.fn((_seed: string) => () => 0.5)
     const assignedRepsMiddleware = defineMiddleware({
@@ -308,11 +308,15 @@ describe('schedulerFuzzingMiddleware review', () => {
     const result = core.review({ card, grade: Rating.Easy, now })
 
     expect(result.card.reps).toBe(7)
-    expect(rng).toHaveBeenCalledWith(`${cardId}7`)
+    expect(rng).toHaveBeenCalledWith(`${cardId}1`)
   })
 
   it('rounds a short model interval without creating a fuzz factor', () => {
-    const card = fuzzFirstCore.newCard({
+    const rng = vi.fn((_seed: string) => () => 0.5)
+    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+      .use(createSchedulerFuzzingMiddleware({ rng }))
+      .create({ config })
+    const card = core.newCard({
       now,
       cardId: 'short-model-interval',
     })
@@ -323,43 +327,61 @@ describe('schedulerFuzzingMiddleware review', () => {
       now,
     })
 
-    const result = fuzzFirstCore.review({
+    const result = core.review({
       card,
       grade: Rating.Again,
       now,
     })
 
     expect(result.card.dueAt).toEqual(expected.card.dueAt)
+    expect(rng).not.toHaveBeenCalled()
   })
 
-  it('derives stable intervals without caching the fuzz factor', () => {
-    const rng = vi.fn((_seed: string) => () => 0.5)
+  it('samples one shared fuzz factor per candidate across grades and repeated traversals', () => {
+    const sample = vi.fn(() => 0)
+    const rng = vi.fn((_seed: string) => sample)
     const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
       .use(createSchedulerFuzzingMiddleware({ rng }))
       .create({ config })
-    const plainCard = plainCore.newCard({ now })
+    const reviewCard = {
+      ...core.newCard({ now, cardId: 'preview-card' }),
+      state: State.Review,
+      stability: 10,
+      difficulty: 5,
+      lastReviewAt: now,
+      reps: 1,
+    }
+    const plainReviewCard = {
+      ...plainCore.newCard({ now }),
+      state: State.Review,
+      stability: 10,
+      difficulty: 5,
+      lastReviewAt: now,
+      reps: 1,
+    }
     const rawIntervals = Array.from(
-      plainCore.preview({ card: plainCard, now }),
-      (item) => scheduledDays(item.card.dueAt, now)
+      plainCore.preview({ card: plainReviewCard, now: later }),
+      (item) => scheduledDays(item.card.dueAt, later)
     )
-    const card = fuzzFirstCore.newCard({
-      now,
-      cardId: 'preview-card',
-    })
+    expect(
+      rawIntervals.filter((interval) => interval >= 2.5).length
+    ).toBeGreaterThan(1)
 
-    const first = Array.from(core.preview({ card, now }))
-    const firstCallCount = rng.mock.calls.length
-    const second = Array.from(core.preview({ card, now }))
+    const preview = core.preview({ card: reviewCard, now: later })
+    const first = Array.from(preview)
+    const repeated = Array.from(preview)
+    const second = Array.from(core.preview({ card: reviewCard, now: later }))
 
     expect(first).toHaveLength(4)
+    expect(repeated.map((item) => item.card.dueAt)).toEqual(
+      first.map((item) => item.card.dueAt)
+    )
     expect(second.map((item) => item.card.dueAt)).toEqual(
       first.map((item) => item.card.dueAt)
     )
-    expect(firstCallCount).toBe(
-      rawIntervals.filter((interval) => interval >= 2.5).length
-    )
-    expect(rng).toHaveBeenCalledTimes(firstCallCount * 2)
-    expect(rng.mock.calls.every(([seed]) => seed === 'preview-card1')).toBe(
+    expect(rng).toHaveBeenCalledTimes(2)
+    expect(sample).toHaveBeenCalledTimes(2)
+    expect(rng.mock.calls.every(([seed]) => seed === 'preview-card2')).toBe(
       true
     )
   })
@@ -440,6 +462,42 @@ describe('schedulerFuzzingMiddleware review', () => {
 
     expect(rng).not.toHaveBeenCalled()
   })
+
+  it.each([false, true])(
+    'falls back to card.reps + 1 when downstream clears reps (enableFuzz=%s)',
+    (enableFuzz) => {
+      const assignReps = defineMiddleware({
+        name: 'test.assign-reps',
+        schema: { card: fuzzingCardFieldsSchema },
+        handlers: {
+          review(ctx, next) {
+            ctx.result.card.reps = 7
+            next()
+          },
+        },
+      })
+      const clearReps = defineMiddleware({
+        name: 'test.clear-reps',
+        schema: { card: fuzzingCardFieldsSchema },
+        handlers: {
+          review(ctx, next) {
+            next()
+            ctx.result.card.reps = undefined
+          },
+        },
+      })
+      const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+        .use(assignReps, schedulerFuzzingMiddleware, clearReps)
+        .create({ config: { ...config, enableFuzz } })
+      const card = core.newCard({ now, cardId: 'fallback-reps' })
+
+      const result = core.review({ card, grade: Rating.Easy, now })
+
+      expect(result.card.reps).toBe(1)
+      expect(result.card.cardId).toBe('fallback-reps')
+      expect(result.revlog.cardId).toBe('fallback-reps')
+    }
+  )
 })
 
 describe('schedulerFuzzingMiddleware lifecycle', () => {
