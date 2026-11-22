@@ -61,21 +61,27 @@ const toSeconds = (days: number): number => Math.round(days * SECONDS_PER_DAY)
  * sub-day candidates are ignored. Otherwise sub-day intervals never decrease,
  * and a candidate that is not lower than the previous one advances by one
  * second when it would land on the same second as the previous result. Zero-day
- * intervals may remain equal.
+ * intervals may remain equal. The first `lapseCount` candidates are lapse
+ * grades, which may share an interval with each other instead of advancing.
  */
 export function calculateScheduleDay(
-  candidates: IntervalCandidates,
-  maximumInterval: number
+  candidates: readonly number[],
+  maximumInterval: number,
+  lapseCount = 0
 ): number {
+  if (candidates.length === 0) {
+    throw new RangeError('Expected at least one interval candidate')
+  }
   let scheduledDay: number | undefined
   let subDay = candidates[0]
   for (let index = 0; index < candidates.length; index++) {
     const interval = candidates[index]
+    const mustAdvance = index >= lapseCount
     if (interval >= 1) {
       scheduledDay = Math.min(
         scheduledDay === undefined
           ? interval
-          : Math.max(interval, scheduledDay + 1),
+          : Math.max(interval, mustAdvance ? scheduledDay + 1 : scheduledDay),
         maximumInterval
       )
     } else if (scheduledDay === undefined && index > 0) {
@@ -83,6 +89,7 @@ export function calculateScheduleDay(
       // A rating that is not lower than the previous one moves past it when
       // both land on the same second; a lower rating may share its interval.
       subDay =
+        mustAdvance &&
         subDay > 0 &&
         toSeconds(interval) >= toSeconds(candidates[index - 1]) &&
         toSeconds(raised) === toSeconds(subDay)

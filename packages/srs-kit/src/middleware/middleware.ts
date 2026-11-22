@@ -50,14 +50,14 @@ export type MiddlewareDefaultValueContext<
       }
   )
 
-export interface ReviewCandidateContext {
+export interface ReviewCandidateContext<G extends number = Grade> {
   /** Shared record identity is stable; interval policies update its entries. */
-  readonly desiredRetention: DesiredRetentionByGrade
-  readonly step: (grade: Grade) => Readonly<Record<string, unknown>>
+  readonly desiredRetention: DesiredRetentionByGrade<G>
+  readonly step: (grade: G) => Readonly<Record<string, unknown>>
   /** Finds the most recently cached grade for a memory state. */
   readonly findGrade: (
     memoryState: Readonly<Record<string, unknown>>
-  ) => Grade | undefined
+  ) => G | undefined
   readonly nextInterval: (
     memoryState: Readonly<Record<string, unknown>>,
     desiredRetention: number
@@ -65,7 +65,10 @@ export interface ReviewCandidateContext {
 }
 
 /** Desired retention keyed by review grade. */
-export type DesiredRetentionByGrade = Record<Grade, number>
+export type DesiredRetentionByGrade<G extends number = Grade> = Record<
+  G,
+  number
+>
 
 export interface NextIntervalMiddlewareContext<
   Env extends MiddlewareEnv = MiddlewareEnv,

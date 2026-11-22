@@ -1,10 +1,10 @@
 import {
   defineMiddleware,
   type Grade,
-  grades,
   type NextIntervalMiddlewareContext,
   Rating,
   type ReviewCandidateContext,
+  type SchedulerRatings,
   State,
 } from '@open-spaced-repetition/srs-kit'
 import type { Mutable } from '@open-spaced-repetition/srs-kit/schema'
@@ -13,11 +13,31 @@ import {
   learningStepFieldsSchema,
   learningStepsConfigSchema,
 } from './schema.js'
-import type { LearningStepsResult } from './types.js'
+import type { LearningStepSchedule } from './types.js'
 
 const MINUTES_PER_DAY = 1440
 const SECONDS_PER_MINUTE = 60
 const resolvedStepsSymbol = Symbol('ts-fsrs.learning-steps.resolved')
+
+/**
+ * The FSRS grade whose learning step a scale grade follows: lapse grades act as
+ * Again, the top two non-lapse grades as Easy and Good (a lone one as Good),
+ * and the rest as Hard. Default grades map onto themselves.
+ */
+function learningStepGrade(
+  { grades, isLapse }: SchedulerRatings,
+  grade: number
+): Grade {
+  if (isLapse(grade)) return Rating.Again
+  // Grades ascend with lapse grades first, so non-lapse grades end the list.
+  const fromTop = grades.length - 1 - grades.indexOf(grade)
+  if (fromTop > 1) return Rating.Hard
+  if (fromTop === 1) return Rating.Good
+  const belowTop = grades[grades.length - 2]
+  return belowTop !== undefined && !isLapse(belowTop)
+    ? Rating.Easy
+    : Rating.Good
+}
 
 type LearningStepsContext = NextIntervalMiddlewareContext<{
   config: typeof learningStepsConfigSchema
@@ -25,16 +45,19 @@ type LearningStepsContext = NextIntervalMiddlewareContext<{
 }>
 
 type ResolvedLearningSteps = {
-  readonly steps: LearningStepsResult
+  /** The learning step of each scale grade that has one. */
+  readonly steps: Partial<Record<number, LearningStepSchedule>>
+  /** Lapse grades act as Again. */
+  readonly isLapse: (grade: number) => boolean
   /** Whether the current (re)learning step list is non-empty. */
   readonly hasSteps: boolean
   /** Second-rounded step intervals in days, only for steps longer than zero. */
-  readonly stepIntervals: Partial<Record<Grade, number>>
+  readonly stepIntervals: Partial<Record<number, number>>
   /** Grades whose last resolved interval replaced their step with the model. */
-  readonly overridesStep: Partial<Record<Grade, boolean>>
+  readonly overridesStep: Partial<Record<number, boolean>>
 }
 
-type LearningStepsCandidate = ReviewCandidateContext & {
+type LearningStepsCandidate = ReviewCandidateContext<number> & {
   [resolvedStepsSymbol]?: ResolvedLearningSteps
 }
 
@@ -72,7 +95,7 @@ export const schedulerLearningStepsMiddleware = defineMiddleware({
       // the model override always (re)learns. Only (re)learning cards keep a
       // step.
       if (
-        (grade === Rating.Again && resolved?.overridesStep[grade] === true) ||
+        (resolved?.overridesStep[grade] === true && resolved.isLapse(grade)) ||
         (scheduledDays !== undefined && scheduledDays < graduatingInterval)
       ) {
         ctx.result.card.state = nextLearningState(card.state)
@@ -118,15 +141,22 @@ function resolveLearningSteps(
 
   const { card } = ctx.input
   const { config } = ctx
+  const { ratings } = ctx.instance
   const stepList =
     card.state === State.Relearning || card.state === State.Review
       ? config.relearningSteps
       : config.learningSteps
-  const steps = calculateLearningSteps(config, card.state, card.learningStep)
-  const stepIntervals: Partial<Record<Grade, number>> = {}
-  for (const grade of grades) {
-    const step = steps[grade]
+  const fsrsSteps = calculateLearningSteps(
+    config,
+    card.state,
+    card.learningStep
+  )
+  const steps: Partial<Record<number, LearningStepSchedule>> = {}
+  const stepIntervals: Partial<Record<number, number>> = {}
+  for (const grade of ratings.grades) {
+    const step = fsrsSteps[learningStepGrade(ratings, grade)]
     if (!step) continue
+    steps[grade] = step
     const minutes =
       Math.round(Math.max(0, step.scheduledMinutes) * SECONDS_PER_MINUTE) /
       SECONDS_PER_MINUTE
@@ -134,6 +164,7 @@ function resolveLearningSteps(
   }
   const resolved: ResolvedLearningSteps = {
     steps,
+    isLapse: ratings.isLapse,
     hasSteps: stepList.length > 0,
     stepIntervals,
     overridesStep: {},
@@ -173,30 +204,28 @@ function resolveLearningSteps(
  */
 function getLearningStepInterval(
   resolved: ResolvedLearningSteps,
-  grade: Grade,
+  grade: number,
   { allowModelOverride, graduatingInterval }: LearningStepsContext['config'],
   modelInterval: () => number
 ): number {
   const stepInterval = resolved.stepIntervals[grade]
-  switch (grade) {
-    case Rating.Again:
-      if (stepInterval === undefined) return modelInterval()
-      // Again may follow the model, but never past graduation.
-      return allowModelOverride
-        ? Math.max(stepInterval, Math.min(modelInterval(), graduatingInterval))
-        : stepInterval
-    default:
-      // Hard, Good, and Easy without a step graduate or stay in review when
-      // steps are configured, so they wait at least the graduating interval.
-      if (stepInterval === undefined) {
-        return resolved.hasSteps
-          ? Math.max(modelInterval(), graduatingInterval)
-          : modelInterval()
-      }
-      return allowModelOverride
-        ? Math.max(stepInterval, modelInterval())
-        : stepInterval
+  if (resolved.isLapse(grade)) {
+    if (stepInterval === undefined) return modelInterval()
+    // Again may follow the model, but never past graduation.
+    return allowModelOverride
+      ? Math.max(stepInterval, Math.min(modelInterval(), graduatingInterval))
+      : stepInterval
   }
+  // Hard, Good, and Easy without a step graduate or stay in review when
+  // steps are configured, so they wait at least the graduating interval.
+  if (stepInterval === undefined) {
+    return resolved.hasSteps
+      ? Math.max(modelInterval(), graduatingInterval)
+      : modelInterval()
+  }
+  return allowModelOverride
+    ? Math.max(stepInterval, modelInterval())
+    : stepInterval
 }
 
 function nextLearningState(state: State): State {

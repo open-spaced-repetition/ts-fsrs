@@ -2,21 +2,31 @@ import {
   type AnySchedulerCore,
   type ModelReview,
   parse,
-  Rating,
-  ratingSchema,
 } from '@open-spaced-repetition/srs-kit'
 import { FSRSValidationError } from '../error.js'
 import type {
   CardOf,
+  GradeOf,
   MemoryStateOf,
   NonManualReview,
+  RatingOf,
   ReplayInput,
   ReplayResultOf,
   RescheduleInput,
   RescheduleOptions,
   RescheduleResult,
+  RescheduleReview,
   TimeOf,
 } from './infer.js'
+
+// History may include manual ratings, but every possible scheduler must accept each value.
+type HistoryRating<S extends AnySchedulerCore> = (
+  S extends AnySchedulerCore
+    ? (rating: RatingOf<S>) => void
+    : never
+) extends (rating: infer R extends number) => void
+  ? R
+  : never
 
 /** A typed array with one fixed-width row per review. */
 interface PackedMemoryStates {
@@ -62,7 +72,11 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
    * after each review.
    */
   replay(
-    input: ReplayInput<MemoryStateOf<Scheduler>, TimeOf<Scheduler>>,
+    input: ReplayInput<
+      MemoryStateOf<Scheduler>,
+      TimeOf<Scheduler>,
+      HistoryRating<Scheduler>
+    >,
     options: RescheduleOptions = {}
   ): ReplayResultOf<Scheduler> {
     const reviews = this.prepareReviews(input.history, options)
@@ -82,7 +96,11 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
    * revlog produced by each review.
    */
   reschedule(
-    input: RescheduleInput<CardOf<Scheduler>, TimeOf<Scheduler>>,
+    input: RescheduleInput<
+      CardOf<Scheduler>,
+      TimeOf<Scheduler>,
+      HistoryRating<Scheduler>
+    >,
     options: RescheduleOptions = {}
   ): RescheduleResult<Scheduler> {
     const history = this.prepareReviews(input.history, options)
@@ -95,21 +113,22 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
   }
 
   private prepareReviews(
-    history: readonly {
-      readonly rating: Rating
-      readonly reviewTime: TimeOf<Scheduler>
-    }[],
+    history: readonly RescheduleReview<
+      TimeOf<Scheduler>,
+      HistoryRating<Scheduler>
+    >[],
     { sortHistory = true }: RescheduleOptions
-  ): NonManualReview<TimeOf<Scheduler>>[] {
-    const reviews: NonManualReview<TimeOf<Scheduler>>[] = []
+  ): NonManualReview<TimeOf<Scheduler>, GradeOf<Scheduler>>[] {
+    const reviews: NonManualReview<TimeOf<Scheduler>, GradeOf<Scheduler>>[] = []
     const { chrono: chronoDefinition } = this.scheduler.definition
+    const { ratingSchema, isManual } = this.scheduler.ratings
 
     for (const review of history) {
       const rating = parse(ratingSchema, review.rating)
-      if (rating === Rating.Manual) continue
+      if (isManual(rating)) continue
 
       reviews.push({
-        rating: rating,
+        rating: rating as GradeOf<Scheduler>,
         reviewTime: parse(chronoDefinition.schema.time, review.reviewTime),
       })
     }
@@ -129,9 +148,11 @@ export class Reschedule<Scheduler extends AnySchedulerCore> {
   }
 
   private toModelHistory(
-    history: readonly NonManualReview<TimeOf<Scheduler>>[]
-  ): ModelReview[] {
-    const modelHistory: ModelReview[] = new Array(history.length)
+    history: readonly NonManualReview<TimeOf<Scheduler>, GradeOf<Scheduler>>[]
+  ): ModelReview<GradeOf<Scheduler>>[] {
+    const modelHistory: ModelReview<GradeOf<Scheduler>>[] = new Array(
+      history.length
+    )
     modelHistory[0] = { rating: history[0].rating, deltaT: 0 }
 
     for (let index = 1; index < history.length; index++) {

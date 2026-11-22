@@ -4,17 +4,21 @@ import { numericChrono } from '@/chrono/presets/numeric/chrono.js'
 import { defineMiddleware } from '@/middleware/index.js'
 import { schedulerStatsMiddleware } from '@/middleware/stats/index.js'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from '@/model/sm2.test.js'
+import {
+  SM2_SIX_GRADE_DEFAULT_WEIGHTS,
+  SM2SixGradeModel,
+} from '@/model/sm2-six-grade.test.js'
 import type { Grade } from '@/primitives/rating.js'
 import type { Mutable, SRSSchema } from '@/schema/index.js'
 import { defineStringFieldOutputSchema } from '@/schema/string-field.test.js'
 import { defineScheduler } from './define-scheduler.js'
+import type { ScheduleResult } from './fields.js'
 import type {
   SchedulerConfigInputOf,
   SchedulerConfigOutputOf,
 } from './infer.js'
 import type {
   PreviewResult,
-  ScheduleResult,
   SchedulerCore,
   SchedulerDefaultValue,
   SchedulerNewCardFn,
@@ -280,6 +284,15 @@ const inferredSchedulerPreview = displaySchedulerPreview({
     rating: 1,
   },
   grade: 1,
+})
+
+const sixGradeCore = defineScheduler({
+  model: SM2SixGradeModel,
+  chrono: numericChrono,
+}).create({ config: { weights: SM2_SIX_GRADE_DEFAULT_WEIGHTS } })
+const sixGradePreview = sixGradeCore.preview({
+  card: sixGradeCore.newCard({ now: 0 }),
+  now: 0,
 })
 
 const SELF = 'src/scheduler/scheduler.type-display.spec.ts'
@@ -660,6 +673,23 @@ describe('defineScheduler type display', () => {
   }
 
   const expectedPreviews = {
+    sixGradePreview: `const sixGradePreview: PreviewResult<{
+    card: {
+        interval: number;
+        easeFactor: number;
+        reviewStep: number;
+        state: State;
+        scheduleStatus: "new" | "learning" | "review";
+    };
+    revlog: {
+        interval: number;
+        easeFactor: number;
+        reviewStep: number;
+        state: State;
+        scheduleStatus: "new" | "learning" | "review";
+        rating: 0 | 1 | 2 | 3 | 4 | 5;
+    };
+}, 0 | 1 | 2 | 3 | 4 | 5>`,
     previewCollectionForDisplay: `const previewCollectionForDisplay: PreviewResult<{
     card: {
         reps: number;

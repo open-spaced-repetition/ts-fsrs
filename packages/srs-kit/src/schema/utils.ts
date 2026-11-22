@@ -5,6 +5,13 @@ export type IsAny<T> = unknown extends T
     : true
   : false
 
+/** Whether `A` and `B` are assignable to each other, without distributing. */
+export type IsSameType<A, B> = [A] extends [B]
+  ? [B] extends [A]
+    ? true
+    : false
+  : false
+
 type Primitive = null | undefined | string | number | boolean | symbol | bigint
 
 type ConstructorInstance<T> = T extends abstract new (
@@ -41,6 +48,9 @@ type BuiltIn = Primitive | GlobalBuiltIn | TemporalBuiltIn
 export type Prettify<T> = [T] extends [BuiltIn]
   ? T
   : { [K in keyof T]: T[K] } & {}
+
+/** Flattens an object type without `Prettify`'s built-in check. */
+export type FlattenObject<T> = { [K in keyof T]: T[K] } & {}
 
 export type EmptyObject = Record<PropertyKey, never>
 

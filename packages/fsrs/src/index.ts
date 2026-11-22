@@ -1,5 +1,6 @@
 export type * from '@open-spaced-repetition/srs-kit'
 export {
+  defaultRatingScale,
   defineChrono,
   defineMiddleware,
   defineModel,

@@ -47,6 +47,12 @@ function createReviewContext({
     ) => intervals[memoryState.rating as Grade]
   )
   const ctx = {
+    instance: {
+      ratings: {
+        grades,
+        isLapse: (rating: number) => rating === Rating.Again,
+      },
+    },
     config: { maximumInterval: maximum },
     input: {
       card: { state, scheduleStatus: 'review' },

@@ -1,3 +1,5 @@
 export { defineScheduler } from './define-scheduler.js'
+export type { PreviewItem, ScheduleResult } from './fields.js'
 export type * from './infer.js'
+export type { SchedulerRatings } from './ratings.js'
 export type * from './scheduler.js'
