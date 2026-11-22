@@ -115,8 +115,8 @@ checksum = "252afb9ae5eaa683babdc6a068b3f5726eb19e05070c731f9b2a23a7c3e8ed34"
 
 [[package]]
 name = "fsrs"
-version = "6.6.2"
-source = "git+https://github.com/open-spaced-repetition/fsrs-rs?rev=65224f1de57c538385ecb5e4df0f2564ee6f0fb8#65224f1de57c538385ecb5e4df0f2564ee6f0fb8"
+version = "7.0.0"
+source = "git+https://github.com/open-spaced-repetition/fsrs-rs?rev=158a1151ee221535b3b328ba1c9d3be4ad534599#158a1151ee221535b3b328ba1c9d3be4ad534599"
 dependencies = [
  "bytemuck",
  "itertools",
