@@ -372,15 +372,17 @@ describe('scheduler.nextInterval', () => {
     expect(step).toHaveBeenCalledTimes(4)
     expect(interval).toHaveBeenCalledTimes(4)
     expect(visits).toHaveBeenCalledTimes(10)
-    expect(rng).toHaveBeenCalledTimes(10)
-    expect(sample).toHaveBeenCalledTimes(10)
+    // Every grade of the review shares one fuzz factor.
+    expect(rng).toHaveBeenCalledTimes(1)
+    expect(sample).toHaveBeenCalledTimes(1)
 
     expect(Array.from(preview)).toEqual(first)
     expect(installations).toBe(3)
     expect(step).toHaveBeenCalledTimes(4)
     expect(interval).toHaveBeenCalledTimes(4)
     expect(visits).toHaveBeenCalledTimes(20)
-    expect(sample).toHaveBeenCalledTimes(20)
+    expect(rng).toHaveBeenCalledTimes(1)
+    expect(sample).toHaveBeenCalledTimes(1)
     expect(candidates.size).toBe(1)
 
     const elapsedDays = 0
@@ -401,6 +403,8 @@ describe('scheduler.nextInterval', () => {
     ).toEqual([0.8, 0.8, 0.8, 0.8])
     expect(installations).toBe(6)
     expect(candidates.size).toBe(2)
+    expect(rng).toHaveBeenCalledTimes(2)
+    expect(sample).toHaveBeenCalledTimes(2)
     expect(rng.mock.calls.every(([seed]) => seed === 'cache1')).toBe(true)
   })
 

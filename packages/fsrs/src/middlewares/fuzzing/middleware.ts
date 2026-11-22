@@ -27,6 +27,7 @@ type FuzzingCandidate = ReviewCandidateContext & {
 
 export type SchedulerFuzzingMiddlewareOptions = {
   readonly fuzzingRange?: readonly FuzzRange[]
+  /** Seeded once per review; every grade of that review shares the factor. */
   readonly rng?: FuzzingRng
 }
 
@@ -43,28 +44,28 @@ export function createSchedulerFuzzingMiddleware(
     reps: number
   ): void {
     if (!ctx.config.enableFuzz) return
-    const card = ctx.input.card
     const candidate = ctx.candidate as Mutable<FuzzingCandidate>
-    if (!candidate[fuzzingDecoratorSymbol]) {
-      const nextInterval = candidate.nextInterval
-      const seed = `${card.cardId}${reps}`
-      candidate.nextInterval = (memoryState, desiredRetention) => {
-        const interval = nextInterval(memoryState, desiredRetention)
-        if (interval < 2.5)
-          return ctx.config.fractionalDays ? interval : Math.round(interval)
+    if (candidate[fuzzingDecoratorSymbol]) return
+    candidate[fuzzingDecoratorSymbol] = true
 
-        const { minInterval, maxInterval } = getFuzzRange(
-          interval,
-          ctx.elapsedDays,
-          ctx.config.maximumInterval,
-          fuzzingRange
-        )
-        const fuzzFactor = rng(seed)()
-        return Math.floor(
-          fuzzFactor * (maxInterval - minInterval + 1) + minInterval
-        )
-      }
-      candidate[fuzzingDecoratorSymbol] = true
+    const nextInterval = candidate.nextInterval
+    const seed = `${ctx.input.card.cardId}${reps}`
+    let fuzzFactor: number | undefined
+    candidate.nextInterval = (memoryState, desiredRetention) => {
+      const interval = nextInterval(memoryState, desiredRetention)
+      if (interval < 2.5)
+        return ctx.config.fractionalDays ? interval : Math.round(interval)
+
+      const { minInterval, maxInterval } = getFuzzRange(
+        interval,
+        ctx.elapsedDays,
+        ctx.config.maximumInterval,
+        fuzzingRange
+      )
+      fuzzFactor ??= rng(seed)()
+      return Math.floor(
+        fuzzFactor * (maxInterval - minInterval + 1) + minInterval
+      )
     }
   }
 
@@ -99,15 +100,9 @@ export function createSchedulerFuzzingMiddleware(
       },
       review(ctx, next) {
         const card = ctx.input.card
-        if (!ctx.config.enableFuzz) {
-          next()
-          ctx.result.card.cardId = card.cardId
-          ctx.result.card.reps ??= card.reps + 1
-          ctx.result.revlog.cardId = card.cardId
-          return
-        }
-
-        const reps = ctx.result.card.reps ?? card.reps + 1
+        const reps = ctx.config.enableFuzz
+          ? (ctx.result.card.reps ?? card.reps + 1)
+          : card.reps + 1
         decorateInterval(ctx, reps)
         next()
         ctx.result.card.cardId = card.cardId
