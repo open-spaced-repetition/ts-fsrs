@@ -287,7 +287,7 @@ describe('schedulerFuzzingMiddleware review', () => {
     expect(statsFirst.card.reps).toBe(fuzzFirst.card.reps)
   })
 
-  it('uses reps already assigned by an earlier middleware', () => {
+  it('seeds from card.reps + 1 while preserving reps assigned by an earlier middleware', () => {
     const cardId = 'assigned-reps'
     const rng = vi.fn((_seed: string) => () => 0.5)
     const assignedRepsMiddleware = defineMiddleware({
@@ -308,7 +308,7 @@ describe('schedulerFuzzingMiddleware review', () => {
     const result = core.review({ card, grade: Rating.Easy, now })
 
     expect(result.card.reps).toBe(7)
-    expect(rng).toHaveBeenCalledWith(`${cardId}7`)
+    expect(rng).toHaveBeenCalledWith(`${cardId}1`)
   })
 
   it('rounds a short model interval without creating a fuzz factor', () => {
@@ -463,38 +463,41 @@ describe('schedulerFuzzingMiddleware review', () => {
     expect(rng).not.toHaveBeenCalled()
   })
 
-  it('falls back to card.reps + 1 when fuzzing is disabled and downstream clears reps', () => {
-    const assignReps = defineMiddleware({
-      name: 'test.assign-reps',
-      schema: { card: fuzzingCardFieldsSchema },
-      handlers: {
-        review(ctx, next) {
-          ctx.result.card.reps = 7
-          next()
+  it.each([false, true])(
+    'falls back to card.reps + 1 when downstream clears reps (enableFuzz=%s)',
+    (enableFuzz) => {
+      const assignReps = defineMiddleware({
+        name: 'test.assign-reps',
+        schema: { card: fuzzingCardFieldsSchema },
+        handlers: {
+          review(ctx, next) {
+            ctx.result.card.reps = 7
+            next()
+          },
         },
-      },
-    })
-    const clearReps = defineMiddleware({
-      name: 'test.clear-reps',
-      schema: { card: fuzzingCardFieldsSchema },
-      handlers: {
-        review(ctx, next) {
-          next()
-          ctx.result.card.reps = undefined
+      })
+      const clearReps = defineMiddleware({
+        name: 'test.clear-reps',
+        schema: { card: fuzzingCardFieldsSchema },
+        handlers: {
+          review(ctx, next) {
+            next()
+            ctx.result.card.reps = undefined
+          },
         },
-      },
-    })
-    const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
-      .use(assignReps, schedulerFuzzingMiddleware, clearReps)
-      .create({ config: { ...config, enableFuzz: false } })
-    const card = core.newCard({ now, cardId: 'disabled-fallback-reps' })
+      })
+      const core = defineScheduler({ model: FSRS6Model, chrono: dateChrono })
+        .use(assignReps, schedulerFuzzingMiddleware, clearReps)
+        .create({ config: { ...config, enableFuzz } })
+      const card = core.newCard({ now, cardId: 'fallback-reps' })
 
-    const result = core.review({ card, grade: Rating.Easy, now })
+      const result = core.review({ card, grade: Rating.Easy, now })
 
-    expect(result.card.reps).toBe(1)
-    expect(result.card.cardId).toBe('disabled-fallback-reps')
-    expect(result.revlog.cardId).toBe('disabled-fallback-reps')
-  })
+      expect(result.card.reps).toBe(1)
+      expect(result.card.cardId).toBe('fallback-reps')
+      expect(result.revlog.cardId).toBe('fallback-reps')
+    }
+  )
 })
 
 describe('schedulerFuzzingMiddleware lifecycle', () => {
