@@ -100,9 +100,7 @@ export function createSchedulerFuzzingMiddleware(
       },
       review(ctx, next) {
         const card = ctx.input.card
-        const reps = ctx.config.enableFuzz
-          ? (ctx.result.card.reps ?? card.reps + 1)
-          : card.reps + 1
+        const reps = card.reps + 1
         decorateInterval(ctx, reps)
         next()
         ctx.result.card.cardId = card.cardId
