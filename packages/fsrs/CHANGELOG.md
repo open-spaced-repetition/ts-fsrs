@@ -1,5 +1,15 @@
 # ts-fsrs
 
+## 6.0.1
+
+### Patch Changes
+
+- [#601](https://github.com/open-spaced-repetition/ts-fsrs/pull/601) [`e74ffc7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e74ffc7c944e8772fc3705d44723453ccb6d7fd0) Thanks [@ishiko732](https://github.com/ishiko732)! - feat: expand `newCard` and `DefaultScheduler` options in editor hovers.
+
+- [#624](https://github.com/open-spaced-repetition/ts-fsrs/pull/624) [`ff676b4`](https://github.com/open-spaced-repetition/ts-fsrs/commit/ff676b4c21ed7f4b6b3c3853b6bb186db3abd5e0) Thanks [@ishiko732](https://github.com/ishiko732)! - perf(fuzzing): share one lazily sampled fuzz factor per review candidate.
+- Updated dependencies [[`e74ffc7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e74ffc7c944e8772fc3705d44723453ccb6d7fd0), [`e74ffc7`](https://github.com/open-spaced-repetition/ts-fsrs/commit/e74ffc7c944e8772fc3705d44723453ccb6d7fd0)]:
+  - @open-spaced-repetition/srs-kit@1.0.1
+
 ## 6.0.0
 
 This is a major update with breaking changes. ts-fsrs v6 introduces FSRS-7, the default model for `DefaultScheduler`; see the [quick start](https://open-spaced-repetition.github.io/ts-fsrs/guide/quick-start#start-with-defaultscheduler) to get started. For existing integrations, we recommend following the [migration guide](https://open-spaced-repetition.github.io/ts-fsrs/guide/migration) and using [llms.txt](https://open-spaced-repetition.github.io/ts-fsrs/llms.txt) as the documentation entry point for AI-assisted migration.
