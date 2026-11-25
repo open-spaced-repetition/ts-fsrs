@@ -119,16 +119,18 @@ describe('computeOptimalSteps', () => {
       }
     )
 
-    test('should reject invalid desired_retention', () => {
-      expect(() => computeOptimalSteps(csvBuffer, 0.0, 0.5)).toThrow(
-        'desired_retention'
-      )
-      expect(() => computeOptimalSteps(csvBuffer, 1.0, 0.5)).toThrow(
-        'desired_retention'
-      )
-      expect(() => computeOptimalSteps(csvBuffer, -0.1, 0.5)).toThrow(
-        'desired_retention'
-      )
+    test.each([
+      0.0,
+      1.0,
+      -0.1,
+      1.1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+    ])('should reject invalid desired_retention %s', (desiredRetention) => {
+      expect(() =>
+        computeOptimalSteps(csvBuffer, desiredRetention, 0.5)
+      ).toThrow('desired_retention')
     })
 
     test('should reject invalid decay value', () => {

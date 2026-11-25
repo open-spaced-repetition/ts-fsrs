@@ -133,22 +133,72 @@ describe('FSRS model', () => {
     }
   })
 
-  test('next_states uses integer elapsed days for FSRS6', async () => {
+  test('next_states rounds fractional elapsed days for FSRS6', async () => {
     const parameters = await computeParameters([], {
       enableShortTerm: true,
       modelVersion: 'FSRS-6',
     })
     const model = new FSRSBinding(parameters)
     const state = new BindingMemoryState(10, 5, 10)
-    for (const days of [0.25, 1.25]) {
+    for (const days of [0.25, 1.25, 3.7]) {
       const fractional = model.nextStates(state, 0.9, days)
-      const integer = model.nextStates(state, 0.9, Math.floor(days))
+      const rounded = model.nextStates(state, 0.9, Math.round(days))
       for (const rating of ['again', 'hard', 'good', 'easy'] as const) {
         expect(fractional[rating].memory.toString()).toBe(
-          integer[rating].memory.toString()
+          rounded[rating].memory.toString()
         )
-        expect(fractional[rating].interval).toBe(integer[rating].interval)
+        expect(fractional[rating].interval).toBe(rounded[rating].interval)
       }
+    }
+
+    const at37 = model.nextStates(state, 0.9, 3.7)
+    const at3 = model.nextStates(state, 0.9, 3)
+    const at4 = model.nextStates(state, 0.9, 4)
+    for (const rating of ['again', 'hard', 'good', 'easy'] as const) {
+      expect(at37[rating].memory.toString()).toBe(at4[rating].memory.toString())
+      expect(at37[rating].interval).toBe(at4[rating].interval)
+      expect(at37[rating].interval).not.toBe(at3[rating].interval)
+    }
+  })
+
+  test('next_states rejects negative and non-finite days_elapsed', () => {
+    const model = new FSRSBinding()
+    const state = new BindingMemoryState(10, 5, 10)
+    for (const invalidDays of [
+      -1,
+      -0.1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+    ]) {
+      expect(() => model.nextStates(state, 0.9, invalidDays)).toThrow()
+    }
+  })
+
+  test('next_states rejects invalid desiredRetention and accepts values in (0, 1)', () => {
+    const model = new FSRSBinding()
+    const state = new BindingMemoryState(10, 5, 10)
+    for (const invalidRetention of [
+      0,
+      1,
+      -0.1,
+      1.1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+      0.99999999,
+    ]) {
+      expect(() => model.nextStates(null, invalidRetention, 0)).toThrow(
+        'desired_retention'
+      )
+      expect(() => model.nextStates(state, invalidRetention, 1)).toThrow(
+        'desired_retention'
+      )
+    }
+
+    for (const validRetention of [0.7, 0.85, 0.9, 0.95]) {
+      const nextStates = model.nextStates(state, validRetention, 1)
+      expect(Number.isFinite(nextStates.good.interval)).toBe(true)
+      expect(nextStates.good.interval).toBeGreaterThan(0)
     }
   })
 

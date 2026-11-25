@@ -187,6 +187,63 @@ describe('FSRS compute_parameters', () => {
     expect(metrics.rmseBins).toBeCloseTo(explicitMetrics.rmseBins, 6)
   })
 
+  test('FSRS7 always enables short-term memory and ignores enableShortTerm: false', async () => {
+    const items = convertCsvToFsrsItems(
+      fs.readFileSync(new URL('./revlog.csv', import.meta.url)),
+      4,
+      'Asia/Shanghai',
+      'FSRS-7'
+    ).slice(0, 2048)
+    const trainingConfig = {
+      numEpochs: 2,
+      batchSize: 128,
+      seed: 2023,
+      maxSeqLen: 256,
+      learningRate: 0.04,
+      gamma: 1,
+    }
+
+    const enabled = await computeParameters(items, {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-7',
+      timeout: 5,
+      trainingConfig,
+    })
+    const disabled = await computeParameters(items, {
+      enableShortTerm: false,
+      modelVersion: 'FSRS-7',
+      timeout: 5,
+      trainingConfig,
+    })
+    const omittedVersionDisabled = await computeParameters(items, {
+      enableShortTerm: false,
+      timeout: 5,
+      trainingConfig,
+    })
+
+    expect(disabled).toHaveLength(34)
+    expect(disabled).toEqual(enabled)
+    expect(omittedVersionDisabled).toEqual(enabled)
+    expect(disabled.slice(0, 4).map((v) => Number(v.toFixed(4)))).not.toEqual([
+      0.1104, 2.2395, 3.9221, 11.7841,
+    ])
+
+    const enabledMetrics = await evaluateWithTimeSeriesSplits(items, {
+      enableShortTerm: true,
+      modelVersion: 'FSRS-7',
+      timeout: 5,
+      trainingConfig,
+    })
+    const disabledMetrics = await evaluateWithTimeSeriesSplits(items, {
+      enableShortTerm: false,
+      modelVersion: 'FSRS-7',
+      timeout: 5,
+      trainingConfig,
+    })
+    expect(disabledMetrics.logLoss).toBeCloseTo(enabledMetrics.logLoss, 6)
+    expect(disabledMetrics.rmseBins).toBeCloseTo(enabledMetrics.rmseBins, 6)
+  })
+
   test('rejects an unsupported modelVersion', () => {
     expect(() =>
       computeParameters([createMinimalTestItem()], {
