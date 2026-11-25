@@ -174,6 +174,34 @@ describe('FSRS model', () => {
     }
   })
 
+  test('next_states rejects invalid desiredRetention and accepts values in (0, 1)', () => {
+    const model = new FSRSBinding()
+    const state = new BindingMemoryState(10, 5, 10)
+    for (const invalidRetention of [
+      0,
+      1,
+      -0.1,
+      1.1,
+      Number.NaN,
+      Number.POSITIVE_INFINITY,
+      Number.NEGATIVE_INFINITY,
+      0.99999999,
+    ]) {
+      expect(() => model.nextStates(null, invalidRetention, 0)).toThrow(
+        'desired_retention'
+      )
+      expect(() => model.nextStates(state, invalidRetention, 1)).toThrow(
+        'desired_retention'
+      )
+    }
+
+    for (const validRetention of [0.7, 0.85, 0.9, 0.95]) {
+      const nextStates = model.nextStates(state, validRetention, 1)
+      expect(Number.isFinite(nextStates.good.interval)).toBe(true)
+      expect(nextStates.good.interval).toBeGreaterThan(0)
+    }
+  })
+
   test('memoryStateFromSM2 with explicit FSRS6 parameters', async () => {
     const parameters = await computeParameters([], {
       enableShortTerm: true,

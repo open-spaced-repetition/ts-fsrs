@@ -19,6 +19,15 @@ pub use steps::*;
 pub use timezone::TimezoneOrOffset;
 pub use train::*;
 
+pub(crate) fn validate_desired_retention(desired_retention: f64) -> Result<f64> {
+  if !desired_retention.is_finite() || desired_retention <= 0.0 || desired_retention >= 1.0 {
+    return Err(napi::Error::from_reason(
+      "desired_retention must be a finite number between 0 and 1 (exclusive)",
+    ));
+  }
+  Ok(desired_retention)
+}
+
 #[napi(js_name = "FSRSBinding")]
 #[derive(Debug)]
 pub struct FSRS {
@@ -41,6 +50,7 @@ impl FSRS {
 
   /// Computes the next memory states and intervals for all four ratings.
   ///
+  /// `desired_retention` must be a finite number strictly between 0 and 1.
   /// Fractional `days_elapsed` values are preserved for FSRS-7 and rounded to
   /// whole days (`round()`) for FSRS-6, matching `fsrs-rs`.
   #[napi]
@@ -51,11 +61,7 @@ impl FSRS {
     days_elapsed: f64,
   ) -> Result<NextStates> {
     let desired_retention = desired_retention as f32;
-    if !desired_retention.is_finite() {
-      return Err(napi::Error::from_reason(
-        "desired_retention must be a finite number",
-      ));
-    }
+    validate_desired_retention(f64::from(desired_retention))?;
     let days_elapsed = days_elapsed as f32;
     if !days_elapsed.is_finite() || days_elapsed < 0.0 {
       return Err(napi::Error::from_reason(

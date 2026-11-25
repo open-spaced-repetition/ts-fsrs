@@ -7,6 +7,7 @@ use napi_derive::napi;
 
 use crate::convert::RevlogEntry;
 use crate::model::{StepRatingStats, StepStatsResult};
+use crate::validate_desired_retention;
 
 // Rating group keys
 const RATING_AGAIN: u32 = 1;
@@ -274,6 +275,7 @@ fn calculate_step(stability: f64, decay: f64, desired_retention: f64) -> Option<
 }
 
 /// Recommend steps using a single power-law forgetting curve.
+/// `desired_retention` must be a finite number strictly between 0 and 1.
 /// Pass positive decay: FSRS-4 = 1, FSRS-4.5/5 = 0.5, FSRS-6 = weights[20].
 /// Not applicable to FSRS-3 (exponential) or FSRS-7 (dual-trace).
 #[napi]
@@ -283,12 +285,7 @@ pub fn compute_optimal_steps(
   decay: f64,
 ) -> Result<StepStatsResult> {
   let decay = resolve_decay(decay)?;
-
-  if desired_retention <= 0.0 || desired_retention >= 1.0 {
-    return Err(napi::Error::from_reason(
-      "desired_retention must be between 0 and 1 (exclusive)".to_string(),
-    ));
-  }
+  let desired_retention = validate_desired_retention(desired_retention)?;
 
   // Parse CSV
   let mut rdr = ReaderBuilder::new().has_headers(true).from_reader(data);
