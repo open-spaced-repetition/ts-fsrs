@@ -1,5 +1,15 @@
 # @open-spaced-repetition/binding
 
+## 0.6.3
+
+### Patch Changes
+
+- [#628](https://github.com/open-spaced-repetition/ts-fsrs/pull/628) [`a45426a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a45426a9b8e1bc7d1f5d755d1a2c539639e60ade) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: always enable short-term memory (`enableShortTerm: true`) for FSRS-7 training and evaluation, ignoring `false`.
+
+- [#628](https://github.com/open-spaced-repetition/ts-fsrs/pull/628) [`a45426a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a45426a9b8e1bc7d1f5d755d1a2c539639e60ade) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: round fractional `daysElapsed` to whole days for FSRS-6 in `FSRSBinding.nextStates`, matching `fsrs-rs` behavior.
+
+- [#628](https://github.com/open-spaced-repetition/ts-fsrs/pull/628) [`a45426a`](https://github.com/open-spaced-repetition/ts-fsrs/commit/a45426a9b8e1bc7d1f5d755d1a2c539639e60ade) Thanks [@ishiko732](https://github.com/ishiko732)! - fix: validate `desiredRetention` is finite and in `(0, 1)` across `FSRSBinding.nextStates` and `computeOptimalSteps`.
+
 ## 0.6.2
 
 ### Patch Changes
