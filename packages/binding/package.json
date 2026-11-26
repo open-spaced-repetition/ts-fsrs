@@ -58,7 +58,7 @@
     "@napi-rs/wasm-runtime": "catalog:",
     "@taplo/cli": "^0.7.0",
     "emnapi": "catalog:",
-    "npm-run-all2": "^9.0.4"
+    "npm-run-all2": "^9.1.0"
   },
   "keywords": [
     "napi-rs",
