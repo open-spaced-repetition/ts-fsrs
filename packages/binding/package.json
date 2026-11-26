@@ -44,7 +44,6 @@
     "build:wasm:threadless": "bash ./build-wasm-threadless.sh && pnpm build:dynamic",
     "build:dynamic": "node copy-dynamic.js",
     "build:debug": "napi build --platform --esm",
-    "check": "run-p check:biome check:rs check:toml",
     "check:biome": "biome format",
     "check:fix": "biome format --write",
     "check:toml": "taplo format",
@@ -57,8 +56,7 @@
     "@napi-rs/cli": "3.10.8",
     "@napi-rs/wasm-runtime": "catalog:",
     "@taplo/cli": "^0.7.0",
-    "emnapi": "catalog:",
-    "npm-run-all2": "^9.0.4"
+    "emnapi": "catalog:"
   },
   "keywords": [
     "napi-rs",

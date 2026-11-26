@@ -65,7 +65,7 @@ Useful package-scoped commands:
 ```bash
 pnpm --filter ts-fsrs test
 pnpm --filter ts-fsrs build
-pnpm --filter @open-spaced-repetition/binding check
+pnpm exec turbo run check --filter=@open-spaced-repetition/binding
 ```
 
 ## Making Changes

@@ -191,8 +191,17 @@
       "cache": false
     },
     "@open-spaced-repetition/binding#check": {
+      "dependsOn": ["check:biome", "check:rs", "check:toml"]
+    },
+    "@open-spaced-repetition/binding#check:biome": {
+      "outputs": []
+    },
+    "@open-spaced-repetition/binding#check:rs": {
       "outputs": [],
       "passThroughEnv": ["CARGO_BUILD_RUSTC_WRAPPER", "RUSTC_WRAPPER"]
+    },
+    "@open-spaced-repetition/binding#check:toml": {
+      "outputs": []
     },
     "ts-fsrs#check": {
       "dependsOn": ["typecheck"],
