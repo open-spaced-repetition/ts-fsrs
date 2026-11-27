@@ -13,7 +13,9 @@ description: defineModel のリファレンス——config・記憶状態の sch
 defineModel(definition): Model
 ```
 
-この定義は、config と記憶状態の schema、デフォルト値、モデルコアのファクトリ（`step`、`nextInterval`、`forgettingCurve`、`forward`）を、それらの具体的な型を保ったまままとめます。
+この定義は、config と記憶状態の schema、デフォルト値、任意のレーティングスケール `ratings`、モデルコアのファクトリ（`step`、`nextInterval`、`forgettingCurve`、`forward`）を、それらの具体的な型を保ったまままとめます。
+
+**レーティングスケール（`ratings`）** — 省略可能な `RatingScale` で、モデルのグレード・忘却グレード・手動評価を宣言します。各エントリは `{ value: number, lapse?: boolean, manual?: boolean }` で、`lapse` は忘却グレード、`manual` は手動評価を表します。両方が `true` のエントリは `defineScheduler` が拒否します。通常のオブジェクトなら `as const` は不要で、グレードのリテラル型を保ちたい場合は `as const` を付けるか、スケールをインラインで渡してください。`ratings` を省略すると `defaultRatingScale`（Manual `0`、Again `1`、Hard `2`、Good `3`、Easy `4`）が使われます。`ModelRatingOf<typeof MyModel>` は評価値のユニオン型を、`ModelGradeOf<typeof MyModel>` は手動評価として明示されていないエントリのグレード候補を返します。グレードの値がリテラル型で、`manual` が `boolean` に広げられている場合、その値は候補に含まれますが、モデルコアの入力型では、スケールの型で `manual` フラグがないか、リテラルの `manual: false` である値だけを受け付けます。フレームワークは `model.forward` の直接呼び出しでは実行時評価検証を追加しません。`scheduler.forward()` は履歴を再生する前に評価値を検証します。
 
 **戻り値** — `defineScheduler({ model, chrono })` の `model` として渡す `Model`。
 

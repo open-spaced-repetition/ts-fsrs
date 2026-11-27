@@ -1,31 +1,43 @@
 import {
+  defaultRatingScale,
   defineMiddleware,
-  grades,
+  type RatingScale,
   type ReviewCandidateContext,
 } from '@open-spaced-repetition/srs-kit'
-import { desiredRetentionConfigSchema } from './schema.js'
+import { createDesiredRetentionConfigSchema } from './schema.js'
 
 const retentionInjectedSymbol = Symbol('ts-fsrs.desired-retention.injected')
-type RetentionCandidate = ReviewCandidateContext & {
+type RetentionCandidate = ReviewCandidateContext<number> & {
   [retentionInjectedSymbol]?: true
 }
 
-export const schedulerDesiredRetentionMiddleware = defineMiddleware({
-  name: Symbol('ts-fsrs.desired-retention'),
-  schema: { config: desiredRetentionConfigSchema },
-  handlers: {
-    nextInterval(ctx, next) {
-      const candidate = ctx.candidate as RetentionCandidate
-      if (
-        ctx.input.desiredRetention === undefined &&
-        !candidate[retentionInjectedSymbol]
-      ) {
-        for (const grade of grades) {
-          candidate.desiredRetention[grade] = ctx.config.desiredRetention[grade]
+export function createSchedulerDesiredRetentionMiddleware<
+  const Scale extends RatingScale,
+>(scale: Scale) {
+  return defineMiddleware({
+    name: Symbol('ts-fsrs.desired-retention'),
+    schema: { config: createDesiredRetentionConfigSchema(scale) },
+    handlers: {
+      nextInterval(ctx, next) {
+        const candidate = ctx.candidate as RetentionCandidate
+        if (
+          ctx.input.desiredRetention === undefined &&
+          !candidate[retentionInjectedSymbol]
+        ) {
+          const desiredRetention: Partial<Record<number, number>> =
+            ctx.config.desiredRetention
+          for (const grade of ctx.instance.ratings.grades) {
+            // Grades outside this middleware's scale keep the scheduler default.
+            candidate.desiredRetention[grade] =
+              desiredRetention[grade] ?? candidate.desiredRetention[grade]
+          }
+          candidate[retentionInjectedSymbol] = true
         }
-        candidate[retentionInjectedSymbol] = true
-      }
-      next()
+        next()
+      },
     },
-  },
-})
+  })
+}
+
+export const schedulerDesiredRetentionMiddleware =
+  createSchedulerDesiredRetentionMiddleware(defaultRatingScale)

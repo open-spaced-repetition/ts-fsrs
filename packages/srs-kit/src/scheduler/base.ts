@@ -7,7 +7,6 @@ import type {
   ReviewCandidateContext,
 } from '@/middleware/index.js'
 import type { AnyModel } from '@/model/model.js'
-import { type Grade, gradeSchema, grades, Rating } from '@/primitives/rating.js'
 import { State } from '@/primitives/state.js'
 import {
   parsedCardMemoryStateSymbol,
@@ -24,12 +23,13 @@ import {
   runMiddlewares,
   scheduledDaysSchema,
 } from '@/schema/index.js'
+import type { ScheduleResult } from './fields.js'
+import { defaultSchedulerRatings, type SchedulerRatings } from './ratings.js'
 import type {
   BlankSchedulerEnv,
-  PreviewResult,
-  ScheduleResult,
   SchedulerCore,
   SchedulerCoreEnv,
+  SchedulerCoreInputGrade,
   SchedulerDefaultValue,
   SchedulerDefaultValueContext,
   SchedulerDefinition,
@@ -47,6 +47,7 @@ export interface BaseSchedulerContext<
 > {
   readonly model: M
   readonly chrono: C
+  readonly ratings?: SchedulerRatings
   readonly schema: SchedulerSchema<Env>
   readonly defaultValue: SchedulerDefaultValue<Env>
   readonly middlewares?: readonly AnyMiddleware[]
@@ -62,7 +63,7 @@ interface PreparedReview<Env extends BlankSchedulerEnv> {
   readonly elapsedDays: number
   readonly memoryState: Record<string, unknown>
   readonly retrievability: number
-  readonly candidate: ReviewCandidateContext
+  readonly candidate: ReviewCandidateContext<number>
 }
 
 type ReviewResultDraft<Env extends BlankSchedulerEnv> = {
@@ -82,12 +83,12 @@ type NextIntervalMiddlewareOperationContext<Env extends BlankSchedulerEnv> = {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
   readonly input: {
     readonly card: Readonly<SchedulerCoreEnv<Env>['card']['output']>
-    readonly grade: Grade
+    readonly grade: number
     readonly desiredRetention?: number
   }
   readonly elapsedDays: number
   scheduledDays: number | undefined
-  readonly candidate: ReviewCandidateContext
+  readonly candidate: ReviewCandidateContext<number>
 }
 
 type ReviewMiddlewareOperationContext<Env extends BlankSchedulerEnv> =
@@ -143,11 +144,11 @@ class ReviewInput<Env extends BlankSchedulerEnv>
     throw new Error('Review input card cannot be changed')
   }
 
-  get grade(): Grade {
+  get grade(): number {
     return this.input.grade
   }
 
-  set grade(_value: Grade) {
+  set grade(_value: number) {
     throw new Error('Review input grade cannot be changed')
   }
 
@@ -160,21 +161,28 @@ class ReviewInput<Env extends BlankSchedulerEnv>
   }
 }
 
+/** The `SchedulerCore` a `BaseScheduler` implements. */
+type BaseSchedulerCore<
+  Env extends BlankSchedulerEnv,
+  M extends AnyModel,
+  C extends AnyChrono,
+> = SchedulerCore<
+  SchedulerCoreEnv<Env>,
+  ReturnType<M['create']>,
+  ReturnType<C['create']>
+>
+
 export class BaseScheduler<
   Env extends BlankSchedulerEnv = BlankSchedulerEnv,
   M extends AnyModel = AnyModel,
   C extends AnyChrono = AnyChrono,
-> implements
-    SchedulerCore<
-      SchedulerCoreEnv<Env>,
-      ReturnType<M['create']>,
-      ReturnType<C['create']>
-    >
+> implements BaseSchedulerCore<Env, M, C>
 {
   readonly config: Readonly<SchedulerCoreEnv<Env>['config']>
 
   readonly model: ReturnType<M['create']>
   readonly chrono: ReturnType<C['create']>
+  readonly ratings: BaseSchedulerCore<Env, M, C>['ratings']
   private readonly schedulerDefinition: SchedulerDefinition<M, C>
   private readonly defaultValue: SchedulerDefaultValue<Env>
   private readonly schema: SchedulerSchema<Env>
@@ -196,8 +204,16 @@ export class BaseScheduler<
   )[]
 
   constructor(ctx: BaseSchedulerContext<Env, M, C>) {
-    const { model, chrono, schema, defaultValue, middlewares = [] } = ctx
+    const {
+      model,
+      chrono,
+      ratings,
+      schema,
+      defaultValue,
+      middlewares = [],
+    } = ctx
     this.schedulerDefinition = Object.freeze({ model, chrono })
+    this.ratings = (ratings ?? defaultSchedulerRatings) as typeof this.ratings
     this.schema = schema
     this.defaultValue = defaultValue
 
@@ -266,7 +282,8 @@ export class BaseScheduler<
   forward = (
     input: SchedulerForwardInput<
       SchedulerCoreEnv<Env>['chrono'],
-      SchedulerCoreEnv<Env>['card']['input']
+      SchedulerCoreEnv<Env>['card']['input'],
+      SchedulerCoreInputGrade<SchedulerCoreEnv<Env>>
     >
   ): ScheduleResult<
     SchedulerCoreEnv<Env>['card']['output'],
@@ -284,6 +301,12 @@ export class BaseScheduler<
     // card validation, for a result that stays empty either way.
     if (history.length === 0) return []
 
+    const gradeSchema = this.ratings.gradeSchema
+    const ratings = new Array<number>(history.length)
+    for (let index = 0; index < history.length; index++) {
+      ratings[index] = parse(gradeSchema, history[index].rating)
+    }
+
     const results: ForwardResult[] = new Array(history.length)
     const initialCard =
       input.initialCard == null
@@ -297,15 +320,14 @@ export class BaseScheduler<
     ) as SchedulerCoreEnv<Env>['card']['output']
 
     for (let index = 0; index < history.length; index++) {
-      const review = history[index]
-      const now = review.reviewTime
+      const now = history[index].reviewTime
       const prepared = this.prepareParsedReview(
         card,
         now,
         FORWARD_PREPARE_OPTIONS
       )
       const result = this.parseReviewResult(
-        this.runReview(prepared, review.rating, now)
+        this.runReview(prepared, ratings[index], now)
       )
 
       results[index] = result
@@ -339,10 +361,11 @@ export class BaseScheduler<
     memoryState: Parameters<ReturnType<M['create']>['nextInterval']>[0],
     desiredRetention: number,
     context: SchedulerNextIntervalContext<
-      SchedulerCoreEnv<Env>['card']['input']
+      SchedulerCoreEnv<Env>['card']['input'],
+      SchedulerCoreInputGrade<SchedulerCoreEnv<Env>>
     >
   ): number => {
-    const grade = parse(gradeSchema, context.grade)
+    const grade = parse(this.ratings.gradeSchema, context.grade)
     const elapsedDays = parse(elapsedDaysSchema, context.elapsedDays)
     const retention = parse(desiredRetentionSchema, desiredRetention)
     const card = Object.freeze(
@@ -389,33 +412,28 @@ export class BaseScheduler<
 
   review = (input: {
     readonly card: SchedulerCoreEnv<Env>['card']['input']
-    readonly grade: Grade
+    readonly grade: SchedulerCoreInputGrade<SchedulerCoreEnv<Env>>
     readonly now?: SchedulerCoreEnv<Env>['chrono']
   }): ScheduleResult<
     SchedulerCoreEnv<Env>['card']['output'],
     SchedulerCoreEnv<Env>['revlog']['output']
   > => {
     const { card: inputCard, grade: inputGrade } = input
-    const grade = parse(gradeSchema, inputGrade)
+    const grade = parse(this.ratings.gradeSchema, inputGrade)
     const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
     return this.parseReviewResult(this.runReview(prepared, grade, now))
   }
 
-  preview = (input: {
+  preview = ((input: {
     readonly card: SchedulerCoreEnv<Env>['card']['input']
     readonly now?: SchedulerCoreEnv<Env>['chrono']
-  }): PreviewResult<
-    ScheduleResult<
-      SchedulerCoreEnv<Env>['card']['output'],
-      SchedulerCoreEnv<Env>['revlog']['output']
-    >
-  > => {
+  }) => {
     const inputCard = input.card
     const now = this.parseNow(input.now)
     const prepared = this.prepareReview(inputCard, now)
 
-    return createLazyIterable(grades, (grade) => {
+    return createLazyIterable(this.ratings.preview, (grade) => {
       const { card, revlog } = this.parseReviewResult(
         this.runReview(prepared, grade, now)
       )
@@ -425,7 +443,7 @@ export class BaseScheduler<
         revlog,
       }
     })
-  }
+  }) as BaseSchedulerCore<Env, M, C>['preview']
 
   rollback = (input: {
     readonly card: SchedulerCoreEnv<Env>['card']['output']
@@ -516,17 +534,17 @@ export class BaseScheduler<
     memoryState: Record<string, unknown>,
     elapsedDays: number,
     retrievability?: number,
-    initial?: readonly [Grade, Record<string, unknown>],
+    initial?: readonly [number, Record<string, unknown>],
     desiredRetention = DEFAULT_DESIRED_RETENTION
-  ): ReviewCandidateContext {
-    const memoryStateByGrade = new Map<Grade, Record<string, unknown>>(
+  ): ReviewCandidateContext<number> {
+    const memoryStateByGrade = new Map<number, Record<string, unknown>>(
       initial ? [initial] : undefined
     )
     const gradeByMemoryState = new Map<
       Readonly<Record<string, unknown>>,
-      Grade
+      number
     >()
-    const step = (grade: Grade): Record<string, unknown> => {
+    const step = (grade: number): Record<string, unknown> => {
       let nextMemoryState = memoryStateByGrade.get(grade)
       if (nextMemoryState === undefined) {
         retrievability ??= this.model.forgettingCurve(memoryState, elapsedDays)
@@ -564,13 +582,14 @@ export class BaseScheduler<
       return value
     }
 
+    const retentionByGrade: Record<number, number> = {}
+    const gradeList = this.ratings.grades
+    for (let index = 0; index < gradeList.length; index++) {
+      retentionByGrade[gradeList[index]] = desiredRetention
+    }
+
     return {
-      desiredRetention: {
-        [Rating.Again]: desiredRetention,
-        [Rating.Hard]: desiredRetention,
-        [Rating.Good]: desiredRetention,
-        [Rating.Easy]: desiredRetention,
-      },
+      desiredRetention: retentionByGrade,
       step,
       findGrade,
       nextInterval,
@@ -579,7 +598,7 @@ export class BaseScheduler<
 
   private runReview(
     prepared: PreparedReview<Env>,
-    grade: Grade,
+    grade: number,
     now: SchedulerCoreEnv<Env>['chrono']
   ): ReviewResultDraft<Env> {
     const ctx: ReviewMiddlewareOperationContext<Env> = {

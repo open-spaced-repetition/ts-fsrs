@@ -14,13 +14,13 @@ import leechCode from '@/snippets/run-code/api/ts-fsrs/middlewares/leech.ts?raw'
 import { schedulerLeechMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-它從 stats 中介軟體讀取遺忘次數，每當遺忘次數達到 `leechThreshold` 的正整數倍時，就把 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 會關閉暫停功能；你的應用程式在選卡時必須遵守此狀態。
+Leech 統計 Review 狀態卡片的遺忘次數，與 stats 同時啟用時共用計數。本次遺忘使 `lapses` 達到 `leechThreshold` 的正整數倍時，`scheduleStatus` 會變為 `suspended`。預設閾值 `0` 會關閉暫停功能。應用程式選卡時應遵守此狀態。
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/leech.ts"
 ```
 
 <RunCode code={leechCode} />
 
-使用 `leechThreshold: 1` 時，兩次遺忘就會暫停卡片。
+此例設為 `leechThreshold: 1`。卡片進入 `Review` 狀態後，第一次評為 `Again` 就會計為一次遺忘，並將卡片暫停。第二次評為 `Again` 使 `lapses` 變為 `2`，仍是 `1` 的倍數，所以卡片再次被暫停，輸出為 `lapses: 2`。
 
 **另見** — [內建策略](../../../guide/middleware/built-in)。

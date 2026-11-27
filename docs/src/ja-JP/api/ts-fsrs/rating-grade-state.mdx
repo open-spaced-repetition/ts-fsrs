@@ -9,7 +9,7 @@ description: 復習とカードで使う評価・グレード・状態の enum �
 import { type Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } from 'ts-fsrs'
 ```
 
-`Rating` は、復習が持ちうるすべての評価をカバーします（手動のものを含む）：
+`Rating` はデフォルトの FSRS スケールの値を列挙します：
 
 | メンバー | 値 |
 | --- | --- |
@@ -19,7 +19,7 @@ import { type Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } fro
 | `Rating.Good` | `3` |
 | `Rating.Easy` | `4` |
 
-`Grade` は、スケジューラがスケジューリングに使う評価の部分集合——`Again`、`Hard`、`Good`、`Easy`（1 〜 4）です。`State` はカードのライフサイクル上の位置を表します：
+`Grade` はデフォルトの FSRS スケールのグレード `Again`、`Hard`、`Good`、`Easy`（1〜4）を表すユニオン型です。`State` はカードのライフサイクル上の位置を表します：
 
 | メンバー | 値 |
 | --- | --- |
@@ -28,4 +28,4 @@ import { type Grade, Rating, State, gradeSchema, ratingSchema, stateSchema } fro
 | `State.Review` | `2` |
 | `State.Relearning` | `3` |
 
-`ratingSchema`、`gradeSchema`、`stateSchema` はそれぞれの値を検証し、型推論で使われます。返されたカードの `state` と各復習ログの `rating` はこれらの enum です。復習中に状態がどう遷移するかは[状態遷移](../../guide/state-transitions)を参照してください。
+エクスポートされている `ratingSchema` と `gradeSchema` はデフォルトの FSRS スケールを検証します。現在のスケールで検証する場合、グレード（復習ログの評価など）は `scheduler.ratings.gradeSchema`、手動評価を含むすべての評価は `scheduler.ratings.ratingSchema` で検証します。カードの状態はどのスケールでも `stateSchema` で検証します。[状態遷移ガイド](../../guide/state-transitions)も参照してください。

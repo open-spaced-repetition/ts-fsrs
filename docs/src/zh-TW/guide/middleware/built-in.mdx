@@ -9,15 +9,25 @@ description: 了解 ts-fsrs 隨附的中介軟體策略，以及 DefaultSchedule
 
 | 中介軟體 | 行為 |
 | --- | --- |
-| `schedulerDesiredRetentionMiddleware` | 在計算間隔前套用設定中的 `desiredRetention`，取值範圍為 `(0, 1)`。 |
-| `schedulerLearningStepsMiddleware` | 啟用 `enableShortTerm` 時套用顯式 `learningSteps` 和 `relearningSteps`，維護 `learningStep`。無論此開關是否啟用，最終間隔小於 `graduatingInterval`（預設一天，包含模型間隔）時均映射為 `Learning`/`Relearning`。設定了步驟時，畢業以及 `Review` 卡片按 Hard、Good、Easy 都至少使用 `graduatingInterval`；`allowModelOverride` 會用較長的模型間隔取代目前步驟。 |
+| `schedulerDesiredRetentionMiddleware` | 為預設 FSRS 評分方案在計算間隔前套用設定中的 `desiredRetention`，取值範圍為 `(0, 1)`。自訂評分方案請使用 `createSchedulerDesiredRetentionMiddleware(scale)` 建立對應策略。 |
+| `schedulerLearningStepsMiddleware` | 啟用 `enableShortTerm` 時套用顯式 `learningSteps` 和 `relearningSteps`，維護 `learningStep`。無需額外參數即可由 `scheduler.ratings` 推導各評分在學習步驟中的角色：所有遺忘評分視為 Again；非遺忘評分依升冪 `p1..pn` 排列時，`n >= 2` 則 `pn` 為 Easy，`p(n-1)`（`n = 1` 時為 `p1`）為 Good，其餘為 Hard。無論 `enableShortTerm` 是否啟用，最終間隔小於 `graduatingInterval`（預設一天，包含模型間隔）時均映射為 `Learning`/`Relearning`。啟用 `enableShortTerm` 且目前狀態設定了步驟時，沒有對應步驟的非遺忘評分至少使用 `graduatingInterval`；有對應步驟的評分使用該步驟，啟用 `allowModelOverride` 後若模型間隔較長則改用模型間隔（遺忘評分改用的模型間隔不超過 `graduatingInterval`）。 |
 | `schedulerFuzzingMiddleware` | 啟用 `enableFuzz` 時分散間隔，使用 `cardId` 與複習次數產生可重現的結果。`createSchedulerFuzzingMiddleware()` 支援自訂範圍與亂數產生器。 |
 | `schedulerMaximumIntervalMiddleware` | 將天級間隔限制在 `maximumInterval` 以內；呼叫鏈回傳時，明確指定的學習步驟可以覆寫這個上限。 |
-| `schedulerStatsMiddleware` | 維護 `reps` 與 `lapses`，由 `clearStatsOnForget` 決定重設時是否清除。Review 狀態的卡片評為 Again 才計為一次遺忘。 |
-| `schedulerMonotonicIntervalMiddleware` | 在 `maximumInterval` 限制內調整不同評分的天級間隔順序；達到上限時，間隔可以相同。 |
+| `schedulerStatsMiddleware` | 維護 `reps` 與 `lapses`，由 `clearStatsOnForget` 決定重設時是否清除。Review 狀態的卡片滿足 `scheduler.ratings.isLapse(grade)` 即計為一次遺忘（復原時對應回退）。 |
+| `schedulerMonotonicIntervalMiddleware` | 依評分方案中的評分升冪處理，確保間隔不遞減。出現一天以上的結果後，後續一天以上的非遺忘候選至少比前一結果長一天，不到一天的候選沿用前一結果。連續的遺忘評分可以相等，達到 `maximumInterval` 上限的評分也可以相等。在出現一天以上的結果之前，若非遺忘候選按秒四捨五入後不短於前一候選，且會與前一結果落在同一秒，則順延一秒；零天間隔可以相等。 |
 | `schedulerScheduledDaysMiddleware` | 將最終間隔儲存為卡片上非負的 `scheduledDays`，並把原值寫入 revlog。預設 `fractionalDays: false` 時向下取整，不到一天的步驟記為 `0`；設為 `true` 時保留小數，例如 `0.5`。 |
-| `schedulerLeechMiddleware` | 遺忘次數每達到正數 `leechThreshold` 的整數倍時，將 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 關閉此行為；應用程式選卡時需要自行遵守該狀態。 |
-| `schedulerCostAdrMiddleware` | 透過 `costAdrPolicy` 與 `goalCostWeight`，依記憶狀態與複習成本調整保留率。組合排程器時應取代 `schedulerDesiredRetentionMiddleware`，不要同時使用兩者。 |
+| `schedulerLeechMiddleware` | 遺忘次數（依 `scheduler.ratings.isLapse` 計數）每達到正數 `leechThreshold` 的整數倍時，將 `scheduleStatus` 設為 `suspended`。預設閾值 `0` 關閉此行為；應用程式選卡時需要自行遵守該狀態。 |
+| `schedulerCostAdrMiddleware` | 僅限 FSRS（預設評分方案）。透過 `costAdrPolicy` 與 `goalCostWeight`，依記憶狀態與複習成本調整保留率。組合排程器時應取代 `schedulerDesiredRetentionMiddleware`，不要同時使用兩者。 |
+
+## 自訂評分方案與 `createSchedulerDesiredRetentionMiddleware`
+
+為自訂 `RatingScale` 的模型設定目標保留率時，使用工廠函式 `createSchedulerDesiredRetentionMiddleware(scale)`：
+
+```ts
+const myRetentionMiddleware = createSchedulerDesiredRetentionMiddleware(myScale)
+```
+
+回傳的中介軟體的 `desiredRetention` 設定項接受單一數值（`create()` 時套用到 `scale` 的每個非手動評分），或涵蓋 `scale` 全部非手動評分的 `Record<G, number>`。缺少非手動評分鍵或值超出 `(0, 1)` 時，`create()` 會擲出錯誤；其他鍵（包含手動評分）會被忽略。排程器中不在 `scale` 內的評分維持排程器預設的保留率。`schedulerDesiredRetentionMiddleware` 即為 `createSchedulerDesiredRetentionMiddleware(defaultRatingScale)`。
 
 `DefaultScheduler` 已包含前七項，順序為目標保留率 → 模糊間隔 → 統計 → scheduled days → 學習步驟 → 最大間隔 → 單調間隔。Leech 需要在自行組合定義時視需要加入。順序為何重要見[生命週期](./lifecycle)；中介軟體如何執行見[概覽](./index)。
 

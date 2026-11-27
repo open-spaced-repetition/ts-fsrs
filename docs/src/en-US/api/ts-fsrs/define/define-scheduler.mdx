@@ -10,21 +10,24 @@ description: Reference for defineScheduler — create a reusable scheduler defin
 **Signature**
 
 ```ts
-defineScheduler({ model, chrono }): CustomScheduler
+defineScheduler({ model, chrono, preview? }): CustomScheduler
 ```
 
 **Parameters**
 
 | Parameter | Type | Notes |
 | --- | --- | --- |
-| `model` | `Model` | Owns memory-state updates and interval math, e.g. `FSRS6Model`. |
+| `model` | `Model` | Owns memory-state updates, interval math, and an optional `ratings` scale, e.g. `FSRS6Model`. |
 | `chrono` | `Chrono` | Owns the time representation and day arithmetic. |
+| `preview` | `{ grades: readonly G[] }` | Optional non-empty subset of the model's grades. `preview()` yields only those grades in ascending value order and narrows the yielded `grade` type. It does not narrow `review()`. If `model` is a union, `preview.grades` and `review()` accept only grades shared by every possible model. |
+
+`defineScheduler` validates the model's rating scale once at definition time (finite unique values across all entries, no entry both `manual` and `lapse`, at least one non-lapse grade, and every lapse grade strictly lower than every non-lapse grade) and validates that `preview.grades` is non-empty and contains only non-manual grades from the scale.
 
 **Returns** — a reusable definition with two methods:
 
 ```ts
 definition.use(...middleware): CustomScheduler   // new definition; original unchanged
-definition.create({ config }): SchedulerCore          // validates config, independent instance
+definition.create({ config }): SchedulerCore     // validates config, independent instance
 ```
 
 **See** — [Scheduler overview](../../../guide/scheduler) (definition-and-instance model), [defineModel](./define-model), [defineChrono](./define-chrono).

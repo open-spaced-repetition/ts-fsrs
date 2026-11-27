@@ -1,6 +1,7 @@
 /** biome-ignore-all lint/correctness/noUnusedVariables: type-display fixtures read by LanguageService */
 import { describe, expect, it } from 'vitest'
 import { SM2_DEFAULT_WEIGHTS, SM2Model } from './sm2.test.js'
+import { SM2SixGradeModel } from './sm2-six-grade.test.js'
 
 // Type fixtures — names must be unique and appear before any expected-value
 // strings so that quickInfoAt's indexOf hits the declaration first.
@@ -8,6 +9,7 @@ const modelSM2 = SM2Model
 const coreSM2 = SM2Model.create({ config: { weights: SM2_DEFAULT_WEIGHTS } })
 const configSchemaSM2 = SM2Model.schema.config
 const memoryStateSchemaSM2 = SM2Model.schema.memoryState
+const modelSM2SixGrade = SM2SixGradeModel
 
 const SELF = 'src/model/model.type-display.spec.ts'
 
@@ -15,6 +17,32 @@ describe('defineModel type display', () => {
   const service = getTypeDisplayService()
 
   const expectedModels = {
+    modelSM2SixGrade: `const modelSM2SixGrade: Model<{
+    readonly name: "sm2-six-grade";
+    readonly config: SRSSchema<{
+        input: {
+            readonly weights: readonly number[];
+        };
+        output: {
+            readonly weights: readonly number[];
+        };
+    }>;
+    readonly memoryState: SRSSchema<{
+        input: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+        output: {
+            readonly interval: number;
+            readonly easeFactor: number;
+            readonly reviewStep: number;
+        };
+    }>;
+    readonly algorithm: null;
+    readonly grade: 0 | 1 | 2 | 3 | 4 | 5;
+    readonly rating: 0 | 1 | -1 | 2 | 3 | 4 | 5;
+}>`,
     modelSM2: `const modelSM2: Model<{
     readonly name: "sm2";
     readonly config: SRSSchema<{

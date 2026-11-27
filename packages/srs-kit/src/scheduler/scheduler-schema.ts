@@ -13,6 +13,7 @@ import {
   assignObjectFields,
   defineSchema,
   isObject,
+  type SRSSchema,
   type StandardSchemaV1,
 } from '@/schema/index.js'
 import { validateSync } from '@/schema/validate-sync.js'
@@ -29,8 +30,10 @@ export function createSchedulerSchema(ctx: {
   readonly model: AnyModel
   readonly chrono: AnyChrono
   readonly middlewares: readonly AnyMiddleware[]
+  readonly gradeSchema?: SRSSchema<{ input: number; output: number }>
 }): SchedulerSchema<any> {
   const { model, chrono, middlewares } = ctx
+  const resolvedGradeSchema = ctx.gradeSchema ?? gradeSchema
   const modelConfigSchema = model.schema.config
   const chronoSchema = chrono.schema
   const chronoConfigSchema = chronoSchema.config
@@ -72,7 +75,7 @@ export function createSchedulerSchema(ctx: {
     fields: Record<string, unknown>,
     options?: { readonly rating?: boolean }
   ): StandardSchemaV1.Result<
-    SchedulerCoreFields | SchedulerRevlogCoreFields
+    SchedulerCoreFields | SchedulerRevlogCoreFields<string, number>
   > => {
     const scheduleStatus = validateSync(
       scheduleStatusSchema,
@@ -89,7 +92,7 @@ export function createSchedulerSchema(ctx: {
       }
     }
 
-    const rating = validateSync(gradeSchema, fields.rating)
+    const rating = validateSync(resolvedGradeSchema, fields.rating)
     if (rating.issues) return rating
 
     return {
@@ -223,7 +226,7 @@ export function createSchedulerSchema(ctx: {
 
     const coreFields = parseCoreFields(value, {
       rating: true,
-    }) as StandardSchemaV1.Result<SchedulerRevlogCoreFields>
+    }) as StandardSchemaV1.Result<SchedulerRevlogCoreFields<string, number>>
     if (coreFields.issues) return coreFields
     // Explicitly inject scheduler core fields into the parsed revlog.
     result.scheduleStatus = coreFields.value.scheduleStatus

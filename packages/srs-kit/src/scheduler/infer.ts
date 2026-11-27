@@ -16,15 +16,18 @@ import type {
 import type {
   ModelConfigInputOf,
   ModelConfigOf,
+  ModelGradeOf,
   ModelMemoryOf,
 } from '@/model/infer.js'
-import type { AnyModel } from '@/model/model.js'
+import type { AnyModel, Model } from '@/model/model.js'
+import type { Grade } from '@/primitives/rating.js'
 import type { ScheduleStatus } from '@/primitives/status.js'
 import type {
   AnySchema,
   Assign,
   AssignFields,
   HasSchema,
+  IsAny,
   MergeAllObjects,
   MergePart,
   Mutable,
@@ -39,7 +42,12 @@ import type {
   SchedulerCoreFields,
   SchedulerRevlogCoreFields,
 } from './fields.js'
-import type { BlankSchedulerEnv, SchedulerCardInitSchema } from './scheduler.js'
+import type {
+  BlankSchedulerEnv,
+  CarrySchedulerRatingsEnv,
+  SchedulerCardInitSchema,
+  SchedulerEnvGrade,
+} from './scheduler.js'
 
 export type SchedulerConfigOf<T extends HasSchema<'config'>> = SchemaOutputOf<
   T,
@@ -170,9 +178,10 @@ type MiddlewareObjectFields<
 type SchedulerCoreFieldsFor<
   Key extends SchedulerObjectKey,
   Status extends string,
+  G extends number = Grade,
 > = Key extends 'card'
   ? SchedulerCoreFields<Status>
-  : SchedulerRevlogCoreFields<Status>
+  : SchedulerRevlogCoreFields<Status, G>
 
 type MiddlewareScheduleStatus<MWs extends readonly AnyMiddleware[]> =
   MiddlewareStatusOf<MWs[number]>
@@ -188,7 +197,8 @@ type ExtendSchedulerObject<
     MiddlewareObjectFields<AddedMWs, Key, Mode>,
     SchedulerCoreFieldsFor<
       Key,
-      Env['scheduleStatus'] | MiddlewareScheduleStatus<AddedMWs>
+      Env['scheduleStatus'] | MiddlewareScheduleStatus<AddedMWs>,
+      SchedulerEnvGrade<Env>
     >
   >,
   Mode extends 'input' ? 'readonly' : 'mutable'
@@ -210,7 +220,11 @@ type SchedulerObjectFields<
     Assign<ModelMemoryOf<M>, MergePart<ChronoObjectFields<C, Key>>>,
     MiddlewareObjectFields<MWs, Key, Mode>
   >,
-  SchedulerCoreFieldsFor<Key, ScheduleStatus | MiddlewareScheduleStatus<MWs>>
+  SchedulerCoreFieldsFor<
+    Key,
+    ScheduleStatus | MiddlewareScheduleStatus<MWs>,
+    ModelGradeOf<M>
+  >
 >
 
 export type SchedulerCardFields<
@@ -231,10 +245,29 @@ export type SchedulerNameOf<M extends AnyModel> = M extends {
   ? Extract<Name, string | symbol>
   : never
 
+/** `ratings` of a custom-scale model and `preview` of a preview subset, if any. */
+type SchedulerRatingsEnvFor<
+  M extends AnyModel,
+  PreviewGrade extends number,
+> = (IsAny<M> extends true
+  ? unknown
+  : M extends Model<infer Env>
+    ? Env extends {
+        readonly grade: infer G extends number
+        readonly rating: infer R extends number
+      }
+      ? { readonly grade: G; readonly rating: R }
+      : unknown
+    : unknown) &
+  ([PreviewGrade] extends [never]
+    ? unknown
+    : { readonly preview: PreviewGrade })
+
 export type SchedulerEnvFor<
   M extends AnyModel,
   C extends AnyChrono,
   MWs extends readonly AnyMiddleware[],
+  PreviewGrade extends number = never,
 > = {
   readonly chrono: ChronoTimeOf<C>
   readonly scheduleStatus: ScheduleStatus | MiddlewareScheduleStatus<MWs>
@@ -262,7 +295,7 @@ export type SchedulerEnvFor<
     >
     output: Prettify<SchedulerRevlogFields<M, C, MWs>>
   }>
-}
+} & SchedulerRatingsEnvFor<M, PreviewGrade>
 
 export type ExtendSchedulerEnv<
   Env extends BlankSchedulerEnv,
@@ -282,7 +315,7 @@ export type ExtendSchedulerEnv<
     input: ExtendSchedulerObject<Env, AddedMWs, 'revlog', 'input'>
     output: ExtendSchedulerObject<Env, AddedMWs, 'revlog', 'output'>
   }>
-}
+} & CarrySchedulerRatingsEnv<Env>
 
 export type SchedulerCardOf<T extends HasSchema<'card'>> = SchemaOutputOf<
   T,

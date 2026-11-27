@@ -13,7 +13,9 @@ description: defineModel 参考 —— 打包模型定义及其 schema 与模型
 defineModel(definition): Model
 ```
 
-定义把配置与记忆状态 schema、默认值以及一个模型核心工厂（`step`、`nextInterval`、`forgettingCurve`、`forward`）打包在一起，同时保持其具体类型。
+定义把配置与记忆状态 schema、默认值、可选的评分方案 `ratings` 以及一个模型核心工厂（`step`、`nextInterval`、`forgettingCurve`、`forward`）打包在一起，同时保持其具体类型。
+
+**评分方案（`ratings`）** —— 可选的 `RatingScale`，声明模型的非手动评分、遗忘评分与手动评分。每一项为 `{ value: number, lapse?: boolean, manual?: boolean }`：`lapse` 表示遗忘评分，`manual` 表示手动评分；两者都为 `true` 的条目会被 `defineScheduler` 拒绝。普通对象无需 `as const`；如需保留评分的字面量类型，可加上 `as const` 或直接内联传入评分方案。省略 `ratings` 时默认使用 `defaultRatingScale`（Manual `0`、Again `1`、Hard `2`、Good `3`、Easy `4`）。`ModelRatingOf<typeof MyModel>` 返回评分联合类型，`ModelGradeOf<typeof MyModel>` 返回可能的非手动评分联合类型（未明确标记为手动的评分）。对于字面量类型的评分值，如果 `manual` 的类型被宽化为 `boolean`，该值仍算作可能的非手动评分，但模型核心的输入类型只接受评分方案类型中没有 `manual` 标记、或标记为字面量 `manual: false` 的值。框架不会在直接调用 `model.forward` 时额外进行运行时评分校验；`scheduler.forward()` 会在重放前校验历史评分。
 
 **返回** —— 一个 `Model`，将其作为 `model` 传给 `defineScheduler({ model, chrono })`。
 

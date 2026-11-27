@@ -26,7 +26,9 @@ const replay = reschedule.replay({ history })
 // replay.memoryStates     — memory after each review
 ```
 
-每個歷史項目都是一對 `{ rating, reviewTime }`。從既有記憶狀態繼續時，在第一個參數傳入 `initialState`。兩個方法都接受第二個參數 `{ sortHistory: false }`。預設的 `sortHistory: true` 只在 chrono 提供 `compare` 時排序。`numericChrono` 或未提供 `compare` 的自訂 chrono 會保留輸入順序，因此必須自行依時間排列歷史。手動評分會被略過；歷史至少需要一筆非手動複習。
+每個歷史項目都是一對 `{ rating, reviewTime }`，其 `rating` 型別會依排程器的評分方案推導（FSRS 為 `Rating`，自訂模型為其評分聯合型別）。從既有記憶狀態繼續時，在第一個參數傳入 `initialState`。兩個方法都接受第二個參數 `{ sortHistory: false }`。預設的 `sortHistory: true` 只在 chrono 提供 `compare` 時排序。`numericChrono` 或未提供 `compare` 的自訂 chrono 會保留輸入順序，因此必須自行依時間排列歷史。`replay` 與 `reschedule` 都會使用 `scheduler.ratings.ratingSchema` 驗證每筆評分（無效值會擲出 `SRSSchemaError`），並略過 `scheduler.ratings.isManual(rating)` 為 `true` 的項目，例如 FSRS 的 `Rating.Manual`（`0`）或 `-1` 這類自訂手動評分；評分方案不含手動評分時不會略過任何項目。歷史至少需要一筆非手動複習。
+
+若排程器是聯合型別，歷史紀錄只能使用所有候選排程器都接受的評分。
 
 ## 重新排程
 

@@ -1,9 +1,16 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyModel / AnyModelCore */
 import type { Grade } from '@/primitives/rating.js'
 import type {
+  RatingScale,
+  RatingScaleCertainGradeOf,
+  RatingScaleGradeOf,
+  RatingScaleRatingOf,
+} from '@/primitives/rating-scale.js'
+import type {
   AnyObjectSchema,
   AnySchema,
   BoundsPrefix,
+  FlattenObject,
   IsAny,
   Prettify,
   SchemaInput,
@@ -13,20 +20,26 @@ import type {
 // ==========
 // Model Core
 // ==========
-export interface ModelStepInput<MemoryState extends object> {
+export interface ModelStepInput<
+  MemoryState extends object,
+  G extends number = Grade,
+> {
   readonly memoryState: Readonly<MemoryState> | null
-  readonly rating: Grade
+  readonly rating: G
   readonly elapsedDays: number
   readonly retrievability?: number
 }
 
-export interface ModelReview {
-  readonly rating: Grade
+export interface ModelReview<G extends number = Grade> {
+  readonly rating: G
   readonly deltaT: number
 }
 
-export interface ModelForwardInput<MemoryState extends object> {
-  readonly history: readonly ModelReview[]
+export interface ModelForwardInput<
+  MemoryState extends object,
+  G extends number = Grade,
+> {
+  readonly history: readonly ModelReview<G>[]
   readonly initialState?: Readonly<MemoryState> | null
 }
 
@@ -51,6 +64,8 @@ export type BlankModelCoreEnv = {
    * typed array with one fixed-width row per review, in history order.
    */
   readonly forwardResult?: unknown
+  /** Grades accepted by `step` and `forward`; omitted for the default `Grade`. */
+  readonly grade?: number
 }
 
 type ModelCoreConfig<Env extends BlankModelCoreEnv> = Env extends {
@@ -67,12 +82,19 @@ type ModelForwardResult<Env extends BlankModelCoreEnv> =
       ? Result
       : readonly Env['memoryState'][]
 
+type ModelCoreGrade<Env extends BlankModelCoreEnv> =
+  IsAny<Env> extends true
+    ? any
+    : Env extends { readonly grade: infer G extends number }
+      ? G
+      : Grade
+
 export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
   readonly config: ModelCoreConfig<Env>
   readonly bounds: ModelBounds<Env['memoryState']>
   readonly algorithm: Env['algorithm']
   readonly step: (
-    input: ModelStepInput<Env['memoryState']>
+    input: ModelStepInput<Env['memoryState'], ModelCoreGrade<Env>>
   ) => Env['memoryState']
   readonly nextInterval: (
     memoryState: Readonly<Env['memoryState']>,
@@ -83,7 +105,7 @@ export interface ModelCore<Env extends BlankModelCoreEnv = BlankModelCoreEnv> {
     elapsedDays: number
   ) => number
   readonly forward: (
-    input: ModelForwardInput<Env['memoryState']>
+    input: ModelForwardInput<Env['memoryState'], ModelCoreGrade<Env>>
   ) => ModelForwardResult<Env>
 }
 
@@ -121,17 +143,27 @@ export type ModelCreate<
    * validation, migration, clipping, range checks, and freezing.
    */
   readonly bypass?: boolean
-}) => ModelCore<
-  {
-    readonly config: SchemaOutput<Schema['config']>
-    readonly memoryState: SchemaOutput<Schema['memoryState']>
-    readonly algorithm: Algorithm
-  } & (Schema extends { readonly forwardResult: infer Result }
-    ? // `Model` passes its env as `Schema`, so a declared `forwardResult` carries over.
-      { readonly forwardResult: Result }
-    : // Omitted: ModelForwardResult falls back to memory states, keeping hovers unchanged.
-      unknown)
->
+}) => Schema extends unknown
+  ? ModelCore<
+      {
+        readonly config: SchemaOutput<Schema['config']>
+        readonly memoryState: SchemaOutput<Schema['memoryState']>
+        readonly algorithm: Algorithm
+      } & ModelCreateEnvExtras<Schema>
+    >
+  : never
+
+// `Model` passes its env as `Schema`, so a declared `forwardResult` or
+// `grade` carries over. Omitted keys add nothing, keeping hovers unchanged.
+type ModelCreateEnvExtras<Schema> =
+  IsAny<Schema> extends true
+    ? { readonly grade: any }
+    : (Schema extends { readonly forwardResult: infer Result }
+        ? { readonly forwardResult: Result }
+        : unknown) &
+        (Schema extends { readonly grade: infer G extends number }
+          ? { readonly grade: G }
+          : unknown)
 
 export type BlankModelEnv = {
   readonly name: string | symbol
@@ -139,10 +171,22 @@ export type BlankModelEnv = {
   readonly memoryState: AnyObjectSchema
   readonly algorithm: unknown
   readonly forwardResult?: unknown
+  /** Non-manual rating values; omitted for the default `Grade`. */
+  readonly grade?: number
+  /** Every rating value, manual ones included; set together with `grade`. */
+  readonly rating?: number
 }
+
+type ModelRatings<Env extends BlankModelEnv> =
+  IsAny<Env> extends true
+    ? RatingScale | undefined
+    : Env extends { readonly grade: number }
+      ? RatingScale
+      : undefined
 
 export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
   readonly name: Env['name']
+  readonly ratings?: ModelRatings<Env>
   readonly schema: ModelSchema<Env>
   readonly defaultValue: {
     readonly memoryState: (ctx: {
@@ -154,21 +198,91 @@ export interface Model<Env extends BlankModelEnv = BlankModelEnv> {
 
 export type AnyModel = Model<any>
 
-// `forward` is replaced so `defineModel` can infer `ForwardResult` from `create`.
+type DefineModelGrade<Ratings extends RatingScale | undefined> = [
+  undefined,
+] extends [Ratings]
+  ? Grade
+  : RatingScaleGradeOf<Exclude<Ratings, undefined>>
+
+type RequiredRatingsOfDefinition<Definition> = [Definition] extends [
+  { readonly ratings: infer Scale extends RatingScale },
+]
+  ? Scale
+  : undefined
+
+type DefineModelKeys<Name, Ratings> =
+  | { readonly name: Name; readonly ratings: NonNullable<Ratings> }
+  | ([Ratings] extends [undefined]
+      ? { readonly name: Name; readonly ratings?: undefined }
+      : never)
+
+type DefinedModelRatingsEnv<Scale extends RatingScale> =
+  | {
+      readonly grade: RatingScaleGradeOf<Scale>
+      readonly rating: RatingScaleRatingOf<Scale>
+    }
+  | (number extends RatingScaleGradeOf<Scale>
+      ? never
+      : Exclude<
+            RatingScaleGradeOf<Scale>,
+            RatingScaleCertainGradeOf<Scale>
+          > extends never
+        ? never
+        : {
+            readonly grade: RatingScaleCertainGradeOf<Scale>
+            readonly rating: RatingScaleRatingOf<Scale>
+          })
+
+/**
+ * The env of a `defineModel` result. A custom scale contributes its grade and
+ * rating values; default `forwardResult` and ratings are omitted so hovers and
+ * declarations stay unchanged.
+ */
+type DefinedModelEnv<
+  Name extends string | symbol,
+  ConfigSchema extends AnySchema,
+  MemoryStateSchema extends AnyObjectSchema,
+  Algorithm,
+  ForwardResult,
+  Scale extends RatingScale | undefined,
+> = FlattenObject<
+  {
+    readonly name: Name
+    readonly config: ConfigSchema
+    readonly memoryState: MemoryStateSchema
+    readonly algorithm: Algorithm
+  } & ([ForwardResult] extends [readonly SchemaOutput<MemoryStateSchema>[]]
+    ? unknown
+    : { readonly forwardResult: ForwardResult }) &
+    (Scale extends RatingScale ? DefinedModelRatingsEnv<Scale> : unknown)
+>
+
+// `step` and `forward` are replaced so `defineModel` can infer `ForwardResult`
+// and work with generic `Ratings` parameters without deferred env conditionals.
 type DefineModelCreate<
   Schema extends BlankModelSchema,
   Algorithm,
   ForwardResult,
+  Ratings extends RatingScale | undefined,
 > = (...args: Parameters<ModelCreate<Schema, Algorithm>>) => Omit<
   ModelCore<{
     readonly config: SchemaOutput<Schema['config']>
     readonly memoryState: SchemaOutput<Schema['memoryState']>
     readonly algorithm: Algorithm
   }>,
-  'forward'
+  'step' | 'forward'
 > & {
+  readonly step: (
+    input: ModelStepInput<
+      SchemaOutput<Schema['memoryState']>,
+      DefineModelGrade<Ratings>
+    >
+  ) => SchemaOutput<Schema['memoryState']>
   readonly forward: (
-    input: ModelForwardInput<SchemaOutput<Schema['memoryState']>>
+    input: ModelForwardInput<
+      SchemaOutput<Schema['memoryState']>,
+      DefineModelGrade<Ratings>
+    >
   ) => ForwardResult
 }
 
@@ -178,33 +292,43 @@ export function defineModel<
   const MemoryStateSchema extends AnyObjectSchema,
   const Algorithm,
   ForwardResult = readonly SchemaOutput<MemoryStateSchema>[],
->(definition: {
-  readonly name: Name
-  readonly schema: ModelSchema<{
-    readonly config: ConfigSchema
-    readonly memoryState: MemoryStateSchema
-  }>
-  readonly defaultValue: {
-    readonly memoryState: (ctx: {
-      readonly config: SchemaOutput<ConfigSchema>
-    }) => SchemaInput<MemoryStateSchema>
-  }
-  readonly create: DefineModelCreate<
-    { readonly config: ConfigSchema; readonly memoryState: MemoryStateSchema },
-    Algorithm,
-    ForwardResult
-  >
-}) {
-  type Env = {
+  const Ratings extends RatingScale | undefined = undefined,
+  const Definition extends DefineModelKeys<Name, Ratings> = DefineModelKeys<
+    Name,
+    Ratings
+  >,
+>(
+  definition: Definition & {
     readonly name: Name
-    readonly config: ConfigSchema
-    readonly memoryState: MemoryStateSchema
-    readonly algorithm: Algorithm
+    readonly ratings?: Ratings
+    readonly schema: ModelSchema<{
+      readonly config: ConfigSchema
+      readonly memoryState: MemoryStateSchema
+    }>
+    readonly defaultValue: {
+      readonly memoryState: (ctx: {
+        readonly config: SchemaOutput<ConfigSchema>
+      }) => SchemaInput<MemoryStateSchema>
+    }
+    readonly create: DefineModelCreate<
+      {
+        readonly config: ConfigSchema
+        readonly memoryState: MemoryStateSchema
+      },
+      Algorithm,
+      ForwardResult,
+      Ratings
+    >
   }
-  // Omit the default forward result to keep hovers and declarations unchanged.
-  return definition as unknown as [ForwardResult] extends [
-    readonly SchemaOutput<MemoryStateSchema>[],
-  ]
-    ? Model<Env>
-    : Model<Env & { readonly forwardResult: ForwardResult }>
+) {
+  return definition as unknown as Model<
+    DefinedModelEnv<
+      Name,
+      ConfigSchema,
+      MemoryStateSchema,
+      Algorithm,
+      ForwardResult,
+      RequiredRatingsOfDefinition<Definition>
+    >
+  >
 }

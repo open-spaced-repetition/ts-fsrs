@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { calculateScheduleDay, calculateScheduleDays } from './core.js'
 
+it('rejects an empty list of interval candidates', () => {
+  expect(() => calculateScheduleDay([], 100)).toThrow(RangeError)
+})
+
 describe('calculateScheduleDays', () => {
   it('keeps the first interval and advances each later rating', () => {
     expect(calculateScheduleDays([4], 100)).toEqual([4])

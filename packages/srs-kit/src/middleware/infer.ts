@@ -1,7 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: type-level widening for AnyMiddleware */
 
-import type { Grade } from '@/primitives/rating.js'
-import type { State } from '@/primitives/state.js'
+import type {
+  SchedulerCoreFields,
+  SchedulerRevlogCoreFields,
+} from '@/scheduler/fields.js'
 import type {
   AnyObjectSchema,
   AnySchema,
@@ -49,16 +51,6 @@ export type MiddlewareCardInitInputOf<
 > = MiddlewareSchemaResolveOf<Env, 'cardInitInput', AnyObjectSchema, Mode>
 
 export type MiddlewareRuntimeConfig = Readonly<Record<PropertyKey, unknown>>
-
-type SchedulerCoreFields<ScheduleStatus extends string = string> = {
-  readonly state: State
-  readonly scheduleStatus: ScheduleStatus
-}
-
-type SchedulerRevlogCoreFields<ScheduleStatus extends string = string> =
-  SchedulerCoreFields<ScheduleStatus> & {
-    readonly rating: Grade
-  }
 
 export type MiddlewareContextConfig<Env extends MiddlewareEnv> =
   MiddlewareRuntimeConfig &

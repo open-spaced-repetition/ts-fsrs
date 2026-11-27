@@ -1,8 +1,11 @@
 import type {
   AnySchedulerCore,
   ForwardItem,
+  Grade,
+  IsSameType,
   Prettify,
   Rating,
+  SchemaInput,
 } from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
@@ -23,27 +26,49 @@ export type CardOf<Scheduler extends AnySchedulerCore> = Parameters<
   Scheduler['review']
 >[0]['card']
 
+export type RatingOf<Scheduler extends AnySchedulerCore> = SchemaInput<
+  Scheduler['ratings']['ratingSchema']
+>
+
+export type GradeOf<Scheduler extends AnySchedulerCore> =
+  Scheduler['ratings']['grades'][number]
+
 export type ScheduleResultOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['forward']
 >[number]
+
+// The default branch spells out `Rating` so hovers keep the alias name.
+type RescheduleRatingField<R extends number> =
+  IsSameType<R, Rating> extends true
+    ? { readonly rating: Rating }
+    : { readonly rating: R }
 
 /**
  * A review the scheduler can replay, widened to accept manual ratings so they
  * can be filtered out instead of rejected.
  */
-export type RescheduleReview<Time> = Omit<ForwardItem<Time>, 'rating'> & {
-  readonly rating: Rating
-}
+export type RescheduleReview<Time, R extends number = Rating> = Omit<
+  ForwardItem<Time>,
+  'rating'
+> &
+  RescheduleRatingField<R>
 
-export type NonManualReview<Time> = ForwardItem<Time>
+export type NonManualReview<Time, G extends number = Grade> = ForwardItem<
+  Time,
+  G
+>
 
-export interface ReplayInput<MemoryState extends object, Time> {
-  readonly history: readonly RescheduleReview<Time>[]
+export interface ReplayInput<
+  MemoryState extends object,
+  Time,
+  R extends number = Rating,
+> {
+  readonly history: readonly RescheduleReview<Time, R>[]
   readonly initialState?: Readonly<MemoryState> | null
 }
 
-export interface RescheduleInput<Card, Time> {
-  readonly history: readonly RescheduleReview<Time>[]
+export interface RescheduleInput<Card, Time, R extends number = Rating> {
+  readonly history: readonly RescheduleReview<Time, R>[]
   readonly initialCard?: Card
 }
 

@@ -3,13 +3,15 @@
 import type { AnyChrono, AnyChronoCore } from '@/chrono/chrono.js'
 import type { AnyMiddleware } from '@/middleware/index.js'
 import type { AnyModel, AnyModelCore } from '@/model/model.js'
-import type { Grade } from '@/primitives/rating.js'
+import type { Grade, Rating } from '@/primitives/rating.js'
 import type {
   AnyObjectSchema,
   AnySchema,
   Assign,
   EmptyPart,
-  LazyIterable,
+  FlattenObject,
+  IsAny,
+  IsSameType,
   Mutable,
   Prettify,
   SchemaInput,
@@ -17,28 +19,78 @@ import type {
   SRSSchema,
 } from '@/schema/index.js'
 import type {
+  PreviewResult as DefaultPreviewResult,
+  ScheduleResult,
   SchedulerCoreFields,
   SchedulerRevlogCoreFields,
 } from './fields.js'
 import type { ExtendSchedulerEnv } from './infer.js'
+import type { PreviewResult as GradedPreviewResult } from './preview-result.js'
+import type { SchedulerRatings } from './ratings.js'
 
 // ==========
 // Schedule Result
 // ==========
 
-export type ScheduleResult<Card, Revlog> = Prettify<{
-  card: { -readonly [Key in keyof Card]: Card[Key] }
-  revlog: { -readonly [Key in keyof Revlog]: Revlog[Key] }
-}>
+export type PreviewResult<
+  Env extends { card: object; revlog: object },
+  G extends number = Grade,
+> =
+  IsSameType<G, Grade> extends true
+    ? DefaultPreviewResult<Env>
+    : GradedPreviewResult<Env, G>
 
-export type PreviewItem<Card, Revlog> = Prettify<{
-  card: ScheduleResult<Card, Revlog>['card']
-  revlog: ScheduleResult<Card, Revlog>['revlog']
-  readonly grade: Grade
-}>
+// ==========
+// Rating Scale Env Helpers
+// ==========
 
-export interface PreviewResult<Env extends { card: object; revlog: object }>
-  extends LazyIterable<PreviewItem<Env['card'], Env['revlog']>> {}
+/** Rating values a scheduler env may carry; omitted for the default scale. */
+type SchedulerRatingsEnv = {
+  readonly grade?: number
+  readonly rating?: number
+  readonly preview?: number
+}
+
+type SchedulerEnvValue<
+  Env extends SchedulerRatingsEnv,
+  Key extends keyof SchedulerRatingsEnv,
+  Default,
+> =
+  IsAny<Env> extends true
+    ? number
+    : [Env] extends [{ readonly [K in Key]: infer Value extends number }]
+      ? Value
+      : Default
+
+export type SchedulerEnvGrade<Env extends SchedulerRatingsEnv> =
+  SchedulerEnvValue<Env, 'grade', Grade>
+
+type SchedulerEnvRating<Env extends SchedulerRatingsEnv> = SchedulerEnvValue<
+  Env,
+  'rating',
+  Rating
+>
+
+type SchedulerEnvPreviewGrade<Env extends SchedulerRatingsEnv> =
+  SchedulerEnvValue<Env, 'preview', SchedulerEnvGrade<Env>>
+
+export type SchedulerCoreInputGrade<Env extends BlankSchedulerCoreEnv> =
+  IsAny<Env> extends true ? any : SchedulerEnvGrade<Env>
+
+type CarryRatingsKey<
+  Env extends SchedulerRatingsEnv,
+  Key extends keyof SchedulerRatingsEnv,
+> = [Env] extends [{ readonly [K in Key]: infer Value extends number }]
+  ? { readonly [K in Key]: Value }
+  : unknown
+
+/** Keeps the env's rating values when middleware extends it. */
+export type CarrySchedulerRatingsEnv<Env extends SchedulerRatingsEnv> =
+  Env extends unknown
+    ? CarryRatingsKey<Env, 'grade'> &
+        CarryRatingsKey<Env, 'rating'> &
+        CarryRatingsKey<Env, 'preview'>
+    : never
 
 // ==========
 // Scheduler Core
@@ -57,6 +109,9 @@ export type BlankSchedulerCoreEnv = {
   }
   readonly chrono: unknown
   readonly scheduleStatus: string
+  readonly grade?: number
+  readonly rating?: number
+  readonly preview?: number
 }
 
 type SchedulerCoreCardInitInput<Env extends BlankSchedulerCoreEnv> =
@@ -67,7 +122,7 @@ type SchedulerCoreCardInitInput<Env extends BlankSchedulerCoreEnv> =
     : { readonly now?: Env['chrono'] }
 
 export type SchedulerNewCardOptions<Env extends BlankSchedulerCoreEnv> =
-  Prettify<SchedulerCoreCardInitInput<Env>>
+  FlattenObject<SchedulerCoreCardInitInput<Env>>
 
 // Keep the mapped option and return types inline so QuickInfo expands them.
 export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
@@ -89,19 +144,20 @@ export type SchedulerNewCardFn<Env extends BlankSchedulerCoreEnv> =
         }
     : never
 
-export interface ForwardItem<Time> {
-  readonly rating: Grade
+export interface ForwardItem<Time, G extends number = Grade> {
+  readonly rating: G
   readonly reviewTime: Time
 }
 
-export interface SchedulerForwardInput<Time, Card> {
-  readonly history: readonly ForwardItem<Time>[]
+export interface SchedulerForwardInput<Time, Card, G extends number = Grade> {
+  /** Keep the array and its entries unchanged until forward() returns, including in model and middleware callbacks. */
+  readonly history: readonly ForwardItem<Time, G>[]
   readonly initialCard?: Card
 }
 
-export interface SchedulerNextIntervalContext<Card> {
+export interface SchedulerNextIntervalContext<Card, G extends number = Grade> {
   readonly card: Card
-  readonly grade: Grade
+  readonly grade: G
   readonly elapsedDays: number
 }
 
@@ -121,10 +177,19 @@ export interface SchedulerCore<
   readonly model: M
   readonly chrono: C
   readonly definition: SchedulerDefinition
+  readonly ratings: SchedulerRatings<
+    SchedulerEnvGrade<Env>,
+    SchedulerEnvRating<Env>,
+    SchedulerEnvPreviewGrade<Env>
+  >
   readonly config: Readonly<Env['config']>
   readonly newCard: SchedulerNewCardFn<Env>
   readonly forward: (
-    input: SchedulerForwardInput<Env['chrono'], Env['card']['input']>
+    input: SchedulerForwardInput<
+      Env['chrono'],
+      Env['card']['input'],
+      SchedulerCoreInputGrade<Env>
+    >
   ) => ScheduleResult<Env['card']['output'], Env['revlog']['output']>[]
   readonly forget: (input: {
     readonly card: Env['card']['input']
@@ -139,18 +204,22 @@ export interface SchedulerCore<
   readonly nextInterval: (
     memoryState: Parameters<M['nextInterval']>[0],
     desiredRetention: number,
-    context: SchedulerNextIntervalContext<Env['card']['input']>
+    context: SchedulerNextIntervalContext<
+      Env['card']['input'],
+      SchedulerCoreInputGrade<Env>
+    >
   ) => number
   readonly review: (input: {
     readonly card: Env['card']['input']
-    readonly grade: Grade
+    readonly grade: SchedulerCoreInputGrade<Env>
     readonly now?: Env['chrono']
   }) => ScheduleResult<Env['card']['output'], Env['revlog']['output']>
   readonly preview: (input: {
     readonly card: Env['card']['input']
     readonly now?: Env['chrono']
   }) => PreviewResult<
-    ScheduleResult<Env['card']['output'], Env['revlog']['output']>
+    ScheduleResult<Env['card']['output'], Env['revlog']['output']>,
+    SchedulerEnvPreviewGrade<Env>
   >
   readonly rollback: (input: {
     readonly card: Env['card']['output']
@@ -191,18 +260,21 @@ export type BlankSchedulerEnv = {
   readonly card: AnyObjectSchema
   readonly revlog: AnyObjectSchema
   readonly scheduleStatus: string
+  readonly grade?: number
+  readonly rating?: number
+  readonly preview?: number
 }
 
 type SchedulerCoreFieldSchemaPartFields<
   Env extends BlankSchedulerEnv,
   Key extends 'card' | 'revlog',
   Direction extends 'input' | 'output',
-> = Prettify<
+> = FlattenObject<
   Assign<
     Direction extends 'input' ? SchemaInput<Env[Key]> : SchemaOutput<Env[Key]>,
     Key extends 'card'
       ? SchedulerCoreFields<Env['scheduleStatus']>
-      : SchedulerRevlogCoreFields<Env['scheduleStatus']>
+      : SchedulerRevlogCoreFields<Env['scheduleStatus'], SchedulerEnvGrade<Env>>
   >
 >
 
@@ -210,7 +282,7 @@ type SchedulerCoreFieldSchemaPart<
   Env extends BlankSchedulerEnv,
   Key extends 'card' | 'revlog',
   Direction extends 'input' | 'output',
-> = Prettify<
+> = FlattenObject<
   Direction extends 'input'
     ? Readonly<SchedulerCoreFieldSchemaPartFields<Env, Key, Direction>>
     : Mutable<SchedulerCoreFieldSchemaPartFields<Env, Key, Direction>>
@@ -236,7 +308,12 @@ export type SchedulerUseFn<
   C extends AnyChrono = AnyChrono,
 > = <const AddedMWs extends readonly AnyMiddleware[]>(
   ...middlewares: AddedMWs
-) => CustomScheduler<Name, Prettify<ExtendSchedulerEnv<Env, AddedMWs>>, M, C>
+) => CustomScheduler<
+  Name,
+  FlattenObject<ExtendSchedulerEnv<Env, AddedMWs>>,
+  M,
+  C
+>
 
 export type SchedulerCoreEnv<Env extends BlankSchedulerEnv> = {
   readonly config: SchemaOutput<Env['config']>
@@ -280,11 +357,13 @@ export type SchedulerCreate<
   C extends AnyChrono = AnyChrono,
 > = (ctx: {
   readonly config: SchemaInput<Env['config']>
-}) => SchedulerCore<
-  Prettify<SchedulerCoreEnv<Env>>,
-  ReturnType<M['create']>,
-  ReturnType<C['create']>
->
+}) => Env extends BlankSchedulerEnv
+  ? SchedulerCore<
+      FlattenObject<SchedulerCoreEnv<Env> & CarrySchedulerRatingsEnv<Env>>,
+      ReturnType<M['create']>,
+      ReturnType<C['create']>
+    >
+  : never
 
 /**
  * Scheduler definition that can be extended into independent middleware

@@ -1,6 +1,6 @@
 ---
 title: MonotonicInterval
-description: 組み込みミドルウェア schedulerMonotonicIntervalMiddleware——評価間で間隔を順序付ける
+description: 組み込みミドルウェア schedulerMonotonicIntervalMiddleware——モデルのレーティングスケール全体で間隔を単調に保つ
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -14,7 +14,7 @@ import monotonicCode from '@/snippets/run-code/api/ts-fsrs/middlewares/monotonic
 import { schedulerMonotonicIntervalMiddleware } from 'ts-fsrs/middlewares'
 ```
 
-これは 4 つの評価にわたってスケジュールされる間隔を順序付け、難しい評価が易しい評価より後の日時に予定されないようにします（`maximumInterval` の範囲内で）。低い評価の間隔が 1 日以上になると、それ以降の 1 日以上の間隔は直前の評価より少なくとも 1 日長くなり、1 日未満の間隔は直前の評価の間隔まで引き上げられます。低い評価がすべて 1 日未満の間は間隔が減らず、直前の評価と同じ秒になる評価は 1 秒後に予定されます。
+スケール内の全グレードを昇順に処理し、間隔が減少しないようにします。難しいグレードが易しいグレードより後に予定されることはありません。1 日以上の結果が出た後は、後続する 1 日以上の非忘却候補は前の結果より少なくとも 1 日長くなり、1 日未満の候補は前の結果を保ちます。連続する忘却グレードや `maximumInterval` の上限に達したグレードは同じ間隔になることがあります。1 日以上の結果が出るまでは、秒単位に丸めて前の候補以上で、かつ前の結果と同じ秒になる非忘却候補を 1 秒後にずらします。0 日の間隔は同じ値になる場合があります。
 
 ```ts twoslash file="../../../../snippets/run-code/api/ts-fsrs/middlewares/monotonic-interval.ts"
 ```

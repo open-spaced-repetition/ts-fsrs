@@ -10,21 +10,24 @@ description: defineScheduler 的參考——從模型與 chrono 組成可重用�
 **簽章**
 
 ```ts
-defineScheduler({ model, chrono }): CustomScheduler
+defineScheduler({ model, chrono, preview? }): CustomScheduler
 ```
 
 **參數**
 
 | 參數 | 型別 | 備註 |
 | --- | --- | --- |
-| `model` | `Model` | 負責記憶狀態更新與間隔計算，例如 `FSRS6Model`。 |
+| `model` | `Model` | 負責記憶狀態更新、間隔計算及選用的 `ratings` 評分方案，例如 `FSRS6Model`。 |
 | `chrono` | `Chrono` | 負責時間表示與天數運算。 |
+| `preview` | `{ grades: readonly G[] }` | 選用的非空評分子集。`preview()` 只會依數值升冪計算並產生該子集中的評分，並收窄產出項的 `grade` 型別，但不會收窄 `review()`。若 `model` 是聯合型別，`preview.grades` 和 `review()` 只接受所有候選模型共有的非手動評分。 |
+
+`defineScheduler` 會在定義時驗證模型的評分方案（所有項目的值皆為有限數字且互不重複、不能同時為 `manual` 與 `lapse`、至少有一個非遺忘評分、且每個遺忘評分嚴格小於所有非遺忘評分），並驗證 `preview.grades` 非空且僅包含該評分方案中的非手動評分。
 
 **回傳** — 一個可重用的定義，帶有兩個方法：
 
 ```ts
-definition.use(...middleware): CustomScheduler   // new definition; original unchanged
-definition.create({ config }): SchedulerCore          // validates config, independent instance
+definition.use(...middleware): CustomScheduler   // 回傳新定義，原定義不變
+definition.create({ config }): SchedulerCore     // 驗證設定，回傳獨立實例
 ```
 
 **另見** — [排程器指南](../../../guide/scheduler)（定義與實例模型）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

@@ -1,8 +1,4 @@
-import {
-  defineMiddleware,
-  Rating,
-  State,
-} from '@open-spaced-repetition/srs-kit'
+import { defineMiddleware, State } from '@open-spaced-repetition/srs-kit'
 import { leechCardFieldsSchema, leechConfigSchema } from './schema.js'
 
 /** Register before middleware that writes scheduleStatus after next(). */
@@ -29,7 +25,8 @@ export const schedulerLeechMiddleware = defineMiddleware({
       const card = ctx.input.card
       const previousState = card.state
       const isLapse =
-        previousState === State.Review && ctx.input.grade === Rating.Again
+        previousState === State.Review &&
+        ctx.instance.ratings.isLapse(ctx.input.grade)
 
       ctx.result.card.lapses ??= isLapse ? card.lapses + 1 : card.lapses
       const { lapses } = ctx.result.card
@@ -44,7 +41,8 @@ export const schedulerLeechMiddleware = defineMiddleware({
       const card = ctx.input.card
       const revlog = ctx.input.revlog
       const isLapse =
-        revlog.rating === Rating.Again && revlog.state === State.Review
+        revlog.state === State.Review &&
+        ctx.instance.ratings.isLapse(revlog.rating)
       ctx.result.card.lapses ??= Math.max(0, card.lapses - (isLapse ? 1 : 0))
     },
   },

@@ -1,4 +1,7 @@
-export { schedulerDesiredRetentionMiddleware } from './middleware.js'
+export {
+  createSchedulerDesiredRetentionMiddleware,
+  schedulerDesiredRetentionMiddleware,
+} from './middleware.js'
 export {
   type DesiredRetentionConfig,
   type DesiredRetentionConfigInput,

@@ -63,7 +63,7 @@ Hard 步驟間隔為前兩個步驟時長的平均值；只有一個步驟時，
 `DefaultScheduler` 自動註冊 `schedulerLearningStepsMiddleware`，且 `enableShortTerm` 預設為 `true`，FSRS-7 也一樣。對於 FSRS-7，此開關控制顯式 `learningSteps` 和 `relearningSteps`，不關閉模型內在的短期記憶，也不控制依間隔進行的狀態映射。即使 `enableShortTerm: false`，模型間隔小於 `graduatingInterval` 時仍會進入 `Learning` 或 `Relearning`。使用 `defineScheduler` 時，需註冊 `.use(schedulerLearningStepsMiddleware)` 才會套用此狀態映射；只組合 FSRS-7 模型而未註冊此中介軟體時，即使排程間隔小於一天，`state` 仍為 `Review`，`scheduleStatus` 仍為 `review`。模型負責記憶狀態和間隔計算，學習狀態轉換由中介軟體負責。如果要讓 FSRS-7 排程後顯示 `Learning`/`Relearning`，請掛載 `schedulerLearningStepsMiddleware`，或自行實作負責狀態轉換的 middleware。
 :::
 
-`Rating.Manual` 不是複習評分。呼叫 `review()` 時應傳入 `Again`、`Hard`、`Good` 或 `Easy`。
+使用預設評分方案時，向 `review()` 傳入 `Again`、`Hard`、`Good` 或 `Easy`。使用自訂評分方案時，傳入 `scheduler.ratings.grades` 中的值；手動評分會被拒絕。
 
 ## 執行狀態轉換
 

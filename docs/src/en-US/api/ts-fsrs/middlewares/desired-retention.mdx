@@ -1,6 +1,6 @@
 ---
 title: DesiredRetention
-description: Built-in middleware schedulerDesiredRetentionMiddleware — applies the desired retention target before interval calculation
+description: Built-in middleware schedulerDesiredRetentionMiddleware — applies desired retention before interval calculation for the default FSRS scale
 ---
 
 import RunCode from '../../../../components/RunCode'
@@ -25,6 +25,6 @@ Running the same review at `0.9` and `0.8` retention schedules the due time six 
 
 **See** — [Built-in policies](../../../guide/middleware/built-in).
 
-`desiredRetention` accepts a finite number in the range of `(0, 1)` or a record keyed by all four grades. The `nextInterval` handler writes the candidate retention map; an explicit retention in a standalone query takes precedence.
+`desiredRetention` accepts a finite number in `(0, 1)` or a record keyed by the four default FSRS grades. For a custom scale, use `createSchedulerDesiredRetentionMiddleware(scale)`; the `desiredRetention` option of the returned middleware accepts a finite number in `(0, 1)` or a record keyed by that scale's grades. The `nextInterval` handler writes the candidate retention map; an explicit retention in a standalone query takes precedence.
 
-Cost ADR adjusts retention from memory state and review cost. Use `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.
+Cost ADR adjusts retention from memory state and review cost for the default FSRS scale. Use `schedulerCostAdrMiddleware` instead of `schedulerDesiredRetentionMiddleware`; it is not included in `DefaultScheduler`. Interval caps still belong to `schedulerMaximumIntervalMiddleware`.

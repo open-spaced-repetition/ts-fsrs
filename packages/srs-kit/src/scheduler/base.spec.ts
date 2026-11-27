@@ -1342,7 +1342,7 @@ describe('SchedulerCore.forward', () => {
     })
 
     expect(cardValidate).toHaveBeenCalledTimes(4)
-    expect(gradeValidate).toHaveBeenCalledTimes(3)
+    expect(gradeValidate).toHaveBeenCalledTimes(6)
     cardValidate.mockRestore()
     gradeValidate.mockRestore()
   })

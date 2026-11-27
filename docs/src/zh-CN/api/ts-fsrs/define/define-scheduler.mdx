@@ -10,21 +10,24 @@ description: defineScheduler 参考 —— 用模型与 chrono 组合出可复�
 **签名**
 
 ```ts
-defineScheduler({ model, chrono }): CustomScheduler
+defineScheduler({ model, chrono, preview? }): CustomScheduler
 ```
 
 **参数**
 
 | 参数 | 类型 | 说明 |
 | --- | --- | --- |
-| `model` | `Model` | 负责记忆状态更新与间隔计算，例如 `FSRS6Model`。 |
+| `model` | `Model` | 负责记忆状态更新、间隔计算及可选的 `ratings` 评分方案，例如 `FSRS6Model`。 |
 | `chrono` | `Chrono` | 负责时间表示与天数运算。 |
+| `preview` | `{ grades: readonly G[] }` | 可选的非空评分子集。`preview()` 仅按数值升序计算并产出该子集中的评分，并收窄产出项的 `grade` 类型，但不会收窄 `review()`。如果 `model` 是联合类型，`preview.grades` 和 `review()` 只接受所有候选模型共有的非手动评分。 |
+
+`defineScheduler` 会在定义时校验模型的评分方案（所有条目的值均为有限数字且互不重复、不能同时为 `manual` 与 `lapse`、至少有一个非遗忘评分、且每个遗忘评分严格小于所有非遗忘评分），并校验 `preview.grades` 非空且仅包含该评分方案中的非手动评分。
 
 **返回** —— 一个带两个方法的可复用定义：
 
 ```ts
-definition.use(...middleware): CustomScheduler   // new definition; original unchanged
-definition.create({ config }): SchedulerCore          // validates config, independent instance
+definition.use(...middleware): CustomScheduler   // 返回新定义，原定义不变
+definition.create({ config }): SchedulerCore     // 校验配置，返回独立实例
 ```
 
 **另见** —— [调度器概览](../../../guide/scheduler)（定义与实例模型）、[defineModel](./define-model)、[defineChrono](./define-chrono)。

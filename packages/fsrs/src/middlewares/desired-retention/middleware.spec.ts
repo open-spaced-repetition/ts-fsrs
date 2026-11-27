@@ -149,6 +149,7 @@ describe('schedulerDesiredRetentionMiddleware', () => {
 
   it('injects every grade while preserving the candidate record identity', () => {
     const ctx = {
+      instance: { ratings: { grades } },
       config: desiredRetentionConfigSchema.parse({ desiredRetention: 0.9 }),
       input: { grade: Rating.Good },
       candidate: {

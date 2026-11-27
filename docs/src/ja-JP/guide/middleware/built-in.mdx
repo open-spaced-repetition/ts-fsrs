@@ -9,15 +9,25 @@ description: ts-fsrs に同梱されるミドルウェアポリシーと、Defau
 
 | ミドルウェア | 動作 |
 | --- | --- |
-| `schedulerDesiredRetentionMiddleware` | 間隔の計算前に設定の `desiredRetention` を適用します。範囲は `(0, 1)` です。 |
-| `schedulerLearningStepsMiddleware` | `enableShortTerm` が有効な場合に明示的な `learningSteps` と `relearningSteps` を適用し、`learningStep` を管理します。この設定にかかわらず、モデルによる間隔も含め、最終間隔が `graduatingInterval`（既定 1 日）未満なら `Learning`/`Relearning` に割り当てます。ステップを設定している場合、卒業と `Review` のカードの Hard、Good、Easy は少なくとも `graduatingInterval` を使い、`allowModelOverride` はより長いモデル間隔を現在のステップの代わりに使います。 |
+| `schedulerDesiredRetentionMiddleware` | 既定の FSRS スケール向けに、間隔の計算前に設定の `desiredRetention` を適用します。範囲は `(0, 1)` です。カスタムスケールには `createSchedulerDesiredRetentionMiddleware(scale)` を使用します。 |
+| `schedulerLearningStepsMiddleware` | `enableShortTerm` が有効な場合に明示的な `learningSteps` と `relearningSteps` を適用し、`learningStep` を管理します。追加パラメータなしで `scheduler.ratings` から各グレードの学習ステップ上の役割を導出します（すべての忘却グレードを Again、非忘却グレード昇順 `p1..pn` で `n >= 2` のとき `pn` を Easy、`p(n-1)`（`n = 1` なら `p1`）を Good、残りを Hard）。`enableShortTerm` にかかわらず、モデルによる間隔も含め、最終間隔が `graduatingInterval`（既定 1 日）未満なら `Learning`/`Relearning` に割り当てます。`enableShortTerm` が有効で現在の状態にステップが設定されている場合、対応するステップがない非忘却グレードは少なくとも `graduatingInterval` を使います。ステップがあるグレードはそのステップを使い、`allowModelOverride` が有効でモデル間隔の方が長ければモデル間隔を使います（忘却グレードでは `graduatingInterval` が上限）。 |
 | `schedulerFuzzingMiddleware` | `enableFuzz` が有効な場合に間隔を分散します。`cardId` と復習回数を使うため結果を再現できます。`createSchedulerFuzzingMiddleware()` で範囲や乱数生成器を指定できます。 |
 | `schedulerMaximumIntervalMiddleware` | 日単位の間隔を `maximumInterval` 以下に制限します。呼び出しから戻る際、明示的な学習ステップはこの上限を上書きできます。 |
-| `schedulerStatsMiddleware` | `reps` と `lapses` を管理します。リセット時に消去するかは `clearStatsOnForget` で指定します。Review 状態のカードを Again と評価した場合に忘却を一回と数えます。 |
-| `schedulerMonotonicIntervalMiddleware` | `maximumInterval` の範囲内で、評価ごとの日単位の間隔を順序付けます。上限に達すると同じ間隔になることがあります。 |
+| `schedulerStatsMiddleware` | `reps` と `lapses` を管理します。リセット時に消去するかは `clearStatsOnForget` で指定します。Review 状態のカードで `scheduler.ratings.isLapse(grade)` が `true` の場合に忘却を 1 回と数え、ロールバック時に元に戻します。 |
+| `schedulerMonotonicIntervalMiddleware` | スケールの全グレードを昇順に処理し、間隔が減少しないようにします。1 日以上の結果が出た後は、後続する 1 日以上の非忘却候補は前の結果より少なくとも 1 日長くなり、1 日未満の候補は前の結果を保ちます。連続する忘却グレードや `maximumInterval` の上限に達したグレードは同じ間隔になることがあります。1 日以上の結果が出るまでは、秒単位に丸めて前の候補以上で、かつ前の結果と同じ秒になる非忘却候補を 1 秒後にずらします。0 日の間隔は同じ値になる場合があります。 |
 | `schedulerScheduledDaysMiddleware` | 最終間隔を非負の `scheduledDays` としてカードに保存し、変更前の値を revlog に記録します。既定の `fractionalDays: false` では日数を切り捨て、一日未満のステップは `0` になります。`true` では `0.5` などの小数の日数を保持します。 |
-| `schedulerLeechMiddleware` | 忘却回数が正の `leechThreshold` の倍数に達するたびに、`scheduleStatus` を `suspended` にします。デフォルトの閾値 `0` では無効です。カード選択時にこの状態を考慮するのはアプリケーションの役割です。 |
-| `schedulerCostAdrMiddleware` | `costAdrPolicy` と `goalCostWeight` を使い、記憶状態と復習コストに応じて保持率を調整します。スケジューラの構成時は `schedulerDesiredRetentionMiddleware` の代わりに使用し、併用しないでください。 |
+| `schedulerLeechMiddleware` | `scheduler.ratings.isLapse` で数えた忘却回数が正の `leechThreshold` の倍数に達するたびに、`scheduleStatus` を `suspended` にします。デフォルトの閾値 `0` では無効です。カード選択時にこの状態を考慮するのはアプリケーションの役割です。 |
+| `schedulerCostAdrMiddleware` | FSRS 専用（既定スケール）。`costAdrPolicy` と `goalCostWeight` を使い、記憶状態と復習コストに応じて保持率を調整します。スケジューラの構成時は `schedulerDesiredRetentionMiddleware` の代わりに使用し、併用しないでください。 |
+
+## カスタムスケールと `createSchedulerDesiredRetentionMiddleware`
+
+カスタムの `RatingScale` を持つモデルで目標保持率を使う場合は、ファクトリ関数 `createSchedulerDesiredRetentionMiddleware(scale)` を使用します：
+
+```ts
+const myRetentionMiddleware = createSchedulerDesiredRetentionMiddleware(myScale)
+```
+
+返されたミドルウェアの `desiredRetention` 設定は、単一の数値（`create()` 時に `scale` の全グレードへ適用）または `scale` の全グレードを網羅する `Record<G, number>` を受け取ります。グレードのキーが不足している場合や値が `(0, 1)` の範囲外の場合は `create()` がエラーを投げます。`scale` のグレード以外のキー（手動評価を含む）は無視されます。`scale` に含まれないスケジューラのグレードは、スケジューラ既定の保持率のままです。`schedulerDesiredRetentionMiddleware` は `createSchedulerDesiredRetentionMiddleware(defaultRatingScale)` です。
 
 `DefaultScheduler` には最初の七つが含まれています。順序は目標保持率 → fuzzing → 統計 → scheduled days → 学習ステップ → 最大間隔 → 単調間隔です。Leech は独自の定義を組み立てる際に必要に応じて追加します。順序が重要な理由は[ライフサイクル](./lifecycle)、ミドルウェアの実行方法は[概要](./index)を参照してください。
 

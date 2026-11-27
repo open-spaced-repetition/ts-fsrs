@@ -63,7 +63,7 @@ Hard 用の間隔は最初の 2 ステップの平均で、ステップが 1 つ
 `DefaultScheduler` は `schedulerLearningStepsMiddleware` を登録し、FSRS-7 を含め `enableShortTerm` の既定値は `true` です。FSRS-7 では、この設定は明示的な `learningSteps` と `relearningSteps` を制御し、モデル固有の短期記憶や間隔による状態の割り当てを無効にはしません。`enableShortTerm: false` でも、モデルの間隔が `graduatingInterval` 未満なら `Learning` または `Relearning` に入ります。`defineScheduler` でこの状態遷移を使うには `.use(schedulerLearningStepsMiddleware)` を登録してください。FSRS-7 モデルだけを組み合わせ、このミドルウェアを登録しない場合、間隔が 1 日未満でも `state` は `Review`、`scheduleStatus` は `review` のままです。モデルは記憶状態と間隔を計算し、学習状態への遷移はミドルウェアが担当します。FSRS-7 のスケジューリング後に `Learning`/`Relearning` にするには、`schedulerLearningStepsMiddleware` を登録するか、状態遷移を担う独自のミドルウェアを実装してください。
 :::
 
-`Rating.Manual` は復習の評価ではありません。`review()` には `Again`、`Hard`、`Good`、`Easy` のいずれかを渡します。
+既定のスケールでは、`review()` に `Again`、`Hard`、`Good`、`Easy` のいずれかを渡します。カスタムスケールでは `scheduler.ratings.grades` に含まれる値を渡します（手動評価は拒否されます）。
 
 ## 状態遷移を実行する
 

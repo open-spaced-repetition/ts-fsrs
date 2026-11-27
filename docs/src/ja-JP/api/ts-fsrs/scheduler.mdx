@@ -16,12 +16,28 @@ import schedulerCode from '@/snippets/run-code/api/ts-fsrs/scheduler.ts?raw'
 | --- | --- | --- |
 | `newCard` | `newCard(input?)` | デフォルト状態のカード。 |
 | `review` | `review({ card, grade, now? })` | レビューの `{ card, revlog }`。 |
-| `preview` | `preview({ card, now? })` | 4 つのグレードそれぞれに対応する `{ grade, card, revlog }` の遅延イテラブル。 |
+| `forward` | `forward({ history, initialCard? })` | `initialCard`（省略時は最初のレビュー時刻で作成した新しいカード）から `{ rating, reviewTime }` の履歴を順に再生し、履歴 1 件ごとに `{ card, revlog }` を返します。履歴が空なら `[]` を返します。 |
+| `preview` | `preview({ card, now? })` | `scheduler.ratings.preview` の各グレードに対して数値昇順で `{ grade, card, revlog }` を生成する遅延イテラブル（デフォルトでは FSRS の 4 グレード）。 |
 | `rollback` | `rollback({ card, revlog })` | 保存された revlog を使い、レビュー前のカードを復元します。 |
 | `forget` | `forget({ card, now? })` | デフォルト値に基づいてリセットされたカード。 |
 | `nextInterval` | `nextInterval(memoryState, desiredRetention, { card, grade, elapsedDays })` | 計算済みの評価後の記憶状態から `handlers.nextInterval` を通して日数を返します。review ハンドラを実行せず、カードや chrono を進めません。 |
 
-`review` と `preview` は入力カードを決して変更せず、新しいカードを返します。`rollback` はレビューの `{ card, revlog }` を受け取り、レビュー前のカードを復元します。
+`review` と `preview` は入力カードを決して変更せず、新しいカードを返します。`rollback` はレビューの `{ card, revlog }` を受け取り、レビュー前のカードを復元します。`review`・`nextInterval`・`forward`・revlog パースは `scheduler.ratings.gradeSchema` でグレードを検証し（手動評価やスケール外の値では `SRSSchemaError` を投げます）、`forward` は `model.step` を呼ぶ前に全履歴項目の評価を検証します。
+
+`forward()` には `history` を時刻順に渡してください。モデルやミドルウェアのコールバック内も含め、`forward()` が戻るまで配列とその要素を変更しないでください。
+
+## レーティングスケール（`scheduler.ratings`）
+
+すべてのスケジューラインスタンスは凍結された `ratings: SchedulerRatings` を公開します。`defineScheduler` 呼び出しごとに一度だけ計算され、その定義から作られるすべての `create()` と `.use()` 分岐で同一オブジェクトが共有されます：
+
+| メンバー | 意味 |
+| --- | --- |
+| `scale` | モデルの `RatingScale` の凍結コピー。各エントリは `value` と `true` のフラグだけを保持します（`ratings` を省略した場合は `defaultRatingScale` そのもの）。 |
+| `grades` | 数値昇順に並んだ凍結済みの非手動グレード配列。 |
+| `preview` | 数値昇順に並んだ凍結済みのプレビュー対象グレード配列（デフォルトは `grades`）。 |
+| `manual` | 数値昇順に並んだ凍結済みの手動評価配列。 |
+| `gradeSchema` / `ratingSchema` | 非手動グレードおよび手動評価を含む全評価を検証するスキーマ。 |
+| `isLapse(grade)` / `isManual(rating)` | それぞれ忘却グレードか、手動評価かを判定する述語関数。 |
 
 ## カードの状態と scheduleStatus
 
