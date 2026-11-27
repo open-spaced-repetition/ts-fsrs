@@ -6,8 +6,14 @@ import type {
 } from '@open-spaced-repetition/srs-kit'
 
 export type MemoryStateOf<Scheduler extends AnySchedulerCore> = ReturnType<
-  Scheduler['model']['forward']
->[number]
+  Scheduler['model']['step']
+>
+
+/** The model's `forward` result, with array results made mutable. */
+export type MemoryStatesOf<Scheduler extends AnySchedulerCore> =
+  ReturnType<Scheduler['model']['forward']> extends readonly (infer State)[]
+    ? State[]
+    : ReturnType<Scheduler['model']['forward']>
 
 export type TimeOf<Scheduler extends AnySchedulerCore> = ReturnType<
   Scheduler['chrono']['now']
@@ -55,10 +61,25 @@ export interface RescheduleOptions {
   readonly sortHistory?: boolean
 }
 
-export interface ReplayResult<MemoryState extends object> {
+export interface ReplayResult<
+  MemoryState extends object,
+  MemoryStates = MemoryState[],
+> {
   readonly memoryState: MemoryState
-  readonly memoryStates: MemoryState[]
+  readonly memoryStates: MemoryStates
 }
+
+/**
+ * Array results yield their last memory state. Other results are packed typed
+ * arrays with one fixed-width row per review; `memoryState` is a view of the
+ * last row, sharing the buffer of `memoryStates`.
+ */
+export type ReplayResultOf<Scheduler extends AnySchedulerCore> = ReplayResult<
+  MemoryStatesOf<Scheduler> extends readonly unknown[]
+    ? MemoryStateOf<Scheduler>
+    : Extract<MemoryStatesOf<Scheduler>, object>,
+  MemoryStatesOf<Scheduler>
+>
 
 export type RescheduleResult<Scheduler extends AnySchedulerCore> = Prettify<{
   readonly results: Prettify<ScheduleResultOf<Scheduler>>[]
